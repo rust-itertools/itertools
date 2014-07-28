@@ -1,0 +1,8 @@
+[package]
+
+name = "itertools"
+version = "0.0.1"
+authors = ["root <root@localhost>"]
+
+[[test]]
+name = "tests"

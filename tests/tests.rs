@@ -1,0 +1,131 @@
+//! Licensed under the Apache License, Version 2.0
+//! http://www.apache.org/licenses/LICENSE-2.0 or the MIT license
+//! http://opensource.org/licenses/MIT, at your
+//! option. This file may not be copied, modified, or distributed
+//! except according to those terms.
+
+#![feature(phase)]
+
+#[phase(plugin, link)] extern crate itertools;
+
+use std::iter::order;
+use itertools::Itertools;
+use itertools::Stride;
+use itertools::Interleave;
+use itertools::BoxIter;
+
+#[test]
+fn product2() {
+    let s = "αβ";
+
+    let mut prod = iproduct!(s.chars(), range(0, 2i));
+    assert!(prod.next() == Some(('α', 0)));
+    assert!(prod.next() == Some(('α', 1)));
+    assert!(prod.next() == Some(('β', 0)));
+    assert!(prod.next() == Some(('β', 1)));
+    assert!(prod.next() == None);
+}
+
+#[test]
+fn product3() {
+    let mut prod = iproduct!(range(0, 3i), range(0, 2i), range(0, 2i));
+    assert_eq!(prod.size_hint(), (12, Some(12)));
+    let v = prod.collect::<Vec<_>>();
+    for i in range(0,3i) {
+        for j in range(0, 2i) {
+            for k in range(0, 2i) {
+                assert!((i, j, k) == v[(i * 2 * 2 + j * 2 + k) as uint]);
+            }
+        }
+    }
+}
+
+#[test]
+fn fn_map() {
+    let xs = [0, 1, 2i];
+    fn mapper(x: &int) -> String { x.to_string() }
+    let it = xs.iter().fn_map(mapper);
+    let jt = it.clone();
+    assert!(it.zip(jt).all(|(x,y)| x == y));
+}
+
+#[test]
+fn write_to() {
+    let xs = [7i, 9, 8];
+    let mut ys = [0i, ..5];
+    let cnt = xs.iter().map(|x| *x).write_to(ys.mut_iter());
+    assert!(cnt == xs.len());
+    assert!(ys == &[7i, 9, 8, 0, 0]);
+
+    let cnt = range(0,10i).write_to(ys.mut_iter());
+    assert!(cnt == ys.len());
+    assert!(ys == &[0, 1, 2, 3, 4]);
+}
+
+#[test]
+fn stride_uneven() {
+    let xs = [7i, 9, 8];
+    let mut it = Stride::from_slice(xs, 2);
+    assert!(it.size_hint() == (2, Some(2)));
+    assert!(*it.next().unwrap() == 7);
+    assert!(*it.next().unwrap() == 8);
+    assert!(it.next().is_none());
+
+    let xs = [7i, 9, 8, 10];
+    let mut it = Stride::from_slice(xs.slice_from(1), 2);
+    assert!(it.size_hint() == (2, Some(2)));
+    assert!(*it.next().unwrap() == 9);
+    assert!(*it.next().unwrap() == 10);
+    assert!(it.next().is_none());
+}
+
+#[test]
+fn stride() {
+    let xs: [u8, ..0]  = [];
+    let mut it = Stride::from_slice(xs, 1);
+    assert!(it.size_hint() == (0, Some(0)));
+    assert!(it.next().is_none());
+
+    let xs = [7i, 9, 8, 10];
+    let mut it = Stride::from_slice(xs, 2);
+    assert!(it.size_hint() == (2, Some(2)));
+    assert!(*it.next().unwrap() == 7);
+    assert!(*it.next().unwrap() == 8);
+    assert!(it.next().is_none());
+
+    let mut it = Stride::from_slice(xs, 2).rev();
+    assert!(it.size_hint() == (2, Some(2)));
+    assert!(*it.next().unwrap() == 8);
+    assert!(*it.next().unwrap() == 7);
+    assert!(it.next().is_none());
+
+    let xs = [7i, 9, 8, 10];
+    let mut it = Stride::from_slice(xs, 1);
+    assert!(it.size_hint() == (4, Some(4)));
+    assert!(*it.next().unwrap() == 7);
+    assert!(*it.next().unwrap() == 9);
+    assert!(*it.next().unwrap() == 8);
+    assert!(*it.next().unwrap() == 10);
+    assert!(it.next().is_none());
+}
+
+#[test]
+fn interleave() {
+    let xs: [u8, ..0]  = [];
+    let ys = [7u8, 9, 8, 10];
+    let zs = [2u8, 77];
+    let it = Interleave::new(xs.iter(), ys.iter());
+    assert!(order::eq(it, ys.iter()));
+
+    let rs = [7u8, 2, 9, 77, 8, 10];
+    let it = Interleave::new(ys.iter(), zs.iter());
+    assert!(order::eq(it, rs.iter()));
+}
+
+#[test]
+fn boxiter() {
+    let ys = vec![1,2,3i];
+    let it = BoxIter::from_iter(ys.move_iter());
+    assert!(it.size_hint().val0() == 3);
+    assert!(order::eq(it, range(1i, 4)));
+}
