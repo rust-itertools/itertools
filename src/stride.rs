@@ -148,3 +148,11 @@ impl<'a, T: fmt::Show> fmt::Show for Stride<'a, T>
         res.and(write!(f, "]"))
     }
 }
+
+impl<'a, T> Clone for Stride<'a, T>
+{
+    fn clone(&self) -> Stride<'a, T>
+    {
+        *self
+    }
+}

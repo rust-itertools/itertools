@@ -8,6 +8,7 @@ use std::num::Saturating;
 
 /// Alternate elements from two iterators until both
 /// are run out
+#[deriving(Clone)]
 pub struct Interleave<I, J> {
     a: I,
     b: J,
@@ -76,7 +77,7 @@ for FnMap<A, B, I>
     }
 }
 
-impl<A, B, I: Clone + Iterator<A>> Clone for FnMap<A, B, I>
+impl<A, B, I: Clone> Clone for FnMap<A, B, I>
 {
     fn clone(&self) -> FnMap<A, B, I> {
         FnMap::new(self.iter.clone(), self.map)
