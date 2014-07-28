@@ -2,6 +2,10 @@
 Itertools — extra iterator adaptors, functions and macros
 =========================================================
 
+Please read the `API documentation here`__
+
+__ http://bluss.github.io/rust-itertools/
+
 To use the macros in this crate, use the phase(plugin) attribute::
 
     #![feature(phase)]
