@@ -33,9 +33,12 @@ pub use adaptors::PutBack;
 pub use adaptors::FnMap;
 pub use boxiter::BoxIter;
 pub use stride::Stride;
+pub use times::Times;
+pub use times::times;
 mod adaptors;
 mod boxiter;
 mod stride;
+mod times;
 
 /// A trait for (x,y,z) ++ w => (x,y,z,w)
 trait AppendTuple<X, Y> {
