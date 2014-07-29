@@ -8,6 +8,8 @@ use std::num::Saturating;
 
 /// Alternate elements from two iterators until both
 /// are run out
+///
+/// Iterator element type is `A` if `I: Iterator<A>`
 #[deriving(Clone)]
 pub struct Interleave<I, J> {
     a: I,
@@ -43,7 +45,9 @@ impl<A, I: Iterator<A>, J: Iterator<A>> Iterator<A> for Interleave<I, J> {
 /// Clonable iterator adaptor to map elementwise
 /// from `Iterator<A>` to `Iterator<B>`
 ///
-/// Created with the `.fn_map(..)` method on an iterator
+/// Created with `.static_map(..)` on an iterator
+///
+/// Iterator element type is `B`
 pub struct FnMap<A, B, I> {
     map: fn(A) -> B,
     iter: I,
@@ -86,16 +90,18 @@ impl<A, B, I: Clone> Clone for FnMap<A, B, I>
 
 /// An iterator adaptor that allows putting back a single
 /// item to the front of the iterator.
+///
+/// Iterator element type is `A`
 #[deriving(Clone)]
-pub struct PutBack<A, T> {
+pub struct PutBack<A, I> {
     top: Option<A>,
-    iter: T
+    iter: I
 }
 
-impl<A, T> PutBack<A, T> {
-    ///
+impl<A, I> PutBack<A, I> {
+    /// Iterator element type is `A`
     #[inline]
-    pub fn new(it: T) -> PutBack<A, T> {
+    pub fn new(it: I) -> PutBack<A, I> {
         PutBack{top: None, iter: it}
     }
 
@@ -108,7 +114,7 @@ impl<A, T> PutBack<A, T> {
     }
 }
 
-impl<A, T: Iterator<A>> Iterator<A> for PutBack<A, T> {
+impl<A, I: Iterator<A>> Iterator<A> for PutBack<A, I> {
     #[inline]
     fn next(&mut self) -> Option<A> {
         match self.top.take() {
@@ -129,6 +135,8 @@ impl<A, T: Iterator<A>> Iterator<A> for PutBack<A, T> {
 
 /// An iterator adaptor that iterates over the cartesian product of
 /// the element sets of two iterators `I` and `J`.
+///
+/// Iterator element type is `(A, B)` if `I: Iterator<A>` and `J: Iterator<B>`
 #[deriving(Clone)]
 pub struct Product<A, I, J> {
     a: I,
@@ -140,6 +148,9 @@ pub struct Product<A, I, J> {
 impl<A: Clone, B, I: Iterator<A>, J: Clone + Iterator<B>>
     Product<A, I, J> 
 {
+    /// Create a new cartesian product iterator
+    ///
+    /// Iterator element type is `(A, B)` if `I: Iterator<A>` and `J: Iterator<B>`
     pub fn new(i: I, j: J) -> Product<A, I, J>
     {
         let mut i = i;

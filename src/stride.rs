@@ -15,17 +15,19 @@ use std::num::Saturating;
 /// (stride) skipped per iteration.
 ///
 /// Does not support zero-sized `T`.
-pub struct Stride<'a, T> {
-    begin: *const T,
+///
+/// Iterator element type is `&'a A`
+pub struct Stride<'a, A> {
+    begin: *const A,
     // Unlike the slice iterator, end is inclusive and the last
     // pointer we will visit. This makes it possible to have
     // safe stride iterators for columns in matrices etc.
-    end: *const T,
+    end: *const A,
     stride: int,
     life: kinds::marker::ContravariantLifetime<'a>,
 }
 
-impl<'a, T> Stride<'a, T>
+impl<'a, A> Stride<'a, A>
 {
     /// Create Stride iterator from a slice and the element step count
     ///
@@ -35,7 +37,7 @@ impl<'a, T> Stride<'a, T>
     /// let xs = [0i, 1, 2, 3, 4, 5];
     /// let mut iter = Stride::from_slice(xs.as_slice(), 2);
     /// ```
-    pub fn from_slice(xs: &'a [T], step: uint) -> Stride<'a, T>
+    pub fn from_slice(xs: &'a [A], step: uint) -> Stride<'a, A>
     {
         assert!(step != 0);
         let mut begin = ptr::null();
@@ -55,7 +57,7 @@ impl<'a, T> Stride<'a, T>
     ///
     /// **Note:** `end` **must** be a whole number of `stride` steps away
     /// from `begin`
-    pub unsafe fn from_ptrs(begin: *const T, end: *const T, stride: int) -> Stride<'a, T>
+    pub unsafe fn from_ptrs(begin: *const A, end: *const A, stride: int) -> Stride<'a, A>
     {
         Stride {
             begin: begin,
@@ -67,16 +69,16 @@ impl<'a, T> Stride<'a, T>
 
 }
 
-impl<'a, T> Iterator<&'a T> for Stride<'a, T>
+impl<'a, A> Iterator<&'a A> for Stride<'a, A>
 {
     #[inline]
-    fn next(&mut self) -> Option<&'a T>
+    fn next(&mut self) -> Option<&'a A>
     {
         if self.begin.is_null() {
             None
         } else {
             unsafe {
-                let elt: &'a T = mem::transmute(self.begin);
+                let elt: &'a A = mem::transmute(self.begin);
                 if self.begin == self.end {
                     self.begin = ptr::null();
                 } else {
@@ -94,23 +96,23 @@ impl<'a, T> Iterator<&'a T> for Stride<'a, T>
             len = 0;
         } else {
             len = (self.end as uint - self.begin as uint) as int / self.stride
-                / mem::size_of::<T>() as int + 1;
+                / mem::size_of::<A>() as int + 1;
         }
 
         (len as uint, Some(len as uint))
     }
 }
 
-impl<'a, T> DoubleEndedIterator<&'a T> for Stride<'a, T>
+impl<'a, A> DoubleEndedIterator<&'a A> for Stride<'a, A>
 {
     #[inline]
-    fn next_back(&mut self) -> Option<&'a T>
+    fn next_back(&mut self) -> Option<&'a A>
     {
         if self.begin.is_null() {
             None
         } else {
             unsafe {
-                let elt: &'a T = mem::transmute(self.end);
+                let elt: &'a A = mem::transmute(self.end);
                 if self.begin == self.end {
                     self.begin = ptr::null();
                 } else {
@@ -122,11 +124,11 @@ impl<'a, T> DoubleEndedIterator<&'a T> for Stride<'a, T>
     }
 }
 
-impl<'a, T> ExactSize<&'a T> for Stride<'a, T> { }
+impl<'a, A> ExactSize<&'a A> for Stride<'a, A> { }
 
-impl<'a, T> Index<uint, T> for Stride<'a, T>
+impl<'a, A> Index<uint, A> for Stride<'a, A>
 {
-    fn index<'b>(&'b self, i: &uint) -> &'b T
+    fn index<'b>(&'b self, i: &uint) -> &'b A
     {
         assert!(*i < self.size_hint().val0());
         unsafe {
@@ -136,7 +138,7 @@ impl<'a, T> Index<uint, T> for Stride<'a, T>
     }
 }
 
-impl<'a, T: fmt::Show> fmt::Show for Stride<'a, T>
+impl<'a, A: fmt::Show> fmt::Show for Stride<'a, A>
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
     {
@@ -152,9 +154,9 @@ impl<'a, T: fmt::Show> fmt::Show for Stride<'a, T>
     }
 }
 
-impl<'a, T> Clone for Stride<'a, T>
+impl<'a, A> Clone for Stride<'a, A>
 {
-    fn clone(&self) -> Stride<'a, T>
+    fn clone(&self) -> Stride<'a, A>
     {
         *self
     }

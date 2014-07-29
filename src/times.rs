@@ -1,6 +1,8 @@
 
 /// Return an iterator with `n` elements, for simple repetition
 /// a particular number of times. The iterator yields a counter.
+///
+/// Iterator element type is `uint`
 #[inline]
 pub fn times(n: uint) -> Times
 {
@@ -10,6 +12,8 @@ pub fn times(n: uint) -> Times
 /// Iterator to repeat a simple number of times
 ///
 /// Created with the `times()` function.
+///
+/// Iterator element type is `uint`
 #[deriving(Clone)]
 pub struct Times {
     i: uint,

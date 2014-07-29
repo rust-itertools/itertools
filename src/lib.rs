@@ -77,6 +77,10 @@ impl_append_tuple!(A, B, C, D, E, F, G, H, I, J, K, L)
 #[macro_export]
 /// Create an iterator over the “cartesian product” of iterators.
 ///
+/// Iterator element type is like `(A, B, ..., E)` if formed
+/// from iterators `(I, J, ..., M)` implementing `I: Iterator<A>`,
+/// `J: Iterator<B>`, ..., `M: Iterator<E>`
+///
 /// ## Example
 ///
 /// ```rust
@@ -123,6 +127,8 @@ pub macro_rules! iproduct(
 /// with the `<pattern>`, and the bound names are used to express the
 /// mapped-to value.
 ///
+/// Iterator element type is the type of `<expression>`
+///
 /// ## Example
 ///
 /// ```rust
@@ -140,28 +146,39 @@ pub macro_rules! icompr(
 
 /// Extra iterator methods for arbitrary iterators
 pub trait Itertools<A> : Iterator<A> {
+    // adaptors
+
     /// Like regular `.map`, but using a simple function pointer instead,
     /// so that the resulting `FnMap` iterator value can be cloned.
+    ///
+    /// Iterator element type is `B`
     fn fn_map<B>(self, map: fn(A) -> B) -> FnMap<A, B, Self> {
         FnMap::new(self, map)
     }
+
+    /// Alternate elements from two iterators until both
+    /// are run out
+    ///
+    /// Iterator element type is `A`
+    fn interleave<J: Iterator<A>>(self, other: J) -> Interleave<Self, J> {
+        Interleave::new(self, other)
+    }
+
+    // non-adaptor methods
 
     /// Run the iterator to the end and consume all its elements
     ///
     /// ## Example
     ///
     /// ```rust
+    /// let mut cnt = 0;
+    /// "hi".chars().map(|c| cnt += 1).drain();
     /// ```
     ///
     fn drain(&mut self) {
         for _ in *self { /* nothing */ }
     }
 
-    /// Alternate elements from two iterators until both
-    /// are run out
-    fn interleave<J: Iterator<A>>(self, other: J) -> Interleave<Self, J> {
-        Interleave::new(self, other)
-    }
 
     /// Assign to each reference in `iter` from this iterator, stopping
     /// at the shortest of the two iterators.

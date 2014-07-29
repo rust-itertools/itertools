@@ -6,6 +6,8 @@
 
 /// A wrapper around `Box<Iterator<A>>` so that it implements the
 /// Iterator trait.
+///
+/// Iterator element type is `A`
 pub struct BoxIter<A> {
     /// The wrapped iterator pointer
     pub iter: Box<Iterator<A>>
