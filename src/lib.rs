@@ -166,7 +166,7 @@ pub trait Itertools<A> : Iterator<A> {
 
     // non-adaptor methods
 
-    /// Run the iterator to the end and consume all its elements
+    /// Run the iterator, eagerly, to the end and consume all its elements.
     ///
     /// ## Example
     ///
@@ -177,6 +177,13 @@ pub trait Itertools<A> : Iterator<A> {
     ///
     fn drain(&mut self) {
         for _ in *self { /* nothing */ }
+    }
+
+    /// Run the closure `f` eagerly on each element of the iterator.
+    ///
+    /// Consumes the iterator until its end.
+    fn apply(&mut self, f: |A|) {
+        for elt in *self { f(elt) }
     }
 
 

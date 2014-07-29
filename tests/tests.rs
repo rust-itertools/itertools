@@ -137,3 +137,19 @@ fn times() {
     assert!(it::times(0).count() == 0);
     assert!(it::times(5).count() == 5);
 }
+
+#[test]
+fn drain() {
+    let xs = [1i,2,3];
+    let mut sum = 0;
+    xs.iter().map(|elt| sum += *elt).drain();
+    assert!(sum == 6);
+}
+
+#[test]
+fn apply() {
+    let xs = [1i, 2, 3];
+    let mut sum = 0;
+    xs.iter().apply(|elt| sum += *elt);
+    assert!(sum == 6);
+}
