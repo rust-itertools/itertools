@@ -40,6 +40,9 @@ fn product3() {
             }
         }
     }
+    for (a, b, c, d) in iproduct!(range(0, 3i), range(0, 2i), range(0, 2i), range(0, 3i)) {
+        /* test compiles */
+    }
 }
 
 #[test]
@@ -54,6 +57,10 @@ fn izip3() {
     let xs: [int, ..0] = [];
     let mut zip = izip!(range(0, 3u), range(0, 2i), range(0, 2i8), xs.iter());
     assert!(zip.next().is_none());
+
+    for (a, b, c, d) in izip!(range(0, 3i), range(0, 2i), range(0, 2i), range(0, 3i)) {
+        /* test compiles */
+    }
 }
 
 #[test]

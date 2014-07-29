@@ -40,15 +40,10 @@ mod boxiter;
 mod stride;
 mod times;
 
-/// A trait for (x,y,z) ++ w => (x,y,z,w)
-trait AppendTuple<X, Y> {
+/// A helper trait for (x,y,z) ++ w => (x,y,z,w),
+/// used for implementing `iproduct!` and `izip!`
+pub trait AppendTuple<X, Y> {
     fn append(self, x: X) -> Y;
-}
-
-/// 
-pub fn append_tuple<X, Y, T: AppendTuple<X, Y>>((t, x): (T, X)) -> Y
-{
-    t.append(x)
 }
 
 macro_rules! impl_append_tuple(
@@ -96,10 +91,13 @@ pub macro_rules! iproduct(
     );
     ($I:expr, $J:expr $(, $K:expr)*) => (
         {
+            #[allow(unused_imports)]
+            use itertools::AppendTuple;
             let it = ::itertools::Product::new($I, $J);
+            // FIXME: Use fn_map here somehow
             $(
                 let it = ::itertools::Product::new(it, $K)
-                    .fn_map(::itertools::append_tuple);
+                    .map(|(t, x)| t.append(x));
             )*
             it
         }
@@ -132,9 +130,12 @@ pub macro_rules! izip(
     );
     ($I:expr, $J:expr $(, $K:expr)*) => (
         {
+            #[allow(unused_imports)]
+            use itertools::AppendTuple;
             let it = $I.zip($J);
+            // FIXME: Use fn_map here somehow
             $(
-                let it = it.zip($K).fn_map(::itertools::append_tuple);
+                let it = it.zip($K).map(|(t, x)| t.append(x));
             )*
             it
         }
