@@ -166,6 +166,21 @@ pub trait Itertools<A> : Iterator<A> {
 
     // non-adaptor methods
 
+    /// Consume `n` elements of the iterator eagerly
+    ///
+    /// Return actual number of elements consumed,
+    /// until done or reaching the end.
+    fn dropn(&mut self, mut n: uint) -> uint {
+        let start = n;
+        while n > 0 {
+            match self.next() {
+                Some(..) => n -= 1,
+                None => break
+            }
+        }
+        start - n
+    }
+
     /// Run the iterator, eagerly, to the end and consume all its elements.
     ///
     /// ## Example

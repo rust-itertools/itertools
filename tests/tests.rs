@@ -153,3 +153,15 @@ fn apply() {
     xs.iter().apply(|elt| sum += *elt);
     assert!(sum == 6);
 }
+
+#[test]
+fn dropn() {
+    let xs = [1i, 2, 3];
+    let mut it = xs.iter();
+    assert!(it.dropn(2) == 2);
+    assert!(it.next().is_some());
+    assert!(it.next().is_none());
+    let mut it = xs.iter();
+    assert!(it.dropn(5) == 3);
+    assert!(it.next().is_none());
+}
