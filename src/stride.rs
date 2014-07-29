@@ -140,12 +140,15 @@ impl<'a, T: fmt::Show> fmt::Show for Stride<'a, T>
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
     {
-        let mut it = *self;
-        let mut res = write!(f, "[");
-        for elt in it {
-            res = res.and(write!(f, "{}, ", *elt));
+        let it = *self;
+        try!(write!(f, "["));
+        for (i, elt) in it.enumerate() {
+            if i != 0 {
+                try!(write!(f, ", "));
+            }
+            try!(write!(f, "{}", *elt));
         }
-        res.and(write!(f, "]"))
+        write!(f, "]")
     }
 }
 
