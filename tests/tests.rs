@@ -43,6 +43,20 @@ fn product3() {
 }
 
 #[test]
+fn izip3() {
+    let mut zip = izip!(range(0, 3u), range(0, 2i), range(0, 2i8));
+    for i in range(0, 2i) {
+        assert!((i as uint, i, i as i8) == zip.next().unwrap());
+    }
+    assert!(zip.next().is_none());
+
+    
+    let xs: [int, ..0] = [];
+    let mut zip = izip!(range(0, 3u), range(0, 2i), range(0, 2i8), xs.iter());
+    assert!(zip.next().is_none());
+}
+
+#[test]
 fn fn_map() {
     let xs = [0, 1, 2i];
     fn mapper(x: &int) -> String { x.to_string() }

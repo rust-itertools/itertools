@@ -106,6 +106,41 @@ pub macro_rules! iproduct(
     );
 )
 
+#[macro_export]
+/// Create an iterator running multiple iterators in lockstep.
+///
+/// The izip! iterator yields elements until any subiterator
+/// returns `None`.
+///
+/// Iterator element type is like `(A, B, ..., E)` if formed
+/// from iterators `(I, J, ..., M)` implementing `I: Iterator<A>`,
+/// `J: Iterator<B>`, ..., `M: Iterator<E>`
+///
+/// ## Example
+///
+/// ```rust
+/// // Iterate over three sequences side-by-side
+/// let mut xs = [0u, 0, 0];
+/// let ys = [72u, 73, 74];
+/// for (i, a, b) in izip!(range(0, 100u), xs.mut_iter(), ys.iter()) {
+///    *a = i ^ *b;
+/// }
+/// ```
+pub macro_rules! izip(
+    ($I:expr) => (
+        ($I)
+    );
+    ($I:expr, $J:expr $(, $K:expr)*) => (
+        {
+            let it = $I.zip($J);
+            $(
+                let it = it.zip($K).fn_map(::itertools::append_tuple);
+            )*
+            it
+        }
+    );
+)
+
 // Note: Instead of using struct Product, we could implement iproduct!()
 // using .flat_map as well; however it can't implement size_hint.
 // ($I).flat_map(|x| Repeat::new(x).zip($J))
