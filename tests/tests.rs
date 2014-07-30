@@ -186,3 +186,15 @@ fn dropn() {
     assert!(it.dropn(5) == 3);
     assert!(it.next().is_none());
 }
+
+#[test]
+fn intersperse() {
+    let xs = ["a", "", "b", "c"];
+    let v: Vec<&str> = xs.iter().map(|x| x.clone()).intersperse(", ").collect();
+    let text = v.concat();
+    assert_eq!(text, "a, , b, c".to_string());
+
+    let ys = [0, 1, 2, 3i];
+    let mut it = ys.slice_to(0).iter().map(|x| *x).intersperse(1i);
+    assert!(it.next() == None);
+}

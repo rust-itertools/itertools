@@ -32,11 +32,13 @@ pub use adaptors::Product;
 pub use adaptors::PutBack;
 pub use adaptors::FnMap;
 pub use boxiter::BoxIter;
+pub use intersperse::Intersperse;
 pub use stride::Stride;
 pub use times::Times;
 pub use times::times;
 mod adaptors;
 mod boxiter;
+mod intersperse;
 mod stride;
 mod times;
 
@@ -198,6 +200,14 @@ pub trait Itertools<A> : Iterator<A> {
     /// Iterator element type is `A`
     fn interleave<J: Iterator<A>>(self, other: J) -> Interleave<Self, J> {
         Interleave::new(self, other)
+    }
+
+    /// An iterator adaptor to insert a particular value
+    /// between each element of the adapted iterator.
+    ///
+    /// Iterator element type is `A`
+    fn intersperse(self, element: A) -> Intersperse<A, Self> {
+        Intersperse::new(self, element)
     }
 
     // non-adaptor methods
