@@ -8,6 +8,8 @@
 
 #[phase(plugin, link)] extern crate itertools;
 
+extern crate test;
+
 use std::iter::order;
 use itertools::Itertools;
 use itertools::Stride;
@@ -212,4 +214,22 @@ fn intersperse() {
     let ys = [0, 1, 2, 3i];
     let mut it = ys.slice_to(0).iter().map(|x| *x).intersperse(1i);
     assert!(it.next() == None);
+}
+
+#[bench]
+fn reg_iter(b: &mut test::Bencher)
+{
+    let xs = Vec::from_elem(20u, 20u);
+    b.iter(|| for elt in xs.as_slice().iter() {
+        test::black_box(elt);
+    })
+}
+
+#[bench]
+fn stride_iter(b: &mut test::Bencher)
+{
+    let xs = Vec::from_elem(20u, 20u);
+    b.iter(|| for elt in Stride::from_slice(xs.as_slice(), 1) {
+        test::black_box(elt);
+    })
 }
