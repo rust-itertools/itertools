@@ -14,7 +14,7 @@ use std::num::Saturating;
 /// Similar to the slice iterator, but with a certain number of steps
 /// (stride) skipped per iteration.
 ///
-/// Does not support zero-sized `T`.
+/// Does not support zero-sized `A`.
 ///
 /// Iterator element type is `&'a A`
 pub struct Stride<'a, A> {
@@ -40,6 +40,7 @@ impl<'a, A> Stride<'a, A>
     pub fn from_slice(xs: &'a [A], step: uint) -> Stride<'a, A>
     {
         assert!(step != 0);
+        assert!(mem::size_of::<A>() != 0);
         let mut begin = ptr::null();
         let mut end = ptr::null();
         let nelem = xs.len().saturating_add(step - 1) / step;
