@@ -45,7 +45,7 @@ impl<A, I: Iterator<A>, J: Iterator<A>> Iterator<A> for Interleave<I, J> {
 /// Clonable iterator adaptor to map elementwise
 /// from `Iterator<A>` to `Iterator<B>`
 ///
-/// Created with `.static_map(..)` on an iterator
+/// Created with `.fn_map(..)` on an iterator
 ///
 /// Iterator element type is `B`
 pub struct FnMap<A, B, I> {
