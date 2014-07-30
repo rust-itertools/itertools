@@ -130,6 +130,21 @@ fn stride() {
     assert!(*it.next().unwrap() == 8);
     assert!(*it.next().unwrap() == 10);
     assert!(it.next().is_none());
+
+    let mut it = Stride::from_slice(xs, 1).rev();
+    assert!(it.size_hint() == (4, Some(4)));
+    assert!(*it.next().unwrap() == 10);
+    assert!(*it.next().unwrap() == 8);
+    assert!(*it.next().unwrap() == 9);
+    assert!(*it.next().unwrap() == 7);
+    assert!(it.next().is_none());
+
+    let mut it = Stride::from_slice(xs, 2);
+    it.swap_ends();
+    assert!(it.size_hint() == (2, Some(2)));
+    assert!(*it.next().unwrap() == 8);
+    assert!(*it.next().unwrap() == 7);
+    assert!(it.next().is_none());
 }
 
 #[test]

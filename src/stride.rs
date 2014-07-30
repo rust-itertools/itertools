@@ -67,6 +67,15 @@ impl<'a, A> Stride<'a, A>
         }
     }
 
+    /// Swap the being and end pointer and reverse the stride,
+    /// in effect reversing the iterator.
+    #[inline]
+    pub fn swap_ends(&mut self) {
+        if !self.begin.is_null() {
+            mem::swap(&mut self.begin, &mut self.end);
+            self.stride = -self.stride;
+        }
+    }
 }
 
 impl<'a, A> Iterator<&'a A> for Stride<'a, A>
