@@ -16,6 +16,8 @@ use itertools::Stride;
 use itertools::Interleave;
 use itertools::BoxIter;
 
+use itertools::ItertoolsClonable;
+
 use it = itertools;
 
 #[test]
@@ -214,6 +216,14 @@ fn intersperse() {
     let ys = [0, 1, 2, 3i];
     let mut it = ys.slice_to(0).iter().map(|x| *x).intersperse(1i);
     assert!(it.next() == None);
+}
+
+#[test]
+fn clones() {
+    let xs = ["a", "", "b", "c"];
+    let v: Vec<&str> = xs.iter().clones().collect();
+    let text = v.concat();
+    assert_eq!(text, "abc".to_string());
 }
 
 #[bench]
