@@ -6,10 +6,9 @@
 
 use std::kinds;
 use std::mem;
+use std::num;
 use std::ptr;
 use std::fmt;
-
-use std::num::Saturating;
 
 /// Similar to the slice iterator, but with a certain number of steps
 /// (stride) skipped per iteration.
@@ -43,7 +42,8 @@ impl<'a, A> Stride<'a, A>
         assert!(mem::size_of::<A>() != 0);
         let mut begin = ptr::null();
         let mut end = ptr::null();
-        let nelem = xs.len().saturating_add(step - 1) / step;
+        let (d, r) = num::div_rem(xs.len(), step);
+        let nelem = d + if r > 0 { 1 } else { 0 };
         unsafe {
             if nelem != 0 {
                 begin = xs.as_ptr();
