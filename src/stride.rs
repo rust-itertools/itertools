@@ -17,6 +17,8 @@ use std::fmt;
 ///
 /// Iterator element type is `&'a A`
 pub struct Stride<'a, A> {
+    // begin is NULL when the iterator is exhausted, because
+    // both begin and end are inclusive endpoints.
     begin: *const A,
     // Unlike the slice iterator, end is inclusive and the last
     // pointer we will visit. This makes it possible to have
@@ -68,7 +70,7 @@ impl<'a, A> Stride<'a, A>
         }
     }
 
-    /// Swap the being and end pointer and reverse the stride,
+    /// Swap the begin and end pointer and reverse the stride,
     /// in effect reversing the iterator.
     #[inline]
     pub fn swap_ends(&mut self) {

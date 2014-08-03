@@ -96,6 +96,7 @@ fn stride_uneven() {
     assert!(it.size_hint() == (2, Some(2)));
     assert!(*it.next().unwrap() == 7);
     assert!(*it.next().unwrap() == 8);
+    assert!(it.len() == 0);
     assert!(it.next().is_none());
 
     let xs = [7i, 9, 8, 10];
@@ -103,6 +104,7 @@ fn stride_uneven() {
     assert!(it.size_hint() == (2, Some(2)));
     assert!(*it.next().unwrap() == 9);
     assert!(*it.next().unwrap() == 10);
+    assert!(it.len() == 0);
     assert!(it.next().is_none());
 }
 
@@ -133,6 +135,7 @@ fn stride() {
     assert!(*it.next().unwrap() == 9);
     assert!(*it.next().unwrap() == 8);
     assert!(*it.next().unwrap() == 10);
+    assert!(it.len() == 0);
     assert!(it.next().is_none());
 
     let mut it = Stride::from_slice(xs, 1).rev();
