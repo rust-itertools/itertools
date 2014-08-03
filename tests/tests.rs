@@ -109,27 +109,28 @@ fn stride_compose() {
 
     let xs = [1i, 2, 3, 4, 5, 6, 7, 8, 9];
     let odds = Stride::from_slice(xs, 2);
-    let mut it = Stride::from_stride(odds, 2);
-    assert!(it.size_hint() == (3, Some(3)));
-    assert!(*it.next().unwrap() == 1i);
-    assert!(*it.next().unwrap() == 5i);
-    assert!(*it.next().unwrap() == 9i);
+    let it = Stride::from_stride(odds, 2);
+    let ans: Vec<int> = it.map(|&x| x).collect();
+    assert_eq!(ans, vec![1i, 5, 9]);
 
     let xs = [1i, 2, 3, 4, 5, 6, 7, 8, 9];
     let evens = Stride::from_slice(xs.slice_from(1), 2);
-    let mut it = Stride::from_stride(evens, 2);
-    assert!(it.size_hint() == (2, Some(2)));
-    assert!(*it.next().unwrap() == 2i);
-    assert!(*it.next().unwrap() == 6i);
+    let it = Stride::from_stride(evens, 2);
+    let ans: Vec<int> = it.map(|&x| x).collect();
+    assert_eq!(ans, vec![2i, 6]);
 
     let xs = [1i, 2, 3, 4, 5, 6, 7, 8, 9];
     let evens = Stride::from_slice(xs.slice_from(1), 2);
-    let mut it = Stride::from_stride(evens, 1);
-    assert!(it.size_hint() == (4, Some(4)));
-    assert!(*it.next().unwrap() == 2i);
-    assert!(*it.next().unwrap() == 4i);
-    assert!(*it.next().unwrap() == 6i);
-    assert!(*it.next().unwrap() == 8i);
+    let it = Stride::from_stride(evens, 1);
+    let ans: Vec<int> = it.map(|&x| x).collect();
+    assert_eq!(ans, vec![2i, 4, 6, 8]);
+
+    let xs = [1i, 2, 3, 4, 5, 6, 7, 8, 9];
+    let mut odds = Stride::from_slice(xs, 2);
+    odds.swap_ends();
+    let it = Stride::from_stride(odds, 2);
+    let ans: Vec<int> = it.map(|&x| x).collect();
+    assert_eq!(ans, vec![9i, 5, 1]);
 
 }
 

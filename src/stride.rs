@@ -69,13 +69,16 @@ impl<'a, A> Stride<'a, A>
     }
 
     /// Create Stride iterator from an existing Stride iterator
-    pub fn from_stride(existing: Stride<'a, A>, stride: int) -> Stride<'a, A>
+    pub fn from_stride(it: Stride<'a, A>, step: uint) -> Stride<'a, A>
     {
-        Stride{
-            begin: existing.begin,
-            end: existing.end,
-            stride: existing.stride * stride,
-            life: kinds::marker::ContravariantLifetime,
+        assert!(step != 0);
+        let newstride = it.stride * (step as int);
+        unsafe {
+            let nelem = ((it.end.to_uint() as int) - (it.begin.to_uint() as int))
+                        / (mem::size_of::<A>() as int)
+                        / newstride;
+            let newend = it.begin.offset(nelem * newstride);
+            Stride::from_ptrs(it.begin, newend, newstride)
         }
     }
 
