@@ -68,6 +68,17 @@ impl<'a, A> Stride<'a, A>
         }
     }
 
+    /// Create Stride iterator from an existing Stride iterator
+    pub fn from_stride(existing: Stride<'a, A>, stride: int) -> Stride<'a, A>
+    {
+        Stride{
+            begin: existing.begin,
+            end: existing.end,
+            stride: existing.stride * stride,
+            life: kinds::marker::ContravariantLifetime,
+        }
+    }
+
     /// Swap the being and end pointer and reverse the stride,
     /// in effect reversing the iterator.
     #[inline]
