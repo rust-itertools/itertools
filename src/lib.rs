@@ -45,7 +45,7 @@ mod times;
 
 /// A helper trait for (x,y,z) ++ w => (x,y,z,w),
 /// used for implementing `iproduct!` and `izip!`
-pub trait AppendTuple<X, Y> {
+trait AppendTuple<X, Y> {
     fn append(self, x: X) -> Y;
 }
 
@@ -72,6 +72,35 @@ macro_rules! impl_append_tuple(
 
 impl_append_tuple!(A, B, C, D, E, F, G, H, I, J, K, L)
 
+#[deriving(Clone)]
+pub struct FlatTuples<I> {
+    pub iter: I,
+}
+
+impl<X, Y, T: AppendTuple<X, Y>, I: Iterator<(T, X)>>
+Iterator<Y> for FlatTuples<I>
+{
+    #[inline]
+    fn next(&mut self) -> Option<Y>
+    {
+        self.iter.next().map(|(t, x)| t.append(x))
+    }
+
+    fn size_hint(&self) -> (uint, Option<uint>) {
+        self.iter.size_hint()
+    }
+}
+
+impl<X, Y, T: AppendTuple<X, Y>, I: DoubleEndedIterator<(T, X)>>
+DoubleEndedIterator<Y> for FlatTuples<I>
+{
+    #[inline]
+    fn next_back(&mut self) -> Option<Y>
+    {
+        self.iter.next_back().map(|(t, x)| t.append(x))
+    }
+}
+
 #[macro_export]
 /// Create an iterator over the “cartesian product” of iterators.
 ///
@@ -94,13 +123,9 @@ pub macro_rules! iproduct(
     );
     ($I:expr, $J:expr $(, $K:expr)*) => (
         {
-            #[allow(unused_imports)]
-            use itertools::AppendTuple;
             let it = ::itertools::Product::new($I, $J);
-            // FIXME: Use fn_map here somehow
             $(
-                let it = ::itertools::Product::new(it, $K)
-                    .map(|(t, x)| t.append(x));
+                let it = ::itertools::FlatTuples{iter: ::itertools::Product::new(it, $K)};
             )*
             it
         }
@@ -133,12 +158,9 @@ pub macro_rules! izip(
     );
     ($I:expr, $J:expr $(, $K:expr)*) => (
         {
-            #[allow(unused_imports)]
-            use itertools::AppendTuple;
             let it = $I.zip($J);
-            // FIXME: Use fn_map here somehow
             $(
-                let it = it.zip($K).map(|(t, x)| t.append(x));
+                let it = ::itertools::FlatTuples{iter: it.zip($K)};
             )*
             it
         }
