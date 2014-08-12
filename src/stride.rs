@@ -70,7 +70,21 @@ impl<'a, A> Stride<'a, A>
         }
     }
 
-    /// Swap the begin and end pointer and reverse the stride,
+    /// Create Stride iterator from an existing Stride iterator
+    pub fn from_stride(it: Stride<'a, A>, step: uint) -> Stride<'a, A>
+    {
+        assert!(step != 0);
+        let newstride = it.stride * (step as int);
+        unsafe {
+            let nelem = ((it.end.to_uint() as int) - (it.begin.to_uint() as int))
+                        / (mem::size_of::<A>() as int)
+                        / newstride;
+            let newend = it.begin.offset(nelem * newstride);
+            Stride::from_ptrs(it.begin, newend, newstride)
+        }
+    }
+
+    /// Swap the being and end pointer and reverse the stride,
     /// in effect reversing the iterator.
     #[inline]
     pub fn swap_ends(&mut self) {
