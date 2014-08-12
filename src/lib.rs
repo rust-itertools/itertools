@@ -35,6 +35,7 @@ pub use adaptors::FnMap;
 pub use boxiter::BoxIter;
 pub use intersperse::Intersperse;
 pub use stride::Stride;
+pub use stride::MutStride;
 pub use times::Times;
 pub use times::times;
 mod adaptors;
