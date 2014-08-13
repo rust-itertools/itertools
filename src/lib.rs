@@ -6,14 +6,14 @@
 //!
 //! To use the macros in this crate, use the `phase(plugin)` attribute:
 //!
-//! ```
+//! ```ignore
 //! #![feature(phase)]
 //! #[phase(plugin, link)] extern crate itertools;
 //! ```
 //!
 //! I recommend shortening the crate name with something like:
 //!
-//! ```
+//! ```ignore
 //! use it = itertools;
 //! ```
 //! ## License 
@@ -111,7 +111,7 @@ DoubleEndedIterator<Y> for FlatTuples<I>
 ///
 /// ## Example
 ///
-/// ```rust
+/// ```ignore
 /// // Iterate over the coordinates of a 4 x 4 grid
 /// // from (0, 0), (0, 1), .. etc until (3, 3)
 /// for (i, j) in iproduct!(range(0, 4i), range(0, 4i)) {
@@ -145,7 +145,7 @@ pub macro_rules! iproduct(
 ///
 /// ## Example
 ///
-/// ```rust
+/// ```ignore
 /// // Iterate over three sequences side-by-side
 /// let mut xs = [0u, 0, 0];
 /// let ys = [72u, 73, 74];
@@ -193,7 +193,7 @@ pub macro_rules! izip(
 ///
 /// ## Example
 ///
-/// ```rust
+/// ```ignore
 /// let mut squares = icompr!(x * x for x in range(1i, 100));
 /// ```
 #[macro_export]
@@ -256,7 +256,9 @@ pub trait Itertools<A> : Iterator<A> {
     /// ## Example
     ///
     /// ```rust
-    /// let mut cnt = 0;
+    /// use itertools::Itertools;
+    ///
+    /// let mut cnt = 0i;
     /// "hi".chars().map(|c| cnt += 1).drain();
     /// ```
     ///

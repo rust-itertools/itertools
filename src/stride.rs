@@ -46,6 +46,8 @@ impl<'a, A> Stride<'a, A>
     /// ## Example
     ///
     /// ```
+    /// use itertools::Stride;
+    ///
     /// let xs = [0i, 1, 2, 3, 4, 5];
     /// let mut iter = Stride::from_slice(xs.as_slice(), 2);
     /// ```
@@ -118,8 +120,10 @@ impl<'a, A> StrideMut<'a, A>
     /// ## Example
     ///
     /// ```
-    /// let xs = [0i, 1, 2, 3, 4, 5];
-    /// let mut iter = StrideMut::from_slice(xs.as_slice(), 2);
+    /// use itertools::StrideMut;
+    ///
+    /// let mut xs = [0i, 1, 2, 3, 4, 5];
+    /// let mut iter = StrideMut::from_slice(xs.as_mut_slice(), 2);
     /// ```
     pub fn from_slice(xs: &'a mut [A], step: uint) -> StrideMut<'a, A>
     {
