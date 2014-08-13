@@ -183,8 +183,9 @@ impl<'a, A> StrideMut<'a, A>
         }
     }
 }
+
 macro_rules! stride_iterator {
-    (struct $name:ident -> $ptr:ty, $elem:ty, $null:expr) => {
+    (struct $name:ident -> $ptr:ty, $elem:ty) => {
         impl<'a, A> Iterator<$elem> for $name<'a, A>
         {
             #[inline]
@@ -196,7 +197,7 @@ macro_rules! stride_iterator {
                     unsafe {
                         let elt: $elem = mem::transmute(self.begin);
                         if self.begin == self.end {
-                            self.begin = $null;
+                            self.begin = RawPtr::null();
                         } else {
                             self.begin = self.begin.offset(self.stride);
                         }
@@ -230,7 +231,7 @@ macro_rules! stride_iterator {
                     unsafe {
                         let elt: $elem = mem::transmute(self.end);
                         if self.begin == self.end {
-                            self.begin = $null;
+                            self.begin = RawPtr::null();
                         } else {
                             self.end = self.end.offset(-self.stride);
                         }
@@ -256,8 +257,8 @@ macro_rules! stride_iterator {
     }
 }
 
-stride_iterator!{struct Stride -> *const A, &'a A, ptr::null()}
-stride_iterator!{struct StrideMut -> *mut A, &'a mut A, ptr::mut_null()}
+stride_iterator!{struct Stride -> *const A, &'a A}
+stride_iterator!{struct StrideMut -> *mut A, &'a mut A}
 
 impl<'a, A: fmt::Show> fmt::Show for Stride<'a, A>
 {
