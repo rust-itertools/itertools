@@ -13,7 +13,7 @@ extern crate test;
 use std::iter::order;
 use itertools::Itertools;
 use itertools::Stride;
-use itertools::MutStride;
+use itertools::StrideMut;
 use itertools::Interleave;
 use itertools::BoxIter;
 
@@ -93,7 +93,7 @@ fn write_to() {
 #[test]
 fn mut_stride() {
     let mut xs = vec![1i, 1, 1, 1, 1, 1];
-    for x in MutStride::from_mut_slice(xs.as_mut_slice(), 2) {
+    for x in StrideMut::from_slice(xs.as_mut_slice(), 2) {
         *x = 0i;
     }
     assert_eq!(xs, vec![0i, 1, 0, 1, 0, 1]);
@@ -103,8 +103,8 @@ fn mut_stride() {
 fn mut_stride_compose() {
     let mut xs = vec![1i, 1, 1, 1, 1, 1, 1, 1, 1, 1];
     {
-        let iter1 = MutStride::from_mut_slice(xs.as_mut_slice(), 2);
-        let mut iter2 = MutStride::from_mut_stride(iter1, 3);
+        let iter1 = StrideMut::from_slice(xs.as_mut_slice(), 2);
+        let mut iter2 = StrideMut::from_stride(iter1, 3);
         for x in iter2 {
             *x = 0i;
         }

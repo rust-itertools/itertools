@@ -29,7 +29,9 @@ pub struct Stride<'a, A> {
 }
 
 /// Stride with mutable elements
-pub struct MutStride<'a, A> {
+///
+/// Iterator element type is `&'a mut A`
+pub struct StrideMut<'a, A> {
     begin: *mut A,
     end: *mut A,
     stride: int,
@@ -93,7 +95,7 @@ impl<'a, A> Stride<'a, A>
         }
     }
 
-    /// Swap the being and end pointer and reverse the stride,
+    /// Swap the begin and end pointer and reverse the stride,
     /// in effect reversing the iterator.
     #[inline]
     pub fn swap_ends(&mut self) {
@@ -104,7 +106,7 @@ impl<'a, A> Stride<'a, A>
     }
 }
 
-impl<'a, A> MutStride<'a, A>
+impl<'a, A> StrideMut<'a, A>
 {
     /// Create Stride iterator from a slice and the element step count
     ///
@@ -112,9 +114,9 @@ impl<'a, A> MutStride<'a, A>
     ///
     /// ```
     /// let xs = [0i, 1, 2, 3, 4, 5];
-    /// let mut iter = Stride::from_slice(xs.as_slice(), 2);
+    /// let mut iter = StrideMut::from_slice(xs.as_slice(), 2);
     /// ```
-    pub fn from_mut_slice(xs: &'a mut [A], step: uint) -> MutStride<'a, A>
+    pub fn from_slice(xs: &'a mut [A], step: uint) -> StrideMut<'a, A>
     {
         assert!(step != 0);
         assert!(mem::size_of::<A>() != 0);
@@ -127,7 +129,7 @@ impl<'a, A> MutStride<'a, A>
                 begin = xs.as_mut_ptr();
                 end = begin.offset(((nelem - 1) * step) as int);
             }
-            MutStride::from_ptrs(begin, end, step as int)
+            StrideMut::from_ptrs(begin, end, step as int)
         }
     }
 
@@ -136,9 +138,9 @@ impl<'a, A> MutStride<'a, A>
     ///
     /// **Note:** `end` **must** be a whole number of `stride` steps away
     /// from `begin`
-    pub unsafe fn from_ptrs(begin: *mut A, end: *mut A, stride: int) -> MutStride<'a, A>
+    pub unsafe fn from_ptrs(begin: *mut A, end: *mut A, stride: int) -> StrideMut<'a, A>
     {
-        MutStride {
+        StrideMut {
             begin: begin,
             end: end,
             stride: stride,
@@ -147,8 +149,8 @@ impl<'a, A> MutStride<'a, A>
         }
     }
 
-    /// Create MutStride iterator from an existing MutStride iterator
-    pub fn from_mut_stride(it: MutStride<'a, A>, step: uint) -> MutStride<'a, A>
+    /// Create StrideMut iterator from an existing StrideMut iterator
+    pub fn from_stride(it: StrideMut<'a, A>, step: uint) -> StrideMut<'a, A>
     {
         assert!(step != 0);
         let newstride = it.stride * (step as int);
@@ -157,11 +159,11 @@ impl<'a, A> MutStride<'a, A>
                         / (mem::size_of::<A>() as int)
                         / newstride;
             let newend = it.begin.offset(nelem * newstride);
-            MutStride::from_ptrs(it.begin, newend, newstride)
+            StrideMut::from_ptrs(it.begin, newend, newstride)
         }
     }
 
-    /// Swap the being and end pointer and reverse the stride,
+    /// Swap the begin and end pointer and reverse the stride,
     /// in effect reversing the iterator.
     #[inline]
     pub fn swap_ends(&mut self) {
@@ -245,7 +247,7 @@ macro_rules! stride_iterator {
 }
 
 stride_iterator!{struct Stride -> *const A, &'a A, ptr::null()}
-stride_iterator!{struct MutStride -> *mut A, &'a mut A, ptr::mut_null()}
+stride_iterator!{struct StrideMut -> *mut A, &'a mut A, ptr::mut_null()}
 
 impl<'a, A: fmt::Show> fmt::Show for Stride<'a, A>
 {
