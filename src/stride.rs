@@ -86,12 +86,17 @@ impl<'a, A> Stride<'a, A>
     {
         assert!(step != 0);
         let newstride = it.stride * (step as int);
+        let begin = it.begin;
+        let mut end = it.end;
         unsafe {
-            let nelem = ((it.end.to_uint() as int) - (it.begin.to_uint() as int))
-                        / (mem::size_of::<A>() as int)
-                        / newstride;
-            let newend = it.begin.offset(nelem * newstride);
-            Stride::from_ptrs(it.begin, newend, newstride)
+            if !begin.is_null() {
+                let nelem = (end as int - begin as int)
+                            / (mem::size_of::<A>() as int)
+                            / newstride;
+
+                end = begin.offset(nelem * newstride);
+            }
+            Stride::from_ptrs(begin, end, newstride)
         }
     }
 
@@ -154,12 +159,17 @@ impl<'a, A> StrideMut<'a, A>
     {
         assert!(step != 0);
         let newstride = it.stride * (step as int);
+        let begin = it.begin;
+        let mut end = it.end;
         unsafe {
-            let nelem = ((it.end.to_uint() as int) - (it.begin.to_uint() as int))
-                        / (mem::size_of::<A>() as int)
-                        / newstride;
-            let newend = it.begin.offset(nelem * newstride);
-            StrideMut::from_ptrs(it.begin, newend, newstride)
+            if !begin.is_null() {
+                let nelem = (end as int - begin as int)
+                            / (mem::size_of::<A>() as int)
+                            / newstride;
+
+                end = begin.offset(nelem * newstride);
+            }
+            StrideMut::from_ptrs(begin, end, newstride)
         }
     }
 
