@@ -4,3 +4,8 @@ name = "itertools"
 version = "0.0.1"
 authors = ["root <root@localhost>"]
 
+[[lib]]
+
+name = "itertools"
+path = "src/lib.rs"
+test = false
