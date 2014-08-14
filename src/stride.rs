@@ -195,18 +195,21 @@ macro_rules! stride_iterator {
             #[inline]
             fn next(&mut self) -> Option<$elem>
             {
-                if self.begin.is_null() {
-                    None
-                } else {
-                    unsafe {
-                        let elt: $elem = mem::transmute(self.begin);
-                        if self.begin == self.end {
-                            self.begin = RawPtr::null();
+                unsafe {
+                    if self.begin == self.end {
+                        return if self.begin.is_null() {
+                            None
                         } else {
-                            self.begin = self.begin.offset(self.stride);
+                            /* handle the last element */
+                            let elt: $elem = mem::transmute(self.begin);
+                            self.begin = RawPtr::null();
+                            self.end = RawPtr::null();
+                            Some(elt)
                         }
-                        Some(elt)
                     }
+                    let elt: $elem = mem::transmute(self.begin);
+                    self.begin = self.begin.offset(self.stride);
+                    Some(elt)
                 }
             }
 
@@ -229,18 +232,21 @@ macro_rules! stride_iterator {
             #[inline]
             fn next_back(&mut self) -> Option<$elem>
             {
-                if self.begin.is_null() {
-                    None
-                } else {
-                    unsafe {
-                        let elt: $elem = mem::transmute(self.end);
-                        if self.begin == self.end {
-                            self.begin = RawPtr::null();
+                unsafe {
+                    if self.begin == self.end {
+                        return if self.end.is_null() {
+                            None
                         } else {
-                            self.end = self.end.offset(-self.stride);
+                            /* handle the last element */
+                            let elt: $elem = mem::transmute(self.end);
+                            self.begin = RawPtr::null();
+                            self.end = RawPtr::null();
+                            Some(elt)
                         }
-                        Some(elt)
                     }
+                    let elt: $elem = mem::transmute(self.end);
+                    self.end = self.end.offset(-self.stride);
+                    Some(elt)
                 }
             }
         }
