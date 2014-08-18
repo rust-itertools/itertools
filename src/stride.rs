@@ -4,11 +4,10 @@
 //! option. This file may not be copied, modified, or distributed
 //! except according to those terms.
 
+use std::fmt;
 use std::kinds;
 use std::mem;
 use std::num;
-use std::ptr;
-use std::fmt;
 
 /// Similar to the slice iterator, but with a certain number of steps
 /// (stride) skipped per iteration.
@@ -17,13 +16,12 @@ use std::fmt;
 ///
 /// Iterator element type is `&'a A`
 pub struct Stride<'a, A> {
-    // begin is NULL when the iterator is exhausted, because
-    // both begin and end are inclusive endpoints.
+    /// base pointer -- does not change during iteration
     begin: *const A,
-    // Unlike the slice iterator, end is inclusive and the last
-    // pointer we will visit. This makes it possible to have
-    // safe stride iterators for columns in matrices etc.
-    end: *const A,
+    /// current offset from begin
+    offset: int,
+    /// offset where we end (exclusive end).
+    end: int,
     stride: int,
     life: kinds::marker::ContravariantLifetime<'a>,
 }
@@ -33,7 +31,8 @@ pub struct Stride<'a, A> {
 /// Iterator element type is `&'a mut A`
 pub struct StrideMut<'a, A> {
     begin: *mut A,
-    end: *mut A,
+    offset: int,
+    end: int,
     stride: int,
     life: kinds::marker::ContravariantLifetime<'a>,
     nocopy: kinds::marker::NoCopy
@@ -41,189 +40,135 @@ pub struct StrideMut<'a, A> {
 
 impl<'a, A> Stride<'a, A>
 {
-    /// Create Stride iterator from a slice and the element step count
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// use itertools::Stride;
-    ///
-    /// let xs = [0i, 1, 2, 3, 4, 5];
-    /// let mut iter = Stride::from_slice(xs.as_slice(), 2);
-    /// ```
-    pub fn from_slice(xs: &'a [A], step: uint) -> Stride<'a, A>
-    {
-        assert!(step != 0);
-        assert!(mem::size_of::<A>() != 0);
-        let mut begin = ptr::null();
-        let mut end = ptr::null();
-        let (d, r) = num::div_rem(xs.len(), step);
-        let nelem = d + if r > 0 { 1 } else { 0 };
-        unsafe {
-            if nelem != 0 {
-                begin = xs.as_ptr();
-                end = begin.offset(((nelem - 1) * step) as int);
-            }
-            Stride::from_ptrs(begin, end, step as int)
-        }
-    }
-
-    /// Create Stride iterator from raw pointers from the *inclusive*
-    /// pointer range [begin, end].
-    ///
-    /// **Note:** `end` **must** be a whole number of `stride` steps away
-    /// from `begin`
-    pub unsafe fn from_ptrs(begin: *const A, end: *const A, stride: int) -> Stride<'a, A>
+    /// Create Stride iterator from a raw pointer.
+    pub unsafe fn from_ptr_len(begin: *const A, nelem: uint, stride: int) -> Stride<'a, A>
     {
         Stride {
             begin: begin,
-            end: end,
+            offset: 0,
+            end: stride * nelem as int,
             stride: stride,
             life: kinds::marker::ContravariantLifetime,
-        }
-    }
-
-    /// Create Stride iterator from an existing Stride iterator
-    pub fn from_stride(it: Stride<'a, A>, step: uint) -> Stride<'a, A>
-    {
-        assert!(step != 0);
-        let newstride = it.stride * (step as int);
-        let begin = it.begin;
-        let mut end = it.end;
-        unsafe {
-            if !begin.is_null() {
-                let nelem = (end as int - begin as int)
-                            / (mem::size_of::<A>() as int)
-                            / newstride;
-
-                end = begin.offset(nelem * newstride);
-            }
-            Stride::from_ptrs(begin, end, newstride)
-        }
-    }
-
-    /// Swap the begin and end pointer and reverse the stride,
-    /// in effect reversing the iterator.
-    #[inline]
-    pub fn swap_ends(&mut self) {
-        if !self.begin.is_null() {
-            mem::swap(&mut self.begin, &mut self.end);
-            self.stride = -self.stride;
         }
     }
 }
 
 impl<'a, A> StrideMut<'a, A>
 {
-    /// Create Stride iterator from a slice and the element step count
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// use itertools::StrideMut;
-    ///
-    /// let mut xs = [0i, 1, 2, 3, 4, 5];
-    /// let mut iter = StrideMut::from_slice(xs.as_mut_slice(), 2);
-    /// ```
-    pub fn from_slice(xs: &'a mut [A], step: uint) -> StrideMut<'a, A>
-    {
-        assert!(step != 0);
-        assert!(mem::size_of::<A>() != 0);
-        let mut begin = ptr::mut_null();
-        let mut end = ptr::mut_null();
-        let (d, r) = num::div_rem(xs.len(), step);
-        let nelem = d + if r > 0 { 1 } else { 0 };
-        unsafe {
-            if nelem != 0 {
-                begin = xs.as_mut_ptr();
-                end = begin.offset(((nelem - 1) * step) as int);
-            }
-            StrideMut::from_ptrs(begin, end, step as int)
-        }
-    }
-
-    /// Create Stride iterator from raw pointers from the *inclusive*
-    /// pointer range [begin, end].
-    ///
-    /// **Note:** `end` **must** be a whole number of `stride` steps away
-    /// from `begin`
-    pub unsafe fn from_ptrs(begin: *mut A, end: *mut A, stride: int) -> StrideMut<'a, A>
+    /// Create Stride iterator from a raw pointer.
+    pub unsafe fn from_ptr_len(begin: *mut A, nelem: uint, stride: int) -> StrideMut<'a, A>
     {
         StrideMut {
             begin: begin,
-            end: end,
+            offset: 0,
+            end: stride * nelem as int,
             stride: stride,
             life: kinds::marker::ContravariantLifetime,
-            nocopy: kinds::marker::NoCopy
-        }
-    }
-
-    /// Create StrideMut iterator from an existing StrideMut iterator
-    pub fn from_stride(it: StrideMut<'a, A>, step: uint) -> StrideMut<'a, A>
-    {
-        assert!(step != 0);
-        let newstride = it.stride * (step as int);
-        let begin = it.begin;
-        let mut end = it.end;
-        unsafe {
-            if !begin.is_null() {
-                let nelem = (end as int - begin as int)
-                            / (mem::size_of::<A>() as int)
-                            / newstride;
-
-                end = begin.offset(nelem * newstride);
-            }
-            StrideMut::from_ptrs(begin, end, newstride)
-        }
-    }
-
-    /// Swap the begin and end pointer and reverse the stride,
-    /// in effect reversing the iterator.
-    #[inline]
-    pub fn swap_ends(&mut self) {
-        if !self.begin.is_null() {
-            mem::swap(&mut self.begin, &mut self.end);
-            self.stride = -self.stride;
+            nocopy: kinds::marker::NoCopy,
         }
     }
 }
 
-macro_rules! stride_iterator {
-    (struct $name:ident -> $ptr:ty, $elem:ty) => {
+macro_rules! stride_impl {
+    (struct $name:ident -> $slice:ty, $getptr:ident, $ptr:ty, $elem:ty) => {
+        impl<'a, A> $name<'a, A>
+        {
+            /// Create Stride iterator from a slice and the element step count.
+            ///
+            /// If `step` is negative, start from the back.
+            ///
+            /// ## Example
+            ///
+            /// ```
+            /// use itertools::Stride;
+            ///
+            /// let xs = [0i, 1, 2, 3, 4, 5];
+            ///
+            /// let mut front = Stride::from_slice(xs.as_slice(), 2);
+            /// assert_eq!(front[0], 0);
+            /// assert_eq!(front[1], 2);
+            ///
+            /// let mut back = Stride::from_slice(xs.as_slice(), -2);
+            /// assert_eq!(back[0], 5);
+            /// assert_eq!(back[1], 3);
+            /// ```
+            #[inline]
+            pub fn from_slice(xs: $slice, step: int) -> $name<'a, A>
+            {
+                assert!(mem::size_of::<A>() != 0);
+                let ustep = if step < 0 { -step } else { step } as uint;
+                let nelem = if ustep <= 1 {
+                    xs.len()
+                } else {
+                    let (d, r) = num::div_rem(xs.len(), ustep);
+                    d + if r > 0 { 1 } else { 0 }
+                };
+                let mut begin = xs. $getptr ();
+                unsafe {
+                    if step > 0 {
+                        $name::from_ptr_len(begin, nelem, step)
+                    } else {
+                        if nelem != 0 {
+                            begin = begin.offset(xs.len() as int - 1)
+                        }
+                        $name::from_ptr_len(begin, nelem, step)
+                    }
+                }
+            }
+
+            /// Create Stride iterator from an existing Stride iterator
+            #[inline]
+            pub fn from_stride(mut it: $name<'a, A>, mut step: int) -> $name<'a, A>
+            {
+                assert!(step != 0);
+                if step < 0 {
+                    it.swap_ends();
+                    step = -step;
+                }
+                let len = (it.end - it.offset) / it.stride;
+                let newstride = it.stride * step;
+                let (d, r) = num::div_rem(len as uint, step as uint);
+                let len = d as uint + if r > 0 { 1 } else { 0 };
+                unsafe {
+                    $name::from_ptr_len(it.begin, len, newstride)
+                }
+            }
+
+            /// Swap the begin and end and reverse the stride,
+            /// in effect reversing the iterator.
+            #[inline]
+            pub fn swap_ends(&mut self) {
+                let len = (self.end - self.offset) / self.stride;
+                if len > 0 {
+                    unsafe {
+                        let endptr = self.begin.offset((len - 1) * self.stride);
+                        *self = $name::from_ptr_len(endptr, len as uint, -self.stride);
+                    }
+                }
+            }
+        }
+
         impl<'a, A> Iterator<$elem> for $name<'a, A>
         {
             #[inline]
             fn next(&mut self) -> Option<$elem>
             {
-                unsafe {
-                    if self.begin == self.end {
-                        return if self.begin.is_null() {
-                            None
-                        } else {
-                            /* handle the last element */
-                            let elt: $elem = mem::transmute(self.begin);
-                            self.begin = RawPtr::null();
-                            self.end = RawPtr::null();
-                            Some(elt)
-                        }
+                if self.offset == self.end {
+                    None
+                } else {
+                    unsafe {
+                        let elt: $elem =
+                            mem::transmute(self.begin.offset(self.offset));
+                        self.offset += self.stride;
+                        Some(elt)
                     }
-                    let elt: $elem = mem::transmute(self.begin);
-                    self.begin = self.begin.offset(self.stride);
-                    Some(elt)
                 }
             }
 
-            fn size_hint(&self) -> (uint, Option<uint>)
-            {
-                let len;
-                if self.begin.is_null() {
-                    len = 0;
-                } else {
-                    len = (self.end as uint - self.begin as uint) as int / self.stride
-                        / mem::size_of::<A>() as int + 1;
-                }
-
-                (len as uint, Some(len as uint))
+            #[inline]
+            fn size_hint(&self) -> (uint, Option<uint>) {
+                let len = ((self.end - self.offset) / self.stride) as uint;
+                (len, Some(len))
             }
         }
 
@@ -232,21 +177,14 @@ macro_rules! stride_iterator {
             #[inline]
             fn next_back(&mut self) -> Option<$elem>
             {
-                unsafe {
-                    if self.begin == self.end {
-                        return if self.end.is_null() {
-                            None
-                        } else {
-                            /* handle the last element */
-                            let elt: $elem = mem::transmute(self.end);
-                            self.begin = RawPtr::null();
-                            self.end = RawPtr::null();
-                            Some(elt)
-                        }
+                if self.offset == self.end {
+                    None
+                } else {
+                    unsafe {
+                        self.end -= self.stride;
+                        let elt = mem::transmute(self.begin.offset(self.end));
+                        Some(elt)
                     }
-                    let elt: $elem = mem::transmute(self.end);
-                    self.end = self.end.offset(-self.stride);
-                    Some(elt)
                 }
             }
         }
@@ -259,7 +197,7 @@ macro_rules! stride_iterator {
             {
                 assert!(*i < self.size_hint().val0());
                 unsafe {
-                    let ptr = self.begin.offset(self.stride * (*i as int));
+                    let ptr = self.begin.offset(self.offset + self.stride * (*i as int));
                     mem::transmute(ptr)
                 }
             }
@@ -267,8 +205,8 @@ macro_rules! stride_iterator {
     }
 }
 
-stride_iterator!{struct Stride -> *const A, &'a A}
-stride_iterator!{struct StrideMut -> *mut A, &'a mut A}
+stride_impl!{struct Stride -> &'a [A], as_ptr, *const A, &'a A}
+stride_impl!{struct StrideMut -> &'a mut [A], as_mut_ptr, *mut A, &'a mut A}
 
 impl<'a, A: fmt::Show> fmt::Show for Stride<'a, A>
 {
