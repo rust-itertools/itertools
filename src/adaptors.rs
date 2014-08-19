@@ -4,6 +4,7 @@
 //! option. This file may not be copied, modified, or distributed
 //! except according to those terms.
 
+use std::mem;
 use std::num::Saturating;
 
 /// An iterator like `.map(|elt| elt.clone())`
@@ -158,9 +159,9 @@ impl<A, I> PutBack<A, I> {
 impl<A, I: Iterator<A>> Iterator<A> for PutBack<A, I> {
     #[inline]
     fn next(&mut self) -> Option<A> {
-        match self.top.take() {
+        match self.top {
             None => self.iter.next(),
-            top => top,
+            ref mut some => mem::replace(some, None)
         }
     }
     #[inline]
