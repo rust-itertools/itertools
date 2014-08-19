@@ -230,3 +230,15 @@ impl<'a, A> Clone for Stride<'a, A>
         *self
     }
 }
+
+impl<'a, A> IndexMut<uint, A> for StrideMut<'a, A>
+{
+    fn index_mut<'b>(&'b mut self, i: &uint) -> &'b mut A
+    {
+        assert!(*i < self.size_hint().val0());
+        unsafe {
+            let ptr = self.begin.offset(self.offset + self.stride * (*i as int));
+            mem::transmute(ptr)
+        }
+    }
+}
