@@ -14,7 +14,7 @@
 //! I recommend shortening the crate name with something like:
 //!
 //! ```ignore
-//! use it = itertools;
+//! use itertools as it;
 //! ```
 //! ## License 
 //! Dual-licensed to be compatible with the Rust project.

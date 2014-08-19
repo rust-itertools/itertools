@@ -13,7 +13,7 @@ To use the macros in this crate, use the phase(plugin) attribute::
 
 I recommend shortening the crate name with something like::
 
-    use it = itertools;
+    use itertools as it;
 
 License
 =======

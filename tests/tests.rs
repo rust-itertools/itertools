@@ -17,7 +17,7 @@ use itertools::BoxIter;
 
 use itertools::ItertoolsClonable;
 
-use it = itertools;
+use itertools as it;
 
 #[test]
 fn product2() {
