@@ -21,7 +21,7 @@ impl<I> Clones<I>
     }
 }
 
-impl<'a, A: Clone, I: Iterator<&'a A>>
+impl<'a, A: 'a + Clone, I: Iterator<&'a A>>
 Iterator<A> for Clones<I>
 {
     #[inline]
@@ -36,7 +36,7 @@ Iterator<A> for Clones<I>
     }
 }
 
-impl<'a, A: Clone, I: DoubleEndedIterator<&'a A>>
+impl<'a, A: 'a + Clone, I: DoubleEndedIterator<&'a A>>
 DoubleEndedIterator<A> for Clones<I>
 {
     #[inline]
@@ -46,7 +46,7 @@ DoubleEndedIterator<A> for Clones<I>
     }
 }
 
-impl<'a, A: Clone, I: ExactSize<&'a A>> ExactSize<A> for Clones<I> { }
+impl<'a, A: 'a + Clone, I: ExactSize<&'a A>> ExactSize<A> for Clones<I> { }
 
 /// Alternate elements from two iterators until both
 /// are run out

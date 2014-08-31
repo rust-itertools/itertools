@@ -79,11 +79,11 @@ fn fn_map() {
 fn write_to() {
     let xs = [7i, 9, 8];
     let mut ys = [0i, ..5];
-    let cnt = xs.iter().map(|x| *x).write_to(ys.mut_iter());
+    let cnt = it::write(ys.mut_iter(), xs.iter().map(|x| *x));
     assert!(cnt == xs.len());
     assert!(ys == &[7i, 9, 8, 0, 0]);
 
-    let cnt = range(0,10i).write_to(ys.mut_iter());
+    let cnt = it::write(ys.mut_iter(), range(0,10i));
     assert!(cnt == ys.len());
     assert!(ys == &[0, 1, 2, 3, 4]);
 }

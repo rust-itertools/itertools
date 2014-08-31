@@ -10,7 +10,7 @@
 /// Iterator element type is `A`
 pub struct BoxIter<A> {
     /// The wrapped iterator pointer
-    pub iter: Box<Iterator<A>>
+    pub iter: Box<Iterator<A> + 'static>
 }
 
 impl<A> BoxIter<A>
@@ -18,11 +18,11 @@ impl<A> BoxIter<A>
     /// Create a BoxIter from an iterator value
     pub fn from_iter<I: 'static + Iterator<A>>(iter: I) -> BoxIter<A>
     {
-        BoxIter::from_box(box iter as Box<Iterator<A>>)
+        BoxIter::from_box(box iter as Box<Iterator<A> + 'static>)
     }
 
     /// Create a BoxIter from an already boxed iterator
-    pub fn from_box(iter: Box<Iterator<A>>) -> BoxIter<A>
+    pub fn from_box(iter: Box<Iterator<A> + 'static>) -> BoxIter<A>
     {
         BoxIter{iter: iter}
     }

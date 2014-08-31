@@ -61,7 +61,7 @@ macro_rules! impl_append_tuple(
 
     ($A:ident $(,$B:ident)*) => (
         impl_append_tuple!($($B),*)
-        #[allow(uppercase_variables)]
+        #[allow(non_snake_case)]
         impl<$A, $($B,)* T> AppendTuple<T, ($A, $($B,)* T)> for ($A, $($B),*) {
             fn append(self, x: T) -> ($A, $($B,)* T) {
                 let ($A, $($B),*) = self;
@@ -272,26 +272,6 @@ pub trait Itertools<A> : Iterator<A> {
     fn apply(&mut self, f: |A|) {
         for elt in *self { f(elt) }
     }
-
-
-    /// Assign to each reference in `iter` from this iterator, stopping
-    /// at the shortest of the two iterators.
-    ///
-    /// Return the number of elements written.
-    #[inline]
-    fn write_to<'a, I: Iterator<&'a mut A>>(&mut self, iter: I) -> uint
-    {
-        let mut count = 0u;
-        let mut iter = iter;
-        for elt in *self {
-            match iter.next() {
-                None => break,
-                Some(ptr) => *ptr = elt
-            }
-            count += 1;
-        }
-        count
-    }
 }
 
 impl<A, T: Iterator<A>> Itertools<A> for T { }
@@ -304,3 +284,22 @@ pub trait ItertoolsClonable<A> {
 }
 
 impl<'a, A: Clone, I: Iterator<&'a A>> ItertoolsClonable<&'a A> for I { }
+
+/// Assign to each reference in `to` from `from`, stopping
+/// at the shortest of the two iterators.
+///
+/// Return the number of elements written.
+#[inline]
+pub fn write<'a, A: 'a, I: Iterator<&'a mut A>, J: Iterator<A>>
+    (mut to: I, mut from: J) -> uint
+{
+    let mut count = 0u;
+    for elt in from {
+        match to.next() {
+            None => break,
+            Some(ptr) => *ptr = elt
+        }
+        count += 1;
+    }
+    count
+}
