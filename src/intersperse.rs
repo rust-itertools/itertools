@@ -9,7 +9,6 @@ pub struct Intersperse<A, I> {
     element: A,
     iter: I,
     peek: Option<A>,
-    insert: bool,
 }
 
 impl<A, I: Iterator<A>> Intersperse<A, I>
@@ -17,7 +16,7 @@ impl<A, I: Iterator<A>> Intersperse<A, I>
     /// Create a new Intersperse iterator
     pub fn new(mut iter: I, elt: A) -> Intersperse<A, I>
     {
-        Intersperse{peek: iter.next(), iter: iter, element: elt, insert: false}
+        Intersperse{peek: iter.next(), iter: iter, element: elt}
     }
 }
 
@@ -27,18 +26,15 @@ Iterator<A> for Intersperse<A, I>
     #[inline]
     fn next(&mut self) -> Option<A>
     {
-        if self.insert {
+        if self.peek.is_some() {
+            self.peek.take()
+        } else {
+            self.peek = self.iter.next();
             if self.peek.is_some() {
-                self.insert = false;
                 Some(self.element.clone())
             } else {
                 None
             }
-        } else {
-            let elt = self.peek.take();
-            self.peek = self.iter.next();
-            self.insert = true;
-            elt
         }
     }
 
