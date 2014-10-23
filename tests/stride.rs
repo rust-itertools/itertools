@@ -1,6 +1,5 @@
 extern crate test;
 extern crate itertools;
-extern crate debug;
 
 use itertools::Itertools;
 use itertools::ItertoolsClonable;
