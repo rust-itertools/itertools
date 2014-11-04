@@ -8,27 +8,29 @@
 /// Iterator trait.
 ///
 /// Iterator element type is `A`
-pub struct BoxIter<A> {
+pub struct BoxIter<I> {
     /// The wrapped iterator pointer
-    pub iter: Box<Iterator<A> + 'static>
+    pub iter: Box<I>
 }
 
-impl<A> BoxIter<A>
+impl<A, I> BoxIter<I>
+    where I: Iterator<A>
 {
     /// Create a BoxIter from an iterator value
-    pub fn from_iter<I: 'static + Iterator<A>>(iter: I) -> BoxIter<A>
+    pub fn from_iter(iter: I) -> BoxIter<I>
     {
-        BoxIter::from_box(box iter as Box<Iterator<A> + 'static>)
+        BoxIter::from_box(box iter)
     }
 
     /// Create a BoxIter from an already boxed iterator
-    pub fn from_box(iter: Box<Iterator<A> + 'static>) -> BoxIter<A>
+    pub fn from_box(iter: Box<I>) -> BoxIter<I>
     {
         BoxIter{iter: iter}
     }
 }
 
-impl<A> Iterator<A> for BoxIter<A>
+impl<A, I> Iterator<A> for BoxIter<I>
+    where I: Iterator<A>
 {
     #[inline]
     fn next(&mut self) -> Option<A>
