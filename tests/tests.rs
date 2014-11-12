@@ -102,14 +102,6 @@ fn interleave() {
 }
 
 #[test]
-fn boxiter() {
-    let ys = vec![1,2,3i];
-    let it = BoxIter::from_iter(ys.into_iter());
-    assert!(it.size_hint().val0() == 3);
-    assert!(order::eq(it, range(1i, 4)));
-}
-
-#[test]
 fn times() {
     assert!(it::times(0).count() == 0);
     assert!(it::times(5).count() == 5);
