@@ -13,7 +13,6 @@ extern crate test;
 use std::iter::order;
 use itertools::Itertools;
 use itertools::Interleave;
-use itertools::BoxIter;
 
 use itertools::ItertoolsClonable;
 
