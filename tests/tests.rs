@@ -80,11 +80,11 @@ fn write_to() {
     let mut ys = [0i, ..5];
     let cnt = it::write(ys.iter_mut(), xs.iter().map(|x| *x));
     assert!(cnt == xs.len());
-    assert!(ys == &[7i, 9, 8, 0, 0]);
+    assert!(ys == [7i, 9, 8, 0, 0]);
 
     let cnt = it::write(ys.iter_mut(), range(0,10i));
     assert!(cnt == ys.len());
-    assert!(ys == &[0, 1, 2, 3, 4]);
+    assert!(ys == [0, 1, 2, 3, 4]);
 }
 
 #[test]
