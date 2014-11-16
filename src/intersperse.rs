@@ -1,4 +1,4 @@
-use std::num::Saturating;
+use std::num::Int;
 
 /// An iterator adaptor to insert a particular value
 /// between each element of the adapted iterator.
@@ -45,7 +45,7 @@ Iterator<A> for Intersperse<A, I>
             low = low.saturating_add((low - 1));
         }
         hi = hi.and_then(|x| if x > 0 {
-            x.checked_add(&(x - 1))
+            x.checked_add(x - 1)
         } else { Some (x) });
         (low, hi)
     }

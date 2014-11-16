@@ -5,7 +5,7 @@
 //! except according to those terms.
 
 use std::mem;
-use std::num::Saturating;
+use std::num::Int;
 
 /// An iterator like `.map(|elt| elt.clone())`
 ///
@@ -168,7 +168,7 @@ impl<A, I: Iterator<A>> Iterator<A> for PutBack<A, I> {
     fn size_hint(&self) -> (uint, Option<uint>) {
         let (lo, hi) = self.iter.size_hint();
         match self.top {
-            Some(_) => (lo.saturating_add(1), hi.and_then(|x| x.checked_add(&1))),
+            Some(_) => (lo.saturating_add(1), hi.and_then(|x| x.checked_add(1))),
             None => (lo, hi)
         }
     }
@@ -234,11 +234,11 @@ Iterator<(A, B)> for Product<A, I, J>
         let (bo, boh) = self.b_orig.size_hint();
 
         // Compute a * bo + b for both lower and upper bound
-        let low = a.checked_mul(&bo)
-                    .and_then(|x| x.checked_add(&b))
+        let low = a.checked_mul(bo)
+                    .and_then(|x| x.checked_add(b))
                     .unwrap_or(::std::uint::MAX);
-        let high = ah.and_then(|x| boh.and_then(|y| x.checked_mul(&y)))
-                     .and_then(|x| bh.and_then(|y| x.checked_add(&y)));
+        let high = ah.and_then(|x| boh.and_then(|y| x.checked_mul(y)))
+                     .and_then(|x| bh.and_then(|y| x.checked_add(y)));
         (low, high)
     }
 }
