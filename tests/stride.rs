@@ -30,7 +30,7 @@ fn mut_stride_compose() {
 
 #[test]
 fn stride_uneven() {
-    let xs = [7i, 9, 8];
+    let xs = &[7i, 9, 8];
     let mut it = Stride::from_slice(xs, 2);
     assert!(it.size_hint() == (2, Some(2)));
     assert!(*it.next().unwrap() == 7);
@@ -38,7 +38,7 @@ fn stride_uneven() {
     assert!(it.len() == 0);
     assert!(it.next().is_none());
 
-    let xs = [7i, 9, 8, 10];
+    let xs = &[7i, 9, 8, 10];
     let mut it = Stride::from_slice(xs.slice_from(1), 2);
     assert!(it.size_hint() == (2, Some(2)));
     assert!(*it.next().unwrap() == 9);
@@ -49,32 +49,32 @@ fn stride_uneven() {
 
 #[test]
 fn stride_compose() {
-    let xs = [1i, 2, 3, 4, 5, 6, 7, 8, 9];
+    let xs = &[1i, 2, 3, 4, 5, 6, 7, 8, 9];
     let odds = Stride::from_slice(xs, 2);
     let it = Stride::from_stride(odds, 2);
     let ans: Vec<int> = it.map(|&x| x).collect();
     assert_eq!(ans, vec![1i, 5, 9]);
 
-    let xs = [1i, 2, 3, 4, 5, 6, 7, 8, 9];
+    let xs = &[1i, 2, 3, 4, 5, 6, 7, 8, 9];
     let evens = Stride::from_slice(xs.slice_from(1), 2);
     let it = Stride::from_stride(evens, 2);
     let ans: Vec<int> = it.map(|&x| x).collect();
     assert_eq!(ans, vec![2i, 6]);
 
-    let xs = [1i, 2, 3, 4, 5, 6, 7, 8, 9];
+    let xs = &[1i, 2, 3, 4, 5, 6, 7, 8, 9];
     let evens = Stride::from_slice(xs.slice_from(1), 2);
     let it = Stride::from_stride(evens, 1);
     let ans: Vec<int> = it.map(|&x| x).collect();
     assert_eq!(ans, vec![2i, 4, 6, 8]);
 
-    let xs = [1i, 2, 3, 4, 5, 6, 7, 8, 9];
+    let xs = &[1i, 2, 3, 4, 5, 6, 7, 8, 9];
     let mut odds = Stride::from_slice(xs, 2);
     odds.swap_ends();
     let it = Stride::from_stride(odds, 2);
     let ans: Vec<int> = it.map(|&x| x).collect();
     assert_eq!(ans, vec![9i, 5, 1]);
 
-    let xs = [1i, 2, 3];
+    let xs = &[1i, 2, 3];
     let every = Stride::from_slice(xs, 1);
     assert_eq!(every.len(), 3);
     let odds = Stride::from_stride(every, 2);
@@ -82,7 +82,7 @@ fn stride_compose() {
     let v = odds.clones().collect::<Vec<int>>();
     assert_eq!(v, vec![1i, 3i]);
 
-    let xs = [1i, 2, 3, 4, 5, 6, 7, 8, 9];
+    let xs = &[1i, 2, 3, 4, 5, 6, 7, 8, 9];
     let evens = Stride::from_slice(xs.slice_from(1), 2);
     let it = Stride::from_stride(evens, -2);
     let ans: Vec<int> = it.map(|&x| x).collect();
@@ -92,7 +92,7 @@ fn stride_compose() {
 #[test]
 fn from_stride_empty()
 {
-    let xs = [1i, 2, 3, 4, 5, 6, 7, 8, 9];
+    let xs = &[1i, 2, 3, 4, 5, 6, 7, 8, 9];
     let mut odds = Stride::from_slice(xs, 2);
     odds.drain();
     assert!(odds.len() == 0);
@@ -104,12 +104,12 @@ fn from_stride_empty()
 
 #[test]
 fn stride() {
-    let xs: [u8, ..0]  = [];
+    let xs: &[u8]  = &[];
     let mut it = Stride::from_slice(xs, 1);
     assert!(it.size_hint() == (0, Some(0)));
     assert!(it.next().is_none());
 
-    let xs = [7i, 9, 8, 10];
+    let xs = &[7i, 9, 8, 10];
     let mut it = Stride::from_slice(xs, 2);
     assert!(it.size_hint() == (2, Some(2)));
     assert!(*it.next().unwrap() == 7);
@@ -122,7 +122,7 @@ fn stride() {
     assert!(*it.next().unwrap() == 7);
     assert!(it.next().is_none());
 
-    let xs = [7i, 9, 8, 10];
+    let xs = &[7i, 9, 8, 10];
     let mut it = Stride::from_slice(xs, 1);
     assert!(it.size_hint() == (4, Some(4)));
     assert!(*it.next().unwrap() == 7);
@@ -156,7 +156,7 @@ fn stride() {
 
 #[test]
 fn stride_index() {
-    let xs = [7i, 9, 8, 10];
+    let xs = &[7i, 9, 8, 10];
     let it = Stride::from_slice(xs, 2);
     assert_eq!(it[0], 7);
     assert_eq!(it[1], 8);
@@ -165,7 +165,7 @@ fn stride_index() {
 #[test]
 #[should_fail]
 fn stride_index_fail() {
-    let xs = [7i, 9, 8, 10];
+    let xs = &[7i, 9, 8, 10];
     let it = Stride::from_slice(xs, 2);
     let _ = it[2];
 }
