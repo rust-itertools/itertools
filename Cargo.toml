@@ -1,5 +1,11 @@
 [package]
 
 name = "itertools"
-version = "0.0.1"
-authors = []
+version = "0.0.2"
+
+license = "MIT/Apache-2.0"
+repository = "https://github.com/bluss/rust-itertools"
+documentation = "http://bluss.github.io/rust-itertools/"
+authors = ["bluss"]
+
+description = "extra iterator adaptors, functions and macros"
