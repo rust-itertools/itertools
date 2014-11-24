@@ -12,8 +12,6 @@ pub type Linspace<F> = iter::Take<iter::Counter<F>>;
 ///
 /// Iterator element type is `F`.
 ///
-/// **Panics** if `n` is zero.
-///
 /// ```
 /// use itertools as it;
 /// let mut xs = it::linspace::<f32>(0., 1., 5);
@@ -23,7 +21,11 @@ pub type Linspace<F> = iter::Take<iter::Counter<F>>;
 #[inline]
 pub fn linspace<F: Float>(a: F, b: F, n: uint) -> Linspace<F>
 {
-    let nf: F = NumCast::from(n).expect("linspace requires n > 0");
-    let step = (b - a)/(nf - Float::one());
-    iter::count(a, step).take(n)
+    if n != 0 {
+        let nf: F = NumCast::from(n).unwrap();
+        let step = (b - a)/(nf - Float::one());
+        iter::count(a, step).take(n)
+    } else {
+        iter::count(a, Float::one()).take(n)
+    }
 }

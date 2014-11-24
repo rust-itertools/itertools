@@ -170,4 +170,11 @@ fn linspace() {
     assert_eq!(iter.next(), Some(-1.333333333333));
     assert_eq!(iter.next(), Some(-2.));
     assert_eq!(iter.next(), None);
+
+    let mut iter = it::linspace::<f32>(0., 1., 1);
+    assert_eq!(iter.next(), Some(0.));
+    assert_eq!(iter.next(), None);
+
+    let mut iter = it::linspace::<f32>(0., 1., 0);
+    assert_eq!(iter.next(), None);
 }
