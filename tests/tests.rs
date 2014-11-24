@@ -11,10 +11,9 @@
 extern crate test;
 
 use std::iter::order;
+use std::iter::AdditiveIterator;
 use itertools::Itertools;
 use itertools::Interleave;
-
-use itertools::ItertoolsClonable;
 
 use itertools as it;
 
@@ -152,4 +151,7 @@ fn clones() {
     let v: Vec<&str> = xs.iter().clones().collect();
     let text = v.concat();
     assert_eq!(text, "abc".to_string());
+    let xs = [1,2,3i];
+    let sum = xs.iter().clones().sum();
+    assert_eq!(sum, 6);
 }

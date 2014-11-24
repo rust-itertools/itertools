@@ -2,7 +2,6 @@ extern crate test;
 extern crate itertools;
 
 use itertools::Itertools;
-use itertools::ItertoolsClonable;
 use itertools::Stride;
 use itertools::StrideMut;
 

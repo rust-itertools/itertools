@@ -232,6 +232,11 @@ pub trait Itertools<A> : Iterator<A> {
         Intersperse::new(self, element)
     }
 
+    /// An iterator like `.map(|elt| elt.clone())`
+    fn clones(self) -> Clones<Self> {
+        Clones::new(self)
+    }
+
     // non-adaptor methods
 
     /// Consume `n` elements of the iterator eagerly
@@ -273,15 +278,6 @@ pub trait Itertools<A> : Iterator<A> {
 }
 
 impl<A, T: Iterator<A>> Itertools<A> for T { }
-
-pub trait ItertoolsClonable<A> {
-    /// An iterator like `.map(|elt| elt.clone())`
-    fn clones(self) -> Clones<Self> {
-        Clones::new(self)
-    }
-}
-
-impl<'a, A: Clone, I: Iterator<&'a A>> ItertoolsClonable<&'a A> for I { }
 
 /// Assign to each reference in `to` from `from`, stopping
 /// at the shortest of the two iterators.
