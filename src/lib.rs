@@ -37,7 +37,7 @@ pub use stride::Stride;
 pub use stride::StrideMut;
 pub use times::Times;
 pub use times::times;
-pub use linspace::linspace;
+pub use linspace::{linspace, Linspace};
 mod adaptors;
 mod intersperse;
 mod linspace;

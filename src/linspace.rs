@@ -2,6 +2,9 @@
 use std::iter;
 use std::num::{Float, NumCast};
 
+/// An iterator of `n` evenly spaced floats.
+/// 
+/// Iterator element type is `F`.
 pub type Linspace<F> = iter::Take<iter::Counter<F>>;
 
 /// Return an iterator with `n` elements, where the first
@@ -13,7 +16,7 @@ pub type Linspace<F> = iter::Take<iter::Counter<F>>;
 ///
 /// ```
 /// use itertools as it;
-/// let mut xs = it::linspace(0.0_f32, 1., 5);
+/// let mut xs = it::linspace::<f32>(0., 1., 5);
 /// assert_eq!(xs.collect::<Vec<_>>(),
 ///            vec![0., 0.25, 0.5, 0.75, 1.0]);
 /// ```
