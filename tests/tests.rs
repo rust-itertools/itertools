@@ -155,3 +155,19 @@ fn clones() {
     let sum = xs.iter().clones().sum();
     assert_eq!(sum, 6);
 }
+
+#[test]
+fn linspace() {
+    let mut iter = it::linspace::<f32>(0., 2., 3);
+    assert_eq!(iter.next(), Some(0.0));
+    assert_eq!(iter.next(), Some(1.0));
+    assert_eq!(iter.next(), Some(2.0));
+    assert_eq!(iter.next(), None);
+
+    let mut iter = it::linspace::<f32>(0., -2., 4);
+    assert_eq!(iter.next(), Some(0.));
+    assert_eq!(iter.next(), Some(-0.666666666667));
+    assert_eq!(iter.next(), Some(-1.333333333333));
+    assert_eq!(iter.next(), Some(-2.));
+    assert_eq!(iter.next(), None);
+}
