@@ -52,4 +52,4 @@ impl DoubleEndedIterator<uint> for Times
     }
 }
 
-impl ExactSize<uint> for Times { }
+impl ExactSizeIterator<uint> for Times { }

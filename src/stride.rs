@@ -189,7 +189,7 @@ macro_rules! stride_impl {
             }
         }
 
-        impl<'a, A> ExactSize<$elem> for $name<'a, A> { }
+        impl<'a, A> ExactSizeIterator<$elem> for $name<'a, A> { }
 
         impl<'a, A> Index<uint, A> for $name<'a, A>
         {

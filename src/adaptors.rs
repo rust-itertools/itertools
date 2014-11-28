@@ -46,7 +46,7 @@ DoubleEndedIterator<A> for Clones<I>
     }
 }
 
-impl<'a, A: 'a + Clone, I: ExactSize<&'a A>> ExactSize<A> for Clones<I> { }
+impl<'a, A: 'a + Clone, I: ExactSizeIterator<&'a A>> ExactSizeIterator<A> for Clones<I> { }
 
 /// Alternate elements from two iterators until both
 /// are run out
