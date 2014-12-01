@@ -7,47 +7,6 @@
 use std::mem;
 use std::num::Int;
 
-/// An iterator like `.map(|elt| elt.clone())`
-///
-/// Iterator element type is `A`, if `I: Iterator<&A>`
-pub struct Clones<I> {
-    iter: I
-}
-
-impl<I> Clones<I>
-{
-    pub fn new(iter: I) -> Clones<I> {
-        Clones{iter: iter}
-    }
-}
-
-impl<'a, A: 'a + Clone, I: Iterator<&'a A>>
-Iterator<A> for Clones<I>
-{
-    #[inline]
-    fn next(&mut self) -> Option<A>
-    {
-        self.iter.next().map(|elt| elt.clone())
-    }
-
-    fn size_hint(&self) -> (uint, Option<uint>)
-    {
-        self.iter.size_hint()
-    }
-}
-
-impl<'a, A: 'a + Clone, I: DoubleEndedIterator<&'a A>>
-DoubleEndedIterator<A> for Clones<I>
-{
-    #[inline]
-    fn next_back(&mut self) -> Option<A>
-    {
-        self.iter.next_back().map(|elt| elt.clone())
-    }
-}
-
-impl<'a, A: 'a + Clone, I: ExactSizeIterator<&'a A>> ExactSizeIterator<A> for Clones<I> { }
-
 /// Alternate elements from two iterators until both
 /// are run out
 ///

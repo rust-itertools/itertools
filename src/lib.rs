@@ -27,7 +27,6 @@
 //!
 //!
 
-pub use adaptors::Clones;
 pub use adaptors::Interleave;
 pub use adaptors::Product;
 pub use adaptors::PutBack;
@@ -232,11 +231,6 @@ pub trait Itertools<A> : Iterator<A> {
     /// Iterator element type is `A`
     fn intersperse(self, element: A) -> Intersperse<A, Self> {
         Intersperse::new(self, element)
-    }
-
-    /// An iterator like `.map(|elt| elt.clone())`
-    fn clones(self) -> Clones<Self> {
-        Clones::new(self)
     }
 
     // non-adaptor methods

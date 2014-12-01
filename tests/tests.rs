@@ -146,17 +146,6 @@ fn intersperse() {
 }
 
 #[test]
-fn clones() {
-    let xs = ["a", "", "b", "c"];
-    let v: Vec<&str> = xs.iter().clones().collect();
-    let text = v.concat();
-    assert_eq!(text, "abc".to_string());
-    let xs = [1,2,3i];
-    let sum = xs.iter().clones().sum();
-    assert_eq!(sum, 6);
-}
-
-#[test]
 fn linspace() {
     let mut iter = it::linspace::<f32>(0., 2., 3);
     assert_eq!(iter.next(), Some(0.0));

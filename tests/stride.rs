@@ -78,7 +78,7 @@ fn stride_compose() {
     assert_eq!(every.len(), 3);
     let odds = Stride::from_stride(every, 2);
     assert_eq!(odds.len(), 2);
-    let v = odds.clones().collect::<Vec<int>>();
+    let v = odds.cloned().collect::<Vec<int>>();
     assert_eq!(v, vec![1i, 3i]);
 
     let xs = &[1i, 2, 3, 4, 5, 6, 7, 8, 9];
