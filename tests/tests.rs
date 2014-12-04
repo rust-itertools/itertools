@@ -11,7 +11,6 @@
 extern crate test;
 
 use std::iter::order;
-use std::iter::AdditiveIterator;
 use itertools::Itertools;
 use itertools::Interleave;
 
@@ -31,7 +30,7 @@ fn product2() {
 
 #[test]
 fn product3() {
-    let mut prod = iproduct!(range(0, 3i), range(0, 2i), range(0, 2i));
+    let prod = iproduct!(range(0, 3i), range(0, 2i), range(0, 2i));
     assert_eq!(prod.size_hint(), (12, Some(12)));
     let v = prod.collect::<Vec<_>>();
     for i in range(0,3i) {
@@ -41,7 +40,7 @@ fn product3() {
             }
         }
     }
-    for (a, b, c, d) in iproduct!(range(0, 3i), range(0, 2i), range(0, 2i), range(0, 3i)) {
+    for (_, _, _, _) in iproduct!(range(0, 3i), range(0, 2i), range(0, 2i), range(0, 3i)) {
         /* test compiles */
     }
 }
@@ -59,7 +58,7 @@ fn izip3() {
     let mut zip = izip!(range(0, 3u), range(0, 2i), range(0, 2i8), xs.iter());
     assert!(zip.next().is_none());
 
-    for (a, b, c, d) in izip!(range(0, 3i), range(0, 2i), range(0, 2i), range(0, 3i)) {
+    for (_, _, _, _) in izip!(range(0, 3i), range(0, 2i), range(0, 2i), range(0, 3i)) {
         /* test compiles */
     }
 }
