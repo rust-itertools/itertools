@@ -1,3 +1,4 @@
+#![feature(unboxed_closures)]
 #![feature(macro_rules)]
 #![crate_name="itertools"]
 #![crate_type="dylib"]
@@ -32,6 +33,7 @@ pub use adaptors::Product;
 pub use adaptors::PutBack;
 pub use adaptors::FnMap;
 pub use intersperse::Intersperse;
+pub use map::MapMut;
 pub use stride::Stride;
 pub use stride::StrideMut;
 pub use times::Times;
@@ -40,6 +42,7 @@ pub use linspace::{linspace, Linspace};
 mod adaptors;
 mod intersperse;
 mod linspace;
+mod map;
 mod stride;
 mod times;
 
@@ -215,6 +218,13 @@ pub trait Itertools<A> : Iterator<A> {
     /// Iterator element type is `B`
     fn fn_map<B>(self, map: fn(A) -> B) -> FnMap<A, B, Self> {
         FnMap::new(self, map)
+    }
+
+    /// Like regular `.map`, but using an unboxed closure instead.
+    ///
+    /// Iterator element type is `B`
+    fn map_unboxed<B, F: FnMut(A) -> B>(self, map: F) -> MapMut<A, B, F, Self> {
+        MapMut::new(self, map)
     }
 
     /// Alternate elements from two iterators until both
