@@ -39,12 +39,14 @@ pub use stride::StrideMut;
 pub use times::Times;
 pub use times::times;
 pub use linspace::{linspace, Linspace};
+pub use zip::{ZipLongest, EitherOrBoth};
 mod adaptors;
 mod intersperse;
 mod linspace;
 mod map;
 mod stride;
 mod times;
+mod zip;
 
 /// A helper trait for (x,y,z) ++ w => (x,y,z,w),
 /// used for implementing `iproduct!` and `izip!`
@@ -241,6 +243,30 @@ pub trait Itertools<A> : Iterator<A> {
     /// Iterator element type is `A`
     fn intersperse(self, element: A) -> Intersperse<A, Self> {
         Intersperse::new(self, element)
+    }
+
+    /// Creates an iterator which iterates over both this and the specified
+    /// iterators simultaneously, yielding pairs of two optional elements.
+    /// When both iterators return None, all further invocations of next() will
+    /// return None.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use itertools::EitherOrBoth::{Both, Right};
+    /// # use itertools::Itertools;
+    /// let a = [0i];
+    /// let b = [1i, 2i];
+    /// let mut it = a.iter().cloned().zip_longest(b.iter().cloned());
+    /// assert_eq!(it.next(), Some(Both(0, 1)));
+    /// assert_eq!(it.next(), Some(Right(2)));
+    /// assert_eq!(it.next(), None);
+    /// ```
+    ///
+    /// Iterator element type is `EitherOrBoth<A, B>`.
+    #[inline]
+    fn zip_longest<B, U: Iterator<B>>(self, other: U) -> ZipLongest<Self, U> {
+        ZipLongest::new(self, other)
     }
 
     // non-adaptor methods
