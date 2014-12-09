@@ -225,7 +225,7 @@ pub trait Itertools<A> : Iterator<A> {
     /// Like regular `.map`, but using an unboxed closure instead.
     ///
     /// Iterator element type is `B`
-    fn map_unboxed<B, F: FnMut(A) -> B>(self, map: F) -> MapMut<A, B, F, Self> {
+    fn map_unboxed<B, F: FnMut(A) -> B>(self, map: F) -> MapMut<F, Self> {
         MapMut::new(self, map)
     }
 
