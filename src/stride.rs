@@ -146,6 +146,12 @@ macro_rules! stride_impl {
                     }
                 }
             }
+
+            /// Return the number of elements in the iterator.
+            #[inline]
+            pub fn len(&self) -> uint {
+                ((self.end - self.offset) / self.stride) as uint
+            }
         }
 
         impl<'a, A> Iterator<$elem> for $name<'a, A>
@@ -167,7 +173,7 @@ macro_rules! stride_impl {
 
             #[inline]
             fn size_hint(&self) -> (uint, Option<uint>) {
-                let len = ((self.end - self.offset) / self.stride) as uint;
+                let len = self.len();
                 (len, Some(len))
             }
         }
@@ -195,7 +201,7 @@ macro_rules! stride_impl {
         {
             fn index<'b>(&'b self, i: &uint) -> &'b A
             {
-                assert!(*i < self.size_hint().val0());
+                assert!(*i < self.len());
                 unsafe {
                     let ptr = self.begin.offset(self.offset + self.stride * (*i as int));
                     mem::transmute(ptr)
@@ -235,7 +241,7 @@ impl<'a, A> IndexMut<uint, A> for StrideMut<'a, A>
 {
     fn index_mut<'b>(&'b mut self, i: &uint) -> &'b mut A
     {
-        assert!(*i < self.size_hint().val0());
+        assert!(*i < self.len());
         unsafe {
             let ptr = self.begin.offset(self.offset + self.stride * (*i as int));
             mem::transmute(ptr)
