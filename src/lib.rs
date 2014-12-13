@@ -32,6 +32,7 @@ pub use adaptors::Interleave;
 pub use adaptors::Product;
 pub use adaptors::PutBack;
 pub use adaptors::FnMap;
+pub use adaptors::Dedup;
 pub use intersperse::Intersperse;
 pub use map::MapMut;
 pub use stride::Stride;
@@ -267,6 +268,14 @@ pub trait Itertools<A> : Iterator<A> {
     #[inline]
     fn zip_longest<B, U: Iterator<B>>(self, other: U) -> ZipLongest<Self, U> {
         ZipLongest::new(self, other)
+    }
+
+    /// Remove duplicates from sections of consecutive identical elements.
+    /// If the iterator is sorted, all elements will be unique.
+    ///
+    /// Iterator element type is `A`.
+    fn dedup(self) -> Dedup<A, Self> {
+        Dedup::new(self)
     }
 
     // non-adaptor methods

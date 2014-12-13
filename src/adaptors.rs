@@ -202,3 +202,58 @@ Iterator<(A, B)> for Product<A, I, J>
     }
 }
 
+/// Remove duplicates from sections of consecutive identical elements.
+/// If the iterator is sorted, all elements will be unique.
+///
+/// Iterator element type is `A` if `I: Iterator<A>`
+#[deriving(Clone)]
+pub struct Dedup<A, I> {
+    last: Option<A>,
+    iter: I,
+}
+
+impl<A, I> Dedup<A, I>
+{
+    /// Create a new Dedup Iterator.
+    pub fn new(iter: I) -> Dedup<A, I>
+    {
+        Dedup{last: None, iter: iter}
+    }
+}
+
+impl<A: Clone + PartialEq, I: Iterator<A>> Iterator<A> for Dedup<A, I>
+{
+    #[inline]
+    fn next(&mut self) -> Option<A>
+    {
+        let mut elt;
+        loop {
+            elt = self.iter.next();
+
+            match self.last {
+                None => {
+                    break
+                }
+                Some(ref x) => match elt {
+                    Some(ref y) if x == y => continue,
+                    _ => break,
+                }
+            }
+        }
+        self.last = elt.clone();
+        elt
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (uint, Option<uint>)
+    {
+        let (lower, upper) = self.iter.size_hint();
+        if self.last.is_some() || lower == 0{
+            // they might all be duplicates
+            (0, upper)
+        } else {
+            (1, upper)
+        }
+    }
+}
+
