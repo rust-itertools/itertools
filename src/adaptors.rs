@@ -257,3 +257,38 @@ impl<A: Clone + PartialEq, I: Iterator<A>> Iterator<A> for Dedup<A, I>
     }
 }
 
+
+/// An advanced iterator adaptor. The closure recives a reference to the iterator
+/// and may pick off as many elements as it likes, to produce the next iterator element.
+///
+/// Iterator element type is `B`, if the return type of `F` is `Option<B>`.
+#[deriving(Clone)]
+pub struct Batching<I, F> {
+    f: F,
+    iter: I,
+}
+
+impl<F, I> Batching<I, F> {
+    /// Create a new Batching iterator.
+    pub fn new(iter: I, f: F) -> Batching<I, F>
+    {
+        Batching{f: f, iter: iter}
+    }
+}
+
+impl<A, B, F: FnMut(&mut I) -> Option<B>, I: Iterator<A>>
+    Iterator<B> for Batching<I, F>
+{
+    #[inline]
+    fn next(&mut self) -> Option<B>
+    {
+        (self.f)(&mut self.iter)
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (uint, Option<uint>)
+    {
+        // No information about closue behavior
+        (0, None)
+    }
+}

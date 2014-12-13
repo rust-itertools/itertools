@@ -4,6 +4,7 @@
 //! option. This file may not be copied, modified, or distributed
 //! except according to those terms.
 
+#![feature(unboxed_closures)]
 #![feature(phase)]
 
 #[phase(plugin, link)] extern crate itertools;
@@ -203,4 +204,22 @@ fn dedup() {
     let xs = [0i, 0, 0, 0, 0];
     let ys = [0i];
     assert_iters_equal(ys.iter(), xs.iter().dedup());
+}
+
+#[test]
+fn batching() {
+    let xs = [0i, 1, 2, 1, 3];
+    let ys = [(0i, 1i), (2, 1)];
+
+    // An iterator that gathers elements up in pairs
+    let pit = xs.iter().cloned().batching(|mut it| {
+               match it.next() {
+                   None => None,
+                   Some(x) => match it.next() {
+                       None => None,
+                       Some(y) => Some((x, y)),
+                   }
+               }
+           });
+    assert_iters_equal(pit, ys.iter().cloned());
 }
