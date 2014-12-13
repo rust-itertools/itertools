@@ -9,12 +9,12 @@ use std::kinds;
 use std::mem;
 use std::num;
 
-/// Similar to the slice iterator, but with a certain number of steps
-/// (stride) skipped per iteration.
+/// Stride is similar to the slice iterator, but with a certain number of steps
+/// (the stride) skipped per iteration.
 ///
-/// Does not support zero-sized `A`.
+/// Stride does not support zero-sized types for `A`.
 ///
-/// Iterator element type is `&'a A`
+/// Iterator element type is `&'a A`.
 pub struct Stride<'a, A> {
     /// base pointer -- does not change during iteration
     begin: *const A,
@@ -26,9 +26,9 @@ pub struct Stride<'a, A> {
     life: kinds::marker::ContravariantLifetime<'a>,
 }
 
-/// Stride with mutable elements
+/// StrideMut is like Stride, but with mutable elements.
 ///
-/// Iterator element type is `&'a mut A`
+/// Iterator element type is `&'a mut A`.
 pub struct StrideMut<'a, A> {
     begin: *mut A,
     offset: int,
@@ -40,7 +40,7 @@ pub struct StrideMut<'a, A> {
 
 impl<'a, A> Stride<'a, A>
 {
-    /// Create Stride iterator from a raw pointer.
+    /// Create a Stride iterator from a raw pointer.
     pub unsafe fn from_ptr_len(begin: *const A, nelem: uint, stride: int) -> Stride<'a, A>
     {
         Stride {
@@ -55,7 +55,7 @@ impl<'a, A> Stride<'a, A>
 
 impl<'a, A> StrideMut<'a, A>
 {
-    /// Create Stride iterator from a raw pointer.
+    /// Create a StrideMut iterator from a raw pointer.
     pub unsafe fn from_ptr_len(begin: *mut A, nelem: uint, stride: int) -> StrideMut<'a, A>
     {
         StrideMut {
@@ -84,14 +84,17 @@ macro_rules! stride_impl {
             ///
             /// let xs = [0i, 1, 2, 3, 4, 5];
             ///
-            /// let mut front = Stride::from_slice(xs.as_slice(), 2);
+            /// let front = Stride::from_slice(xs.as_slice(), 2);
             /// assert_eq!(front[0], 0);
             /// assert_eq!(front[1], 2);
             ///
-            /// let mut back = Stride::from_slice(xs.as_slice(), -2);
+            /// let back = Stride::from_slice(xs.as_slice(), -2);
             /// assert_eq!(back[0], 5);
             /// assert_eq!(back[1], 3);
             /// ```
+            ///
+            /// **Panics** if values of type `A` are zero-sized. <br>
+            /// **Panics** if `step` is 0.
             #[inline]
             pub fn from_slice(xs: $slice, step: int) -> $name<'a, A>
             {
@@ -117,6 +120,8 @@ macro_rules! stride_impl {
             }
 
             /// Create Stride iterator from an existing Stride iterator
+            ///
+            /// **Panics** if `step` is 0.
             #[inline]
             pub fn from_stride(mut it: $name<'a, A>, mut step: int) -> $name<'a, A>
             {
@@ -199,6 +204,9 @@ macro_rules! stride_impl {
 
         impl<'a, A> Index<uint, A> for $name<'a, A>
         {
+            /// Return a reference to the element at a given index.
+            ///
+            /// **Panics** if the index is out of bounds.
             fn index<'b>(&'b self, i: &uint) -> &'b A
             {
                 assert!(*i < self.len());
@@ -239,6 +247,9 @@ impl<'a, A> Clone for Stride<'a, A>
 
 impl<'a, A> IndexMut<uint, A> for StrideMut<'a, A>
 {
+    /// Return a mutable reference to the element at a given index.
+    ///
+    /// **Panics** if the index is out of bounds.
     fn index_mut<'b>(&'b mut self, i: &uint) -> &'b mut A
     {
         assert!(*i < self.len());
