@@ -15,7 +15,6 @@ use std::num;
 /// Stride does not support zero-sized types for `A`.
 ///
 /// Iterator element type is `&'a A`.
-#[deriving(Copy)]
 pub struct Stride<'a, A> {
     /// base pointer -- does not change during iteration
     begin: *const A,
@@ -26,6 +25,8 @@ pub struct Stride<'a, A> {
     stride: int,
     life: kinds::marker::ContravariantLifetime<'a>,
 }
+
+impl<'a, A> Copy for Stride<'a, A> {}
 
 /// StrideMut is like Stride, but with mutable elements.
 ///
