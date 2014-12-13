@@ -120,7 +120,7 @@ impl<A, I: Iterator<A>> Iterator<A> for PutBack<A, I> {
     fn next(&mut self) -> Option<A> {
         match self.top {
             None => self.iter.next(),
-            ref mut some => mem::replace(some, None)
+            ref mut some => some.take(),
         }
     }
     #[inline]
