@@ -14,7 +14,7 @@ pub fn times(n: uint) -> Times
 /// Created with the `times()` function.
 ///
 /// Iterator element type is `uint`
-#[deriving(Clone)]
+#[deriving(Copy, Clone)]
 pub struct Times {
     i: uint,
     n: uint,

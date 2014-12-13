@@ -15,6 +15,7 @@ use std::num;
 /// Stride does not support zero-sized types for `A`.
 ///
 /// Iterator element type is `&'a A`.
+#[deriving(Copy)]
 pub struct Stride<'a, A> {
     /// base pointer -- does not change during iteration
     begin: *const A,
