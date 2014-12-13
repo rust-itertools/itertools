@@ -35,6 +35,7 @@ pub use adaptors::FnMap;
 pub use adaptors::{
     Dedup,
     Batching,
+    GroupBy,
 };
 pub use intersperse::Intersperse;
 pub use map::MapMut;
@@ -309,6 +310,15 @@ pub trait Itertools<A> : Iterator<A> {
     ///
     fn batching<B, F: FnMut(&mut Self) -> Option<B>>(self, f: F) -> Batching<Self, F> {
         Batching::new(self, f)
+    }
+
+    /// Group iterator elements. Consecutive elements that map to the same key ("runs"),
+    /// are returned as the iterator elements of `GroupBy`.
+    ///
+    /// Iterator element type is `(K, Vec<A>)`
+    fn group_by<K, F: FnMut(&A) -> K>(self, key: F) -> GroupBy<A, K, Self, F>
+    {
+        GroupBy::new(self, key)
     }
 
     // non-adaptor methods
