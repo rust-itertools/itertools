@@ -12,7 +12,13 @@
 //! #[phase(plugin, link)] extern crate itertools;
 //! ```
 //!
-//! I recommend shortening the crate name with something like:
+//! To use the iterator methods in this crate, import the [**Itertools** trait](./trait.Itertools.html):
+//!
+//! ```ignore
+//! use itertools::Itertools;
+//! ```
+//!
+//! You can shorten the crate name with something like:
 //!
 //! ```ignore
 //! use itertools as it;
