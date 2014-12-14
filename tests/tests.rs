@@ -95,10 +95,9 @@ fn map_unboxed() {
     let jt = it.clone();
     assert!(it.zip(jt).all(|(x,y)| x == y));
 
-    // NOTE: This doesn't compile :(
-    //let mut sum = 0i;
-    //let it = xs.iter().map_unboxed(|x| sum += *x).drain();
-    //assert_eq!(sum, 3);
+    let mut sum = 0i;
+    xs.iter().map_unboxed(|x| sum += *x).drain();
+    assert_eq!(sum, 3);
 }
 
 #[test]
