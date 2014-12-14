@@ -48,7 +48,7 @@ fn product2() {
 fn product3() {
     let prod = iproduct!(range(0, 3i), range(0, 2i), range(0, 2i));
     assert_eq!(prod.size_hint(), (12, Some(12)));
-    let v = prod.collect::<Vec<_>>();
+    let v = prod.collect_vec();
     for i in range(0,3i) {
         for j in range(0, 2i) {
             for k in range(0, 2i) {

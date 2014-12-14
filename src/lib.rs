@@ -426,6 +426,13 @@ pub trait Itertools<A> : Iterator<A> {
     fn apply(&mut self, f: |A|) {
         for elt in *self { f(elt) }
     }
+
+    /// `.collec_vec()` is simply a type specialization of `.collect()`,
+    /// for convenience.
+    fn collect_vec(self) -> Vec<A>
+    {
+        self.collect()
+    }
 }
 
 impl<A, T: Iterator<A>> Itertools<A> for T { }
