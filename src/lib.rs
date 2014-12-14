@@ -41,6 +41,7 @@ pub use intersperse::Intersperse;
 pub use map::MapMut;
 pub use stride::Stride;
 pub use stride::StrideMut;
+pub use tee::Tee;
 pub use times::Times;
 pub use times::times;
 pub use linspace::{linspace, Linspace};
@@ -50,6 +51,7 @@ mod intersperse;
 mod linspace;
 mod map;
 mod stride;
+mod tee;
 mod times;
 mod zip;
 
@@ -321,6 +323,32 @@ pub trait Itertools<A> : Iterator<A> {
     fn group_by<K, F: FnMut(&A) -> K>(self, key: F) -> GroupBy<A, K, Self, F>
     {
         GroupBy::new(self, key)
+    }
+
+    /// Split into an iterator pair that both yield all elements from
+    /// the original iterator.
+    ///
+    /// The iterator element `A` must be clonable.
+    ///
+    /// Iterator element type is `A`.
+    ///
+    /// ## Example
+    /// ```
+    /// # use itertools::Itertools;
+    /// let xs = vec![0i, 1, 2, 3];
+    ///
+    /// let (mut t1, mut t2) = xs.into_iter().tee();
+    /// assert_eq!(t1.next(), Some(0));
+    /// assert_eq!(t1.next(), Some(1));
+    /// assert_eq!(t2.next(), Some(0));
+    /// assert_eq!(t1.next(), Some(2));
+    /// assert_eq!(t1.next(), Some(3));
+    /// assert_eq!(t1.next(), None);
+    /// assert_eq!(t2.next(), Some(1));
+    /// ```
+    fn tee(self) -> (Tee<A, Self>, Tee<A, Self>)
+    {
+        tee::new(self)
     }
 
     // non-adaptor methods
