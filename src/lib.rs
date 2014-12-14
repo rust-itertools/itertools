@@ -34,11 +34,11 @@
 //!
 //!
 
-pub use adaptors::Interleave;
-pub use adaptors::Product;
-pub use adaptors::PutBack;
-pub use adaptors::FnMap;
 pub use adaptors::{
+    Interleave,
+    Product,
+    PutBack,
+    FnMap,
     Dedup,
     Batching,
     GroupBy,
@@ -92,6 +92,10 @@ macro_rules! impl_append_tuple(
 
 impl_append_tuple!(A, B, C, D, E, F, G, H, I, J, K, L)
 
+/// A helper iterator that maps an iterator of tuples like
+/// `((A, B), C)` to an iterator of `(A, B, C)`.
+///
+/// Used by the `izip!()` and `iproduct!()` macros.
 #[deriving(Clone)]
 pub struct FlatTuples<I> {
     pub iter: I,
@@ -365,7 +369,7 @@ pub trait Itertools<A> : Iterator<A> {
     /// same original iterator.
     ///
     /// `RcIter` allows doing interesting things like using `.zip` on an iterator with
-    /// itself, at the cost of runtime borrow checking and possible panic.
+    /// itself, at the cost of runtime borrow checking.
     /// (If it is not obvious: this has a performance penalty.)
     ///
     /// ## Example
@@ -383,6 +387,12 @@ pub trait Itertools<A> : Iterator<A> {
     /// assert_eq!(z.next(), Some((3, 5)));
     /// assert_eq!(z.next(), None);
     /// ```
+    ///
+    /// **Panics** in iterator methods if a borrow error is encountered,
+    /// but it can only happen if the RcIter is reentered in for example `.next()`,
+    /// i.e. if it somehow participates in an "iterator knot" where it is an adaptor of itself.
+    ///
+    /// Iterator element type is `A`.
     fn into_rc(self) -> RcIter<Self>
     {
         RcIter::new(self)

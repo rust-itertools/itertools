@@ -287,6 +287,10 @@ impl<A, B, F: FnMut(&mut I) -> Option<B>, I: Iterator<A>>
     }
 }
 
+/// Group iterator elements. Consecutive elements that map to the same key ("runs"),
+/// are returned as the iterator elements of `GroupBy`.
+///
+/// Iterator element type is `(K, Vec<A>)`
 #[deriving(Clone)]
 pub struct GroupBy<A, K, I, F> {
     key: F,
