@@ -287,3 +287,18 @@ fn tee_fail() {
     *rc.borrow_mut() = t1;
     assert_eq!(t2.next(), None);
 }
+
+#[test]
+fn rciter() {
+    let xs = [0i, 1, 1, 1, 2, 1, 3, 5, 6];
+
+    let mut r1 = xs.iter().cloned().into_rc();
+    let mut r2 = r1.clone();
+    assert_eq!(r1.next(), Some(0));
+    assert_eq!(r2.next(), Some(1));
+    let mut z = r1.zip(r2);
+    assert_eq!(z.next(), Some((1, 1)));
+    assert_eq!(z.next(), Some((2, 1)));
+    assert_eq!(z.next(), Some((3, 5)));
+    assert_eq!(z.next(), None);
+}
