@@ -15,7 +15,6 @@ use std::fmt::Show;
 use std::iter::order;
 use itertools::Itertools;
 use itertools::Interleave;
-use std::cell::RefCell;
 
 use itertools as it;
 
@@ -270,23 +269,6 @@ fn tee() {
     assert_iters_equal(t1.zip(t2), xs.iter().cloned().zip(xs.iter().cloned()));
 }
 
-
-#[test]
-#[should_fail]
-fn tee_fail() {
-    // Tie a tee knot
-    let xs = &[1i];
-    let it = xs.iter().map(|x| *x);
-
-    let (t1, _) = it.tee();
-    let rc = RefCell::new(t1);
-
-    let jt = xs.iter().map(|_| rc.borrow_mut().next().unwrap());
-
-    let (t1, mut t2) = jt.tee();
-    *rc.borrow_mut() = t1;
-    assert_eq!(t2.next(), None);
-}
 
 #[test]
 fn rciter() {
