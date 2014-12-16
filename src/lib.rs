@@ -377,14 +377,15 @@ pub trait Itertools<A> : Iterator<A> {
     /// ```
     /// # use itertools::Itertools;
     ///
-    /// let xs = [0i, 1, 1, 1, 2, 1, 3, 5, 6];
+    /// let xs = [0i, 1, 1, 1, 2, 1, 3, 5, 6, 7];
 
-    /// let rit = xs.iter().cloned().into_rc();
+    /// let mut rit = xs.iter().cloned().into_rc();
     /// let mut z = rit.clone().zip(rit.clone());
     /// assert_eq!(z.next(), Some((0, 1)));
     /// assert_eq!(z.next(), Some((1, 1)));
     /// assert_eq!(z.next(), Some((2, 1)));
-    /// assert_eq!(z.next(), Some((3, 5)));
+    /// assert_eq!(rit.next(), Some(3));
+    /// assert_eq!(z.next(), Some((5, 6)));
     /// assert_eq!(z.next(), None);
     /// ```
     ///
