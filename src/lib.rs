@@ -237,7 +237,7 @@ pub trait Itertools<A> : Iterator<A> {
     /// so that the resulting `FnMap` iterator value can be cloned.
     ///
     /// Iterator element type is `B`
-    #[deprecated="use map_unboxed, or soon .map in libstd"]
+    #[deprecated="Use libstd .map() instead"]
     fn fn_map<B>(self, map: fn(A) -> B) -> FnMap<A, B, Self> {
         FnMap::new(self, map)
     }
@@ -245,7 +245,7 @@ pub trait Itertools<A> : Iterator<A> {
     /// Like regular `.map`, but using an unboxed closure instead.
     ///
     /// Iterator element type is `B`
-    #[experimental="libstd will catch up to this soon"]
+    #[deprecated="Use libstd .map() instead"]
     fn map_unboxed<B, F: FnMut(A) -> B>(self, map: F) -> MapMut<F, Self> {
         MapMut::new(self, map)
     }
