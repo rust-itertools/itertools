@@ -79,7 +79,7 @@ macro_rules! impl_append_tuple(
     );
 
     ($A:ident $(,$B:ident)*) => (
-        impl_append_tuple!($($B),*)
+        impl_append_tuple!($($B),*);
         #[allow(non_snake_case)]
         impl<$A, $($B,)* T> AppendTuple<T, ($A, $($B,)* T)> for ($A, $($B),*) {
             fn append(self, x: T) -> ($A, $($B,)* T) {
@@ -88,9 +88,9 @@ macro_rules! impl_append_tuple(
             }
         }
     );
-)
+);
 
-impl_append_tuple!(A, B, C, D, E, F, G, H, I, J, K, L)
+impl_append_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
 
 /// A helper iterator that maps an iterator of tuples like
 /// `((A, B), C)` to an iterator of `(A, B, C)`.
@@ -154,7 +154,7 @@ pub macro_rules! iproduct(
             it
         }
     );
-)
+);
 
 #[macro_export]
 /// Create an iterator running multiple iterators in lockstep.
@@ -189,7 +189,7 @@ pub macro_rules! izip(
             it
         }
     );
-)
+);
 
 // Note: Instead of using struct Product, we could implement iproduct!()
 // using .flat_map as well; however it can't implement size_hint.
@@ -227,7 +227,7 @@ pub macro_rules! icompr(
     ($r:expr for $x:pat in $J:expr) => (
         ($J).filter_map(|$x| Some($r))
     );
-)
+);
 
 /// Extra iterator methods for arbitrary iterators
 pub trait Itertools<A> : Iterator<A> {
