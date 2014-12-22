@@ -88,19 +88,6 @@ fn fn_map() {
 }
 
 #[test]
-fn map_unboxed() {
-    let xs = [0, 1, 2i];
-    fn mapper(x: &int) -> String { x.to_string() }
-    let it = xs.iter().map_unboxed(mapper);
-    let jt = it.clone();
-    assert!(it.zip(jt).all(|(x,y)| x == y));
-
-    let mut sum = 0i;
-    xs.iter().map_unboxed(|x| sum += *x).drain();
-    assert_eq!(sum, 3);
-}
-
-#[test]
 fn write_to() {
     let xs = [7i, 9, 8];
     let mut ys = [0i, ..5];
