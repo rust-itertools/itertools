@@ -52,7 +52,7 @@ impl<A, B, T: ExactSizeIterator<A>, U: ExactSizeIterator<B>> DoubleEndedIterator
 for ZipLongest<T, U> {
     #[inline]
     fn next_back(&mut self) -> Option<EitherOrBoth<A, B>> {
-        use std::cmp::{Equal, Greater, Less};
+        use std::cmp::Ordering::{Equal, Greater, Less};
         match self.a.len().cmp(&self.b.len()) {
             Equal => match (self.a.next_back(), self.b.next_back()) {
                 (None, None) => None,
