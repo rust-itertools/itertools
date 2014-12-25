@@ -221,7 +221,7 @@ impl<A, I> Dedup<A, I>
     }
 }
 
-impl<A: Clone + PartialEq, I: Iterator<A>> Iterator<A> for Dedup<A, I>
+impl<A: PartialEq, I: Iterator<A>> Iterator<A> for Dedup<A, I>
 {
     #[inline]
     fn next(&mut self) -> Option<A>
@@ -229,24 +229,29 @@ impl<A: Clone + PartialEq, I: Iterator<A>> Iterator<A> for Dedup<A, I>
         for elt in self.iter {
             match self.last {
                 Some(ref x) if x == &elt => continue,
-                _ => {
-                    self.last = Some(elt.clone());
-                    return Some(elt)
+                None => {
+                    self.last = Some(elt);
+                    continue;
+                }
+
+                ref mut lst => {
+                    let ret = mem::replace(lst, Some(elt));
+                    return ret
                 }
             }
         }
-        None
+        self.last.take()
     }
 
     #[inline]
     fn size_hint(&self) -> (uint, Option<uint>)
     {
         let (lower, upper) = self.iter.size_hint();
-        if self.last.is_some() || lower == 0 {
+        if self.last.is_some() || lower > 0 {
+            (1, upper.and_then(|x| x.checked_add(1)))
+        } else {
             // they might all be duplicates
             (0, upper)
-        } else {
-            (1, upper)
         }
     }
 }
