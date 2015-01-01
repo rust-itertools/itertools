@@ -151,7 +151,7 @@ fn dropn() {
 fn intersperse() {
     let xs = ["a", "", "b", "c"];
     let v: Vec<&str> = xs.iter().map(|x| x.clone()).intersperse(", ").collect();
-    let text = v.concat();
+    let text: String = v.concat();
     assert_eq!(text, "a, , b, c".to_string());
 
     let ys = [0, 1, 2, 3i];
