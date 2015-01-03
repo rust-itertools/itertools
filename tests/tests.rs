@@ -69,7 +69,7 @@ fn izip3() {
     assert!(zip.next().is_none());
 
     
-    let xs: [int, ..0] = [];
+    let xs: [int; 0] = [];
     let mut zip = izip!(range(0, 3u), range(0, 2i), range(0, 2i8), xs.iter());
     assert!(zip.next().is_none());
 
@@ -90,7 +90,7 @@ fn fn_map() {
 #[test]
 fn write_to() {
     let xs = [7i, 9, 8];
-    let mut ys = [0i, ..5];
+    let mut ys = [0i; 5];
     let cnt = it::write(ys.iter_mut(), xs.iter().map(|x| *x));
     assert!(cnt == xs.len());
     assert!(ys == [7i, 9, 8, 0, 0]);
@@ -102,7 +102,7 @@ fn write_to() {
 
 #[test]
 fn interleave() {
-    let xs: [u8, ..0]  = [];
+    let xs: [u8; 0]  = [];
     let ys = [7u8, 9, 8, 10];
     let zs = [2u8, 77];
     let it = Interleave::new(xs.iter(), ys.iter());

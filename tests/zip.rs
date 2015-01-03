@@ -2,6 +2,7 @@
 extern crate itertools;
 
 use std::iter::count;
+use std::iter::RandomAccessIterator;
 use itertools::Itertools;
 use itertools::EitherOrBoth::{Both, Left};
 
