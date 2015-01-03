@@ -8,6 +8,7 @@ use std::fmt;
 use std::kinds;
 use std::mem;
 use std::num;
+use std::ops::{Index, IndexMut};
 
 /// Stride is similar to the slice iterator, but with a certain number of steps
 /// (the stride) skipped per iteration.

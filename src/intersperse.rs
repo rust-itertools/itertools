@@ -4,7 +4,7 @@ use std::num::Int;
 /// between each element of the adapted iterator.
 ///
 /// Iterator element type is `A`
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct Intersperse<A, I> {
     element: A,
     iter: I,

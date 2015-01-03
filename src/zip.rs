@@ -1,11 +1,12 @@
 use std::cmp;
+use std::iter::RandomAccessIterator;
 use self::EitherOrBoth::{Right, Left, Both};
 
 // ZipLongest originally written by SimonSapin,
 // and dedicated to itertools https://github.com/rust-lang/rust/pull/19283
 
 /// An iterator which iterates two other iterators simultaneously
-#[deriving(Clone)]
+#[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct ZipLongest<T, U> {
     a: T,
@@ -93,7 +94,7 @@ impl<A, B, T, U> ExactSizeIterator<EitherOrBoth<A, B>> for ZipLongest<T, U>
 /// A value yielded by `ZipLongest`.
 /// Contains one or two values,
 /// depending on which of the input iterators are exhausted.
-#[deriving(Clone, PartialEq, Eq, Show)]
+#[derive(Clone, PartialEq, Eq, Show)]
 pub enum EitherOrBoth<A, B> {
     /// Neither input iterator is exhausted yet, yielding two values.
     Both(A, B),

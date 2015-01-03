@@ -1,3 +1,4 @@
+#![feature(old_orphan_check)]
 #![feature(unboxed_closures)]
 #![feature(macro_rules)]
 #![crate_name="itertools"]
@@ -96,7 +97,7 @@ impl_append_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
 /// `((A, B), C)` to an iterator of `(A, B, C)`.
 ///
 /// Used by the `izip!()` and `iproduct!()` macros.
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct FlatTuples<I> {
     pub iter: I,
 }
@@ -230,7 +231,7 @@ pub macro_rules! icompr(
 );
 
 /// Extra iterator methods for arbitrary iterators
-pub trait Itertools<A> : Iterator<A> {
+pub trait Itertools<A> : Iterator<A> + Sized {
     // adaptors
 
     /// Like regular `.map`, but using a simple function pointer instead,

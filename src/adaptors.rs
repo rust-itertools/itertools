@@ -11,7 +11,7 @@ use std::num::Int;
 /// are run out
 ///
 /// Iterator element type is `A` if `I: Iterator<A>`
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct Interleave<I, J> {
     a: I,
     b: J,
@@ -93,7 +93,7 @@ impl<A, B, I: Clone> Clone for FnMap<A, B, I>
 /// item to the front of the iterator.
 ///
 /// Iterator element type is `A`
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct PutBack<A, I> {
     top: Option<A>,
     iter: I
@@ -138,7 +138,7 @@ impl<A, I: Iterator<A>> Iterator<A> for PutBack<A, I> {
 /// the element sets of two iterators `I` and `J`.
 ///
 /// Iterator element type is `(A, B)` if `I: Iterator<A>` and `J: Iterator<B>`
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct Product<A, I, J> {
     a: I,
     a_cur: Option<A>,
@@ -206,7 +206,7 @@ Iterator<(A, B)> for Product<A, I, J>
 /// If the iterator is sorted, all elements will be unique.
 ///
 /// Iterator element type is `A` if `I: Iterator<A>`
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct Dedup<A, I> {
     last: Option<A>,
     iter: I,
@@ -261,7 +261,7 @@ impl<A: PartialEq, I: Iterator<A>> Iterator<A> for Dedup<A, I>
 /// and may pick off as many elements as it likes, to produce the next iterator element.
 ///
 /// Iterator element type is `B`, if the return type of `F` is `Option<B>`.
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct Batching<I, F> {
     f: F,
     iter: I,
@@ -296,7 +296,7 @@ impl<A, B, F: FnMut(&mut I) -> Option<B>, I: Iterator<A>>
 /// are returned as the iterator elements of `GroupBy`.
 ///
 /// Iterator element type is `(K, Vec<A>)`
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct GroupBy<A, K, I, F> {
     key: F,
     iter: I,
