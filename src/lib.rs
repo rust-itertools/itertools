@@ -1,5 +1,4 @@
 #![feature(associated_types)]
-#![feature(old_orphan_check)]
 #![feature(unboxed_closures)]
 #![feature(macro_rules)]
 #![crate_name="itertools"]
