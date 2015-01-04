@@ -5,6 +5,7 @@
 /// Created with `.map_unboxed(..)` on an iterator
 ///
 /// Iterator element type is `B`
+#[deprecated]
 pub struct MapMut<F, I> {
     map: F,
     iter: I,

@@ -52,6 +52,7 @@ impl<A, I, J> Iterator for Interleave<I, J>
 /// Created with `.fn_map(..)` on an iterator
 ///
 /// Iterator element type is `B`
+#[deprecated]
 pub struct FnMap<A, B, I> {
     map: fn(A) -> B,
     iter: I,
@@ -147,6 +148,7 @@ impl<A, I> Iterator for PutBack<A, I>
 ///
 /// Iterator element type is `(A, B)` if `I: Iterator<A>` and `J: Iterator<B>`
 #[derive(Clone)]
+#[deprecated="Will be replaced by generic tuple version"]
 pub struct Product<A, I, J> {
     a: I,
     a_cur: Option<A>,
@@ -267,10 +269,10 @@ impl<A: PartialEq, I: Iterator<Item=A>> Iterator for Dedup<A, I>
 }
 
 
-/// An advanced iterator adaptor. The closure recives a reference to the iterator
+/// A “meta iterator adaptor”. Its closure recives a reference to the iterator
 /// and may pick off as many elements as it likes, to produce the next iterator element.
 ///
-/// Iterator element type is `B`, if the return type of `F` is `Option<B>`.
+/// Iterator element type is **B**, if the return type of **F** is **Option\<B\>**.
 #[derive(Clone)]
 pub struct Batching<I, F> {
     f: F,

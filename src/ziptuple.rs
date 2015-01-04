@@ -16,10 +16,13 @@ use std::cmp;
 ///
 /// // Iterate over three sequences side-by-side
 /// let mut xs = [0u, 0, 0];
-/// let ys = [72u, 73, 74];
+/// let ys = [69u, 107, 101];
+///
 /// for (i, a, b) in Zip::new((range(0, 100u), xs.iter_mut(), ys.iter())) {
 ///    *a = i ^ *b;
 /// }
+/// 
+/// assert_eq!(xs, [69, 106, 103]);
 /// ```
 pub struct Zip<T> {
     t: T
@@ -27,7 +30,7 @@ pub struct Zip<T> {
 
 impl<T> Zip<T>
 {
-    /// Create a new Zip iterator.
+    /// Create a new **Zip** from a tuple of iterators.
     pub fn new(t: T) -> Zip<T>
     {
         Zip{t: t}

@@ -7,17 +7,20 @@
 
 //! Itertools — extra iterator adaptors, functions and macros
 //!
+//! To use the iterator methods in this crate, import the [**Itertools** trait](./trait.Itertools.html):
+//!
+//! ```ignore
+//! use itertools::Itertools;
+//! ```
+//!
+//! Some adaptors are just used directly like regular structs,
+//! for example [**PutBack**](./struct.PutBack.html), [**Zip**](./struct.Zip.html), [**Stride**](./struct.Stride.html), [**StrideMut**](./struct.StrideMut.html).
+//!
 //! To use the macros in this crate, use the `phase(plugin)` attribute:
 //!
 //! ```ignore
 //! #![feature(phase)]
 //! #[phase(plugin, link)] extern crate itertools;
-//! ```
-//!
-//! To use the iterator methods in this crate, import the [**Itertools** trait](./trait.Itertools.html):
-//!
-//! ```ignore
-//! use itertools::Itertools;
 //! ```
 //!
 //! You can shorten the crate name with something like:
@@ -69,6 +72,7 @@ mod ziptuple;
 
 /// A helper trait for (x,y,z) ++ w => (x,y,z,w),
 /// used for implementing `iproduct!` and `izip!`
+#[deprecated]
 trait AppendTuple<X, Y> {
     fn append(self, x: X) -> Y;
 }
@@ -101,6 +105,7 @@ impl_append_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
 ///
 /// Used by the `izip!()` and `iproduct!()` macros.
 #[derive(Clone)]
+#[deprecated]
 pub struct FlatTuples<I> {
     pub iter: I,
 }
@@ -304,7 +309,7 @@ pub trait Itertools : Iterator + Sized {
         Dedup::new(self)
     }
 
-    /// An advanced iterator adaptor. The closure recives a reference to the iterator
+    /// A “meta iterator adaptor”. Its closure recives a reference to the iterator
     /// and may pick off as many elements as it likes, to produce the next iterator element.
     ///
     /// Iterator element type is `B`.
@@ -334,10 +339,10 @@ pub trait Itertools : Iterator + Sized {
         Batching::new(self, f)
     }
 
-    /// Group iterator elements. Consecutive elements that map to the same key ("runs"),
-    /// are returned as the iterator elements of `GroupBy`.
+    /// Group iterator elements. Consecutive elements that map to the same key (“runs”),
+    /// are returned as the iterator elements of **GroupBy**.
     ///
-    /// Iterator element type is `(K, Vec<Self::Item>)`
+    /// Iterator element type is **(K, Vec\<Self::Item\>)**
     fn group_by<K, F: FnMut(& <Self as Iterator>::Item) -> K>(self, key: F) -> GroupBy< <Self as Iterator>::Item, K, Self, F>
     {
         GroupBy::new(self, key)
@@ -369,12 +374,12 @@ pub trait Itertools : Iterator + Sized {
         tee::new(self)
     }
 
-    /// Return the iterator wrapped in a `Rc<RefCell<_>>` wrapper.
+    /// Return an iterator inside a **Rc\<RefCell\<_\>\>** wrapper.
     ///
-    /// The returned `RcIter` can be cloned, and each clone will refer back to the
+    /// The returned **RcIter** can be cloned, and each clone will refer back to the
     /// same original iterator.
     ///
-    /// `RcIter` allows doing interesting things like using `.zip` on an iterator with
+    /// **RcIter** allows doing interesting things like using **.zip()** on an iterator with
     /// itself, at the cost of runtime borrow checking.
     /// (If it is not obvious: this has a performance penalty.)
     ///
@@ -396,10 +401,10 @@ pub trait Itertools : Iterator + Sized {
     /// ```
     ///
     /// **Panics** in iterator methods if a borrow error is encountered,
-    /// but it can only happen if the RcIter is reentered in for example `.next()`,
+    /// but it can only happen if the RcIter is reentered in for example **.next()**,
     /// i.e. if it somehow participates in an "iterator knot" where it is an adaptor of itself.
     ///
-    /// Iterator element type is `Self::Item`.
+    /// Iterator element type is **Self::Item**.
     fn into_rc(self) -> RcIter<Self>
     {
         RcIter::new(self)
