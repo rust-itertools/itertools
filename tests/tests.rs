@@ -15,6 +15,7 @@ use std::fmt::Show;
 use std::iter::order;
 use itertools::Itertools;
 use itertools::Interleave;
+use itertools::Zip;
 
 use itertools as it;
 
@@ -62,7 +63,7 @@ fn product3() {
 
 #[test]
 fn izip3() {
-    let mut zip = izip!(range(0, 3u), range(0, 2i), range(0, 2i8));
+    let mut zip = Zip::new((range(0, 3u), range(0, 2i), range(0, 2i8)));
     for i in range(0, 2i) {
         assert!((i as uint, i, i as i8) == zip.next().unwrap());
     }
@@ -70,10 +71,10 @@ fn izip3() {
 
     
     let xs: [int; 0] = [];
-    let mut zip = izip!(range(0, 3u), range(0, 2i), range(0, 2i8), xs.iter());
+    let mut zip = Zip::new((range(0, 3u), range(0, 2i), range(0, 2i8), xs.iter()));
     assert!(zip.next().is_none());
 
-    for (_, _, _, _) in izip!(range(0, 3i), range(0, 2i), range(0, 2i), range(0, 3i)) {
+    for (_, _, _, _) in Zip::new((range(0, 3i), range(0, 2i), range(0, 2i), range(0, 3i))) {
         /* test compiles */
     }
 }

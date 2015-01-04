@@ -55,6 +55,7 @@ pub use times::Times;
 pub use times::times;
 pub use linspace::{linspace, Linspace};
 pub use zip::{ZipLongest, EitherOrBoth};
+pub use ziptuple::Zip;
 mod adaptors;
 mod intersperse;
 mod linspace;
@@ -64,6 +65,7 @@ mod stride;
 mod tee;
 mod times;
 mod zip;
+mod ziptuple;
 
 /// A helper trait for (x,y,z) ++ w => (x,y,z,w),
 /// used for implementing `iproduct!` and `izip!`
@@ -161,7 +163,10 @@ pub macro_rules! iproduct(
     );
 );
 
+#[deprecated="izip!() is deprecated, use Zip::new instead"]
 #[macro_export]
+/// *This macro is deprecated, use* **Zip::new** *instead.*
+///
 /// Create an iterator running multiple iterators in lockstep.
 ///
 /// The izip! iterator yields elements until any subiterator
@@ -187,11 +192,7 @@ pub macro_rules! izip(
     );
     ($I:expr, $J:expr $(, $K:expr)*) => (
         {
-            let it = $I.zip($J);
-            $(
-                let it = ::itertools::FlatTuples{iter: it.zip($K)};
-            )*
-            it
+            ::itertools::Zip::new(($I, $J $(, $K)*))
         }
     );
 );
