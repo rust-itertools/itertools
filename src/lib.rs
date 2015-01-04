@@ -412,7 +412,7 @@ pub trait Itertools : Iterator + Sized {
 
     // non-adaptor methods
 
-    /// Consume `n` elements of the iterator eagerly
+    /// Consume the first **n** elements of the iterator eagerly.
     ///
     /// Return actual number of elements consumed,
     /// until done or reaching the end.
@@ -425,6 +425,16 @@ pub trait Itertools : Iterator + Sized {
             }
         }
         start - n
+    }
+
+    /// Consume the first **n** elements from the iterator eagerly,
+    /// and return the same iterator again.
+    ///
+    /// It works similarly to **.skip(n)** except it is eager and
+    /// preserves the iterator type.
+    fn dropping(mut self, n: uint) -> Self {
+        self.dropn(n);
+        self
     }
 
     /// Run the iterator, eagerly, to the end and consume all its elements.

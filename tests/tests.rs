@@ -140,6 +140,16 @@ fn dropn() {
 }
 
 #[test]
+fn dropping() {
+    let xs = [1i, 2, 3];
+    let mut it = xs.iter().dropping(2);
+    assert!(it.next().is_some());
+    assert!(it.next().is_none());
+    let mut it = xs.iter().dropping(5);
+    assert!(it.next().is_none());
+}
+
+#[test]
 fn intersperse() {
     let xs = ["a", "", "b", "c"];
     let v: Vec<&str> = xs.iter().map(|x| x.clone()).intersperse(", ").collect();
