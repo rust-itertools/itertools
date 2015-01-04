@@ -437,14 +437,14 @@ pub trait Itertools : Iterator + Sized {
         for _ in *self { /* nothing */ }
     }
 
-    /// Run the closure `f` eagerly on each element of the iterator.
+    /// Run the closure **f** eagerly on each element of the iterator.
     ///
     /// Consumes the iterator until its end.
-    fn apply(&mut self, f: | <Self as Iterator>::Item|) {
+    fn apply<F: FnMut(<Self as Iterator>::Item)>(&mut self, mut f: F) {
         for elt in *self { f(elt) }
     }
 
-    /// `.collec_vec()` is simply a type specialization of `.collect()`,
+    /// **.collec_vec()** is simply a type specialization of **.collect()**,
     /// for convenience.
     fn collect_vec(self) -> Vec< <Self as Iterator>::Item>
     {
