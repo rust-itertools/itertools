@@ -27,8 +27,9 @@ pub fn new<A, I>(iter: I) -> (Tee<A, I>, Tee<A, I>)
     (t1, t2)
 }
 
-impl<A: Clone, I: Iterator<A>> Iterator<A> for Tee<A, I>
+impl<A: Clone, I: Iterator<Item=A>> Iterator for Tee<A, I>
 {
+    type Item = A;
     fn next(&mut self) -> Option<A>
     {
         // .borrow_mut may fail here -- but only if the user has tied some kind of weird

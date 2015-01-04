@@ -20,8 +20,8 @@ use itertools as it;
 
 fn assert_iters_equal<
     A: PartialEq + Show,
-    I: Iterator<A>,
-    J: Iterator<A>>(mut it: I, mut jt: J)
+    I: Iterator<Item=A>,
+    J: Iterator<Item=A>>(mut it: I, mut jt: J)
 {
     loop {
         let elti = it.next();
@@ -76,15 +76,6 @@ fn izip3() {
     for (_, _, _, _) in izip!(range(0, 3i), range(0, 2i), range(0, 2i), range(0, 3i)) {
         /* test compiles */
     }
-}
-
-#[test]
-fn fn_map() {
-    let xs = [0, 1, 2i];
-    fn mapper(x: &int) -> String { x.to_string() }
-    let it = xs.iter().fn_map(mapper);
-    let jt = it.clone();
-    assert!(it.zip(jt).all(|(x,y)| x == y));
 }
 
 #[test]

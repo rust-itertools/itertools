@@ -1,3 +1,4 @@
+#![feature(associated_types)]
 #![feature(old_orphan_check)]
 #![feature(unboxed_closures)]
 #![feature(macro_rules)]
@@ -102,9 +103,11 @@ pub struct FlatTuples<I> {
     pub iter: I,
 }
 
-impl<X, Y, T: AppendTuple<X, Y>, I: Iterator<(T, X)>>
-Iterator<Y> for FlatTuples<I>
+impl<X, Y, T: AppendTuple<X, Y>, I>
+Iterator for FlatTuples<I>
+    where I: Iterator<Item=(T, X)>
 {
+    type Item = Y;
     #[inline]
     fn next(&mut self) -> Option<Y>
     {
@@ -116,8 +119,9 @@ Iterator<Y> for FlatTuples<I>
     }
 }
 
-impl<X, Y, T: AppendTuple<X, Y>, I: DoubleEndedIterator<(T, X)>>
-DoubleEndedIterator<Y> for FlatTuples<I>
+impl<X, Y, T: AppendTuple<X, Y>, I: DoubleEndedIterator>
+DoubleEndedIterator for FlatTuples<I>
+    where I: Iterator<Item=(T, X)>
 {
     #[inline]
     fn next_back(&mut self) -> Option<Y>
@@ -231,7 +235,7 @@ pub macro_rules! icompr(
 );
 
 /// Extra iterator methods for arbitrary iterators
-pub trait Itertools<A> : Iterator<A> + Sized {
+pub trait Itertools : Iterator + Sized {
     // adaptors
 
     /// Like regular `.map`, but using a simple function pointer instead,
@@ -239,7 +243,7 @@ pub trait Itertools<A> : Iterator<A> + Sized {
     ///
     /// Iterator element type is `B`
     #[deprecated="Use libstd .map() instead"]
-    fn fn_map<B>(self, map: fn(A) -> B) -> FnMap<A, B, Self> {
+    fn fn_map<B>(self, map: fn(<Self as Iterator>::Item) -> B) -> FnMap< <Self as Iterator>::Item, B, Self> {
         FnMap::new(self, map)
     }
 
@@ -247,23 +251,23 @@ pub trait Itertools<A> : Iterator<A> + Sized {
     ///
     /// Iterator element type is `B`
     #[deprecated="Use libstd .map() instead"]
-    fn map_unboxed<B, F: FnMut(A) -> B>(self, map: F) -> MapMut<F, Self> {
+    fn map_unboxed<B, F: FnMut(<Self as Iterator>::Item) -> B>(self, map: F) -> MapMut<F, Self> {
         MapMut::new(self, map)
     }
 
     /// Alternate elements from two iterators until both
     /// are run out
     ///
-    /// Iterator element type is `A`
-    fn interleave<J: Iterator<A>>(self, other: J) -> Interleave<Self, J> {
+    /// Iterator element type is `Self::Item`
+    fn interleave<J: Iterator<Item=<Self as Iterator>::Item>>(self, other: J) -> Interleave<Self, J> {
         Interleave::new(self, other)
     }
 
     /// An iterator adaptor to insert a particular value
     /// between each element of the adapted iterator.
     ///
-    /// Iterator element type is `A`
-    fn intersperse(self, element: A) -> Intersperse<A, Self> {
+    /// Iterator element type is `Self::Item`
+    fn intersperse(self, element:  <Self as Iterator>::Item) -> Intersperse< <Self as Iterator>::Item, Self> {
         Intersperse::new(self, element)
     }
 
@@ -285,17 +289,17 @@ pub trait Itertools<A> : Iterator<A> + Sized {
     /// assert_eq!(it.next(), None);
     /// ```
     ///
-    /// Iterator element type is `EitherOrBoth<A, B>`.
+    /// Iterator element type is `EitherOrBoth<Self::Item, B>`.
     #[inline]
-    fn zip_longest<B, U: Iterator<B>>(self, other: U) -> ZipLongest<Self, U> {
+    fn zip_longest<U: Iterator>(self, other: U) -> ZipLongest<Self, U> {
         ZipLongest::new(self, other)
     }
 
     /// Remove duplicates from sections of consecutive identical elements.
     /// If the iterator is sorted, all elements will be unique.
     ///
-    /// Iterator element type is `A`.
-    fn dedup(self) -> Dedup<A, Self> {
+    /// Iterator element type is `Self::Item`.
+    fn dedup(self) -> Dedup< <Self as Iterator>::Item, Self> {
         Dedup::new(self)
     }
 
@@ -332,8 +336,8 @@ pub trait Itertools<A> : Iterator<A> + Sized {
     /// Group iterator elements. Consecutive elements that map to the same key ("runs"),
     /// are returned as the iterator elements of `GroupBy`.
     ///
-    /// Iterator element type is `(K, Vec<A>)`
-    fn group_by<K, F: FnMut(&A) -> K>(self, key: F) -> GroupBy<A, K, Self, F>
+    /// Iterator element type is `(K, Vec<Self::Item>)`
+    fn group_by<K, F: FnMut(& <Self as Iterator>::Item) -> K>(self, key: F) -> GroupBy< <Self as Iterator>::Item, K, Self, F>
     {
         GroupBy::new(self, key)
     }
@@ -341,9 +345,9 @@ pub trait Itertools<A> : Iterator<A> + Sized {
     /// Split into an iterator pair that both yield all elements from
     /// the original iterator.
     ///
-    /// The iterator element `A` must be clonable.
+    /// The iterator element `Self::Item` must be clonable.
     ///
-    /// Iterator element type is `A`.
+    /// Iterator element type is `Self::Item`.
     ///
     /// ## Example
     /// ```
@@ -359,7 +363,7 @@ pub trait Itertools<A> : Iterator<A> + Sized {
     /// assert_eq!(t1.next(), None);
     /// assert_eq!(t2.next(), Some(1));
     /// ```
-    fn tee(self) -> (Tee<A, Self>, Tee<A, Self>)
+    fn tee(self) -> (Tee< <Self as Iterator>::Item, Self>, Tee< <Self as Iterator>::Item, Self>)
     {
         tee::new(self)
     }
@@ -394,7 +398,7 @@ pub trait Itertools<A> : Iterator<A> + Sized {
     /// but it can only happen if the RcIter is reentered in for example `.next()`,
     /// i.e. if it somehow participates in an "iterator knot" where it is an adaptor of itself.
     ///
-    /// Iterator element type is `A`.
+    /// Iterator element type is `Self::Item`.
     fn into_rc(self) -> RcIter<Self>
     {
         RcIter::new(self)
@@ -435,26 +439,26 @@ pub trait Itertools<A> : Iterator<A> + Sized {
     /// Run the closure `f` eagerly on each element of the iterator.
     ///
     /// Consumes the iterator until its end.
-    fn apply(&mut self, f: |A|) {
+    fn apply(&mut self, f: | <Self as Iterator>::Item|) {
         for elt in *self { f(elt) }
     }
 
     /// `.collec_vec()` is simply a type specialization of `.collect()`,
     /// for convenience.
-    fn collect_vec(self) -> Vec<A>
+    fn collect_vec(self) -> Vec< <Self as Iterator>::Item>
     {
         self.collect()
     }
 }
 
-impl<A, T: Iterator<A>> Itertools<A> for T { }
+impl<T: Iterator> Itertools for T { }
 
 /// Assign to each reference in `to` from `from`, stopping
 /// at the shortest of the two iterators.
 ///
 /// Return the number of elements written.
 #[inline]
-pub fn write<'a, A: 'a, I: Iterator<&'a mut A>, J: Iterator<A>>
+pub fn write<'a, A: 'a, I: Iterator<Item=&'a mut A>, J: Iterator<Item=A>>
     (mut to: I, mut from: J) -> uint
 {
     let mut count = 0u;

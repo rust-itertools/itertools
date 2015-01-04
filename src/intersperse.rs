@@ -11,7 +11,7 @@ pub struct Intersperse<A, I> {
     peek: Option<A>,
 }
 
-impl<A, I: Iterator<A>> Intersperse<A, I>
+impl<A, I: Iterator<Item=A>> Intersperse<A, I>
 {
     /// Create a new Intersperse iterator
     pub fn new(mut iter: I, elt: A) -> Intersperse<A, I>
@@ -20,9 +20,9 @@ impl<A, I: Iterator<A>> Intersperse<A, I>
     }
 }
 
-impl<A: Clone, I: Iterator<A>>
-Iterator<A> for Intersperse<A, I>
+impl<A: Clone, I: Iterator<Item=A>> Iterator for Intersperse<A, I>
 {
+    type Item = A;
     #[inline]
     fn next(&mut self) -> Option<A>
     {

@@ -22,7 +22,8 @@ impl<T, U> ZipLongest<T, U>
     }
 }
 
-impl<A, B, T: Iterator<A>, U: Iterator<B>> Iterator<EitherOrBoth<A, B>> for ZipLongest<T, U> {
+impl<A, B, T: Iterator<Item=A>, U: Iterator<Item=B>> Iterator for ZipLongest<T, U> {
+    type Item = EitherOrBoth<A, B>;
     #[inline]
     fn next(&mut self) -> Option<EitherOrBoth<A, B>> {
         match (self.a.next(), self.b.next()) {
@@ -49,8 +50,12 @@ impl<A, B, T: Iterator<A>, U: Iterator<B>> Iterator<EitherOrBoth<A, B>> for ZipL
     }
 }
 
-impl<A, B, T: ExactSizeIterator<A>, U: ExactSizeIterator<B>> DoubleEndedIterator<EitherOrBoth<A, B>>
-for ZipLongest<T, U> {
+impl<A, B, T: ExactSizeIterator, U: ExactSizeIterator> DoubleEndedIterator
+for ZipLongest<T, U>
+    where
+        T: Iterator<Item=A>,
+        U: Iterator<Item=B>,
+{
     #[inline]
     fn next_back(&mut self) -> Option<EitherOrBoth<A, B>> {
         use std::cmp::Ordering::{Equal, Greater, Less};
@@ -68,8 +73,12 @@ for ZipLongest<T, U> {
     }
 }
 
-impl<A, B, T: RandomAccessIterator<A>, U: RandomAccessIterator<B>>
-RandomAccessIterator<EitherOrBoth<A, B>> for ZipLongest<T, U> {
+impl<A, B, T: RandomAccessIterator, U: RandomAccessIterator>
+RandomAccessIterator for ZipLongest<T, U>
+    where
+        T: Iterator<Item=A>,
+        U: Iterator<Item=B>,
+{
     #[inline]
     fn indexable(&self) -> uint {
         cmp::max(self.a.indexable(), self.b.indexable())
@@ -87,8 +96,8 @@ RandomAccessIterator<EitherOrBoth<A, B>> for ZipLongest<T, U> {
 }
 
 #[unstable = "trait is unstable"]
-impl<A, B, T, U> ExactSizeIterator<EitherOrBoth<A, B>> for ZipLongest<T, U>
-    where T: ExactSizeIterator<A>, U: ExactSizeIterator<B> {}
+impl<T, U> ExactSizeIterator for ZipLongest<T, U>
+    where T: ExactSizeIterator, U: ExactSizeIterator {}
 
 
 /// A value yielded by `ZipLongest`.

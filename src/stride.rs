@@ -162,8 +162,9 @@ macro_rules! stride_impl {
             }
         }
 
-        impl<'a, A> Iterator<$elem> for $name<'a, A>
+        impl<'a, A> Iterator for $name<'a, A>
         {
+            type Item = $elem;
             #[inline]
             fn next(&mut self) -> Option<$elem>
             {
@@ -186,7 +187,7 @@ macro_rules! stride_impl {
             }
         }
 
-        impl<'a, A> DoubleEndedIterator<$elem> for $name<'a, A>
+        impl<'a, A> DoubleEndedIterator for $name<'a, A>
         {
             #[inline]
             fn next_back(&mut self) -> Option<$elem>
@@ -203,10 +204,11 @@ macro_rules! stride_impl {
             }
         }
 
-        impl<'a, A> ExactSizeIterator<$elem> for $name<'a, A> { }
+        impl<'a, A> ExactSizeIterator for $name<'a, A> { }
 
-        impl<'a, A> Index<uint, A> for $name<'a, A>
+        impl<'a, A> Index<uint> for $name<'a, A>
         {
+            type Output = A;
             /// Return a reference to the element at a given index.
             ///
             /// **Panics** if the index is out of bounds.
@@ -248,8 +250,9 @@ impl<'a, A> Clone for Stride<'a, A>
     }
 }
 
-impl<'a, A> IndexMut<uint, A> for StrideMut<'a, A>
+impl<'a, A> IndexMut<uint> for StrideMut<'a, A>
 {
+    type Output = A;
     /// Return a mutable reference to the element at a given index.
     ///
     /// **Panics** if the index is out of bounds.

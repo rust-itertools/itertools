@@ -20,8 +20,9 @@ pub struct Times {
     n: uint,
 }
 
-impl Iterator<uint> for Times
+impl Iterator for Times
 {
+    type Item = uint;
     #[inline]
     fn next(&mut self) -> Option<uint>
     {
@@ -40,7 +41,7 @@ impl Iterator<uint> for Times
     }
 }
 
-impl DoubleEndedIterator<uint> for Times
+impl DoubleEndedIterator for Times
 {
     #[inline]
     fn next_back(&mut self) -> Option<uint>
@@ -52,4 +53,4 @@ impl DoubleEndedIterator<uint> for Times
     }
 }
 
-impl ExactSizeIterator<uint> for Times { }
+impl ExactSizeIterator for Times { }

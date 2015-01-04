@@ -17,8 +17,9 @@ impl<A, B, F: FnMut(A) -> B, I> MapMut<F, I>
     }
 }
 
-impl<A, B, F: FnMut(A) -> B, I: Iterator<A>> Iterator<B> for MapMut<F, I>
+impl<A, B, F: FnMut(A) -> B, I: Iterator<Item=A>> Iterator for MapMut<F, I>
 {
+    type Item = B;
     #[inline]
     fn next(&mut self) -> Option<B> {
         self.iter.next().map(|a| (self.map)(a))
@@ -29,8 +30,9 @@ impl<A, B, F: FnMut(A) -> B, I: Iterator<A>> Iterator<B> for MapMut<F, I>
     }
 }
 
-impl<A, B, F: FnMut(A) -> B, I: DoubleEndedIterator<A>> DoubleEndedIterator<B>
+impl<A, B, F: FnMut(A) -> B, I: DoubleEndedIterator> DoubleEndedIterator
 for MapMut<F, I>
+    where I: Iterator<Item=A>
 {
     #[inline]
     fn next_back(&mut self) -> Option<B> {

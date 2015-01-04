@@ -36,7 +36,7 @@ fn test_double_ended_zip_longest() {
 
 // This function copied from std::iter in rust-lang/rust
 #[cfg(test)]
-fn check_randacc_iter<A: PartialEq, T: Clone + RandomAccessIterator<A>>(a: T, len: uint)
+fn check_randacc_iter<A: PartialEq, T: Clone + Iterator<Item=A> + RandomAccessIterator>(a: T, len: uint)
 {
     let mut b = a.clone();
     assert_eq!(len, b.indexable());

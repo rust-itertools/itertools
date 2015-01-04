@@ -25,7 +25,10 @@ impl<I, J> Interleave<I, J> {
     }
 }
 
-impl<A, I: Iterator<A>, J: Iterator<A>> Iterator<A> for Interleave<I, J> {
+impl<A, I, J> Iterator for Interleave<I, J>
+    where I: Iterator<Item=A>, J: Iterator<Item=A>
+{
+    type Item = A;
     #[inline]
     fn next(&mut self) -> Option<A> {
         self.flag = !self.flag;
@@ -61,8 +64,9 @@ impl<A, B, I> FnMap<A, B, I>
     }
 }
 
-impl<A, B, I: Iterator<A>> Iterator<B> for FnMap<A, B, I>
+impl<A, B, I: Iterator<Item=A>> Iterator for FnMap<A, B, I>
 {
+    type Item = B;
     #[inline]
     fn next(&mut self) -> Option<B> {
         self.iter.next().map(|a| (self.map)(a))
@@ -73,8 +77,9 @@ impl<A, B, I: Iterator<A>> Iterator<B> for FnMap<A, B, I>
     }
 }
 
-impl<A, B, I: DoubleEndedIterator<A>> DoubleEndedIterator<B>
+impl<A, B, I: DoubleEndedIterator> DoubleEndedIterator
 for FnMap<A, B, I>
+    where I: Iterator<Item=A>
 {
     #[inline]
     fn next_back(&mut self) -> Option<B> {
@@ -115,7 +120,10 @@ impl<A, I> PutBack<A, I> {
     }
 }
 
-impl<A, I: Iterator<A>> Iterator<A> for PutBack<A, I> {
+impl<A, I> Iterator for PutBack<A, I>
+    where I: Iterator<Item=A>
+{
+    type Item = A;
     #[inline]
     fn next(&mut self) -> Option<A> {
         match self.top {
@@ -146,7 +154,7 @@ pub struct Product<A, I, J> {
     b_orig: J,
 }
 
-impl<A: Clone, B, I: Iterator<A>, J: Clone + Iterator<B>>
+impl<A: Clone, B, I: Iterator<Item=A>, J: Clone + Iterator<Item=B>>
     Product<A, I, J> 
 {
     /// Create a new cartesian product iterator
@@ -160,9 +168,10 @@ impl<A: Clone, B, I: Iterator<A>, J: Clone + Iterator<B>>
 }
 
 
-impl<A: Clone, I: Iterator<A>, B, J: Clone + Iterator<B>>
-Iterator<(A, B)> for Product<A, I, J>
+impl<A: Clone, I: Iterator<Item=A>, B, J: Clone + Iterator<Item=B>>
+Iterator for Product<A, I, J>
 {
+    type Item = (A, B);
     fn next(&mut self) -> Option<(A, B)>
     {
         let elt_b = match self.b.next() {
@@ -221,8 +230,9 @@ impl<A, I> Dedup<A, I>
     }
 }
 
-impl<A: PartialEq, I: Iterator<A>> Iterator<A> for Dedup<A, I>
+impl<A: PartialEq, I: Iterator<Item=A>> Iterator for Dedup<A, I>
 {
+    type Item = A;
     #[inline]
     fn next(&mut self) -> Option<A>
     {
@@ -275,9 +285,9 @@ impl<F, I> Batching<I, F> {
     }
 }
 
-impl<A, B, F: FnMut(&mut I) -> Option<B>, I: Iterator<A>>
-    Iterator<B> for Batching<I, F>
+impl<A, B, F: FnMut(&mut I) -> Option<B>, I: Iterator<Item=A>> Iterator for Batching<I, F>
 {
+    type Item = B;
     #[inline]
     fn next(&mut self) -> Option<B>
     {
@@ -312,9 +322,10 @@ impl<A, K, F, I> GroupBy<A, K, I, F> {
     }
 }
 
-impl<A, K: PartialEq, F: FnMut(&A) -> K, I: Iterator<A>>
-    Iterator<(K, Vec<A>)> for GroupBy<A, K, I, F>
+impl<A, K: PartialEq, F: FnMut(&A) -> K, I: Iterator<Item=A>>
+    Iterator for GroupBy<A, K, I, F>
 {
+    type Item = (K, Vec<A>);
     fn next(&mut self) -> Option<(K, Vec<A>)>
     {
         for elt in self.iter {
