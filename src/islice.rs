@@ -1,11 +1,5 @@
-use std::ops::{
-    FullRange,
-    Range,
-    RangeTo,
-    RangeFrom
-};
-
 use super::Itertools;
+use super::misc::GenericRange;
 
 /// A sliced iterator.
 ///
@@ -69,29 +63,3 @@ impl<A, I> Iterator for ISlice<I>
         }
     }
 }
-
-/// **GenericRange** is implemented by Rust's built-in range types, produced
-/// by range syntax like `a..`, `..b` or `c..d`.
-pub trait GenericRange {
-    /// Start index (inclusive)
-    fn start(&self) -> Option<uint> { None }
-    /// End index (exclusive)
-    fn end(&self) -> Option<uint> { None }
-}
-
-
-impl GenericRange for FullRange {}
-
-impl GenericRange for RangeFrom<uint> {
-    fn start(&self) -> Option<uint> { Some(self.start) }
-}
-
-impl GenericRange for RangeTo<uint> {
-    fn end(&self) -> Option<uint> { Some(self.end) }
-}
-
-impl GenericRange for Range<uint> {
-    fn start(&self) -> Option<uint> { Some(self.start) }
-    fn end(&self) -> Option<uint> { Some(self.end) }
-}
-
