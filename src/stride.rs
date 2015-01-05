@@ -72,6 +72,11 @@ impl<'a, A> StrideMut<'a, A>
     }
 }
 
+fn div_rem(x: uint, d: uint) -> (uint, uint)
+{
+    (x / d, x % d)
+}
+
 macro_rules! stride_impl {
     (struct $name:ident -> $slice:ty, $getptr:ident, $ptr:ty, $elem:ty) => {
         impl<'a, A> $name<'a, A>
@@ -106,7 +111,7 @@ macro_rules! stride_impl {
                 let nelem = if ustep <= 1 {
                     xs.len()
                 } else {
-                    let (d, r) = num::div_rem(xs.len(), ustep);
+                    let (d, r) = div_rem(xs.len(), ustep);
                     d + if r > 0 { 1 } else { 0 }
                 };
                 let mut begin = xs. $getptr ();
@@ -135,7 +140,7 @@ macro_rules! stride_impl {
                 }
                 let len = (it.end - it.offset) / it.stride;
                 let newstride = it.stride * step;
-                let (d, r) = num::div_rem(len as uint, step as uint);
+                let (d, r) = div_rem(len as uint, step as uint);
                 let len = d as uint + if r > 0 { 1 } else { 0 };
                 unsafe {
                     $name::from_ptr_len(it.begin, len, newstride)
