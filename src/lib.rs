@@ -435,6 +435,18 @@ pub trait Itertools : Iterator + Sized {
 
     // non-adaptor methods
 
+    /// Find the position and value of the first element satisfying a predicate.
+    fn find_position<P>(&mut self, mut pred: P) -> Option<(uint, <Self as Iterator>::Item)>
+        where P: FnMut(&<Self as Iterator>::Item) -> bool
+    {
+        for (index, elt) in self.by_ref().enumerate() {
+            if pred(&elt) {
+                return Some((index, elt))
+            }
+        }
+        None
+    }
+
     /// Consume the first **n** elements of the iterator eagerly.
     ///
     /// Return actual number of elements consumed,
