@@ -284,3 +284,11 @@ fn slice() {
     assert_iters_equal(it.slice(3..27), 3..10);
     assert_iters_equal(it.slice(44..), 0..0);
 }
+
+#[test]
+fn step() {
+    let it = 0i..10;
+    assert_iters_equal(it.step(1), it);
+    assert_iters_equal(it.step(2), it.filter(|x| *x % 2 == 0));
+    assert_iters_equal(it.step(10), 0i..1);
+}

@@ -6,6 +6,8 @@
 
 use std::mem;
 use std::num::Int;
+use std::iter::Fuse;
+use super::Itertools;
 
 /// Alternate elements from two iterators until both
 /// are run out
@@ -362,5 +364,55 @@ impl<A, K: PartialEq, F: FnMut(&A) -> K, I: Iterator<Item=A>>
         } else {
             (0, my_upper)
         }
+    }
+}
+
+/// An iterator adaptor that steps a number elements in the base iterator
+/// for each iteration.
+///
+/// The iterator steps by yielding the next element from the base iterator,
+/// then skipping forward *n-1* elements.
+#[derive(Clone)]
+pub struct Step<I> {
+    iter: Fuse<I>,
+    skip: uint,
+}
+
+impl<I> Step<I>
+    where I: Iterator
+{
+    /// Create a **Step** iterator.
+    ///
+    /// **Panics** if the step is 0.
+    pub fn new(iter: I, step: uint) -> Self
+    {
+        assert!(step != 0);
+        Step{iter: iter.fuse(), skip: step - 1}
+    }
+}
+
+impl<I> Iterator for Step<I>
+    where I: Iterator
+{
+    type Item = <I as Iterator>::Item;
+    #[inline]
+    fn next(&mut self) -> Option<<I as Iterator>::Item>
+    {
+        let elt = self.iter.next();
+        self.iter.dropn(self.skip);
+        elt
+    }
+
+    fn size_hint(&self) -> (uint, Option<uint>)
+    {
+        let (low, high) = self.iter.size_hint();
+        let div = |&: x: uint| {
+            if x == 0 {
+                0
+            } else {
+                1 + (x - 1) / (self.skip + 1)
+            }
+        };
+        (div(low), high.map(div))
     }
 }

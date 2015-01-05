@@ -46,6 +46,7 @@ pub use adaptors::{
     Dedup,
     Batching,
     GroupBy,
+    Step,
 };
 pub use intersperse::Intersperse;
 pub use islice::{GenericRange, ISlice};
@@ -429,6 +430,32 @@ pub trait Itertools : Iterator + Sized {
     fn into_rc(self) -> RcIter<Self>
     {
         RcIter::new(self)
+    }
+
+    /// Return an iterator adaptor that steps **n** elements in the base iterator
+    /// for each iteration.
+    ///
+    /// The iterator steps by yielding the next element from the base iterator,
+    /// then skipping forward **n - 1** elements.
+    ///
+    /// **Panics** if the step is 0.
+    ///
+    /// ## Example
+    /// ```
+    /// # #![feature(slicing_syntax)]
+    /// # extern crate itertools;
+    /// # fn main() {
+    /// # use itertools::Itertools;
+    /// let mut it = (0..8u).step(3);
+    /// assert_eq!(it.next(), Some(0));
+    /// assert_eq!(it.next(), Some(3));
+    /// assert_eq!(it.next(), Some(6));
+    /// assert_eq!(it.next(), None);
+    /// # }
+    /// ```
+    fn step(self, n: uint) -> Step<Self>
+    {
+        Step::new(self, n)
     }
 
     // non-adaptor methods
