@@ -48,6 +48,7 @@ pub use adaptors::{
     GroupBy,
 };
 pub use intersperse::Intersperse;
+pub use islice::{GenericRange, ISlice};
 pub use map::MapMut;
 pub use rciter::RcIter;
 pub use stride::Stride;
@@ -60,6 +61,7 @@ pub use zip::{ZipLongest, EitherOrBoth};
 pub use ziptuple::Zip;
 mod adaptors;
 mod intersperse;
+mod islice;
 mod linspace;
 mod map;
 mod rciter;
@@ -371,6 +373,28 @@ pub trait Itertools : Iterator + Sized {
     fn tee(self) -> (Tee< <Self as Iterator>::Item, Self>, Tee< <Self as Iterator>::Item, Self>)
     {
         tee::new(self)
+    }
+
+    /// Return a sliced iterator.
+    ///
+    /// **Note:** slicing an iterator is not constant time, and much less efficient than
+    /// slicing for example a vector.
+    ///
+    /// ## Example
+    /// ```
+    /// # #![feature(slicing_syntax)]
+    /// # extern crate itertools;
+    /// # fn main() {
+    /// use std::iter::repeat;
+    /// # use itertools::Itertools;
+    ///
+    /// let mut it = repeat('a').slice(..3);
+    /// assert_eq!(it.count(), 3);
+    /// # }
+    /// ```
+    fn slice<R: GenericRange>(self, range: R) -> ISlice<Self>
+    {
+        ISlice::new(self, range)
     }
 
     /// Return an iterator inside a **Rc\<RefCell\<_\>\>** wrapper.
