@@ -75,13 +75,15 @@ mod ziptuple;
 /// A helper trait for (x,y,z) ++ w => (x,y,z,w),
 /// used for implementing `iproduct!` and `izip!`
 #[deprecated]
-trait AppendTuple<X, Y> {
-    fn append(self, x: X) -> Y;
+trait AppendTuple<X> {
+    type Result;
+    fn append(self, x: X) -> Self::Result;
 }
 
 macro_rules! impl_append_tuple(
     () => (
-        impl<T> AppendTuple<T, (T, )> for () {
+        impl<T> AppendTuple<T> for () {
+            type Result = (T, );
             fn append(self, x: T) -> (T, ) {
                 (x, )
             }
@@ -91,7 +93,8 @@ macro_rules! impl_append_tuple(
     ($A:ident $(,$B:ident)*) => (
         impl_append_tuple!($($B),*);
         #[allow(non_snake_case)]
-        impl<$A, $($B,)* T> AppendTuple<T, ($A, $($B,)* T)> for ($A, $($B),*) {
+        impl<$A, $($B,)* T> AppendTuple<T> for ($A, $($B),*) {
+            type Result = ($A, $($B, )* T);
             fn append(self, x: T) -> ($A, $($B,)* T) {
                 let ($A, $($B),*) = self;
                 ($A, $($B,)* x)
@@ -105,20 +108,22 @@ impl_append_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
 /// A helper iterator that maps an iterator of tuples like
 /// `((A, B), C)` to an iterator of `(A, B, C)`.
 ///
-/// Used by the `izip!()` and `iproduct!()` macros.
+/// Used by the `iproduct!()` macro.
 #[derive(Clone)]
 #[deprecated]
 pub struct FlatTuples<I> {
     pub iter: I,
 }
 
-impl<X, Y, T: AppendTuple<X, Y>, I>
+impl<X, T, I>
 Iterator for FlatTuples<I>
-    where I: Iterator<Item=(T, X)>
+    where
+        I: Iterator<Item=(T, X)>,
+        T: AppendTuple<X>,
 {
-    type Item = Y;
+    type Item = <T as AppendTuple<X>>::Result;
     #[inline]
-    fn next(&mut self) -> Option<Y>
+    fn next(&mut self) -> Option< <Self as Iterator>::Item>
     {
         self.iter.next().map(|(t, x)| t.append(x))
     }
@@ -128,12 +133,14 @@ Iterator for FlatTuples<I>
     }
 }
 
-impl<X, Y, T: AppendTuple<X, Y>, I: DoubleEndedIterator>
+impl<X, T, I: DoubleEndedIterator>
 DoubleEndedIterator for FlatTuples<I>
-    where I: Iterator<Item=(T, X)>
+    where
+        I: Iterator<Item=(T, X)>,
+        T: AppendTuple<X>,
 {
     #[inline]
-    fn next_back(&mut self) -> Option<Y>
+    fn next_back(&mut self) -> Option< <Self as Iterator>::Item>
     {
         self.iter.next_back().map(|(t, x)| t.append(x))
     }
@@ -148,12 +155,16 @@ DoubleEndedIterator for FlatTuples<I>
 ///
 /// ## Example
 ///
-/// ```ignore
-/// // Iterate over the coordinates of a 4 x 4 grid
-/// // from (0, 0), (0, 1), .. etc until (3, 3)
-/// for (i, j) in iproduct!(range(0, 4i), range(0, 4i)) {
+/// ```
+/// #![feature(phase)]
+/// #[phase(plugin, link)] extern crate itertools;
+/// # fn main() {
+/// // Iterate over the coordinates of a 4 x 4 x 4 grid
+/// // from (0, 0, 0), (0, 0, 1), .., (0, 1, 0), (0, 1, 1), .. etc until (3, 3, 3)
+/// for (i, j, k) in iproduct!(range(0, 4i), range(0, 4i), range(0, 4i)) {
 ///    // ..
 /// }
+/// # }
 /// ```
 pub macro_rules! iproduct(
     ($I:expr) => (
