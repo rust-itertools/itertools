@@ -410,9 +410,7 @@ pub trait Itertools : Iterator + Sized {
     ///
     /// ```
     /// # use itertools::Itertools;
-    ///
     /// let xs = [0i, 1, 1, 1, 2, 1, 3, 5, 6, 7];
-
     /// let mut rit = xs.iter().cloned().into_rc();
     /// let mut z = rit.clone().zip(rit.clone());
     /// assert_eq!(z.next(), Some((0, 1)));
