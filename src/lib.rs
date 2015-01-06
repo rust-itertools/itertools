@@ -188,7 +188,7 @@ pub trait Itertools : Iterator + Sized {
     ///
     /// Iterator element type is `B`
     #[deprecated="Use libstd .map() instead"]
-    fn fn_map<B>(self, map: fn(<Self as Iterator>::Item) -> B) -> FnMap< <Self as Iterator>::Item, B, Self> {
+    fn fn_map<B>(self, map: fn(Self::Item) -> B) -> FnMap<Self::Item, B, Self> {
         FnMap::new(self, map)
     }
 
@@ -196,7 +196,7 @@ pub trait Itertools : Iterator + Sized {
     ///
     /// Iterator element type is `B`
     #[deprecated="Use libstd .map() instead"]
-    fn map_unboxed<B, F: FnMut(<Self as Iterator>::Item) -> B>(self, map: F) -> MapMut<F, Self> {
+    fn map_unboxed<B, F: FnMut(Self::Item) -> B>(self, map: F) -> MapMut<F, Self> {
         MapMut::new(self, map)
     }
 
@@ -204,7 +204,7 @@ pub trait Itertools : Iterator + Sized {
     /// are run out
     ///
     /// Iterator element type is `Self::Item`
-    fn interleave<J: Iterator<Item=<Self as Iterator>::Item>>(self, other: J) -> Interleave<Self, J> {
+    fn interleave<J: Iterator<Item=Self::Item>>(self, other: J) -> Interleave<Self, J> {
         Interleave::new(self, other)
     }
 
@@ -212,7 +212,7 @@ pub trait Itertools : Iterator + Sized {
     /// between each element of the adapted iterator.
     ///
     /// Iterator element type is `Self::Item`
-    fn intersperse(self, element:  <Self as Iterator>::Item) -> Intersperse< <Self as Iterator>::Item, Self> {
+    fn intersperse(self, element: Self::Item) -> Intersperse<Self::Item, Self> {
         Intersperse::new(self, element)
     }
 
@@ -244,7 +244,7 @@ pub trait Itertools : Iterator + Sized {
     /// If the iterator is sorted, all elements will be unique.
     ///
     /// Iterator element type is `Self::Item`.
-    fn dedup(self) -> Dedup< <Self as Iterator>::Item, Self> {
+    fn dedup(self) -> Dedup<Self::Item, Self> {
         Dedup::new(self)
     }
 
@@ -282,7 +282,7 @@ pub trait Itertools : Iterator + Sized {
     /// are returned as the iterator elements of **GroupBy**.
     ///
     /// Iterator element type is **(K, Vec\<Self::Item\>)**
-    fn group_by<K, F: FnMut(& <Self as Iterator>::Item) -> K>(self, key: F) -> GroupBy< <Self as Iterator>::Item, K, Self, F>
+    fn group_by<K, F: FnMut(&Self::Item) -> K>(self, key: F) -> GroupBy<Self::Item, K, Self, F>
     {
         GroupBy::new(self, key)
     }
@@ -308,7 +308,7 @@ pub trait Itertools : Iterator + Sized {
     /// assert_eq!(t1.next(), None);
     /// assert_eq!(t2.next(), Some(1));
     /// ```
-    fn tee(self) -> (Tee< <Self as Iterator>::Item, Self>, Tee< <Self as Iterator>::Item, Self>)
+    fn tee(self) -> (Tee<Self::Item, Self>, Tee<Self::Item, Self>)
     {
         tee::new(self)
     }
@@ -398,8 +398,8 @@ pub trait Itertools : Iterator + Sized {
     // non-adaptor methods
 
     /// Find the position and value of the first element satisfying a predicate.
-    fn find_position<P>(&mut self, mut pred: P) -> Option<(uint, <Self as Iterator>::Item)>
-        where P: FnMut(&<Self as Iterator>::Item) -> bool
+    fn find_position<P>(&mut self, mut pred: P) -> Option<(uint, Self::Item)>
+        where P: FnMut(&Self::Item) -> bool
     {
         for (index, elt) in self.by_ref().enumerate() {
             if pred(&elt) {
@@ -452,13 +452,13 @@ pub trait Itertools : Iterator + Sized {
     /// Run the closure **f** eagerly on each element of the iterator.
     ///
     /// Consumes the iterator until its end.
-    fn apply<F: FnMut(<Self as Iterator>::Item)>(&mut self, mut f: F) {
+    fn apply<F: FnMut(Self::Item)>(&mut self, mut f: F) {
         for elt in *self { f(elt) }
     }
 
     /// **.collec_vec()** is simply a type specialization of **.collect()**,
     /// for convenience.
-    fn collect_vec(self) -> Vec< <Self as Iterator>::Item>
+    fn collect_vec(self) -> Vec<Self::Item>
     {
         self.collect()
     }
