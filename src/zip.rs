@@ -56,8 +56,8 @@ impl<A, B, T, U> Iterator for ZipLongest<T, U>
 
 impl<A, B, T, U> DoubleEndedIterator for ZipLongest<T, U>
     where
-        T: ExactSizeIterator<Item=A>,
-        U: ExactSizeIterator<Item=B>,
+        T: DoubleEndedIterator<Item=A> + ExactSizeIterator,
+        U: DoubleEndedIterator<Item=B> + ExactSizeIterator,
 {
     #[inline]
     fn next_back(&mut self) -> Option<EitherOrBoth<A, B>> {
