@@ -1,7 +1,4 @@
-#![feature(phase)]
-
-#[phase(link, plugin)]
-
+#[macro_use]
 extern crate itertools;
 
 use std::iter::AdditiveIterator;

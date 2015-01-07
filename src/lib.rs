@@ -1,6 +1,4 @@
-#![feature(associated_types)]
 #![feature(unboxed_closures)]
-#![feature(macro_rules)]
 #![crate_name="itertools"]
 #![crate_type="dylib"]
 
@@ -15,18 +13,13 @@
 //! Some adaptors are just used directly like regular structs,
 //! for example [**PutBack**](./struct.PutBack.html), [**Zip**](./struct.Zip.html), [**Stride**](./struct.Stride.html), [**StrideMut**](./struct.StrideMut.html).
 //!
-//! To use the macros in this crate, use the `phase(plugin)` attribute:
+//! To use the macros in this crate, use the `#[macro_use]` attribute:
 //!
 //! ```ignore
-//! #![feature(phase)]
-//! #[phase(plugin, link)] extern crate itertools;
+//! #[macro_use]
+//! extern crate itertools;
 //! ```
 //!
-//! You can shorten the crate name with something like:
-//!
-//! ```ignore
-//! use itertools as it;
-//! ```
 //! ## License 
 //! Dual-licensed to be compatible with the Rust project.
 //!
@@ -82,8 +75,8 @@ mod ziptuple;
 /// ## Example
 ///
 /// ```
-/// #![feature(phase)]
-/// #[phase(plugin, link)] extern crate itertools;
+/// #[macro_use]
+/// extern crate itertools;
 /// # fn main() {
 /// // Iterate over the coordinates of a 4 x 4 x 4 grid
 /// // from (0, 0, 0), (0, 0, 1), .., (0, 1, 0), (0, 1, 1), .. etc until (3, 3, 3)
@@ -98,9 +91,9 @@ pub macro_rules! iproduct(
     );
     ($I:expr, $J:expr $(, $K:expr)*) => (
         {
-            let it = ::itertools::Product::new($I, $J);
+            let it = $crate::Product::new($I, $J);
             $(
-                let it = ::itertools::misc::FlatTuples::new(::itertools::Product::new(it, $K));
+                let it = $crate::misc::FlatTuples::new($crate::Product::new(it, $K));
             )*
             it
         }
@@ -136,7 +129,7 @@ pub macro_rules! izip(
     );
     ($I:expr, $J:expr $(, $K:expr)*) => (
         {
-            ::itertools::Zip::new(($I, $J $(, $K)*))
+            $crate::Zip::new(($I, $J $(, $K)*))
         }
     );
 );

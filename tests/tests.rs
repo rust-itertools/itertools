@@ -6,9 +6,9 @@
 
 #![feature(slicing_syntax)]
 #![feature(unboxed_closures)]
-#![feature(phase)]
 
-#[phase(plugin, link)] extern crate itertools;
+#[macro_use]
+extern crate itertools;
 
 extern crate test;
 

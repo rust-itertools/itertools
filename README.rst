@@ -6,15 +6,6 @@ Please read the `API documentation here`__
 
 __ http://bluss.github.io/rust-itertools/
 
-To use the macros in this crate, use the phase(plugin) attribute::
-
-    #![feature(phase)]
-    #[phase(plugin, link)] extern crate itertools;
-
-I recommend shortening the crate name with something like::
-
-    use itertools as it;
-
 License
 =======
 
