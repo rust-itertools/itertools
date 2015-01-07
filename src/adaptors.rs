@@ -80,9 +80,8 @@ impl<A, B, I: Iterator<Item=A>> Iterator for FnMap<A, B, I>
     }
 }
 
-impl<A, B, I: DoubleEndedIterator> DoubleEndedIterator
-for FnMap<A, B, I>
-    where I: Iterator<Item=A>
+impl<A, B, I> DoubleEndedIterator for FnMap<A, B, I>
+    where I: DoubleEndedIterator<Item=A>
 {
     #[inline]
     fn next_back(&mut self) -> Option<B> {

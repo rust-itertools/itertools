@@ -79,10 +79,9 @@ Iterator for FlatTuples<I>
     }
 }
 
-impl<X, T, I: DoubleEndedIterator>
-DoubleEndedIterator for FlatTuples<I>
+impl<X, T, I> DoubleEndedIterator for FlatTuples<I>
     where
-        I: Iterator<Item=(T, X)>,
+        I: DoubleEndedIterator<Item=(T, X)>,
         T: AppendTuple<X>,
 {
     #[inline]

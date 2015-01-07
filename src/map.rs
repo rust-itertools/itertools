@@ -18,7 +18,10 @@ impl<A, B, F: FnMut(A) -> B, I> MapMut<F, I>
     }
 }
 
-impl<A, B, F: FnMut(A) -> B, I: Iterator<Item=A>> Iterator for MapMut<F, I>
+impl<A, B, F, I> Iterator for MapMut<F, I>
+    where
+        I: Iterator<Item=A>,
+        F: FnMut(A) -> B,
 {
     type Item = B;
     #[inline]
@@ -31,9 +34,10 @@ impl<A, B, F: FnMut(A) -> B, I: Iterator<Item=A>> Iterator for MapMut<F, I>
     }
 }
 
-impl<A, B, F: FnMut(A) -> B, I: DoubleEndedIterator> DoubleEndedIterator
-for MapMut<F, I>
-    where I: Iterator<Item=A>
+impl<A, B, F, I> DoubleEndedIterator for MapMut<F, I>
+    where
+        I: DoubleEndedIterator<Item=A>,
+        F: FnMut(A) -> B,
 {
     #[inline]
     fn next_back(&mut self) -> Option<B> {
