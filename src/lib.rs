@@ -1,6 +1,8 @@
+#![feature(old_impl_check)]
 #![feature(unboxed_closures)]
 #![crate_name="itertools"]
 #![crate_type="dylib"]
+#![allow(unstable)]
 
 //! Itertools — extra iterator adaptors, functions and macros
 //!
@@ -87,7 +89,13 @@ pub macro_rules! iproduct {
     ($I:expr) => (
         ($I)
     );
-    ($I:expr, $J:expr $(, $K:expr)*) => (
+    ($I:expr, $J:expr) => (
+        {
+            let it = $crate::Product::new($I, $J);
+            it
+        }
+    );
+    ($I:expr, $J:expr, $($K:expr),+) => (
         {
             let it = $crate::Product::new($I, $J);
             $(
@@ -125,17 +133,12 @@ pub macro_rules! izip {
     ($I:expr) => (
         ($I)
     );
-    ($I:expr, $J:expr $(, $K:expr)*) => (
+    (($I:expr),*) => (
         {
-            $crate::Zip::new(($I, $J $(, $K)*))
+            $crate::Zip::new(($I),*)
         }
     );
 }
-
-// Note: Instead of using struct Product, we could implement iproduct!()
-// using .flat_map as well; however it can't implement size_hint.
-// ($I).flat_map(|x| Repeat::new(x).zip($J))
-
 
 /// `icompr` as in “iterator comprehension” allows creating a
 /// mapped iterator with simple syntax, similar to set builder notation,
@@ -162,10 +165,10 @@ pub macro_rules! izip {
 /// ```
 #[macro_export]
 pub macro_rules! icompr {
-    ($r:expr for $x:pat in $J:expr if $pred:expr) => (
+    ($r:expr, for $x:pat, in $J:expr, if $pred:expr) => (
         ($J).filter_map(|$x| if $pred { Some($r) } else { None })
     );
-    ($r:expr for $x:pat in $J:expr) => (
+    ($r:expr, for $x:pat, in, $J:expr) => (
         ($J).filter_map(|$x| Some($r))
     );
 }
