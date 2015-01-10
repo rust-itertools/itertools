@@ -146,11 +146,11 @@ pub macro_rules! izip {
 /// 
 /// Syntax:
 /// 
-///  `icompr!(<expression> for <pattern> in <iterator>)`
+///  `icompr!(<expression>, <pattern>, <iterator>)`
 ///
 /// or
 ///
-///  `icompr!(<expression> for <pattern> in <iterator> if <expression>)`
+///  `icompr!(<expression>, <pattern>, <iterator>, <expression>)`
 ///
 /// Each element from the `<iterator>` expression is pattern matched
 /// with the `<pattern>`, and the bound names are used to express the
@@ -161,14 +161,17 @@ pub macro_rules! izip {
 /// ## Example
 ///
 /// ```ignore
-/// let mut squares = icompr!(x * x for x in range(1, 100));
+/// let mut squares = icompr!(x * x, x, range(1, 100));
 /// ```
+///
+/// **Note:** A Python like syntax of `<expression> for <pattern> in <iterator>` is
+/// **not possible** with the stable macro rules since Rust 1.0.0-alpha.
 #[macro_export]
 pub macro_rules! icompr {
-    ($r:expr, for $x:pat, in $J:expr, if $pred:expr) => (
+    ($r:expr, $x:pat, $J:expr, $pred:expr) => (
         ($J).filter_map(|$x| if $pred { Some($r) } else { None })
     );
-    ($r:expr, for $x:pat, in, $J:expr) => (
+    ($r:expr, $x:pat, $J:expr) => (
         ($J).filter_map(|$x| Some($r))
     );
 }
