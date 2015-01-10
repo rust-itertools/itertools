@@ -149,7 +149,6 @@ impl<A, I> Iterator for PutBack<A, I>
 ///
 /// Iterator element type is `(A, B)` if `I: Iterator<A>` and `J: Iterator<B>`
 #[derive(Clone)]
-#[deprecated="Will be replaced by generic tuple version"]
 pub struct Product<A, I, J> {
     a: I,
     a_cur: Option<A>,

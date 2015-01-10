@@ -11,7 +11,6 @@ use std::ops::{
 
 /// A helper trait for (x,y,z) ++ w => (x,y,z,w),
 /// used for implementing `iproduct!` and `izip!`
-#[deprecated]
 pub trait AppendTuple<X> {
     type Result;
     fn append(self, x: X) -> Self::Result;
@@ -47,7 +46,6 @@ impl_append_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
 ///
 /// Used by the `iproduct!()` macro.
 #[derive(Clone)]
-#[deprecated]
 pub struct FlatTuples<I> {
     iter: I,
 }
