@@ -85,7 +85,7 @@ mod ziptuple;
 /// }
 /// # }
 /// ```
-pub macro_rules! iproduct(
+pub macro_rules! iproduct {
     ($I:expr) => (
         ($I)
     );
@@ -98,7 +98,7 @@ pub macro_rules! iproduct(
             it
         }
     );
-);
+}
 
 #[deprecated="izip!() is deprecated, use Zip::new instead"]
 #[macro_export]
@@ -123,7 +123,7 @@ pub macro_rules! iproduct(
 ///    *a = i ^ *b;
 /// }
 /// ```
-pub macro_rules! izip(
+pub macro_rules! izip {
     ($I:expr) => (
         ($I)
     );
@@ -132,7 +132,7 @@ pub macro_rules! izip(
             $crate::Zip::new(($I, $J $(, $K)*))
         }
     );
-);
+}
 
 // Note: Instead of using struct Product, we could implement iproduct!()
 // using .flat_map as well; however it can't implement size_hint.
@@ -163,14 +163,14 @@ pub macro_rules! izip(
 /// let mut squares = icompr!(x * x for x in range(1i, 100));
 /// ```
 #[macro_export]
-pub macro_rules! icompr(
+pub macro_rules! icompr {
     ($r:expr for $x:pat in $J:expr if $pred:expr) => (
         ($J).filter_map(|$x| if $pred { Some($r) } else { None })
     );
     ($r:expr for $x:pat in $J:expr) => (
         ($J).filter_map(|$x| Some($r))
     );
-);
+}
 
 /// Extra iterator methods for arbitrary iterators
 pub trait Itertools : Iterator + Sized {
