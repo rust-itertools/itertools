@@ -28,7 +28,7 @@ pub struct Zip<T> {
     t: T
 }
 
-impl<T> Zip<T>
+impl<T> Zip<T> where Zip<T>: Iterator
 {
     /// Create a new **Zip** from a tuple of iterators.
     pub fn new(t: T) -> Zip<T>
