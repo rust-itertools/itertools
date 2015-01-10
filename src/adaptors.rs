@@ -75,7 +75,7 @@ impl<A, B, I: Iterator<Item=A>> Iterator for FnMap<A, B, I>
         self.iter.next().map(|a| (self.map)(a))
     }
 
-    fn size_hint(&self) -> (uint, Option<uint>) {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         self.iter.size_hint()
     }
 }
@@ -134,7 +134,7 @@ impl<A, I> Iterator for PutBack<A, I>
         }
     }
     #[inline]
-    fn size_hint(&self) -> (uint, Option<uint>) {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         let (lo, hi) = self.iter.size_hint();
         match self.top {
             Some(_) => (lo.saturating_add(1), hi.and_then(|x| x.checked_add(1))),
@@ -197,7 +197,7 @@ Iterator for Product<A, I, J>
         }
     }
 
-    fn size_hint(&self) -> (uint, Option<uint>)
+    fn size_hint(&self) -> (usize, Option<usize>)
     {
         let (a, ah) = self.a.size_hint();
         let (b, bh) = self.b.size_hint();
@@ -206,7 +206,7 @@ Iterator for Product<A, I, J>
         // Compute a * bo + b for both lower and upper bound
         let low = a.checked_mul(bo)
                     .and_then(|x| x.checked_add(b))
-                    .unwrap_or(::std::uint::MAX);
+                    .unwrap_or(::std::usize::MAX);
         let high = ah.and_then(|x| boh.and_then(|y| x.checked_mul(y)))
                      .and_then(|x| bh.and_then(|y| x.checked_add(y)));
         (low, high)
@@ -256,7 +256,7 @@ impl<A: PartialEq, I: Iterator<Item=A>> Iterator for Dedup<A, I>
     }
 
     #[inline]
-    fn size_hint(&self) -> (uint, Option<uint>)
+    fn size_hint(&self) -> (usize, Option<usize>)
     {
         let (lower, upper) = self.iter.size_hint();
         if self.last.is_some() || lower > 0 {
@@ -287,7 +287,10 @@ impl<F, I> Batching<I, F> {
     }
 }
 
-impl<A, B, F: FnMut(&mut I) -> Option<B>, I: Iterator<Item=A>> Iterator for Batching<I, F>
+#[old_impl_check]
+impl<A, B, F, I> Iterator for Batching<I, F> where
+    I: Iterator<Item=A>,
+    F: FnMut(&mut I) -> Option<B>
 {
     type Item = B;
     #[inline]
@@ -297,7 +300,7 @@ impl<A, B, F: FnMut(&mut I) -> Option<B>, I: Iterator<Item=A>> Iterator for Batc
     }
 
     #[inline]
-    fn size_hint(&self) -> (uint, Option<uint>)
+    fn size_hint(&self) -> (usize, Option<usize>)
     {
         // No information about closue behavior
         (0, None)
@@ -352,10 +355,10 @@ impl<A, K: PartialEq, F: FnMut(&A) -> K, I: Iterator<Item=A>>
         }
     }
 
-    fn size_hint(&self) -> (uint, Option<uint>)
+    fn size_hint(&self) -> (usize, Option<usize>)
     {
         let (lower, upper) = self.iter.size_hint();
-        let stored_count = self.current_key.is_some() as uint;
+        let stored_count = self.current_key.is_some() as usize;
         let my_upper = upper.and_then(|x| x.checked_add(stored_count));
         if lower > 0 || stored_count > 0 {
             (1, my_upper)
@@ -373,7 +376,7 @@ impl<A, K: PartialEq, F: FnMut(&A) -> K, I: Iterator<Item=A>>
 #[derive(Clone)]
 pub struct Step<I> {
     iter: Fuse<I>,
-    skip: uint,
+    skip: usize,
 }
 
 impl<I> Step<I>
@@ -382,7 +385,7 @@ impl<I> Step<I>
     /// Create a **Step** iterator.
     ///
     /// **Panics** if the step is 0.
-    pub fn new(iter: I, step: uint) -> Self
+    pub fn new(iter: I, step: usize) -> Self
     {
         assert!(step != 0);
         Step{iter: iter.fuse(), skip: step - 1}
@@ -401,10 +404,10 @@ impl<I> Iterator for Step<I>
         elt
     }
 
-    fn size_hint(&self) -> (uint, Option<uint>)
+    fn size_hint(&self) -> (usize, Option<usize>)
     {
         let (low, high) = self.iter.size_hint();
-        let div = |&: x: uint| {
+        let div = |&: x: usize| {
             if x == 0 {
                 0
             } else {

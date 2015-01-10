@@ -39,7 +39,7 @@ impl<A, B, T, U> Iterator for ZipLongest<T, U>
     }
 
     #[inline]
-    fn size_hint(&self) -> (uint, Option<uint>) {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         let (a_lower, a_upper) = self.a.size_hint();
         let (b_lower, b_upper) = self.b.size_hint();
 
@@ -82,12 +82,12 @@ impl<A, B, T, U> RandomAccessIterator for ZipLongest<T, U>
         U: RandomAccessIterator<Item=B>,
 {
     #[inline]
-    fn indexable(&self) -> uint {
+    fn indexable(&self) -> usize {
         cmp::max(self.a.indexable(), self.b.indexable())
     }
 
     #[inline]
-    fn idx(&mut self, index: uint) -> Option<EitherOrBoth<A, B>> {
+    fn idx(&mut self, index: usize) -> Option<EitherOrBoth<A, B>> {
         match (self.a.idx(index), self.b.idx(index)) {
             (None, None) => None,
             (Some(a), None) => Some(Left(a)),

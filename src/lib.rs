@@ -373,7 +373,7 @@ pub trait Itertools : Iterator + Sized {
     /// assert_eq!(it.next(), None);
     /// # }
     /// ```
-    fn step(self, n: uint) -> Step<Self>
+    fn step(self, n: usize) -> Step<Self>
     {
         Step::new(self, n)
     }
@@ -381,7 +381,7 @@ pub trait Itertools : Iterator + Sized {
     // non-adaptor methods
 
     /// Find the position and value of the first element satisfying a predicate.
-    fn find_position<P>(&mut self, mut pred: P) -> Option<(uint, Self::Item)>
+    fn find_position<P>(&mut self, mut pred: P) -> Option<(usize, Self::Item)>
         where P: FnMut(&Self::Item) -> bool
     {
         for (index, elt) in self.by_ref().enumerate() {
@@ -396,7 +396,7 @@ pub trait Itertools : Iterator + Sized {
     ///
     /// Return actual number of elements consumed,
     /// until done or reaching the end.
-    fn dropn(&mut self, mut n: uint) -> uint {
+    fn dropn(&mut self, mut n: usize) -> usize {
         let start = n;
         while n > 0 {
             match self.next() {
@@ -412,7 +412,7 @@ pub trait Itertools : Iterator + Sized {
     ///
     /// It works similarly to **.skip(n)** except it is eager and
     /// preserves the iterator type.
-    fn dropping(mut self, n: uint) -> Self {
+    fn dropping(mut self, n: usize) -> Self {
         self.dropn(n);
         self
     }
@@ -455,9 +455,9 @@ impl<T: Iterator> Itertools for T { }
 /// Return the number of elements written.
 #[inline]
 pub fn write<'a, A: 'a, I: Iterator<Item=&'a mut A>, J: Iterator<Item=A>>
-    (mut to: I, mut from: J) -> uint
+    (mut to: I, mut from: J) -> usize
 {
-    let mut count = 0u;
+    let mut count = 0;
     for elt in from {
         match to.next() {
             None => break,

@@ -53,7 +53,7 @@ fn product3() {
     for i in range(0,3i) {
         for j in range(0, 2i) {
             for k in range(0, 2i) {
-                assert!((i, j, k) == v[(i * 2 * 2 + j * 2 + k) as uint]);
+                assert!((i, j, k) == v[(i * 2 * 2 + j * 2 + k) as usize]);
             }
         }
     }
@@ -66,12 +66,12 @@ fn product3() {
 fn izip3() {
     let mut zip = Zip::new((range(0, 3u), range(0, 2i), range(0, 2i8)));
     for i in range(0, 2i) {
-        assert!((i as uint, i, i as i8) == zip.next().unwrap());
+        assert!((i as usize, i, i as i8) == zip.next().unwrap());
     }
     assert!(zip.next().is_none());
 
     
-    let xs: [int; 0] = [];
+    let xs: [isize; 0] = [];
     let mut zip = Zip::new((range(0, 3u), range(0, 2i), range(0, 2i8), xs.iter()));
     assert!(zip.next().is_none());
 

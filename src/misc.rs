@@ -26,8 +26,8 @@ macro_rules! impl_append_tuple(
         }
     );
 
-    ($A:ident $(,$B:ident)*) => (
-        impl_append_tuple!($($B),*);
+    ($A:ident, $($B:ident,)*) => (
+        impl_append_tuple!($($B,)*);
         #[allow(non_snake_case)]
         impl<$A, $($B,)* T> AppendTuple<T> for ($A, $($B),*) {
             type Result = ($A, $($B, )* T);
@@ -39,7 +39,7 @@ macro_rules! impl_append_tuple(
     );
 );
 
-impl_append_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
+impl_append_tuple!(A, B, C, D, E, F, G, H, I, J, K, L,);
 
 /// A helper iterator that maps an iterator of tuples like
 /// `((A, B), C)` to an iterator of `(A, B, C)`.
@@ -72,7 +72,7 @@ Iterator for FlatTuples<I>
         self.iter.next().map(|(t, x)| t.append(x))
     }
 
-    fn size_hint(&self) -> (uint, Option<uint>) {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         self.iter.size_hint()
     }
 }
@@ -93,24 +93,24 @@ impl<X, T, I> DoubleEndedIterator for FlatTuples<I>
 /// by range syntax like `a..`, `..b` or `c..d`.
 pub trait GenericRange {
     /// Start index (inclusive)
-    fn start(&self) -> Option<uint> { None }
+    fn start(&self) -> Option<usize> { None }
     /// End index (exclusive)
-    fn end(&self) -> Option<uint> { None }
+    fn end(&self) -> Option<usize> { None }
 }
 
 
 impl GenericRange for FullRange {}
 
-impl GenericRange for RangeFrom<uint> {
-    fn start(&self) -> Option<uint> { Some(self.start) }
+impl GenericRange for RangeFrom<usize> {
+    fn start(&self) -> Option<usize> { Some(self.start) }
 }
 
-impl GenericRange for RangeTo<uint> {
-    fn end(&self) -> Option<uint> { Some(self.end) }
+impl GenericRange for RangeTo<usize> {
+    fn end(&self) -> Option<usize> { Some(self.end) }
 }
 
-impl GenericRange for Range<uint> {
-    fn start(&self) -> Option<uint> { Some(self.start) }
-    fn end(&self) -> Option<uint> { Some(self.end) }
+impl GenericRange for Range<usize> {
+    fn start(&self) -> Option<usize> { Some(self.start) }
+    fn end(&self) -> Option<usize> { Some(self.end) }
 }
 

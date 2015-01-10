@@ -20,8 +20,8 @@ use super::misc::GenericRange;
 /// ```
 #[derive(Copy, Clone)]
 pub struct ISlice<I> {
-    start: uint,
-    end: uint,
+    start: usize,
+    end: usize,
     iter: I,
 }
 
@@ -32,7 +32,7 @@ impl<I> ISlice<I>
     {
         ISlice {
             start: range.start().unwrap_or(0),
-            end: range.end().unwrap_or(::std::uint::MAX),
+            end: range.end().unwrap_or(::std::usize::MAX),
             iter: iter,
         }
     }

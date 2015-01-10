@@ -5,7 +5,7 @@
 //! except according to those terms.
 
 use std::fmt;
-use std::kinds;
+use std::marker;
 use std::mem;
 use std::num;
 use std::ops::{Index, IndexMut};
@@ -20,11 +20,11 @@ pub struct Stride<'a, A> {
     /// base pointer -- does not change during iteration
     begin: *const A,
     /// current offset from begin
-    offset: int,
+    offset: isize,
     /// offset where we end (exclusive end).
-    end: int,
-    stride: int,
-    life: kinds::marker::ContravariantLifetime<'a>,
+    end: isize,
+    stride: isize,
+    life: marker::ContravariantLifetime<'a>,
 }
 
 impl<'a, A> Copy for Stride<'a, A> {}
@@ -34,24 +34,24 @@ impl<'a, A> Copy for Stride<'a, A> {}
 /// Iterator element type is `&'a mut A`.
 pub struct StrideMut<'a, A> {
     begin: *mut A,
-    offset: int,
-    end: int,
-    stride: int,
-    life: kinds::marker::ContravariantLifetime<'a>,
-    nocopy: kinds::marker::NoCopy
+    offset: isize,
+    end: isize,
+    stride: isize,
+    life: marker::ContravariantLifetime<'a>,
+    nocopy: marker::NoCopy
 }
 
 impl<'a, A> Stride<'a, A>
 {
     /// Create a Stride iterator from a raw pointer.
-    pub unsafe fn from_ptr_len(begin: *const A, nelem: uint, stride: int) -> Stride<'a, A>
+    pub unsafe fn from_ptr_len(begin: *const A, nelem: usize, stride: isize) -> Stride<'a, A>
     {
         Stride {
             begin: begin,
             offset: 0,
-            end: stride * nelem as int,
+            end: stride * nelem as isize,
             stride: stride,
-            life: kinds::marker::ContravariantLifetime,
+            life: marker::ContravariantLifetime,
         }
     }
 }
@@ -59,20 +59,20 @@ impl<'a, A> Stride<'a, A>
 impl<'a, A> StrideMut<'a, A>
 {
     /// Create a StrideMut iterator from a raw pointer.
-    pub unsafe fn from_ptr_len(begin: *mut A, nelem: uint, stride: int) -> StrideMut<'a, A>
+    pub unsafe fn from_ptr_len(begin: *mut A, nelem: usize, stride: isize) -> StrideMut<'a, A>
     {
         StrideMut {
             begin: begin,
             offset: 0,
-            end: stride * nelem as int,
+            end: stride * nelem as isize,
             stride: stride,
-            life: kinds::marker::ContravariantLifetime,
-            nocopy: kinds::marker::NoCopy,
+            life: marker::ContravariantLifetime,
+            nocopy: marker::NoCopy,
         }
     }
 }
 
-fn div_rem(x: uint, d: uint) -> (uint, uint)
+fn div_rem(x: usize, d: usize) -> (usize, usize)
 {
     (x / d, x % d)
 }
@@ -104,10 +104,10 @@ macro_rules! stride_impl {
             /// **Panics** if values of type `A` are zero-sized. <br>
             /// **Panics** if `step` is 0.
             #[inline]
-            pub fn from_slice(xs: $slice, step: int) -> $name<'a, A>
+            pub fn from_slice(xs: $slice, step: isize) -> $name<'a, A>
             {
                 assert!(mem::size_of::<A>() != 0);
-                let ustep = if step < 0 { -step } else { step } as uint;
+                let ustep = if step < 0 { -step } else { step } as usize;
                 let nelem = if ustep <= 1 {
                     xs.len()
                 } else {
@@ -120,7 +120,7 @@ macro_rules! stride_impl {
                         $name::from_ptr_len(begin, nelem, step)
                     } else {
                         if nelem != 0 {
-                            begin = begin.offset(xs.len() as int - 1)
+                            begin = begin.offset(xs.len() as isize - 1)
                         }
                         $name::from_ptr_len(begin, nelem, step)
                     }
@@ -131,7 +131,7 @@ macro_rules! stride_impl {
             ///
             /// **Panics** if `step` is 0.
             #[inline]
-            pub fn from_stride(mut it: $name<'a, A>, mut step: int) -> $name<'a, A>
+            pub fn from_stride(mut it: $name<'a, A>, mut step: isize) -> $name<'a, A>
             {
                 assert!(step != 0);
                 if step < 0 {
@@ -140,8 +140,8 @@ macro_rules! stride_impl {
                 }
                 let len = (it.end - it.offset) / it.stride;
                 let newstride = it.stride * step;
-                let (d, r) = div_rem(len as uint, step as uint);
-                let len = d as uint + if r > 0 { 1 } else { 0 };
+                let (d, r) = div_rem(len as usize, step as usize);
+                let len = d as usize + if r > 0 { 1 } else { 0 };
                 unsafe {
                     $name::from_ptr_len(it.begin, len, newstride)
                 }
@@ -155,15 +155,15 @@ macro_rules! stride_impl {
                 if len > 0 {
                     unsafe {
                         let endptr = self.begin.offset((len - 1) * self.stride);
-                        *self = $name::from_ptr_len(endptr, len as uint, -self.stride);
+                        *self = $name::from_ptr_len(endptr, len as usize, -self.stride);
                     }
                 }
             }
 
             /// Return the number of elements in the iterator.
             #[inline]
-            pub fn len(&self) -> uint {
-                ((self.end - self.offset) / self.stride) as uint
+            pub fn len(&self) -> usize {
+                ((self.end - self.offset) / self.stride) as usize
             }
         }
 
@@ -186,7 +186,7 @@ macro_rules! stride_impl {
             }
 
             #[inline]
-            fn size_hint(&self) -> (uint, Option<uint>) {
+            fn size_hint(&self) -> (usize, Option<usize>) {
                 let len = self.len();
                 (len, Some(len))
             }
@@ -211,17 +211,17 @@ macro_rules! stride_impl {
 
         impl<'a, A> ExactSizeIterator for $name<'a, A> { }
 
-        impl<'a, A> Index<uint> for $name<'a, A>
+        impl<'a, A> Index<usize> for $name<'a, A>
         {
             type Output = A;
             /// Return a reference to the element at a given index.
             ///
             /// **Panics** if the index is out of bounds.
-            fn index<'b>(&'b self, i: &uint) -> &'b A
+            fn index<'b>(&'b self, i: &usize) -> &'b A
             {
                 assert!(*i < self.len());
                 unsafe {
-                    let ptr = self.begin.offset(self.offset + self.stride * (*i as int));
+                    let ptr = self.begin.offset(self.offset + self.stride * (*i as isize));
                     mem::transmute(ptr)
                 }
             }
@@ -236,7 +236,7 @@ macro_rules! stride_impl {
                     if i != 0 {
                         try!(write!(f, ", "));
                     }
-                    try!(write!(f, "{}", (*self)[i]));
+                    try!(write!(f, "{:?}", (*self)[i]));
                 }
                 write!(f, "]")
             }
@@ -255,17 +255,17 @@ impl<'a, A> Clone for Stride<'a, A>
     }
 }
 
-impl<'a, A> IndexMut<uint> for StrideMut<'a, A>
+impl<'a, A> IndexMut<usize> for StrideMut<'a, A>
 {
     type Output = A;
     /// Return a mutable reference to the element at a given index.
     ///
     /// **Panics** if the index is out of bounds.
-    fn index_mut<'b>(&'b mut self, i: &uint) -> &'b mut A
+    fn index_mut<'b>(&'b mut self, i: &usize) -> &'b mut A
     {
         assert!(*i < self.len());
         unsafe {
-            let ptr = self.begin.offset(self.offset + self.stride * (*i as int));
+            let ptr = self.begin.offset(self.offset + self.stride * (*i as isize));
             mem::transmute(ptr)
         }
     }

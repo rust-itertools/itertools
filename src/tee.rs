@@ -59,7 +59,7 @@ impl<A: Clone, I: Iterator<Item=A>> Iterator for Tee<A, I>
         }
     }
 
-    fn size_hint(&self) -> (uint, Option<uint>)
+    fn size_hint(&self) -> (usize, Option<usize>)
     {
         let buffer = self.rcbuffer.borrow();
         let (mut lower, mut upper) = buffer.iter.size_hint();

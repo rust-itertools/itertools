@@ -38,7 +38,7 @@ impl<A: Clone, I: Iterator<Item=A>> Iterator for Intersperse<A, I>
         }
     }
 
-    fn size_hint(&self) -> (uint, Option<uint>)
+    fn size_hint(&self) -> (usize, Option<usize>)
     {
         let (mut low, mut hi) = self.iter.size_hint();
         if low > 0 {

@@ -14,7 +14,7 @@ fn test_zip_longest_size_hint() {
     let v2 = &[10i, 11, 12];
     let vi = v.iter();
 
-    assert_eq!(c.zip_longest(vi).size_hint(), (std::uint::MAX, None));
+    assert_eq!(c.zip_longest(vi).size_hint(), (std::usize::MAX, None));
 
     assert_eq!(vi.zip_longest(v2.iter()).size_hint(), (10, Some(10)));
 }
@@ -37,7 +37,7 @@ fn test_double_ended_zip_longest() {
 
 // This function copied from std::iter in rust-lang/rust
 #[cfg(test)]
-fn check_randacc_iter<A: PartialEq, T: Clone + Iterator<Item=A> + RandomAccessIterator>(a: T, len: uint)
+fn check_randacc_iter<A: PartialEq, T: Clone + Iterator<Item=A> + RandomAccessIterator>(a: T, len: usize)
 {
     let mut b = a.clone();
     assert_eq!(len, b.indexable());

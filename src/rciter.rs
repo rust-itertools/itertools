@@ -34,7 +34,7 @@ impl<A, I: Iterator<Item=A>> Iterator for RcIter<I>
     }
 
     #[inline]
-    fn size_hint(&self) -> (uint, Option<uint>) {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         self.rciter.borrow().size_hint()
     }
 }

@@ -2,9 +2,9 @@
 /// Return an iterator with `n` elements, for simple repetition
 /// a particular number of times. The iterator yields a counter.
 ///
-/// Iterator element type is `uint`
+/// Iterator element type is `usize`
 #[inline]
-pub fn times(n: uint) -> Times
+pub fn times(n: usize) -> Times
 {
     Times{i: 0, n: n}
 }
@@ -13,18 +13,18 @@ pub fn times(n: uint) -> Times
 ///
 /// Created with the `times()` function.
 ///
-/// Iterator element type is `uint`
+/// Iterator element type is `usize`
 #[derive(Copy, Clone)]
 pub struct Times {
-    i: uint,
-    n: uint,
+    i: usize,
+    n: usize,
 }
 
 impl Iterator for Times
 {
-    type Item = uint;
+    type Item = usize;
     #[inline]
-    fn next(&mut self) -> Option<uint>
+    fn next(&mut self) -> Option<usize>
     {
         let elt = self.i;
         if self.i < self.n {
@@ -34,7 +34,7 @@ impl Iterator for Times
     }
 
     #[inline]
-    fn size_hint(&self) -> (uint, Option<uint>)
+    fn size_hint(&self) -> (usize, Option<usize>)
     {
         let len = self.n - self.i;
         (len, Some(len))
@@ -44,7 +44,7 @@ impl Iterator for Times
 impl DoubleEndedIterator for Times
 {
     #[inline]
-    fn next_back(&mut self) -> Option<uint>
+    fn next_back(&mut self) -> Option<usize>
     {
         if self.i < self.n {
             self.n -= 1;

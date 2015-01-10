@@ -51,26 +51,26 @@ fn stride_compose() {
     let xs = &[1i, 2, 3, 4, 5, 6, 7, 8, 9];
     let odds = Stride::from_slice(xs, 2);
     let it = Stride::from_stride(odds, 2);
-    let ans: Vec<int> = it.map(|&x| x).collect();
+    let ans: Vec<isize> = it.map(|&x| x).collect();
     assert_eq!(ans, vec![1i, 5, 9]);
 
     let xs = &[1i, 2, 3, 4, 5, 6, 7, 8, 9];
     let evens = Stride::from_slice(xs.slice_from(1), 2);
     let it = Stride::from_stride(evens, 2);
-    let ans: Vec<int> = it.map(|&x| x).collect();
+    let ans: Vec<isize> = it.map(|&x| x).collect();
     assert_eq!(ans, vec![2i, 6]);
 
     let xs = &[1i, 2, 3, 4, 5, 6, 7, 8, 9];
     let evens = Stride::from_slice(xs.slice_from(1), 2);
     let it = Stride::from_stride(evens, 1);
-    let ans: Vec<int> = it.map(|&x| x).collect();
+    let ans: Vec<isize> = it.map(|&x| x).collect();
     assert_eq!(ans, vec![2i, 4, 6, 8]);
 
     let xs = &[1i, 2, 3, 4, 5, 6, 7, 8, 9];
     let mut odds = Stride::from_slice(xs, 2);
     odds.swap_ends();
     let it = Stride::from_stride(odds, 2);
-    let ans: Vec<int> = it.map(|&x| x).collect();
+    let ans: Vec<isize> = it.map(|&x| x).collect();
     assert_eq!(ans, vec![9i, 5, 1]);
 
     let xs = &[1i, 2, 3];
@@ -78,13 +78,13 @@ fn stride_compose() {
     assert_eq!(every.len(), 3);
     let odds = Stride::from_stride(every, 2);
     assert_eq!(odds.len(), 2);
-    let v = odds.cloned().collect::<Vec<int>>();
+    let v = odds.cloned().collect::<Vec<isize>>();
     assert_eq!(v, vec![1i, 3i]);
 
     let xs = &[1i, 2, 3, 4, 5, 6, 7, 8, 9];
     let evens = Stride::from_slice(xs.slice_from(1), 2);
     let it = Stride::from_stride(evens, -2);
-    let ans: Vec<int> = it.map(|&x| x).collect();
+    let ans: Vec<isize> = it.map(|&x| x).collect();
     assert_eq!(ans, vec![8i, 4]);
 }
 

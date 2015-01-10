@@ -66,9 +66,9 @@ macro_rules! impl_zip_iter(
                 Some(($($B,)*))
             }
 
-            fn size_hint(&self) -> (uint, Option<uint>)
+            fn size_hint(&self) -> (usize, Option<usize>)
             {
-                let mut low = ::std::uint::MAX;
+                let mut low = ::std::usize::MAX;
                 let mut high = None;
                 $(
                     // update estimate
