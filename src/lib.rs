@@ -201,7 +201,9 @@ pub trait Itertools : Iterator + Sized {
     /// between each element of the adapted iterator.
     ///
     /// Iterator element type is `Self::Item`
-    fn intersperse(self, element: Self::Item) -> Intersperse<Self::Item, Self> {
+    fn intersperse(self, element: Self::Item) -> Intersperse<Self::Item, Self> where
+        Self::Item: Clone
+    {
         Intersperse::new(self, element)
     }
 
@@ -275,8 +277,6 @@ pub trait Itertools : Iterator + Sized {
     /// Split into an iterator pair that both yield all elements from
     /// the original iterator.
     ///
-    /// The iterator element `Self::Item` must be clonable.
-    ///
     /// Iterator element type is `Self::Item`.
     ///
     /// ## Example
@@ -293,7 +293,8 @@ pub trait Itertools : Iterator + Sized {
     /// assert_eq!(t1.next(), None);
     /// assert_eq!(t2.next(), Some(1));
     /// ```
-    fn tee(self) -> (Tee<Self::Item, Self>, Tee<Self::Item, Self>)
+    fn tee(self) -> (Tee<Self::Item, Self>, Tee<Self::Item, Self>) where
+        Self::Item: Clone
     {
         tee::new(self)
     }
