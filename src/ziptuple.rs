@@ -15,10 +15,10 @@ use std::cmp;
 /// use itertools::Zip;
 ///
 /// // Iterate over three sequences side-by-side
-/// let mut xs = [0u, 0, 0];
-/// let ys = [69u, 107, 101];
+/// let mut xs = [0, 0, 0];
+/// let ys = [69, 107, 101];
 ///
-/// for (i, a, b) in Zip::new((range(0, 100u), xs.iter_mut(), ys.iter())) {
+/// for (i, a, b) in Zip::new((0..100, xs.iter_mut(), ys.iter())) {
 ///    *a = i ^ *b;
 /// }
 /// 

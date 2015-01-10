@@ -7,7 +7,6 @@
 use std::fmt;
 use std::marker;
 use std::mem;
-use std::num;
 use std::ops::{Index, IndexMut};
 
 /// Stride is similar to the slice iterator, but with a certain number of steps
@@ -90,13 +89,13 @@ macro_rules! stride_impl {
             /// ```
             /// use itertools::Stride;
             ///
-            /// let xs = [0i, 1, 2, 3, 4, 5];
+            /// let xs = [0, 1, 2, 3, 4, 5];
             ///
-            /// let front = Stride::from_slice(xs.as_slice(), 2);
+            /// let front = Stride::from_slice(&xs, 2);
             /// assert_eq!(front[0], 0);
             /// assert_eq!(front[1], 2);
             ///
-            /// let back = Stride::from_slice(xs.as_slice(), -2);
+            /// let back = Stride::from_slice(&xs, -2);
             /// assert_eq!(back[0], 5);
             /// assert_eq!(back[1], 3);
             /// ```

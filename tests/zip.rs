@@ -9,9 +9,9 @@ use itertools::Zip;
 
 #[test]
 fn test_zip_longest_size_hint() {
-    let c = count(0i, 1);
-    let v: &[_] = &[0i, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-    let v2 = &[10i, 11, 12];
+    let c = count(0, 1);
+    let v: &[_] = &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    let v2 = &[10, 11, 12];
     let vi = v.iter();
 
     assert_eq!(c.zip_longest(vi).size_hint(), (std::usize::MAX, None));
@@ -20,8 +20,8 @@ fn test_zip_longest_size_hint() {
 }
 #[test]
 fn test_double_ended_zip_longest() {
-    let xs = [1i, 2, 3, 4, 5, 6];
-    let ys = [1i, 2, 3, 7];
+    let xs = [1, 2, 3, 4, 5, 6];
+    let ys = [1, 2, 3, 7];
     let a = xs.iter().map(|&x| x);
     let b = ys.iter().map(|&x| x);
     let mut it = a.zip_longest(b);
@@ -41,7 +41,7 @@ fn check_randacc_iter<A: PartialEq, T: Clone + Iterator<Item=A> + RandomAccessIt
 {
     let mut b = a.clone();
     assert_eq!(len, b.indexable());
-    let mut n = 0u;
+    let mut n = 0;
     for (i, elt) in a.enumerate() {
         assert!(Some(elt) == b.idx(i));
         n += 1;
@@ -56,14 +56,14 @@ fn check_randacc_iter<A: PartialEq, T: Clone + Iterator<Item=A> + RandomAccessIt
 }
 #[test]
 fn test_random_access_zip_longest() {
-    let xs = [1i, 2, 3, 4, 5];
-    let ys = [7i, 9, 11];
+    let xs = [1, 2, 3, 4, 5];
+    let ys = [7, 9, 11];
     check_randacc_iter(xs.iter().zip_longest(ys.iter()), std::cmp::max(xs.len(), ys.len()));
 }
 
 #[test]
 fn zip_tuple() {
-    let xs = [1i, 2, 3];
+    let xs = [1, 2, 3];
     let ys = b"ab";
     let mut it = Zip::new((xs.iter().cloned(), ));
     assert!(it.next() != None);
