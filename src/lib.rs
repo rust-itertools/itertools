@@ -43,7 +43,6 @@ pub use adaptors::{
 };
 pub use intersperse::Intersperse;
 pub use islice::{ISlice};
-pub use map::MapMut;
 pub use rciter::RcIter;
 pub use stride::Stride;
 pub use stride::StrideMut;
@@ -57,7 +56,6 @@ mod adaptors;
 mod intersperse;
 mod islice;
 mod linspace;
-mod map;
 pub mod misc;
 mod rciter;
 mod stride;
@@ -183,14 +181,6 @@ pub trait Itertools : Iterator + Sized {
     #[deprecated="Use libstd .map() instead"]
     fn fn_map<B>(self, map: fn(Self::Item) -> B) -> FnMap<Self::Item, B, Self> {
         FnMap::new(self, map)
-    }
-
-    /// Like regular `.map`, but using an unboxed closure instead.
-    ///
-    /// Iterator element type is `B`
-    #[deprecated="Use libstd .map() instead"]
-    fn map_unboxed<B, F: FnMut(Self::Item) -> B>(self, map: F) -> MapMut<F, Self> {
-        MapMut::new(self, map)
     }
 
     /// Alternate elements from two iterators until both
