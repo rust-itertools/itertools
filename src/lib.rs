@@ -177,7 +177,7 @@ pub macro_rules! icompr {
 }
 
 /// Extra iterator methods for arbitrary iterators
-pub trait Itertools : Iterator + Sized {
+pub trait Itertools : Iterator {
     // adaptors
 
     /// Like regular `.map`, but using a simple function pointer instead,
@@ -185,7 +185,9 @@ pub trait Itertools : Iterator + Sized {
     ///
     /// Iterator element type is `B`
     #[deprecated="Use libstd .map() instead"]
-    fn fn_map<B>(self, map: fn(Self::Item) -> B) -> FnMap<Self::Item, B, Self> {
+    fn fn_map<B>(self, map: fn(Self::Item) -> B) -> FnMap<Self::Item, B, Self> where
+        Self: Sized
+    {
         FnMap::new(self, map)
     }
 
@@ -193,7 +195,9 @@ pub trait Itertools : Iterator + Sized {
     /// are run out
     ///
     /// Iterator element type is `Self::Item`
-    fn interleave<J: Iterator<Item=Self::Item>>(self, other: J) -> Interleave<Self, J> {
+    fn interleave<J: Iterator<Item=Self::Item>>(self, other: J) -> Interleave<Self, J> where
+        Self: Sized
+    {
         Interleave::new(self, other)
     }
 
@@ -202,6 +206,7 @@ pub trait Itertools : Iterator + Sized {
     ///
     /// Iterator element type is `Self::Item`
     fn intersperse(self, element: Self::Item) -> Intersperse<Self::Item, Self> where
+        Self: Sized,
         Self::Item: Clone
     {
         Intersperse::new(self, element)
@@ -225,7 +230,9 @@ pub trait Itertools : Iterator + Sized {
     ///
     /// Iterator element type is `EitherOrBoth<Self::Item, B>`.
     #[inline]
-    fn zip_longest<U: Iterator>(self, other: U) -> ZipLongest<Self, U> {
+    fn zip_longest<U: Iterator>(self, other: U) -> ZipLongest<Self, U> where
+        Self: Sized,
+    {
         ZipLongest::new(self, other)
     }
 
@@ -233,7 +240,9 @@ pub trait Itertools : Iterator + Sized {
     /// If the iterator is sorted, all elements will be unique.
     ///
     /// Iterator element type is `Self::Item`.
-    fn dedup(self) -> Dedup<Self::Item, Self> {
+    fn dedup(self) -> Dedup<Self::Item, Self> where
+        Self: Sized,
+    {
         Dedup::new(self)
     }
 
@@ -261,7 +270,9 @@ pub trait Itertools : Iterator + Sized {
     /// assert_eq!(pit.next(), None);
     /// ```
     ///
-    fn batching<B, F: FnMut(&mut Self) -> Option<B>>(self, f: F) -> Batching<Self, F> {
+    fn batching<B, F: FnMut(&mut Self) -> Option<B>>(self, f: F) -> Batching<Self, F> where
+        Self: Sized,
+    {
         Batching::new(self, f)
     }
 
@@ -269,7 +280,8 @@ pub trait Itertools : Iterator + Sized {
     /// are returned as the iterator elements of **GroupBy**.
     ///
     /// Iterator element type is **(K, Vec\<Self::Item\>)**
-    fn group_by<K, F: FnMut(&Self::Item) -> K>(self, key: F) -> GroupBy<Self::Item, K, Self, F>
+    fn group_by<K, F: FnMut(&Self::Item) -> K>(self, key: F) -> GroupBy<Self::Item, K, Self, F> where
+        Self: Sized,
     {
         GroupBy::new(self, key)
     }
@@ -294,6 +306,7 @@ pub trait Itertools : Iterator + Sized {
     /// assert_eq!(t2.next(), Some(1));
     /// ```
     fn tee(self) -> (Tee<Self::Item, Self>, Tee<Self::Item, Self>) where
+        Self: Sized,
         Self::Item: Clone
     {
         tee::new(self)
@@ -312,7 +325,8 @@ pub trait Itertools : Iterator + Sized {
     /// let mut it = repeat('a').slice(..3);
     /// assert_eq!(it.count(), 3);
     /// ```
-    fn slice<R: misc::GenericRange>(self, range: R) -> ISlice<Self>
+    fn slice<R: misc::GenericRange>(self, range: R) -> ISlice<Self> where
+        Self: Sized,
     {
         ISlice::new(self, range)
     }
@@ -345,7 +359,8 @@ pub trait Itertools : Iterator + Sized {
     /// i.e. if it somehow participates in an "iterator knot" where it is an adaptor of itself.
     ///
     /// Iterator element type is **Self::Item**.
-    fn into_rc(self) -> RcIter<Self>
+    fn into_rc(self) -> RcIter<Self> where
+        Self: Sized,
     {
         RcIter::new(self)
     }
@@ -371,7 +386,8 @@ pub trait Itertools : Iterator + Sized {
     /// assert_eq!(it.next(), None);
     /// # }
     /// ```
-    fn step(self, n: usize) -> Step<Self>
+    fn step(self, n: usize) -> Step<Self> where
+        Self: Sized,
     {
         Step::new(self, n)
     }
@@ -379,13 +395,15 @@ pub trait Itertools : Iterator + Sized {
     // non-adaptor methods
 
     /// Find the position and value of the first element satisfying a predicate.
-    fn find_position<P>(&mut self, mut pred: P) -> Option<(usize, Self::Item)>
-        where P: FnMut(&Self::Item) -> bool
+    fn find_position<P>(&mut self, mut pred: P) -> Option<(usize, Self::Item)> where
+        P: FnMut(&Self::Item) -> bool,
     {
-        for (index, elt) in self.by_ref().enumerate() {
+        let mut index = 0us;
+        for elt in *self {
             if pred(&elt) {
                 return Some((index, elt))
             }
+            index += 1;
         }
         None
     }
@@ -410,7 +428,9 @@ pub trait Itertools : Iterator + Sized {
     ///
     /// It works similarly to **.skip(n)** except it is eager and
     /// preserves the iterator type.
-    fn dropping(mut self, n: usize) -> Self {
+    fn dropping(mut self, n: usize) -> Self where
+        Self: Sized,
+    {
         self.dropn(n);
         self
     }
@@ -426,26 +446,29 @@ pub trait Itertools : Iterator + Sized {
     /// "hi".chars().map(|c| cnt += 1).drain();
     /// ```
     ///
-    fn drain(&mut self) {
+    fn drain(&mut self)
+    {
         for _ in *self { /* nothing */ }
     }
 
     /// Run the closure **f** eagerly on each element of the iterator.
     ///
     /// Consumes the iterator until its end.
-    fn apply<F: FnMut(Self::Item)>(&mut self, mut f: F) {
+    fn apply<F: FnMut(Self::Item)>(&mut self, mut f: F)
+    {
         for elt in *self { f(elt) }
     }
 
     /// **.collec_vec()** is simply a type specialization of **.collect()**,
     /// for convenience.
-    fn collect_vec(self) -> Vec<Self::Item>
+    fn collect_vec(self) -> Vec<Self::Item> where
+        Self: Sized,
     {
         self.collect()
     }
 }
 
-impl<T: Iterator> Itertools for T { }
+impl<T: ?Sized> Itertools for T where T: Iterator { }
 
 /// Assign to each reference in `to` from `from`, stopping
 /// at the shortest of the two iterators.
