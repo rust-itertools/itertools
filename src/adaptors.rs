@@ -6,7 +6,8 @@
 
 use std::mem;
 use std::num::Int;
-use std::iter::Fuse;
+use std::usize;
+use std::iter::{Fuse, Peekable};
 use super::Itertools;
 
 /// Alternate elements from two iterators until both
@@ -415,5 +416,63 @@ impl<I> Iterator for Step<I>
             }
         };
         (div(low), high.map(div))
+    }
+}
+
+pub struct Merge<T, A, B> where
+    T: PartialOrd,
+    A: Iterator<Item = T>,
+    B: Iterator<Item = T>,
+{
+    a: Peekable<T, A>,
+    b: Peekable<T, B>,
+}
+
+impl<T, A, B> Merge<T, A, B> where
+    T: PartialOrd,
+    A: Iterator<Item = T>,
+    B: Iterator<Item = T>,
+{
+    /// Create a **Merge** iterator.
+    pub fn new(a: A, b: B) -> Merge<T, A, B>
+    {
+        Merge {
+            a: a.peekable(),
+            b: b.peekable(),
+        }
+    }
+}
+
+impl<T, A, B> Iterator for Merge<T, A, B> where
+    T: PartialOrd,
+    A: Iterator<Item = T>,
+    B: Iterator<Item = T>,
+{
+    type Item = T;
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let (a_min, a_max) = self.a.size_hint();
+        let (b_min, b_max) = self.b.size_hint();
+
+        let min = a_min.checked_add(b_min).unwrap_or(usize::MAX);
+        let max = match (a_max, b_max) {
+            (Some(a_min), Some(b_min)) => a_min.checked_add(b_min),
+            _ => None,
+        };
+
+        (min, max)
+    }
+
+    fn next(&mut self) -> Option<T> {
+        if match (self.a.peek(), self.b.peek()) {
+            (Some(a), Some(b)) => a <= b,
+            (Some(_), None) => true,
+            (None, Some(_)) => false,
+            (None, None) => return None,
+        } {
+            self.a.next()
+        } else {
+            self.b.next()
+        }
     }
 }

@@ -42,6 +42,7 @@ pub use adaptors::{
     Batching,
     GroupBy,
     Step,
+    Merge,
 };
 pub use intersperse::Intersperse;
 pub use islice::{ISlice};
@@ -465,6 +466,16 @@ pub trait Itertools : Iterator {
         Self: Sized,
     {
         self.collect()
+    }
+
+    /// Given two sorted iterators (this and `other`), return an iterator adapter yeilds elements
+    /// from both iterators in sorted order.
+    fn merge<B>(self, other: B) -> Merge<Self::Item, Self, B> where
+        Self: Sized,
+        B: Iterator<Item = Self::Item>,
+        Self::Item: PartialOrd,
+    {
+        Merge::new(self, other)
     }
 }
 
