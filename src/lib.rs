@@ -181,10 +181,10 @@ pub macro_rules! icompr {
 pub trait Itertools : Iterator {
     // adaptors
 
-    /// Like regular `.map`, but using a simple function pointer instead,
-    /// so that the resulting `FnMap` iterator value can be cloned.
+    /// Like regular *.map()*, but using a simple function pointer instead,
+    /// so that the resulting **FnMap** iterator value can be cloned.
     ///
-    /// Iterator element type is `B`
+    /// Iterator element type is **B**.
     #[deprecated="Use libstd .map() instead"]
     fn fn_map<B>(self, map: fn(Self::Item) -> B) -> FnMap<Self::Item, B, Self> where
         Self: Sized
@@ -195,7 +195,7 @@ pub trait Itertools : Iterator {
     /// Alternate elements from two iterators until both
     /// are run out
     ///
-    /// Iterator element type is `Self::Item`
+    /// Iterator element type is **Item**.
     fn interleave<J: Iterator<Item=Self::Item>>(self, other: J) -> Interleave<Self, J> where
         Self: Sized
     {
@@ -205,7 +205,7 @@ pub trait Itertools : Iterator {
     /// An iterator adaptor to insert a particular value
     /// between each element of the adapted iterator.
     ///
-    /// Iterator element type is `Self::Item`
+    /// Iterator element type is **Item**.
     fn intersperse(self, element: Self::Item) -> Intersperse<Self::Item, Self> where
         Self: Sized,
         Self::Item: Clone
@@ -229,7 +229,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!(it.next(), None);
     /// ```
     ///
-    /// Iterator element type is `EitherOrBoth<Self::Item, B>`.
+    /// Iterator element type is **EitherOrBoth\<Item, B\>**.
     #[inline]
     fn zip_longest<U: Iterator>(self, other: U) -> ZipLongest<Self, U> where
         Self: Sized,
@@ -240,7 +240,7 @@ pub trait Itertools : Iterator {
     /// Remove duplicates from sections of consecutive identical elements.
     /// If the iterator is sorted, all elements will be unique.
     ///
-    /// Iterator element type is `Self::Item`.
+    /// Iterator element type is **Item**.
     fn dedup(self) -> Dedup<Self::Item, Self> where
         Self: Sized,
     {
@@ -255,7 +255,7 @@ pub trait Itertools : Iterator {
     /// ## Example
     ///
     /// ```
-    /// # use itertools::Itertools;
+    /// use itertools::Itertools;
     /// // An adaptor that gathers elements up in pairs
     /// let mut pit = (0..4).batching(|mut it| {
     ///            match it.next() {
@@ -280,7 +280,7 @@ pub trait Itertools : Iterator {
     /// Group iterator elements. Consecutive elements that map to the same key (“runs”),
     /// are returned as the iterator elements of **GroupBy**.
     ///
-    /// Iterator element type is **(K, Vec\<Self::Item\>)**
+    /// Iterator element type is **(K, Vec\<Item\>)**
     fn group_by<K, F: FnMut(&Self::Item) -> K>(self, key: F) -> GroupBy<Self::Item, K, Self, F> where
         Self: Sized,
     {
@@ -290,11 +290,11 @@ pub trait Itertools : Iterator {
     /// Split into an iterator pair that both yield all elements from
     /// the original iterator.
     ///
-    /// Iterator element type is `Self::Item`.
+    /// Iterator element type is *Item**.
     ///
     /// ## Example
     /// ```
-    /// # use itertools::Itertools;
+    /// use itertools::Itertools;
     /// let xs = vec![0, 1, 2, 3];
     ///
     /// let (mut t1, mut t2) = xs.into_iter().tee();
@@ -317,6 +317,8 @@ pub trait Itertools : Iterator {
     ///
     /// **Note:** slicing an iterator is not constant time, and much less efficient than
     /// slicing for example a vector.
+    ///
+    /// Iterator element type is **Item**.
     ///
     /// ## Example
     /// ```
@@ -341,10 +343,13 @@ pub trait Itertools : Iterator {
     /// itself, at the cost of runtime borrow checking.
     /// (If it is not obvious: this has a performance penalty.)
     ///
+    /// Iterator element type is **Item**.
+    ///
     /// ## Example
     ///
     /// ```
     /// use itertools::Itertools;
+    ///  
     /// let mut rit = (0..9).into_rc();
     /// let mut z = rit.clone().zip(rit.clone());
     /// assert_eq!(z.next(), Some((0, 1)));
@@ -358,8 +363,6 @@ pub trait Itertools : Iterator {
     /// **Panics** in iterator methods if a borrow error is encountered,
     /// but it can only happen if the RcIter is reentered in for example **.next()**,
     /// i.e. if it somehow participates in an "iterator knot" where it is an adaptor of itself.
-    ///
-    /// Iterator element type is **Self::Item**.
     fn into_rc(self) -> RcIter<Self> where
         Self: Sized,
     {
@@ -372,6 +375,8 @@ pub trait Itertools : Iterator {
     /// The iterator steps by yielding the next element from the base iterator,
     /// then skipping forward **n - 1** elements.
     ///
+    /// Iterator element type is **Item**.
+    ///
     /// **Panics** if the step is 0.
     ///
     /// ## Example
@@ -379,7 +384,8 @@ pub trait Itertools : Iterator {
     /// # #![feature(slicing_syntax)]
     /// # extern crate itertools;
     /// # fn main() {
-    /// # use itertools::Itertools;
+    /// use itertools::Itertools;
+    ///
     /// let mut it = (0..8).step(3);
     /// assert_eq!(it.next(), Some(0));
     /// assert_eq!(it.next(), Some(3));
@@ -391,6 +397,33 @@ pub trait Itertools : Iterator {
         Self: Sized,
     {
         Step::new(self, n)
+    }
+
+    /// Return an iterator adaptor that merges the two base iterators in ascending order.
+    /// If both base iterators are sorted (ascending), the result is sorted.
+    ///
+    /// Iterator element type is **Item**.
+    ///
+    /// ## Example
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let a = (0..10).step(2);
+    /// let b = (1..10).step(3);
+    /// let mut it = a.merge(b);
+    /// assert_eq!(it.next(), Some(0));
+    /// assert_eq!(it.next(), Some(1));
+    /// assert_eq!(it.next(), Some(2));
+    /// assert_eq!(it.next(), Some(4));
+    /// assert_eq!(it.next(), Some(4));
+    /// assert_eq!(it.next(), Some(6));
+    /// ```
+    fn merge<J>(self, other: J) -> Merge<Self::Item, Self, J> where
+        Self: Sized,
+        Self::Item: PartialOrd,
+        J: Iterator<Item=Self::Item>,
+    {
+        Merge::new(self, other)
     }
 
     // non-adaptor methods
@@ -466,16 +499,6 @@ pub trait Itertools : Iterator {
         Self: Sized,
     {
         self.collect()
-    }
-
-    /// Given two sorted iterators (this and `other`), return an iterator adapter yeilds elements
-    /// from both iterators in sorted order.
-    fn merge<B>(self, other: B) -> Merge<Self::Item, Self, B> where
-        Self: Sized,
-        B: Iterator<Item = Self::Item>,
-        Self::Item: PartialOrd,
-    {
-        Merge::new(self, other)
     }
 }
 
