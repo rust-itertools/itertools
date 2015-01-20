@@ -322,3 +322,8 @@ fn trait_pointers() {
     //assert_eq!(it.dropn(2), 2);
     */
 }
+
+#[test]
+fn merge() {
+    assert_iters_equal((0..10).step(2).merge((1..10).step(2)), (0..10));
+}
