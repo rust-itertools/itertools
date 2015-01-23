@@ -18,7 +18,7 @@ use std::cmp;
 /// let mut xs = [0, 0, 0];
 /// let ys = [69, 107, 101];
 ///
-/// for (i, a, b) in Zip::new((0..100, xs.iter_mut(), ys.iter())) {
+/// for (i, a, b) in Zip::new((0i32..100, xs.iter_mut(), ys.iter())) {
 ///    *a = i ^ *b;
 /// }
 /// 

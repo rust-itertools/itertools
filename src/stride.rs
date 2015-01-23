@@ -226,7 +226,7 @@ macro_rules! stride_impl {
             }
         }
 
-        impl<'a, A: fmt::Show> fmt::Show for $name<'a, A>
+        impl<'a, A: fmt::Debug> fmt::Debug for $name<'a, A>
         {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
             {

@@ -105,7 +105,7 @@ impl<T, U> ExactSizeIterator for ZipLongest<T, U>
 /// A value yielded by `ZipLongest`.
 /// Contains one or two values,
 /// depending on which of the input iterators are exhausted.
-#[derive(Clone, PartialEq, Eq, Show)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub enum EitherOrBoth<A, B> {
     /// Neither input iterator is exhausted yet, yielding two values.
     Both(A, B),

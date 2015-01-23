@@ -12,7 +12,7 @@ extern crate itertools;
 
 extern crate test;
 
-use std::fmt::Show;
+use std::fmt::Debug;
 use std::iter::order;
 use itertools::Itertools;
 use itertools::Interleave;
@@ -21,7 +21,7 @@ use itertools::Zip;
 use itertools as it;
 
 fn assert_iters_equal<
-    A: PartialEq + Show,
+    A: PartialEq + Debug,
     I: Iterator<Item=A>,
     J: Iterator<Item=A>>(mut it: I, mut jt: J)
 {
@@ -289,7 +289,7 @@ fn slice() {
 fn step() {
     let it = 0..10;
     assert_iters_equal(it.step(1), it);
-    assert_iters_equal(it.step(2), it.filter(|x| *x % 2 == 0));
+    assert_iters_equal(it.step(2), it.filter(|x: &i32| *x % 2 == 0));
     assert_iters_equal(it.step(10), 0..1);
 }
 
