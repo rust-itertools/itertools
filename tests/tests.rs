@@ -157,7 +157,7 @@ fn intersperse() {
     assert_eq!(text, "a, , b, c".to_string());
 
     let ys = [0, 1, 2, 3];
-    let mut it = ys.slice_to(0).iter().map(|x| *x).intersperse(1);
+    let mut it = ys[..0].iter().map(|x| *x).intersperse(1);
     assert!(it.next() == None);
 }
 

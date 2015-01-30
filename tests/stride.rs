@@ -8,7 +8,7 @@ use itertools::StrideMut;
 #[test]
 fn mut_stride() {
     let mut xs = vec![1, 1, 1, 1, 1, 1];
-    for x in StrideMut::from_slice(xs.as_mut_slice(), 2) {
+    for x in StrideMut::from_slice(&mut *xs, 2) {
         *x = 0;
     }
     assert_eq!(xs, vec![0, 1, 0, 1, 0, 1]);
@@ -18,7 +18,7 @@ fn mut_stride() {
 fn mut_stride_compose() {
     let mut xs = vec![1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
     {
-        let iter1 = StrideMut::from_slice(xs.as_mut_slice(), 2);
+        let iter1 = StrideMut::from_slice(&mut *xs, 2);
         let mut iter2 = StrideMut::from_stride(iter1, 3);
         for x in iter2 {
             *x = 0;
@@ -38,7 +38,7 @@ fn stride_uneven() {
     assert!(it.next().is_none());
 
     let xs = &[7, 9, 8, 10];
-    let mut it = Stride::from_slice(xs.slice_from(1), 2);
+    let mut it = Stride::from_slice(&xs[1..], 2);
     assert!(it.size_hint() == (2, Some(2)));
     assert!(*it.next().unwrap() == 9);
     assert!(*it.next().unwrap() == 10);
@@ -55,13 +55,13 @@ fn stride_compose() {
     assert_eq!(ans, vec![1, 5, 9]);
 
     let xs = &[1, 2, 3, 4, 5, 6, 7, 8, 9];
-    let evens = Stride::from_slice(xs.slice_from(1), 2);
+    let evens = Stride::from_slice(&xs[1..], 2);
     let it = Stride::from_stride(evens, 2);
     let ans: Vec<isize> = it.map(|&x| x).collect();
     assert_eq!(ans, vec![2, 6]);
 
     let xs = &[1, 2, 3, 4, 5, 6, 7, 8, 9];
-    let evens = Stride::from_slice(xs.slice_from(1), 2);
+    let evens = Stride::from_slice(&xs[1..], 2);
     let it = Stride::from_stride(evens, 1);
     let ans: Vec<isize> = it.map(|&x| x).collect();
     assert_eq!(ans, vec![2, 4, 6, 8]);
@@ -82,7 +82,7 @@ fn stride_compose() {
     assert_eq!(v, vec![1, 3]);
 
     let xs = &[1, 2, 3, 4, 5, 6, 7, 8, 9];
-    let evens = Stride::from_slice(xs.slice_from(1), 2);
+    let evens = Stride::from_slice(&xs[1..], 2);
     let it = Stride::from_stride(evens, -2);
     let ans: Vec<isize> = it.map(|&x| x).collect();
     assert_eq!(ans, vec![8, 4]);
