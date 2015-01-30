@@ -4,8 +4,7 @@
 //! option. This file may not be copied, modified, or distributed
 //! except according to those terms.
 
-#![feature(slicing_syntax)]
-#![feature(unboxed_closures)]
+#![feature(core)]
 
 #[macro_use]
 extern crate itertools;
