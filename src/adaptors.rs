@@ -288,10 +288,9 @@ impl<F, I> Batching<I, F> {
     }
 }
 
-#[old_impl_check]
 impl<A, B, F, I> Iterator for Batching<I, F> where
     I: Iterator<Item=A>,
-    F: FnMut(&mut I) -> Option<B>
+    F: for<'a> FnMut<(&'a mut I, ), Output=Option<B>>
 {
     type Item = B;
     #[inline]
