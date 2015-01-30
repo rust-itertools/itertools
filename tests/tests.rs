@@ -120,10 +120,10 @@ fn drain() {
 }
 
 #[test]
-fn apply() {
+fn foreach() {
     let xs = [1i32, 2, 3];
     let mut sum = 0;
-    xs.iter().apply(|elt| sum += *elt);
+    xs.iter().foreach(|elt| sum += *elt);
     assert!(sum == 6);
 }
 

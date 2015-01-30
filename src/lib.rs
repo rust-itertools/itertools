@@ -484,10 +484,19 @@ pub trait Itertools : Iterator {
         for _ in *self { /* nothing */ }
     }
 
+    #[deprecated="Use .foreach() instead"]
     /// Run the closure **f** eagerly on each element of the iterator.
     ///
     /// Consumes the iterator until its end.
-    fn apply<F: FnMut(Self::Item)>(&mut self, mut f: F)
+    fn apply<F: FnMut(Self::Item)>(&mut self, f: F)
+    {
+        self.foreach(f)
+    }
+
+    /// Run the closure **f** eagerly on each element of the iterator.
+    ///
+    /// Consumes the iterator until its end.
+    fn foreach<F: FnMut(Self::Item)>(&mut self, mut f: F)
     {
         for elt in *self { f(elt) }
     }
