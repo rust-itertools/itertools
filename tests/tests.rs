@@ -4,7 +4,7 @@
 //! option. This file may not be copied, modified, or distributed
 //! except according to those terms.
 
-#![feature(core)]
+#![feature(core, collections, test)]
 
 #[macro_use]
 extern crate itertools;

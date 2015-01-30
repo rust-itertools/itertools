@@ -1,4 +1,7 @@
-extern crate test;
+#![feature(
+    core,
+    )]
+
 extern crate itertools;
 
 use itertools::Itertools;

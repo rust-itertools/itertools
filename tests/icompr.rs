@@ -1,3 +1,7 @@
+#![feature(
+    core,
+    )]
+
 #[macro_use]
 extern crate itertools;
 
