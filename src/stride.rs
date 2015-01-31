@@ -37,7 +37,6 @@ pub struct StrideMut<'a, A> {
     end: isize,
     stride: isize,
     life: marker::ContravariantLifetime<'a>,
-    nocopy: marker::NoCopy
 }
 
 impl<'a, A> Stride<'a, A>
@@ -66,7 +65,6 @@ impl<'a, A> StrideMut<'a, A>
             end: stride * nelem as isize,
             stride: stride,
             life: marker::ContravariantLifetime,
-            nocopy: marker::NoCopy,
         }
     }
 }
