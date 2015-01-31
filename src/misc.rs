@@ -2,7 +2,7 @@
 //! directly.
 
 use std::ops::{
-    FullRange,
+    RangeFull,
     Range,
     RangeTo,
     RangeFrom
@@ -99,7 +99,7 @@ pub trait GenericRange {
 }
 
 
-impl GenericRange for FullRange {}
+impl GenericRange for RangeFull {}
 
 impl GenericRange for RangeFrom<usize> {
     fn start(&self) -> Option<usize> { Some(self.start) }
