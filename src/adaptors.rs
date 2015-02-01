@@ -66,7 +66,6 @@ impl<I: Iterator, J> Iterator for Interleave<I, J> where
 /// Created with `.fn_map(..)` on an iterator
 ///
 /// Iterator element type is `B`
-#[deprecated]
 pub struct FnMap<B, I: Iterator>
 {
     map: fn(I::Item) -> B,

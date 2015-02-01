@@ -106,9 +106,8 @@ pub macro_rules! iproduct {
     );
 }
 
-#[deprecated="izip!() is deprecated, use Zip::new instead"]
 #[macro_export]
-/// *This macro is deprecated, use* **Zip::new** *instead.*
+/// **Note: This macro is deprecated, use* **Zip::new** *instead.**
 ///
 /// Create an iterator running multiple iterators in lockstep.
 ///
@@ -184,7 +183,6 @@ pub trait Itertools : Iterator {
     /// so that the resulting **FnMap** iterator value can be cloned.
     ///
     /// Iterator element type is **B**.
-    #[deprecated="Use libstd .map() instead"]
     fn fn_map<B>(self, map: fn(Self::Item) -> B) -> FnMap<B, Self> where
         Self: Sized
     {
@@ -484,10 +482,11 @@ pub trait Itertools : Iterator {
         for _ in *self { /* nothing */ }
     }
 
-    #[deprecated="Use .foreach() instead"]
     /// Run the closure **f** eagerly on each element of the iterator.
     ///
     /// Consumes the iterator until its end.
+    ///
+    /// **Note: This method is deprecated, use .foreach() instead.**
     fn apply<F: FnMut(Self::Item)>(&mut self, f: F)
     {
         self.foreach(f)
