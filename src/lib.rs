@@ -185,7 +185,7 @@ pub trait Itertools : Iterator {
     ///
     /// Iterator element type is **B**.
     #[deprecated="Use libstd .map() instead"]
-    fn fn_map<B>(self, map: fn(Self::Item) -> B) -> FnMap<Self::Item, B, Self> where
+    fn fn_map<B>(self, map: fn(Self::Item) -> B) -> FnMap<B, Self> where
         Self: Sized
     {
         FnMap::new(self, map)
@@ -205,7 +205,7 @@ pub trait Itertools : Iterator {
     /// between each element of the adapted iterator.
     ///
     /// Iterator element type is **Item**.
-    fn intersperse(self, element: Self::Item) -> Intersperse<Self::Item, Self> where
+    fn intersperse(self, element: Self::Item) -> Intersperse<Self> where
         Self: Sized,
         Self::Item: Clone
     {
@@ -240,7 +240,7 @@ pub trait Itertools : Iterator {
     /// If the iterator is sorted, all elements will be unique.
     ///
     /// Iterator element type is **Item**.
-    fn dedup(self) -> Dedup<Self::Item, Self> where
+    fn dedup(self) -> Dedup<Self> where
         Self: Sized,
     {
         Dedup::new(self)
@@ -280,7 +280,7 @@ pub trait Itertools : Iterator {
     /// are returned as the iterator elements of **GroupBy**.
     ///
     /// Iterator element type is **(K, Vec\<Item\>)**
-    fn group_by<K, F: FnMut(&Self::Item) -> K>(self, key: F) -> GroupBy<Self::Item, K, Self, F> where
+    fn group_by<K, F: FnMut(&Self::Item) -> K>(self, key: F) -> GroupBy<K, Self, F> where
         Self: Sized,
     {
         GroupBy::new(self, key)
@@ -305,7 +305,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!(t1.next(), None);
     /// assert_eq!(t2.next(), Some(1));
     /// ```
-    fn tee(self) -> (Tee<Self::Item, Self>, Tee<Self::Item, Self>) where
+    fn tee(self) -> (Tee<Self>, Tee<Self>) where
         Self: Sized,
         Self::Item: Clone
     {
@@ -417,7 +417,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!(it.next(), Some(4));
     /// assert_eq!(it.next(), Some(6));
     /// ```
-    fn merge<J>(self, other: J) -> Merge<Self::Item, Self, J> where
+    fn merge<J>(self, other: J) -> Merge<Self, J> where
         Self: Sized,
         Self::Item: PartialOrd,
         J: Iterator<Item=Self::Item>,

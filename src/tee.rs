@@ -13,13 +13,13 @@ struct TeeBuffer<A, I>
 }
 
 /// One half of an iterator pair where both return the same elements.
-pub struct Tee<A, I>
+pub struct Tee<I: Iterator>
 {
-    rcbuffer: Rc<RefCell<TeeBuffer<A, I>>>,
+    rcbuffer: Rc<RefCell<TeeBuffer<I::Item, I>>>,
     id: bool,
 }
 
-pub fn new<A, I>(iter: I) -> (Tee<A, I>, Tee<A, I>)
+pub fn new<I: Iterator>(iter: I) -> (Tee<I>, Tee<I>)
 {
     let buffer = TeeBuffer{backlog: RingBuf::new(), iter: iter, owner: false};
     let t1 = Tee{rcbuffer: Rc::new(RefCell::new(buffer)), id: true};
@@ -27,10 +27,11 @@ pub fn new<A, I>(iter: I) -> (Tee<A, I>, Tee<A, I>)
     (t1, t2)
 }
 
-impl<A: Clone, I: Iterator<Item=A>> Iterator for Tee<A, I>
+impl<I: Iterator> Iterator for Tee<I> where
+    I::Item: Clone,
 {
-    type Item = A;
-    fn next(&mut self) -> Option<A>
+    type Item = I::Item;
+    fn next(&mut self) -> Option<I::Item>
     {
         // .borrow_mut may fail here -- but only if the user has tied some kind of weird
         // knot where the iterator refers back to itself.

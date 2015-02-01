@@ -1,30 +1,50 @@
 use std::num::Int;
 
+macro_rules! clone_fields {
+    ($name:ident, $($field:ident),+) => (
+        fn clone(&self) -> Self
+        {
+            $name {
+                $(
+                    $field : self . $field .clone()
+                ),*
+            }
+        }
+    );
+}
+
 /// An iterator adaptor to insert a particular value
 /// between each element of the adapted iterator.
 ///
-/// Iterator element type is `A`
-#[derive(Clone)]
-pub struct Intersperse<A, I> {
-    element: A,
+/// Iterator element type is **I::Item**
+pub struct Intersperse<I: Iterator> {
+    element: I::Item,
     iter: I,
-    peek: Option<A>,
+    peek: Option<I::Item>,
 }
 
-impl<A, I: Iterator<Item=A>> Intersperse<A, I>
+impl<I: Iterator> Clone for Intersperse<I> where
+    I: Clone,
+    I::Item: Clone,
+{
+    clone_fields!(Intersperse, element, iter, peek);
+}
+
+impl<I: Iterator> Intersperse<I>
 {
     /// Create a new Intersperse iterator
-    pub fn new(mut iter: I, elt: A) -> Intersperse<A, I>
+    pub fn new(mut iter: I, elt: I::Item) -> Self
     {
         Intersperse{peek: iter.next(), iter: iter, element: elt}
     }
 }
 
-impl<A: Clone, I: Iterator<Item=A>> Iterator for Intersperse<A, I>
+impl<I: Iterator> Iterator for Intersperse<I> where
+    I::Item: Clone,
 {
-    type Item = A;
+    type Item = I::Item;
     #[inline]
-    fn next(&mut self) -> Option<A>
+    fn next(&mut self) -> Option<I::Item>
     {
         if self.peek.is_some() {
             self.peek.take()

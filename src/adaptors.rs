@@ -10,6 +10,17 @@ use std::usize;
 use std::iter::{Fuse, Peekable};
 use super::Itertools;
 
+macro_rules! clone_fields {
+    ($name:ident, $base:expr, $($field:ident),+) => (
+        $name {
+            $(
+                $field : $base . $field .clone()
+            ),*
+        }
+    );
+}
+
+
 /// Alternate elements from two iterators until both
 /// are run out
 ///
@@ -28,12 +39,12 @@ impl<I, J> Interleave<I, J> {
     }
 }
 
-impl<A, I, J> Iterator for Interleave<I, J>
-    where I: Iterator<Item=A>, J: Iterator<Item=A>
+impl<I: Iterator, J> Iterator for Interleave<I, J> where
+    J: Iterator<Item=I::Item>
 {
-    type Item = A;
+    type Item = I::Item;
     #[inline]
-    fn next(&mut self) -> Option<A> {
+    fn next(&mut self) -> Option<I::Item> {
         self.flag = !self.flag;
         if self.flag {
             match self.a.next() {
@@ -56,23 +67,26 @@ impl<A, I, J> Iterator for Interleave<I, J>
 ///
 /// Iterator element type is `B`
 #[deprecated]
-pub struct FnMap<A, B, I> {
-    map: fn(A) -> B,
+pub struct FnMap<B, I: Iterator>
+{
+    map: fn(I::Item) -> B,
     iter: I,
 }
 
-impl<A, B, I> FnMap<A, B, I>
+impl<B, I: Iterator> FnMap<B, I>
 {
-    pub fn new(iter: I, map: fn(A) -> B) -> FnMap<A, B, I> {
+    pub fn new(iter: I, map: fn(I::Item) -> B) -> Self
+    {
         FnMap{iter: iter, map: map}
     }
 }
 
-impl<A, B, I: Iterator<Item=A>> Iterator for FnMap<A, B, I>
+impl<B, I: Iterator> Iterator for FnMap<B, I>
 {
     type Item = B;
     #[inline]
-    fn next(&mut self) -> Option<B> {
+    fn next(&mut self) -> Option<B>
+    {
         self.iter.next().map(|a| (self.map)(a))
     }
 
@@ -81,8 +95,8 @@ impl<A, B, I: Iterator<Item=A>> Iterator for FnMap<A, B, I>
     }
 }
 
-impl<A, B, I> DoubleEndedIterator for FnMap<A, B, I>
-    where I: DoubleEndedIterator<Item=A>
+impl<B, I> DoubleEndedIterator for FnMap<B, I> where
+    I: DoubleEndedIterator
 {
     #[inline]
     fn next_back(&mut self) -> Option<B> {
@@ -90,9 +104,11 @@ impl<A, B, I> DoubleEndedIterator for FnMap<A, B, I>
     }
 }
 
-impl<A, B, I: Clone> Clone for FnMap<A, B, I>
+impl<B, I> Clone for FnMap<B, I> where
+    I: Clone + Iterator,
 {
-    fn clone(&self) -> FnMap<A, B, I> {
+    fn clone(&self) -> Self
+    {
         FnMap::new(self.iter.clone(), self.map)
     }
 }
@@ -100,17 +116,19 @@ impl<A, B, I: Clone> Clone for FnMap<A, B, I>
 /// An iterator adaptor that allows putting back a single
 /// item to the front of the iterator.
 ///
-/// Iterator element type is `A`
-#[derive(Clone)]
-pub struct PutBack<A, I> {
-    top: Option<A>,
+/// Iterator element type is **I::Item**.
+pub struct PutBack<I: Iterator>
+{
+    top: Option<I::Item>,
     iter: I
 }
 
-impl<A, I> PutBack<A, I> {
+impl<I: Iterator> PutBack<I>
+{
     /// Iterator element type is `A`
     #[inline]
-    pub fn new(it: I) -> PutBack<A, I> {
+    pub fn new(it: I) -> Self
+    {
         PutBack{top: None, iter: it}
     }
 
@@ -118,17 +136,17 @@ impl<A, I> PutBack<A, I> {
     ///
     /// If a value is already in the put back slot, it is overwritten.
     #[inline]
-    pub fn put_back(&mut self, x: A) {
+    pub fn put_back(&mut self, x: I::Item)
+    {
         self.top = Some(x)
     }
 }
 
-impl<A, I> Iterator for PutBack<A, I>
-    where I: Iterator<Item=A>
+impl<I: Iterator> Iterator for PutBack<I>
 {
-    type Item = A;
+    type Item = I::Item;
     #[inline]
-    fn next(&mut self) -> Option<A> {
+    fn next(&mut self) -> Option<I::Item> {
         match self.top {
             None => self.iter.next(),
             ref mut some => some.take(),
@@ -144,26 +162,44 @@ impl<A, I> Iterator for PutBack<A, I>
     }
 }
 
+impl<I: Iterator> Clone for PutBack<I> where
+    I: Clone,
+    I::Item: Clone
+{
+    fn clone(&self) -> Self
+    {
+        clone_fields!(PutBack, self, top, iter)
+    }
+}
+
 
 /// An iterator adaptor that iterates over the cartesian product of
-/// the element sets of two iterators `I` and `J`.
+/// the element sets of two iterators **I** and **J**.
 ///
-/// Iterator element type is `(A, B)` if `I: Iterator<A>` and `J: Iterator<B>`
-#[derive(Clone)]
-pub struct Product<A, I, J> {
+/// Iterator element type is **(I::Item, J::Item)**.
+pub struct Product<I: Iterator, J> {
     a: I,
-    a_cur: Option<A>,
+    a_cur: Option<I::Item>,
     b: J,
     b_orig: J,
 }
 
-impl<A: Clone, B, I: Iterator<Item=A>, J: Clone + Iterator<Item=B>>
-    Product<A, I, J> 
+impl<I: Iterator + Clone, J: Clone> Clone for Product<I, J> where
+    I::Item: Clone,
+{
+    fn clone(&self) -> Self
+    {
+        clone_fields!(Product, self, a, a_cur, b, b_orig)
+    }
+}
+
+impl<I: Iterator, J: Clone + Iterator> Product<I, J> where
+    I::Item: Clone,
 {
     /// Create a new cartesian product iterator
     ///
-    /// Iterator element type is `(A, B)` if `I: Iterator<A>` and `J: Iterator<B>`
-    pub fn new(i: I, j: J) -> Product<A, I, J>
+    /// Iterator element type is **(I::Item, J::Item)**.
+    pub fn new(i: I, j: J) -> Self
     {
         let mut i = i;
         Product{a_cur: i.next(), a: i, b: j.clone(), b_orig: j}
@@ -171,11 +207,11 @@ impl<A: Clone, B, I: Iterator<Item=A>, J: Clone + Iterator<Item=B>>
 }
 
 
-impl<A: Clone, I: Iterator<Item=A>, B, J: Clone + Iterator<Item=B>>
-Iterator for Product<A, I, J>
+impl<I: Iterator, J: Clone + Iterator> Iterator for Product<I, J> where
+    I::Item: Clone,
 {
-    type Item = (A, B);
-    fn next(&mut self) -> Option<(A, B)>
+    type Item = (I::Item, J::Item);
+    fn next(&mut self) -> Option<(I::Item, J::Item)>
     {
         let elt_b = match self.b.next() {
             None => {
@@ -217,27 +253,40 @@ Iterator for Product<A, I, J>
 /// Remove duplicates from sections of consecutive identical elements.
 /// If the iterator is sorted, all elements will be unique.
 ///
-/// Iterator element type is `A` if `I: Iterator<A>`
-#[derive(Clone)]
-pub struct Dedup<A, I> {
-    last: Option<A>,
+/// Iterator element type is **I::Item**.
+pub struct Dedup<I: Iterator>
+{
+    last: Option<I::Item>,
     iter: I,
 }
 
-impl<A, I> Dedup<A, I>
+impl<I: Iterator + Clone> Clone for Dedup<I> where
+    I::Item: Clone,
+{
+    fn clone(&self) -> Self
+    {
+        Dedup {
+            last: self.last.clone(),
+            iter: self.iter.clone(),
+        }
+    }
+}
+
+impl<I> Dedup<I> where I: Iterator
 {
     /// Create a new Dedup Iterator.
-    pub fn new(iter: I) -> Dedup<A, I>
+    pub fn new(iter: I) -> Dedup<I>
     {
         Dedup{last: None, iter: iter}
     }
 }
 
-impl<A: PartialEq, I: Iterator<Item=A>> Iterator for Dedup<A, I>
+impl<I: Iterator> Iterator for Dedup<I> where
+    I::Item: PartialEq
 {
-    type Item = A;
+    type Item = I::Item;
     #[inline]
-    fn next(&mut self) -> Option<A>
+    fn next(&mut self) -> Option<I::Item>
     {
         for elt in self.iter {
             match self.last {
@@ -273,7 +322,7 @@ impl<A: PartialEq, I: Iterator<Item=A>> Iterator for Dedup<A, I>
 /// A “meta iterator adaptor”. Its closure recives a reference to the iterator
 /// and may pick off as many elements as it likes, to produce the next iterator element.
 ///
-/// Iterator element type is **B**, if the return type of **F** is **Option\<B\>**.
+/// Iterator element type is *X*, if the return type of **F** is *Option\<X\>*.
 #[derive(Clone)]
 pub struct Batching<I, F> {
     f: F,
@@ -288,8 +337,8 @@ impl<F, I> Batching<I, F> {
     }
 }
 
-impl<A, B, F, I> Iterator for Batching<I, F> where
-    I: Iterator<Item=A>,
+impl<B, F, I> Iterator for Batching<I, F> where
+    I: Iterator,
     F: for<'a> FnMut<(&'a mut I, ), Output=Option<B>>
 {
     type Item = B;
@@ -310,28 +359,38 @@ impl<A, B, F, I> Iterator for Batching<I, F> where
 /// Group iterator elements. Consecutive elements that map to the same key ("runs"),
 /// are returned as the iterator elements of `GroupBy`.
 ///
-/// Iterator element type is `(K, Vec<A>)`
-#[derive(Clone)]
-pub struct GroupBy<A, K, I, F> {
+/// Iterator element type is **(K, Vec\<A\>)**
+pub struct GroupBy<K, I: Iterator, F> {
     key: F,
     iter: I,
     current_key: Option<K>,
-    elts: Vec<A>,
+    elts: Vec<I::Item>,
 }
 
-impl<A, K, F, I> GroupBy<A, K, I, F> {
+impl<K: Clone, I: Clone  + Iterator, F: Clone> Clone for GroupBy<K, I, F> where
+    I::Item: Clone,
+{
+    fn clone(&self) -> Self
+    {
+        clone_fields!(GroupBy, self, key, iter, current_key, elts)
+    }
+}
+
+impl<K, F, I> GroupBy<K, I, F> where
+    I: Iterator,
+{
     /// Create a new GroupBy iterator.
-    pub fn new(iter: I, key: F) -> GroupBy<A, K, I, F>
+    pub fn new(iter: I, key: F) -> Self
     {
         GroupBy{key: key, iter: iter, current_key: None, elts: Vec::new()}
     }
 }
 
-impl<A, K: PartialEq, F: FnMut(&A) -> K, I: Iterator<Item=A>>
-    Iterator for GroupBy<A, K, I, F>
+impl<K: PartialEq, I: Iterator, F: FnMut(&I::Item) -> K>
+    Iterator for GroupBy<K, I, F>
 {
-    type Item = (K, Vec<A>);
-    fn next(&mut self) -> Option<(K, Vec<A>)>
+    type Item = (K, Vec<I::Item>);
+    fn next(&mut self) -> Option<(K, Vec<I::Item>)>
     {
         for elt in self.iter {
             let key = (self.key)(&elt);
@@ -418,22 +477,33 @@ impl<I> Iterator for Step<I>
     }
 }
 
-pub struct Merge<T, A, B> where
-    T: PartialOrd,
-    A: Iterator<Item = T>,
-    B: Iterator<Item = T>,
+/// An iterator adaptor that merges the two base iterators in ascending order.
+/// If both base iterators are sorted (ascending), the result is sorted.
+///
+/// Iterator element type is **I::Item**.
+pub struct Merge<I: Iterator, J> where
+    J: Iterator<Item=I::Item>,
 {
-    a: Peekable<T, A>,
-    b: Peekable<T, B>,
+    a: Peekable<I::Item, I>,
+    b: Peekable<I::Item, J>,
 }
 
-impl<T, A, B> Merge<T, A, B> where
-    T: PartialOrd,
-    A: Iterator<Item = T>,
-    B: Iterator<Item = T>,
+impl<I: Iterator, J> Clone for Merge<I, J> where
+    J: Iterator<Item=I::Item>,
+    Peekable<I::Item, I>: Clone,
+    Peekable<I::Item, J>: Clone,
+{
+    fn clone(&self) -> Self
+    {
+        clone_fields!(Merge, self, a, b)
+    }
+}
+
+impl<I: Iterator, J> Merge<I, J> where
+    J: Iterator<Item=I::Item>,
 {
     /// Create a **Merge** iterator.
-    pub fn new(a: A, b: B) -> Merge<T, A, B>
+    pub fn new(a: I, b: J) -> Self
     {
         Merge {
             a: a.peekable(),
@@ -442,12 +512,24 @@ impl<T, A, B> Merge<T, A, B> where
     }
 }
 
-impl<T, A, B> Iterator for Merge<T, A, B> where
-    T: PartialOrd,
-    A: Iterator<Item = T>,
-    B: Iterator<Item = T>,
+impl<I: Iterator, J> Iterator for Merge<I, J> where
+    I::Item: PartialOrd,
+    J: Iterator<Item=I::Item>,
 {
-    type Item = T;
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<I::Item> {
+        if match (self.a.peek(), self.b.peek()) {
+            (Some(a), Some(b)) => a <= b,
+            (Some(_), None) => true,
+            (None, Some(_)) => false,
+            (None, None) => return None,
+        } {
+            self.a.next()
+        } else {
+            self.b.next()
+        }
+    }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (a_min, a_max) = self.a.size_hint();
@@ -460,18 +542,5 @@ impl<T, A, B> Iterator for Merge<T, A, B> where
         };
 
         (min, max)
-    }
-
-    fn next(&mut self) -> Option<T> {
-        if match (self.a.peek(), self.b.peek()) {
-            (Some(a), Some(b)) => a <= b,
-            (Some(_), None) => true,
-            (None, Some(_)) => false,
-            (None, None) => return None,
-        } {
-            self.a.next()
-        } else {
-            self.b.next()
-        }
     }
 }
