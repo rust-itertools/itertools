@@ -37,13 +37,8 @@ impl<T> Zip<T> where Zip<T>: Iterator
     }
 }
 
-// Macro to turn `t.$idx`, where $idx:tt, into an expression.
-macro_rules! e(
-    ($e:expr) => { $e }
-);
-
 macro_rules! impl_zip_iter(
-    ($($idx:tt is $B:ident),*) => (
+    ($($B:ident),*) => (
         #[allow(non_snake_case)]
         impl<$($B),*> Iterator for Zip<($($B,)*)>
             where
@@ -57,8 +52,11 @@ macro_rules! impl_zip_iter(
                     ($(<$B as Iterator>::Item,)*)
                 >
             {
+                let &mut Zip { t : ($(ref mut $B,)*)} = self;
+                // WARNING: partial consume possible
+                // Zip worked the same.
                 $(
-                    let $B = match e!(self.t. $idx).next() {
+                    let $B = match $B.next() {
                         None => return None,
                         Some(elt) => elt
                     };
@@ -68,13 +66,14 @@ macro_rules! impl_zip_iter(
 
             fn size_hint(&self) -> (usize, Option<usize>)
             {
-                let mut low = ::std::usize::MAX;
-                let mut high = None;
+                let low = ::std::usize::MAX;
+                let high = None;
+                let &Zip { t : ($(ref $B,)*) } = self;
                 $(
                     // update estimate
-                    let (l, h) = e!(self.t. $idx).size_hint();
-                    low = cmp::min(low, l);
-                    high = match (high, h) {
+                    let (l, h) = $B.size_hint();
+                    let low = cmp::min(low, l);
+                    let high = match (high, h) {
                         (Some(u1), Some(u2)) => Some(cmp::min(u1, u2)),
                         _ => high.or(h)
                     };
@@ -85,12 +84,12 @@ macro_rules! impl_zip_iter(
     );
 );
 
-impl_zip_iter!(0 is A);
-impl_zip_iter!(0 is A, 1 is B);
-impl_zip_iter!(0 is A, 1 is B, 2 is C);
-impl_zip_iter!(0 is A, 1 is B, 2 is C, 3 is D);
-impl_zip_iter!(0 is A, 1 is B, 2 is C, 3 is D, 4 is E);
-impl_zip_iter!(0 is A, 1 is B, 2 is C, 3 is D, 4 is E, 5 is F);
-impl_zip_iter!(0 is A, 1 is B, 2 is C, 3 is D, 4 is E, 5 is F, 6 is G);
-impl_zip_iter!(0 is A, 1 is B, 2 is C, 3 is D, 4 is E, 5 is F, 6 is G, 7 is H);
-impl_zip_iter!(0 is A, 1 is B, 2 is C, 3 is D, 4 is E, 5 is F, 6 is G, 7 is H, 8 is I);
+impl_zip_iter!(A);
+impl_zip_iter!(A, B);
+impl_zip_iter!(A, B, C);
+impl_zip_iter!(A, B, C, D);
+impl_zip_iter!(A, B, C, D, E);
+impl_zip_iter!(A, B, C, D, E, F);
+impl_zip_iter!(A, B, C, D, E, F, G);
+impl_zip_iter!(A, B, C, D, E, F, G, H);
+impl_zip_iter!(A, B, C, D, E, F, G, H, I);
