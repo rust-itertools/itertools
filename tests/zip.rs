@@ -15,11 +15,10 @@ fn test_zip_longest_size_hint() {
     let c = count(0, 1);
     let v: &[_] = &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     let v2 = &[10, 11, 12];
-    let vi = v.iter();
 
-    assert_eq!(c.zip_longest(vi).size_hint(), (std::usize::MAX, None));
+    assert_eq!(c.zip_longest(v.iter()).size_hint(), (std::usize::MAX, None));
 
-    assert_eq!(vi.zip_longest(v2.iter()).size_hint(), (10, Some(10)));
+    assert_eq!(v.iter().zip_longest(v2.iter()).size_hint(), (10, Some(10)));
 }
 #[test]
 fn test_double_ended_zip_longest() {

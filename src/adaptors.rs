@@ -287,7 +287,7 @@ impl<I: Iterator> Iterator for Dedup<I> where
     #[inline]
     fn next(&mut self) -> Option<I::Item>
     {
-        for elt in self.iter {
+        for elt in self.iter.by_ref() {
             match self.last {
                 Some(ref x) if x == &elt => continue,
                 None => {
@@ -391,7 +391,7 @@ impl<K: PartialEq, I: Iterator, F: FnMut(&I::Item) -> K>
     type Item = (K, Vec<I::Item>);
     fn next(&mut self) -> Option<(K, Vec<I::Item>)>
     {
-        for elt in self.iter {
+        for elt in self.iter.by_ref() {
             let key = (self.key)(&elt);
             match self.current_key.take() {
                 None => {}
