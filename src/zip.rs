@@ -97,7 +97,6 @@ impl<A, B, T, U> RandomAccessIterator for ZipLongest<T, U>
     }
 }
 
-#[unstable = "trait is unstable"]
 impl<T, U> ExactSizeIterator for ZipLongest<T, U>
     where T: ExactSizeIterator, U: ExactSizeIterator {}
 
