@@ -483,14 +483,14 @@ impl<I> Iterator for Step<I>
 pub struct Merge<I: Iterator, J> where
     J: Iterator<Item=I::Item>,
 {
-    a: Peekable<I::Item, I>,
-    b: Peekable<I::Item, J>,
+    a: Peekable<I>,
+    b: Peekable<J>,
 }
 
 impl<I: Iterator, J> Clone for Merge<I, J> where
     J: Iterator<Item=I::Item>,
-    Peekable<I::Item, I>: Clone,
-    Peekable<I::Item, J>: Clone,
+    Peekable<I>: Clone,
+    Peekable<J>: Clone,
 {
     fn clone(&self) -> Self
     {
