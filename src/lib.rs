@@ -423,6 +423,29 @@ pub trait Itertools : Iterator {
         Merge::new(self, other)
     }
 
+    /// Return an iterator adaptor that iterates over the cartesian product of
+    /// the element sets of two iterators **self** and **J**.
+    ///
+    /// Iterator element type is **(Item, J::Item)**.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut it = (0..2).cartesian_product("αβ".chars());
+    /// assert_eq!(it.next(), Some((0, 'α')));
+    /// assert_eq!(it.next(), Some((0, 'β')));
+    /// assert_eq!(it.next(), Some((1, 'α')));
+    /// assert_eq!(it.next(), Some((1, 'β')));
+    /// assert_eq!(it.next(), None);
+    /// ```
+    fn cartesian_product<J>(self, other: J) -> Product<Self, J> where
+        Self: Sized,
+        Self::Item: Clone,
+        J: Clone + Iterator,
+    {
+        Product::new(self, other)
+    }
+
     // non-adaptor methods
 
     /// Find the position and value of the first element satisfying a predicate.
