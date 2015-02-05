@@ -35,15 +35,7 @@ impl<I: Iterator> Iterator for Tee<I> where
     {
         // .borrow_mut may fail here -- but only if the user has tied some kind of weird
         // knot where the iterator refers back to itself.
-        //
-        // Avoid panic!() in release code here for better code gen.
-        let mut buffer = match self.rcbuffer.try_borrow_mut() {
-            None => {
-                debug_assert!(false, "Tee::next: Cycle in tee iterator.");
-                return None;
-            }
-            Some(bufref) => bufref,
-        };
+        let mut buffer = self.rcbuffer.borrow_mut();
         if buffer.owner == self.id {
             match buffer.backlog.pop_front() {
                 None => {}
