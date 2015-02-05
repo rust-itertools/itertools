@@ -107,7 +107,7 @@ pub macro_rules! iproduct {
 }
 
 #[macro_export]
-/// **Note: This macro is deprecated, use* **Zip::new** *instead.**
+/// **Note: This macro is deprecated, use *Zip::new* instead.**
 ///
 /// Create an iterator running multiple iterators in lockstep.
 ///
@@ -247,7 +247,7 @@ pub trait Itertools : Iterator {
     /// A “meta iterator adaptor”. Its closure recives a reference to the iterator
     /// and may pick off as many elements as it likes, to produce the next iterator element.
     ///
-    /// Iterator element type is `B`.
+    /// Iterator element type is **B**.
     ///
     /// ## Example
     ///
@@ -287,7 +287,7 @@ pub trait Itertools : Iterator {
     /// Split into an iterator pair that both yield all elements from
     /// the original iterator.
     ///
-    /// Iterator element type is *Item**.
+    /// Iterator element type is **Item**.
     ///
     /// ## Example
     /// ```
@@ -488,7 +488,7 @@ pub trait Itertools : Iterator {
     ///
     /// Consumes the iterator until its end.
     ///
-    /// **Note: This method is deprecated, use .foreach() instead.**
+    /// **Note: This method is deprecated, use *.foreach()* instead.**
     fn apply<F: FnMut(Self::Item)>(&mut self, f: F) where
         Self: Sized
     {
@@ -504,7 +504,7 @@ pub trait Itertools : Iterator {
         for elt in self.by_ref() { f(elt) }
     }
 
-    /// **.collec_vec()** is simply a type specialization of **.collect()**,
+    /// **.collect_vec()** is simply a type specialization of **.collect()**,
     /// for convenience.
     fn collect_vec(self) -> Vec<Self::Item> where
         Self: Sized,
