@@ -138,8 +138,9 @@ unsafe impl<T> TrustedIterator for vec::IntoIter<T> { }
 /// // Iterate over three sequences side-by-side
 /// let mut xs = [0, 0, 0];
 /// let ys = [69, 107, 101];
+/// let index = [0, 1, 2, 3];
 ///
-/// for (i, a, b) in ZipTrusted::new((0i32..100, xs.iter_mut(), ys.iter())) {
+/// for (&i, a, b) in ZipTrusted::new((index.iter(), xs.iter_mut(), ys.iter())) {
 ///    *a = i ^ *b;
 /// }
 /// 
