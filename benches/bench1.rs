@@ -106,7 +106,7 @@ fn zip_slices_default_zip(b: &mut test::Bencher)
     let xs = vec![0; 1024];
     let ys = vec![0; 768];
 
-    b.iter(|| for (x, y) in xs.iter().zip(ys.iter()) {
+    b.iter(|| for (&x, &y) in xs.iter().zip(ys.iter()) {
         test::black_box(x);
         test::black_box(y);
     })
@@ -119,7 +119,7 @@ fn zip_slices_default_zip3(b: &mut test::Bencher)
     let ys = vec![0; 768];
     let zs = vec![0; 766];
 
-    b.iter(|| for ((x, y), z) in xs.iter().zip(ys.iter()).zip(zs.iter()) {
+    b.iter(|| for ((&x, &y), &z) in xs.iter().zip(ys.iter()).zip(zs.iter()) {
         test::black_box(x);
         test::black_box(y);
         test::black_box(z);
@@ -132,7 +132,7 @@ fn zip_slices_ziptuple(b: &mut test::Bencher)
     let xs = vec![0; 1024];
     let ys = vec![0; 768];
 
-    b.iter(|| for (x, y) in Zip::new((xs.iter(), ys.iter())) {
+    b.iter(|| for (&x, &y) in Zip::new((xs.iter(), ys.iter())) {
         test::black_box(x);
         test::black_box(y);
     })
@@ -144,7 +144,7 @@ fn zipslices(b: &mut test::Bencher)
     let xs = vec![0; 1024];
     let ys = vec![0; 768];
 
-    b.iter(|| for (x, y) in ZipSlices::new(&xs, &ys) {
+    b.iter(|| for (&x, &y) in ZipSlices::new(&xs, &ys) {
         test::black_box(x);
         test::black_box(y);
     })
@@ -156,7 +156,7 @@ fn ziptrusted(b: &mut test::Bencher)
     let xs = vec![0; 1024];
     let ys = vec![0; 768];
 
-    b.iter(|| for (x, y) in ZipTrusted::new((xs.iter(), ys.iter())) {
+    b.iter(|| for (&x, &y) in ZipTrusted::new((xs.iter(), ys.iter())) {
         test::black_box(x);
         test::black_box(y);
     })
@@ -169,7 +169,7 @@ fn ziptrusted3(b: &mut test::Bencher)
     let ys = vec![0; 768];
     let zs = vec![0; 766];
 
-    b.iter(|| for (x, y, z) in ZipTrusted::new((xs.iter(), ys.iter(), zs.iter())) {
+    b.iter(|| for (&x, &y, &z) in ZipTrusted::new((xs.iter(), ys.iter(), zs.iter())) {
         test::black_box(x);
         test::black_box(y);
         test::black_box(z);
@@ -208,7 +208,7 @@ fn zip_loop3(b: &mut test::Bencher)
             unsafe {
             let x = *xs.get_unchecked(i);
             let y = *ys.get_unchecked(i);
-            let z = *ys.get_unchecked(i);
+            let z = *zs.get_unchecked(i);
             test::black_box(x);
             test::black_box(y);
             test::black_box(z);
