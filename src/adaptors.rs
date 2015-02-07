@@ -465,7 +465,7 @@ impl<I> Iterator for Step<I>
     fn size_hint(&self) -> (usize, Option<usize>)
     {
         let (low, high) = self.iter.size_hint();
-        let div = |&: x: usize| {
+        let div = |x: usize| {
             if x == 0 {
                 0
             } else {
