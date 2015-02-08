@@ -98,6 +98,8 @@ impl_zip_iter!(A, B, C, D, E, F, G, H, I);
 
 
 /// A **TrustedIterator** has exact size, always.
+/// 
+/// **Note:** TrustedIterator is *Experimental.*
 pub unsafe trait TrustedIterator : ExactSizeIterator
 {
     /* no methods */

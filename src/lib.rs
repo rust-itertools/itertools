@@ -53,7 +53,7 @@ pub use times::Times;
 pub use times::times;
 pub use linspace::{linspace, Linspace};
 pub use zip::{ZipLongest, EitherOrBoth};
-pub use ziptuple::{Zip, ZipTrusted};
+pub use ziptuple::{Zip, ZipTrusted, TrustedIterator};
 mod adaptors;
 mod intersperse;
 mod islice;
