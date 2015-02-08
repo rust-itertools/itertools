@@ -254,7 +254,6 @@ impl<'a, A> Clone for Stride<'a, A>
 
 impl<'a, A> IndexMut<usize> for StrideMut<'a, A>
 {
-    type Output = A;
     /// Return a mutable reference to the element at a given index.
     ///
     /// **Panics** if the index is out of bounds.

@@ -22,7 +22,7 @@ fn mut_stride_compose() {
     let mut xs = vec![1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
     {
         let iter1 = StrideMut::from_slice(&mut *xs, 2);
-        let mut iter2 = StrideMut::from_stride(iter1, 3);
+        let iter2 = StrideMut::from_stride(iter1, 3);
         for x in iter2 {
             *x = 0;
         }
