@@ -4,11 +4,15 @@
 
 extern crate itertools;
 
+use std::fmt::Debug;
 use std::iter::count;
 use std::iter::RandomAccessIterator;
 use itertools::Itertools;
 use itertools::EitherOrBoth::{Both, Left};
-use itertools::Zip;
+use itertools::{
+    Zip,
+    ZipTrusted,
+};
 
 #[test]
 fn test_zip_longest_size_hint() {
@@ -76,4 +80,39 @@ fn zip_tuple() {
 
     let mut jt = Zip::new((xs.iter().cloned(), xs.iter().cloned(), xs.iter().cloned()));
     assert_eq!(jt.next(), Some((1, 1, 1)));
+}
+
+fn assert_iters_equal<
+    A: PartialEq + Debug,
+    I: Iterator<Item=A>,
+    J: Iterator<Item=A>>(mut it: I, mut jt: J)
+{
+    loop {
+        let elti = it.next();
+        let eltj = jt.next();
+        assert_eq!(elti, eltj);
+        if elti.is_none() { break; }
+    }
+}
+
+#[test]
+fn ziptrusted_1() {
+    let mut xs = [0; 6];
+    let mut ys = [0; 8];
+    let mut zs = [0; 7];
+
+    xs.iter_mut().enumerate().foreach(|(i, elt)| *elt = i as i32);
+    ys.iter_mut().enumerate().foreach(|(i, elt)| *elt = i as i32);
+    zs.iter_mut().enumerate().foreach(|(i, elt)| *elt = i as i32);
+
+    let it = ZipTrusted::new((xs.iter(), ys.iter()));
+    assert_eq!(it.size_hint(), (6, Some(6)));
+    assert_iters_equal(it, xs.iter().zip(ys.iter()));
+
+    let it = ZipTrusted::new((xs.iter(), ys.iter(), zs.iter()));
+    assert_eq!(it.size_hint(), (6, Some(6)));
+    assert_iters_equal(it, xs.iter()
+                             .zip(ys.iter())
+                             .zip(zs.iter())
+                             .map(|((a, b), c)| (a, b, c)));
 }

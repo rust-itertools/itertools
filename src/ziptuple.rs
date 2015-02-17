@@ -23,7 +23,7 @@ use std::cmp;
 /// for (i, a, b) in Zip::new((0i32..100, xs.iter_mut(), ys.iter())) {
 ///    *a = i ^ *b;
 /// }
-/// 
+///
 /// assert_eq!(xs, [69, 106, 103]);
 /// ```
 pub struct Zip<T> {
@@ -98,7 +98,7 @@ impl_zip_iter!(A, B, C, D, E, F, G, H, I);
 
 
 /// A **TrustedIterator** has exact size, always.
-/// 
+///
 /// **Note:** TrustedIterator is *Experimental.*
 pub unsafe trait TrustedIterator : ExactSizeIterator
 {
@@ -145,7 +145,7 @@ unsafe impl<T> TrustedIterator for vec::IntoIter<T> { }
 /// for (&i, a, b) in ZipTrusted::new((index.iter(), xs.iter_mut(), ys.iter())) {
 ///    *a = i ^ *b;
 /// }
-/// 
+///
 /// assert_eq!(xs, [69, 106, 103]);
 /// ```
 pub struct ZipTrusted<T> {
