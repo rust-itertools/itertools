@@ -490,6 +490,8 @@ pub trait Itertools : Iterator {
         self
     }
 
+    /// **Deprecated:** because of a name clash, use .count() or .foreach() instead as appropriate.
+    ///
     /// Run the iterator, eagerly, to the end and consume all its elements.
     ///
     /// ## Example
