@@ -42,6 +42,7 @@ pub use adaptors::{
     GroupBy,
     Step,
     Merge,
+    EnumerateFrom,
 };
 pub use intersperse::Intersperse;
 pub use islice::{ISlice};
@@ -444,6 +445,25 @@ pub trait Itertools : Iterator {
         J: Clone + Iterator,
     {
         Product::new(self, other)
+    }
+
+    /// Return an iterator adaptor that enumerates the iterator elements,
+    /// starting from **start** and incrementing by one.
+    ///
+    /// Iterator element type is **(K, Self::Item)**.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// assert_eq!(
+    ///     "αβγ".chars().enumerate_from(-10i8).collect_vec(),
+    ///     [(-10, 'α'), (-9, 'β'), (-8, 'γ')]
+    /// );
+    /// ```
+    fn enumerate_from<K>(self, start: K) -> EnumerateFrom<Self, K> where
+        Self: Sized,
+    {
+        EnumerateFrom::new(self, start)
     }
 
     // non-adaptor methods

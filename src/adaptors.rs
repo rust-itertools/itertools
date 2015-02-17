@@ -543,3 +543,37 @@ impl<I: Iterator, J> Iterator for Merge<I, J> where
         (min, max)
     }
 }
+
+pub struct EnumerateFrom<I, K>
+{
+    index: K,
+    iter: I,
+}
+
+impl<K, I> EnumerateFrom<I, K> where
+    I: Iterator,
+{
+    pub fn new(iter: I, start: K) -> Self
+    {
+        EnumerateFrom{index: start, iter: iter}
+    }
+}
+
+impl<K, I: Iterator> Iterator for EnumerateFrom<I, K> where
+    K: Int,
+{
+    type Item = (K, I::Item);
+    fn next(&mut self) -> Option<(K, I::Item)>
+    {
+        match self.iter.next() {
+            None => None,
+            Some(elt) => {
+                let index = self.index.clone();
+                // FIXME: Arithmetic needs to be wrapping here to be sane,
+                // imagine i8 counter to enumerate a sequence 0 to 127 inclusive.
+                self.index = self.index + <K as Int>::one();
+                Some((index, elt))
+            }
+        }
+    }
+}
