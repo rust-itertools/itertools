@@ -101,9 +101,9 @@ fn ziptrusted_1() {
     let mut ys = [0; 8];
     let mut zs = [0; 7];
 
-    xs.iter_mut().enumerate().foreach(|(i, elt)| *elt = i as i32);
-    ys.iter_mut().enumerate().foreach(|(i, elt)| *elt = i as i32);
-    zs.iter_mut().enumerate().foreach(|(i, elt)| *elt = i as i32);
+    xs.iter_mut().set_from(0..);
+    ys.iter_mut().set_from(0..);
+    zs.iter_mut().set_from(0..);
 
     let it = ZipTrusted::new((xs.iter(), ys.iter()));
     assert_eq!(it.size_hint(), (6, Some(6)));

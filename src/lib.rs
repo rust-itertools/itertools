@@ -21,7 +21,7 @@
 //! extern crate itertools;
 //! ```
 //!
-//! ## License 
+//! ## License
 //! Dual-licensed to be compatible with the Rust project.
 //!
 //! Licensed under the Apache License, Version 2.0
@@ -142,9 +142,9 @@ pub macro_rules! izip {
 /// `icompr` as in “iterator comprehension” allows creating a
 /// mapped iterator with simple syntax, similar to set builder notation,
 /// and directly inspired by Python. Supports an optional filter clause.
-/// 
+///
 /// Syntax:
-/// 
+///
 ///  `icompr!(<expression>, <pattern>, <iterator>)`
 ///
 /// or
@@ -346,7 +346,7 @@ pub trait Itertools : Iterator {
     ///
     /// ```
     /// use itertools::Itertools;
-    ///  
+    ///
     /// let mut rit = (0..9).into_rc();
     /// let mut z = rit.clone().zip(rit.clone());
     /// assert_eq!(z.next(), Some((0, 1)));
@@ -536,10 +536,41 @@ pub trait Itertools : Iterator {
     {
         self.collect()
     }
+
+    /// Assign to each reference in **self** from the **from** iterator,
+    /// stopping at the shortest of the two iterators.
+    ///
+    /// Return the number of elements written.
+    ///
+    /// ## Example
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut xs = [0; 4];
+    /// xs.iter_mut().set_from(1..);
+    /// assert_eq!(xs, [1, 2, 3, 4]);
+    /// ```
+    #[inline]
+    fn set_from<'a, A: 'a, J>(&mut self, from: J) -> usize where
+        Self: Iterator<Item=&'a mut A>,
+        J: Iterator<Item=A>,
+    {
+        let mut count = 0;
+        for elt in from {
+            match self.next() {
+                None => break,
+                Some(ptr) => *ptr = elt
+            }
+            count += 1;
+        }
+        count
+    }
 }
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }
 
+/// **Deprecated: Use *.set_from()* instead**.
+///
 /// Assign to each reference in `to` from `from`, stopping
 /// at the shortest of the two iterators.
 ///
