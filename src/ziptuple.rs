@@ -1,5 +1,6 @@
 use std::slice;
 use std::vec;
+use std::iter;
 use std::cmp;
 
 #[derive(Clone)]
@@ -115,6 +116,13 @@ unsafe impl TrustedIterator for ::std::ops::Range<i8> { }
 unsafe impl<'a, T> TrustedIterator for slice::Iter<'a, T> { }
 unsafe impl<'a, T> TrustedIterator for slice::IterMut<'a, T> { }
 unsafe impl<T> TrustedIterator for vec::IntoIter<T> { }
+
+unsafe impl<I> TrustedIterator for iter::Rev<I> where
+    I: DoubleEndedIterator + TrustedIterator,
+{ }
+unsafe impl<I> TrustedIterator for iter::Take<I> where
+    I: TrustedIterator,
+{ }
 
 
 #[derive(Clone)]
