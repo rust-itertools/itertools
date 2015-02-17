@@ -1,5 +1,4 @@
 #![feature(core, std_misc)]
-#![feature(unboxed_closures)]
 #![crate_name="itertools"]
 #![crate_type="dylib"]
 
