@@ -3,7 +3,7 @@ use std::iter;
 use std::num::{Float, NumCast};
 
 /// An iterator of `n` evenly spaced floats.
-/// 
+///
 /// Iterator element type is `F`.
 pub type Linspace<F> = iter::Take<iter::Counter<F>>;
 
@@ -21,11 +21,7 @@ pub type Linspace<F> = iter::Take<iter::Counter<F>>;
 #[inline]
 pub fn linspace<F: Float>(a: F, b: F, n: usize) -> Linspace<F>
 {
-    if n != 0 {
-        let nf: F = NumCast::from(n).unwrap();
-        let step = (b - a)/(nf - Float::one());
-        iter::count(a, step).take(n)
-    } else {
-        iter::count(a, Float::one()).take(n)
-    }
+    let nf: F = NumCast::from(n).unwrap();
+    let step = (b - a)/(nf - Float::one());
+    iter::count(a, step).take(n)
 }
