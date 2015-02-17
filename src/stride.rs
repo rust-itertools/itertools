@@ -229,7 +229,7 @@ macro_rules! stride_impl {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
             {
                 try!(write!(f, "["));
-                for i in range(0, self.len()) {
+                for i in 0..self.len() {
                     if i != 0 {
                         try!(write!(f, ", "));
                     }

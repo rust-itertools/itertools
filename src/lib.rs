@@ -124,7 +124,7 @@ pub macro_rules! iproduct {
 /// // Iterate over three sequences side-by-side
 /// let mut xs = [0, 0, 0];
 /// let ys = [72, 73, 74];
-/// for (i, a, b) in izip!(range(0, 100), xs.mut_iter(), ys.iter()) {
+/// for (i, a, b) in izip!(0..100, xs.mut_iter(), ys.iter()) {
 ///    *a = i ^ *b;
 /// }
 /// ```
@@ -160,7 +160,7 @@ pub macro_rules! izip {
 /// ## Example
 ///
 /// ```ignore
-/// let mut squares = icompr!(x * x, x, range(1, 100));
+/// let mut squares = icompr!(x * x, x, 1..100);
 /// ```
 ///
 /// **Note:** A Python like syntax of `<expression> for <pattern> in <iterator>` is
