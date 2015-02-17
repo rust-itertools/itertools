@@ -105,7 +105,6 @@ pub unsafe trait TrustedIterator : ExactSizeIterator
     /* no methods */
 }
 
-/* Not safe yet!
 unsafe impl TrustedIterator for ::std::ops::Range<usize> { }
 unsafe impl TrustedIterator for ::std::ops::Range<u32> { }
 unsafe impl TrustedIterator for ::std::ops::Range<i32> { }
@@ -113,7 +112,6 @@ unsafe impl TrustedIterator for ::std::ops::Range<u16> { }
 unsafe impl TrustedIterator for ::std::ops::Range<i16> { }
 unsafe impl TrustedIterator for ::std::ops::Range<u8> { }
 unsafe impl TrustedIterator for ::std::ops::Range<i8> { }
-*/
 unsafe impl<'a, T> TrustedIterator for slice::Iter<'a, T> { }
 unsafe impl<'a, T> TrustedIterator for slice::IterMut<'a, T> { }
 unsafe impl<T> TrustedIterator for vec::IntoIter<T> { }
@@ -140,9 +138,8 @@ unsafe impl<T> TrustedIterator for vec::IntoIter<T> { }
 /// // Iterate over three sequences side-by-side
 /// let mut xs = [0, 0, 0];
 /// let ys = [69, 107, 101];
-/// let index = [0, 1, 2, 3];
 ///
-/// for (&i, a, b) in ZipTrusted::new((index.iter(), xs.iter_mut(), ys.iter())) {
+/// for (i, a, b) in ZipTrusted::new((0..100, xs.iter_mut(), ys.iter())) {
 ///    *a = i ^ *b;
 /// }
 ///
