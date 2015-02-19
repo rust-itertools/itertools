@@ -85,7 +85,7 @@ mod ziptuple;
 /// }
 /// # }
 /// ```
-pub macro_rules! iproduct {
+macro_rules! iproduct {
     ($I:expr) => (
         ($I)
     );
@@ -128,7 +128,7 @@ pub macro_rules! iproduct {
 ///    *a = i ^ *b;
 /// }
 /// ```
-pub macro_rules! izip {
+macro_rules! izip {
     ($I:expr) => (
         ($I)
     );
@@ -166,7 +166,7 @@ pub macro_rules! izip {
 /// **Note:** A Python like syntax of `<expression> for <pattern> in <iterator>` is
 /// **not possible** with the stable macro rules since Rust 1.0.0-alpha.
 #[macro_export]
-pub macro_rules! icompr {
+macro_rules! icompr {
     ($r:expr, $x:pat, $J:expr, $pred:expr) => (
         ($J).filter_map(|$x| if $pred { Some($r) } else { None })
     );
