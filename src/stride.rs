@@ -15,7 +15,7 @@ use std::ops::{Index, IndexMut};
 /// Stride does not support zero-sized types for `A`.
 ///
 /// Iterator element type is `&'a A`.
-pub struct Stride<'a, A> {
+pub struct Stride<'a, A: 'a> {
     /// base pointer -- does not change during iteration
     begin: *const A,
     /// current offset from begin
@@ -23,7 +23,7 @@ pub struct Stride<'a, A> {
     /// offset where we end (exclusive end).
     end: isize,
     stride: isize,
-    life: marker::PhantomData<&'a ()>,
+    life: marker::PhantomData<&'a A>,
 }
 
 impl<'a, A> Copy for Stride<'a, A> {}
@@ -31,12 +31,12 @@ impl<'a, A> Copy for Stride<'a, A> {}
 /// StrideMut is like Stride, but with mutable elements.
 ///
 /// Iterator element type is `&'a mut A`.
-pub struct StrideMut<'a, A> {
+pub struct StrideMut<'a, A: 'a> {
     begin: *mut A,
     offset: isize,
     end: isize,
     stride: isize,
-    life: marker::PhantomData<&'a ()>,
+    life: marker::PhantomData<&'a A>,
 }
 
 impl<'a, A> Stride<'a, A>
