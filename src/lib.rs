@@ -472,7 +472,7 @@ pub trait Itertools : Iterator {
         P: FnMut(&Self::Item) -> bool,
         Self: Sized,
     {
-        let mut index = 0us;
+        let mut index = 0usize;
         for elt in IteratorExt::by_ref(self) {
             if pred(&elt) {
                 return Some((index, elt))
