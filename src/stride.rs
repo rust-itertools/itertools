@@ -23,7 +23,7 @@ pub struct Stride<'a, A> {
     /// offset where we end (exclusive end).
     end: isize,
     stride: isize,
-    life: marker::ContravariantLifetime<'a>,
+    life: marker::PhantomData<&'a ()>,
 }
 
 impl<'a, A> Copy for Stride<'a, A> {}
@@ -36,7 +36,7 @@ pub struct StrideMut<'a, A> {
     offset: isize,
     end: isize,
     stride: isize,
-    life: marker::ContravariantLifetime<'a>,
+    life: marker::PhantomData<&'a ()>,
 }
 
 impl<'a, A> Stride<'a, A>
@@ -49,7 +49,7 @@ impl<'a, A> Stride<'a, A>
             offset: 0,
             end: stride * nelem as isize,
             stride: stride,
-            life: marker::ContravariantLifetime,
+            life: marker::PhantomData,
         }
     }
 }
@@ -64,7 +64,7 @@ impl<'a, A> StrideMut<'a, A>
             offset: 0,
             end: stride * nelem as isize,
             stride: stride,
-            life: marker::ContravariantLifetime,
+            life: marker::PhantomData,
         }
     }
 }
