@@ -323,3 +323,14 @@ fn trait_pointers() {
 fn merge() {
     assert_iters_equal((0..10).step(2).merge((1..10).step(2)), (0..10));
 }
+
+#[test]
+fn to_string_join() {
+    let many = [1, 2, 3];
+    let one  = [1];
+    let none: Vec<i32> = vec![];
+
+    assert_eq!(many.iter().to_string_join(", "), "1, 2, 3");
+    assert_eq!( one.iter().to_string_join(", "), "1");
+    assert_eq!(none.iter().to_string_join(", "), "");
+}

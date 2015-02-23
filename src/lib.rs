@@ -584,6 +584,53 @@ pub trait Itertools : Iterator {
         }
         count
     }
+
+    /// Combine all iterator elements into one String, seperated by **sep**.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// assert_eq!(["a", "b", "c"].iter().join(", "), "a, b, c");
+    /// ```
+    fn join(&mut self, sep: &str) -> String where
+        Self::Item: Str,
+    {
+        // estimate capacity
+        match self.next() {
+            None => String::new(),
+            Some(first_elt) => {
+                let (lower, _) = self.size_hint();
+                let s = first_elt.as_slice();
+                let mut res = String::with_capacity(s.len() + sep.len() * lower);
+                res.push_str(s);
+
+                for elt in self {
+                    res.push_str(sep);
+                    res.push_str(elt.as_slice());
+                }
+                res
+            }
+        }
+    }
+
+    /// Convert all iterators to String before joining them all together.
+    ///
+    /// Like *.join()*, but converts each element to **String** explicitly first.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// assert_eq!([1, 2, 3].iter().to_string_join(", "), "1, 2, 3");
+    /// ```
+    fn to_string_join(&mut self, sep: &str) -> String where
+        Self::Item: ToString,
+    {
+        self.map(|elt| elt.to_string()).join(sep)
+    }
 }
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }
