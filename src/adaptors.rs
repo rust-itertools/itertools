@@ -579,14 +579,14 @@ impl<K, I: Iterator> Iterator for EnumerateFrom<I, K> where
 }
 
 pub struct MultiPeek<I: Iterator> {
-    iter: I,
+    iter: Fuse<I>,
     buf: Vec<I::Item>,
     index: usize,
 }
 
 impl<I: Iterator> MultiPeek<I> {
     pub fn new(iter: I) -> MultiPeek<I> {
-        MultiPeek{ iter: iter, buf: Vec::new(), index: 0 }
+        MultiPeek{ iter: iter.fuse(), buf: Vec::new(), index: 0 }
     }
 
     pub fn peek(&mut self) -> Option<&<I as Iterator>::Item> {
@@ -598,7 +598,7 @@ impl<I: Iterator> MultiPeek<I> {
                     self.buf.push(x);
                     Some(&self.buf[self.index])
                 }
-                None => None
+                None => return None
             }
         };
 
