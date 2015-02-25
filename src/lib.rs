@@ -42,6 +42,7 @@ pub use adaptors::{
     Step,
     Merge,
     EnumerateFrom,
+    MultiPeek,
 };
 pub use intersperse::Intersperse;
 pub use islice::{ISlice};
@@ -630,6 +631,12 @@ pub trait Itertools : Iterator {
         Self::Item: ToString,
     {
         self.map(|elt| elt.to_string()).join(sep)
+    }
+
+    fn multipeek(self) -> MultiPeek<Self> where
+        Self: Sized
+    {
+        MultiPeek::new(self)
     }
 }
 
