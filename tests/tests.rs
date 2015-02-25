@@ -13,7 +13,6 @@ extern crate test;
 
 use std::fmt::Debug;
 use std::iter::order;
-use std::iter::IntoIterator;
 use itertools::Itertools;
 use itertools::Interleave;
 use itertools::Zip;
