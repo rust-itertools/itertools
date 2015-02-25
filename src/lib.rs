@@ -633,6 +633,23 @@ pub trait Itertools : Iterator {
         self.map(|elt| elt.to_string()).join(sep)
     }
 
+    /// Returns an iterator adapter that allows peeking multiple values.
+    ///
+    /// After a call to *.next()* the peeking cursor gets resetted.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let nums = vec![1u8,2,3,4,5];
+    /// let mut peekable = nums.into_iter().multipeek();
+    /// assert_eq!(peekable.peek(), Some(&1));
+    /// assert_eq!(peekable.peek(), Some(&2));
+    /// assert_eq!(peekable.peek(), Some(&3));
+    /// assert_eq!(peekable.next(), Some(1));
+    /// assert_eq!(peekable.peek(), Some(&2));
+    /// ```
     fn multipeek(self) -> MultiPeek<Self> where
         Self: Sized
     {
