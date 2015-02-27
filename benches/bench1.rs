@@ -6,6 +6,7 @@ use itertools::Stride;
 use itertools::{Zip, ZipTrusted};
 
 use std::iter::repeat;
+use std::marker::PhantomData;
 
 #[bench]
 fn slice_iter(b: &mut test::Bencher)
@@ -44,12 +45,12 @@ fn stride_iter_rev(b: &mut test::Bencher)
 }
 
 #[derive(Copy)]
-struct ZipSlices<'a, T, U>
+struct ZipSlices<'a, T: 'a, U :'a>
 {
     t_ptr: *const T,
     t_end: *const T,
     u_ptr: *const U,
-    mark: ::std::marker::ContravariantLifetime<'a>,
+    mark: PhantomData<&'a (T, U)>,
 }
 
 impl<'a, T, U> ZipSlices<'a, T, U>
@@ -66,7 +67,7 @@ impl<'a, T, U> ZipSlices<'a, T, U>
             t_ptr: t.as_ptr(),
             t_end: end_ptr,
             u_ptr: u.as_ptr(),
-            mark: ::std::marker::ContravariantLifetime,
+            mark: PhantomData,
         }
     }
 }
