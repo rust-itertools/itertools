@@ -13,7 +13,7 @@ use std::marker::PhantomData;
 fn slice_iter(b: &mut test::Bencher)
 {
     let xs: Vec<_> = repeat(1i32).take(20).collect();
-    b.iter(|| for elt in xs.as_slice().iter() {
+    b.iter(|| for elt in xs.iter() {
         test::black_box(elt);
     })
 }
@@ -22,7 +22,7 @@ fn slice_iter(b: &mut test::Bencher)
 fn slice_iter_rev(b: &mut test::Bencher)
 {
     let xs: Vec<_> = repeat(1i32).take(20).collect();
-    b.iter(|| for elt in xs.as_slice().iter().rev() {
+    b.iter(|| for elt in xs.iter().rev() {
         test::black_box(elt);
     })
 }
@@ -31,7 +31,7 @@ fn slice_iter_rev(b: &mut test::Bencher)
 fn stride_iter(b: &mut test::Bencher)
 {
     let xs: Vec<_> = repeat(1i32).take(20).collect();
-    b.iter(|| for elt in Stride::from_slice(xs.as_slice(), 1) {
+    b.iter(|| for elt in Stride::from_slice(&xs, 1) {
         test::black_box(elt);
     })
 }
@@ -40,7 +40,7 @@ fn stride_iter(b: &mut test::Bencher)
 fn stride_iter_rev(b: &mut test::Bencher)
 {
     let xs: Vec<_> = repeat(1i32).take(20).collect();
-    b.iter(|| for elt in Stride::from_slice(xs.as_slice(), 1).rev() {
+    b.iter(|| for elt in Stride::from_slice(&xs, 1).rev() {
         test::black_box(elt);
     })
 }
