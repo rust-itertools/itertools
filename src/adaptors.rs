@@ -625,3 +625,13 @@ impl<I: Iterator> Iterator for MultiPeek<I> {
 
     fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
 }
+
+impl<I: Iterator> Clone for MultiPeek<I> where
+    I: Clone,
+    I::Item: Clone
+{
+    fn clone(&self) -> Self
+    {
+        clone_fields!(MultiPeek, self, iter, buf, index)
+    }
+}
