@@ -578,6 +578,7 @@ impl<K, I: Iterator> Iterator for EnumerateFrom<I, K> where
     }
 }
 
+/// An Iterator adaptor that allows the user to peek at multiple *.next()* values without advancing itself.
 pub struct MultiPeek<I: Iterator> {
     iter: Fuse<I>,
     buf: Vec<I::Item>,
@@ -585,10 +586,13 @@ pub struct MultiPeek<I: Iterator> {
 }
 
 impl<I: Iterator> MultiPeek<I> {
+    /// Create a **MultiPeek** iterator.
     pub fn new(iter: I) -> MultiPeek<I> {
         MultiPeek{ iter: iter.fuse(), buf: Vec::new(), index: 0 }
     }
 
+    /// Works exactly like *.next()* with the only difference that it doesn't advance itself.
+    /// *.peek()* kann be called multiple times, behaving exactly like *.next()*.
     pub fn peek(&mut self) -> Option<&<I as Iterator>::Item> {
         let ret = if self.index < self.buf.len() {
             Some(&self.buf[self.index])
