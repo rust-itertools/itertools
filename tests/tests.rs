@@ -227,8 +227,9 @@ fn put_back() {
     let xs = [0, 1, 1, 1, 2, 1, 3, 3];
     let mut pb = it::PutBack::new(xs.iter().cloned());
     pb.next();
-    pb.put_back(1);
+    pb.next();
     pb.put_back(0);
+    pb.put_back(1);
     assert_iters_equal(pb, xs.iter().cloned());
 }
 
