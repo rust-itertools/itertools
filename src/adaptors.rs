@@ -112,13 +112,13 @@ impl<B, I> Clone for FnMap<B, I> where
     }
 }
 
-/// An iterator adaptor that allows putting back a single
-/// item to the front of the iterator.
+/// An iterator adaptor that allows putting back multiple
+/// items to the front of the iterator.
 ///
 /// Iterator element type is **I::Item**.
 pub struct PutBack<I: Iterator>
 {
-    top: Option<I::Item>,
+    top: Vec<I::Item>,
     iter: I
 }
 
@@ -128,16 +128,27 @@ impl<I: Iterator> PutBack<I>
     #[inline]
     pub fn new(it: I) -> Self
     {
-        PutBack{top: None, iter: it}
+        PutBack{top: vec![], iter: it}
     }
 
-    /// Put back a single value to the front of the iterator.
+    /// Put back multiple values to the front of the iterator.
     ///
-    /// If a value is already in the put back slot, it is overwritten.
+    /// The values are yielded in order.
+    ///
+    /// ## Example
+    ///
+    /// ```rust
+    /// let mut it = itertools::PutBack::new(0..5);
+    /// it.next();
+    /// it.next();
+    /// it.put_back(0);
+    /// it.put_back(1);
+    /// assert_eq!(it.collect::<Vec<u8>>(), (0..5).collect::<Vec<u8>>());
+    /// ```
     #[inline]
     pub fn put_back(&mut self, x: I::Item)
     {
-        self.top = Some(x)
+        self.top.push(x);
     }
 }
 
@@ -146,18 +157,16 @@ impl<I: Iterator> Iterator for PutBack<I>
     type Item = I::Item;
     #[inline]
     fn next(&mut self) -> Option<I::Item> {
-        match self.top {
-            None => self.iter.next(),
-            ref mut some => some.take(),
+        if self.top.is_empty() {
+            self.iter.next()
+        } else {
+            Some(self.top.remove(0))
         }
     }
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (lo, hi) = self.iter.size_hint();
-        match self.top {
-            Some(_) => (lo.saturating_add(1), hi.and_then(|x| x.checked_add(1))),
-            None => (lo, hi)
-        }
+        (lo.saturating_add(self.top.len()), hi.and_then(|x| x.checked_add(self.top.len())))
     }
 }
 
