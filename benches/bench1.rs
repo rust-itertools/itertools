@@ -1,3 +1,4 @@
+#![feature(test)]
 extern crate test;
 extern crate itertools;
 
@@ -6,12 +7,13 @@ use itertools::Stride;
 use itertools::{Zip, ZipTrusted};
 
 use std::iter::repeat;
+use std::marker::PhantomData;
 
 #[bench]
 fn slice_iter(b: &mut test::Bencher)
 {
     let xs: Vec<_> = repeat(1i32).take(20).collect();
-    b.iter(|| for elt in xs.as_slice().iter() {
+    b.iter(|| for elt in xs.iter() {
         test::black_box(elt);
     })
 }
@@ -20,7 +22,7 @@ fn slice_iter(b: &mut test::Bencher)
 fn slice_iter_rev(b: &mut test::Bencher)
 {
     let xs: Vec<_> = repeat(1i32).take(20).collect();
-    b.iter(|| for elt in xs.as_slice().iter().rev() {
+    b.iter(|| for elt in xs.iter().rev() {
         test::black_box(elt);
     })
 }
@@ -29,7 +31,7 @@ fn slice_iter_rev(b: &mut test::Bencher)
 fn stride_iter(b: &mut test::Bencher)
 {
     let xs: Vec<_> = repeat(1i32).take(20).collect();
-    b.iter(|| for elt in Stride::from_slice(xs.as_slice(), 1) {
+    b.iter(|| for elt in Stride::from_slice(&xs, 1) {
         test::black_box(elt);
     })
 }
@@ -38,18 +40,18 @@ fn stride_iter(b: &mut test::Bencher)
 fn stride_iter_rev(b: &mut test::Bencher)
 {
     let xs: Vec<_> = repeat(1i32).take(20).collect();
-    b.iter(|| for elt in Stride::from_slice(xs.as_slice(), 1).rev() {
+    b.iter(|| for elt in Stride::from_slice(&xs, 1).rev() {
         test::black_box(elt);
     })
 }
 
 #[derive(Copy)]
-struct ZipSlices<'a, T, U>
+struct ZipSlices<'a, T: 'a, U :'a>
 {
     t_ptr: *const T,
     t_end: *const T,
     u_ptr: *const U,
-    mark: ::std::marker::ContravariantLifetime<'a>,
+    mark: PhantomData<&'a (T, U)>,
 }
 
 impl<'a, T, U> ZipSlices<'a, T, U>
@@ -66,7 +68,7 @@ impl<'a, T, U> ZipSlices<'a, T, U>
             t_ptr: t.as_ptr(),
             t_end: end_ptr,
             u_ptr: u.as_ptr(),
-            mark: ::std::marker::ContravariantLifetime,
+            mark: PhantomData,
         }
     }
 }
