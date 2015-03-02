@@ -334,3 +334,28 @@ fn to_string_join() {
     assert_eq!( one.iter().to_string_join(", "), "1");
     assert_eq!(none.iter().to_string_join(", "), "");
 }
+
+#[test]
+fn multipeek() {
+    let nums = vec![1u8,2,3,4,5];
+
+    let multipeek = nums.iter().map(|&x| x).multipeek();
+    assert_eq!(nums, multipeek.collect());
+
+    let mut multipeek = nums.iter().map(|&x| x).multipeek();
+    assert_eq!(multipeek.peek(), Some(&1));
+    assert_eq!(multipeek.next(), Some(1));
+    assert_eq!(multipeek.peek(), Some(&2));
+    assert_eq!(multipeek.peek(), Some(&3));
+    assert_eq!(multipeek.next(), Some(2));
+    assert_eq!(multipeek.peek(), Some(&3));
+    assert_eq!(multipeek.peek(), Some(&4));
+    assert_eq!(multipeek.peek(), Some(&5));
+    assert_eq!(multipeek.peek(), None);
+    assert_eq!(multipeek.next(), Some(3));
+    assert_eq!(multipeek.next(), Some(4));
+    assert_eq!(multipeek.next(), Some(5));
+    assert_eq!(multipeek.next(), None);
+    assert_eq!(multipeek.peek(), None);
+
+}

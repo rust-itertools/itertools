@@ -577,3 +577,61 @@ impl<K, I: Iterator> Iterator for EnumerateFrom<I, K> where
         }
     }
 }
+
+/// An Iterator adaptor that allows the user to peek at multiple *.next()* values without advancing itself.
+pub struct MultiPeek<I: Iterator> {
+    iter: Fuse<I>,
+    buf: Vec<I::Item>,
+    index: usize,
+}
+
+impl<I: Iterator> MultiPeek<I> {
+    /// Create a **MultiPeek** iterator.
+    pub fn new(iter: I) -> MultiPeek<I> {
+        MultiPeek{ iter: iter.fuse(), buf: Vec::new(), index: 0 }
+    }
+
+    /// Works exactly like *.next()* with the only difference that it doesn't advance itself.
+    /// *.peek()* kann be called multiple times, behaving exactly like *.next()*.
+    pub fn peek(&mut self) -> Option<&<I as Iterator>::Item> {
+        let ret = if self.index < self.buf.len() {
+            Some(&self.buf[self.index])
+        } else {
+            match self.iter.next() {
+                Some(x) => {
+                    self.buf.push(x);
+                    Some(&self.buf[self.index])
+                }
+                None => return None
+            }
+        };
+
+        self.index += 1;
+        ret
+    }
+}
+
+impl<I: Iterator> Iterator for MultiPeek<I> {
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<<I as Iterator>::Item> {
+        self.index = 0;
+        if self.buf.is_empty() {
+            self.iter.next()
+        } else {
+            Some(self.buf.remove(0))
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
+}
+
+impl<I: Iterator> Clone for MultiPeek<I> where
+    I: Clone,
+    I::Item: Clone
+{
+    fn clone(&self) -> Self
+    {
+        clone_fields!(MultiPeek, self, iter, buf, index)
+    }
+}
