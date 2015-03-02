@@ -515,10 +515,10 @@ pub trait Itertools : Iterator {
     ///
     /// ## Example
     ///
-    /// ```rust
+    /// ```
     /// use itertools::Itertools;
     ///
-    /// let mut cnt = 0us;
+    /// let mut cnt = 0;
     /// "hi".chars().map(|c| cnt += 1).drain();
     /// ```
     ///
