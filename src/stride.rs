@@ -27,6 +27,8 @@ pub struct Stride<'a, A: 'a> {
 }
 
 impl<'a, A> Copy for Stride<'a, A> {}
+unsafe impl<'a, A: Send> marker::Send for Stride<'a, A> {}
+unsafe impl<'a, A: Sync> marker::Sync for Stride<'a, A> {}
 
 /// StrideMut is like Stride, but with mutable elements.
 ///
@@ -36,8 +38,11 @@ pub struct StrideMut<'a, A: 'a> {
     offset: isize,
     end: isize,
     stride: isize,
-    life: marker::PhantomData<&'a A>,
+    life: marker::PhantomData<&'a mut A>,
 }
+
+unsafe impl<'a, A: Send> marker::Send for StrideMut<'a, A> {}
+unsafe impl<'a, A: Sync> marker::Sync for StrideMut<'a, A> {}
 
 impl<'a, A> Stride<'a, A>
 {
