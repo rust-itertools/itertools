@@ -22,10 +22,9 @@ impl<T, U> ZipLongest<T, U>
     }
 }
 
-impl<A, B, T, U> Iterator for ZipLongest<T, U>
-    where
-        T: Iterator<Item=A>,
-        U: Iterator<Item=B>,
+impl<A, B, T, U> Iterator for ZipLongest<T, U> where
+    T: Iterator<Item=A>,
+    U: Iterator<Item=B>,
 {
     type Item = EitherOrBoth<A, B>;
     #[inline]
@@ -54,10 +53,9 @@ impl<A, B, T, U> Iterator for ZipLongest<T, U>
     }
 }
 
-impl<A, B, T, U> DoubleEndedIterator for ZipLongest<T, U>
-    where
-        T: DoubleEndedIterator<Item=A> + ExactSizeIterator,
-        U: DoubleEndedIterator<Item=B> + ExactSizeIterator,
+impl<A, B, T, U> DoubleEndedIterator for ZipLongest<T, U> where
+    T: DoubleEndedIterator<Item=A> + ExactSizeIterator,
+    U: DoubleEndedIterator<Item=B> + ExactSizeIterator,
 {
     #[inline]
     fn next_back(&mut self) -> Option<EitherOrBoth<A, B>> {
@@ -76,10 +74,9 @@ impl<A, B, T, U> DoubleEndedIterator for ZipLongest<T, U>
     }
 }
 
-impl<A, B, T, U> RandomAccessIterator for ZipLongest<T, U>
-    where
-        T: RandomAccessIterator<Item=A>,
-        U: RandomAccessIterator<Item=B>,
+impl<A, B, T, U> RandomAccessIterator for ZipLongest<T, U> where
+    T: RandomAccessIterator<Item=A>,
+    U: RandomAccessIterator<Item=B>,
 {
     #[inline]
     fn indexable(&self) -> usize {
@@ -97,8 +94,10 @@ impl<A, B, T, U> RandomAccessIterator for ZipLongest<T, U>
     }
 }
 
-impl<T, U> ExactSizeIterator for ZipLongest<T, U>
-    where T: ExactSizeIterator, U: ExactSizeIterator {}
+impl<T, U> ExactSizeIterator for ZipLongest<T, U> where
+    T: ExactSizeIterator,
+    U: ExactSizeIterator,
+{}
 
 
 /// A value yielded by `ZipLongest`.

@@ -39,8 +39,9 @@ impl<I, J> Interleave<I, J> {
     }
 }
 
-impl<I: Iterator, J> Iterator for Interleave<I, J> where
-    J: Iterator<Item=I::Item>
+impl<I, J> Iterator for Interleave<I, J> where
+    I: Iterator,
+    J: Iterator<Item=I::Item>,
 {
     type Item = I::Item;
     #[inline]
@@ -66,13 +67,15 @@ impl<I: Iterator, J> Iterator for Interleave<I, J> where
 /// Created with `.fn_map(..)` on an iterator
 ///
 /// Iterator element type is `B`
-pub struct FnMap<B, I: Iterator>
+pub struct FnMap<B, I> where
+    I: Iterator,
 {
     map: fn(I::Item) -> B,
     iter: I,
 }
 
-impl<B, I: Iterator> FnMap<B, I>
+impl<B, I> FnMap<B, I> where
+    I: Iterator
 {
     pub fn new(iter: I, map: fn(I::Item) -> B) -> Self
     {
@@ -80,7 +83,8 @@ impl<B, I: Iterator> FnMap<B, I>
     }
 }
 
-impl<B, I: Iterator> Iterator for FnMap<B, I>
+impl<B, I> Iterator for FnMap<B, I> where
+    I: Iterator,
 {
     type Item = B;
     #[inline]
@@ -116,13 +120,15 @@ impl<B, I> Clone for FnMap<B, I> where
 /// item to the front of the iterator.
 ///
 /// Iterator element type is **I::Item**.
-pub struct PutBack<I: Iterator>
+pub struct PutBack<I> where
+    I: Iterator,
 {
     top: Option<I::Item>,
     iter: I
 }
 
-impl<I: Iterator> PutBack<I>
+impl<I> PutBack<I>
+    where I: Iterator,
 {
     /// Iterator element type is `A`
     #[inline]
@@ -141,7 +147,8 @@ impl<I: Iterator> PutBack<I>
     }
 }
 
-impl<I: Iterator> Iterator for PutBack<I>
+impl<I> Iterator for PutBack<I> where
+    I: Iterator,
 {
     type Item = I::Item;
     #[inline]
@@ -161,8 +168,8 @@ impl<I: Iterator> Iterator for PutBack<I>
     }
 }
 
-impl<I: Iterator> Clone for PutBack<I> where
-    I: Clone,
+impl<I> Clone for PutBack<I> where
+    I: Iterator + Clone,
     I::Item: Clone
 {
     fn clone(&self) -> Self
@@ -176,14 +183,18 @@ impl<I: Iterator> Clone for PutBack<I> where
 /// the element sets of two iterators **I** and **J**.
 ///
 /// Iterator element type is **(I::Item, J::Item)**.
-pub struct Product<I: Iterator, J> {
+pub struct Product<I, J> where
+    I: Iterator,
+{
     a: I,
     a_cur: Option<I::Item>,
     b: J,
     b_orig: J,
 }
 
-impl<I: Iterator + Clone, J: Clone> Clone for Product<I, J> where
+impl<I, J> Clone for Product<I, J> where
+    I: Iterator + Clone,
+    J: Clone,
     I::Item: Clone,
 {
     fn clone(&self) -> Self
@@ -192,7 +203,9 @@ impl<I: Iterator + Clone, J: Clone> Clone for Product<I, J> where
     }
 }
 
-impl<I: Iterator, J: Clone + Iterator> Product<I, J> where
+impl<I, J> Product<I, J> where
+    I: Iterator,
+    J: Clone + Iterator,
     I::Item: Clone,
 {
     /// Create a new cartesian product iterator
@@ -206,7 +219,9 @@ impl<I: Iterator, J: Clone + Iterator> Product<I, J> where
 }
 
 
-impl<I: Iterator, J: Clone + Iterator> Iterator for Product<I, J> where
+impl<I, J> Iterator for Product<I, J> where
+    I: Iterator,
+    J: Clone + Iterator,
     I::Item: Clone,
 {
     type Item = (I::Item, J::Item);
@@ -253,13 +268,15 @@ impl<I: Iterator, J: Clone + Iterator> Iterator for Product<I, J> where
 /// If the iterator is sorted, all elements will be unique.
 ///
 /// Iterator element type is **I::Item**.
-pub struct Dedup<I: Iterator>
+pub struct Dedup<I> where
+    I: Iterator,
 {
     last: Option<I::Item>,
     iter: I,
 }
 
-impl<I: Iterator + Clone> Clone for Dedup<I> where
+impl<I> Clone for Dedup<I> where
+    I: Iterator + Clone,
     I::Item: Clone,
 {
     fn clone(&self) -> Self
@@ -280,7 +297,8 @@ impl<I> Dedup<I> where I: Iterator
     }
 }
 
-impl<I: Iterator> Iterator for Dedup<I> where
+impl<I> Iterator for Dedup<I> where
+    I: Iterator,
     I::Item: PartialEq
 {
     type Item = I::Item;
@@ -359,14 +377,19 @@ impl<B, F, I> Iterator for Batching<I, F> where
 /// are returned as the iterator elements of `GroupBy`.
 ///
 /// Iterator element type is **(K, Vec\<A\>)**
-pub struct GroupBy<K, I: Iterator, F> {
+pub struct GroupBy<K, I, F> where
+    I: Iterator,
+{
     key: F,
     iter: I,
     current_key: Option<K>,
     elts: Vec<I::Item>,
 }
 
-impl<K: Clone, I: Clone  + Iterator, F: Clone> Clone for GroupBy<K, I, F> where
+impl<K, I, F> Clone for GroupBy<K, I, F> where
+    K: Clone,
+    F: Clone,
+    I: Clone + Iterator,
     I::Item: Clone,
 {
     fn clone(&self) -> Self
@@ -385,8 +408,10 @@ impl<K, F, I> GroupBy<K, I, F> where
     }
 }
 
-impl<K: PartialEq, I: Iterator, F: FnMut(&I::Item) -> K>
-    Iterator for GroupBy<K, I, F>
+impl<K, I, F> Iterator for GroupBy<K, I, F> where
+    K: PartialEq,
+    I: Iterator,
+    F: FnMut(&I::Item) -> K,
 {
     type Item = (K, Vec<I::Item>);
     fn next(&mut self) -> Option<(K, Vec<I::Item>)>
@@ -453,9 +478,9 @@ impl<I> Step<I>
 impl<I> Iterator for Step<I>
     where I: Iterator
 {
-    type Item = <I as Iterator>::Item;
+    type Item = I::Item;
     #[inline]
-    fn next(&mut self) -> Option<<I as Iterator>::Item>
+    fn next(&mut self) -> Option<I::Item>
     {
         let elt = self.iter.next();
         self.iter.dropn(self.skip);
@@ -480,14 +505,16 @@ impl<I> Iterator for Step<I>
 /// If both base iterators are sorted (ascending), the result is sorted.
 ///
 /// Iterator element type is **I::Item**.
-pub struct Merge<I: Iterator, J> where
+pub struct Merge<I, J> where
+    I: Iterator,
     J: Iterator<Item=I::Item>,
 {
     a: Peekable<I>,
     b: Peekable<J>,
 }
 
-impl<I: Iterator, J> Clone for Merge<I, J> where
+impl<I, J> Clone for Merge<I, J> where
+    I: Iterator,
     J: Iterator<Item=I::Item>,
     Peekable<I>: Clone,
     Peekable<J>: Clone,
@@ -498,7 +525,8 @@ impl<I: Iterator, J> Clone for Merge<I, J> where
     }
 }
 
-impl<I: Iterator, J> Merge<I, J> where
+impl<I, J> Merge<I, J> where
+    I: Iterator,
     J: Iterator<Item=I::Item>,
 {
     /// Create a **Merge** iterator.
@@ -511,7 +539,8 @@ impl<I: Iterator, J> Merge<I, J> where
     }
 }
 
-impl<I: Iterator, J> Iterator for Merge<I, J> where
+impl<I, J> Iterator for Merge<I, J> where
+    I: Iterator,
     I::Item: PartialOrd,
     J: Iterator<Item=I::Item>,
 {
@@ -559,8 +588,9 @@ impl<K, I> EnumerateFrom<I, K> where
     }
 }
 
-impl<K, I: Iterator> Iterator for EnumerateFrom<I, K> where
+impl<K, I> Iterator for EnumerateFrom<I, K> where
     K: Int,
+    I: Iterator,
 {
     type Item = (K, I::Item);
     fn next(&mut self) -> Option<(K, I::Item)>
@@ -571,7 +601,7 @@ impl<K, I: Iterator> Iterator for EnumerateFrom<I, K> where
                 let index = self.index.clone();
                 // FIXME: Arithmetic needs to be wrapping here to be sane,
                 // imagine i8 counter to enumerate a sequence 0 to 127 inclusive.
-                self.index = self.index + <K as Int>::one();
+                self.index = self.index + K::one();
                 Some((index, elt))
             }
         }
@@ -579,7 +609,9 @@ impl<K, I: Iterator> Iterator for EnumerateFrom<I, K> where
 }
 
 /// An Iterator adaptor that allows the user to peek at multiple *.next()* values without advancing itself.
-pub struct MultiPeek<I: Iterator> {
+pub struct MultiPeek<I> where
+    I: Iterator,
+{
     iter: Fuse<I>,
     buf: Vec<I::Item>,
     index: usize,
@@ -593,7 +625,7 @@ impl<I: Iterator> MultiPeek<I> {
 
     /// Works exactly like *.next()* with the only difference that it doesn't advance itself.
     /// *.peek()* kann be called multiple times, behaving exactly like *.next()*.
-    pub fn peek(&mut self) -> Option<&<I as Iterator>::Item> {
+    pub fn peek(&mut self) -> Option<&I::Item> {
         let ret = if self.index < self.buf.len() {
             Some(&self.buf[self.index])
         } else {
@@ -611,10 +643,12 @@ impl<I: Iterator> MultiPeek<I> {
     }
 }
 
-impl<I: Iterator> Iterator for MultiPeek<I> {
+impl<I> Iterator for MultiPeek<I> where
+    I: Iterator,
+{
     type Item = I::Item;
 
-    fn next(&mut self) -> Option<<I as Iterator>::Item> {
+    fn next(&mut self) -> Option<I::Item> {
         self.index = 0;
         if self.buf.is_empty() {
             self.iter.next()
@@ -626,8 +660,8 @@ impl<I: Iterator> Iterator for MultiPeek<I> {
     fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
 }
 
-impl<I: Iterator> Clone for MultiPeek<I> where
-    I: Clone,
+impl<I> Clone for MultiPeek<I> where
+    I: Iterator + Clone,
     I::Item: Clone
 {
     fn clone(&self) -> Self

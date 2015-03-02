@@ -41,9 +41,9 @@ impl<I> ISlice<I>
 impl<I> Iterator for ISlice<I>
     where I: Iterator
 {
-    type Item = <I as Iterator>::Item;
+    type Item = I::Item;
 
-    fn next(&mut self) -> Option<<I as Iterator>::Item>
+    fn next(&mut self) -> Option<I::Item>
     {
         if self.start != 0 {
             let st = self.start;

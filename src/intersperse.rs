@@ -17,20 +17,23 @@ macro_rules! clone_fields {
 /// between each element of the adapted iterator.
 ///
 /// Iterator element type is **I::Item**
-pub struct Intersperse<I: Iterator> {
+pub struct Intersperse<I> where
+    I: Iterator,
+{
     element: I::Item,
     iter: I,
     peek: Option<I::Item>,
 }
 
-impl<I: Iterator> Clone for Intersperse<I> where
-    I: Clone,
+impl<I> Clone for Intersperse<I> where
+    I: Iterator + Clone,
     I::Item: Clone,
 {
     clone_fields!(Intersperse, element, iter, peek);
 }
 
-impl<I: Iterator> Intersperse<I>
+impl<I> Intersperse<I> where
+    I: Iterator,
 {
     /// Create a new Intersperse iterator
     pub fn new(mut iter: I, elt: I::Item) -> Self
@@ -39,7 +42,8 @@ impl<I: Iterator> Intersperse<I>
     }
 }
 
-impl<I: Iterator> Iterator for Intersperse<I> where
+impl<I> Iterator for Intersperse<I> where
+    I: Iterator,
     I::Item: Clone,
 {
     type Item = I::Item;

@@ -19,10 +19,10 @@ use itertools::Zip;
 
 use itertools as it;
 
-fn assert_iters_equal<
+fn assert_iters_equal<A, I, J>(mut it: I, mut jt: J) where
     A: PartialEq + Debug,
     I: Iterator<Item=A>,
-    J: Iterator<Item=A>>(mut it: I, mut jt: J)
+    J: Iterator<Item=A>,
 {
     loop {
         let elti = it.next();
