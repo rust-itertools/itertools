@@ -27,8 +27,8 @@ pub struct Stride<'a, A: 'a> {
 }
 
 impl<'a, A> Copy for Stride<'a, A> {}
-unsafe impl<'a, A: Send> marker::Send for Stride<'a, A> {}
-unsafe impl<'a, A: Sync> marker::Sync for Stride<'a, A> {}
+unsafe impl<'a, A> Send for Stride<'a, A> where A: Send {}
+unsafe impl<'a, A> Sync for Stride<'a, A> where A: Sync {}
 
 /// StrideMut is like Stride, but with mutable elements.
 ///
@@ -41,8 +41,8 @@ pub struct StrideMut<'a, A: 'a> {
     life: marker::PhantomData<&'a mut A>,
 }
 
-unsafe impl<'a, A: Send> marker::Send for StrideMut<'a, A> {}
-unsafe impl<'a, A: Sync> marker::Sync for StrideMut<'a, A> {}
+unsafe impl<'a, A> Send for StrideMut<'a, A> where A: Send {}
+unsafe impl<'a, A> Sync for StrideMut<'a, A> where A: Sync {}
 
 impl<'a, A> Stride<'a, A>
 {
@@ -229,7 +229,8 @@ macro_rules! stride_impl {
             }
         }
 
-        impl<'a, A: fmt::Debug> fmt::Debug for $name<'a, A>
+        impl<'a, A> fmt::Debug for $name<'a, A>
+            where A: fmt::Debug
         {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
             {

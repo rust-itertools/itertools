@@ -194,7 +194,8 @@ pub trait Itertools : Iterator {
     /// are run out
     ///
     /// Iterator element type is **Item**.
-    fn interleave<J: Iterator<Item=Self::Item>>(self, other: J) -> Interleave<Self, J> where
+    fn interleave<J>(self, other: J) -> Interleave<Self, J> where
+        J: Iterator<Item=Self::Item>,
         Self: Sized
     {
         Interleave::new(self, other)
@@ -229,7 +230,8 @@ pub trait Itertools : Iterator {
     ///
     /// Iterator element type is **EitherOrBoth\<Item, B\>**.
     #[inline]
-    fn zip_longest<U: Iterator>(self, other: U) -> ZipLongest<Self, U> where
+    fn zip_longest<U>(self, other: U) -> ZipLongest<Self, U> where
+        U: Iterator,
         Self: Sized,
     {
         ZipLongest::new(self, other)
@@ -326,7 +328,8 @@ pub trait Itertools : Iterator {
     /// let mut it = repeat('a').slice(..3);
     /// assert_eq!(it.count(), 3);
     /// ```
-    fn slice<R: misc::GenericRange>(self, range: R) -> ISlice<Self> where
+    fn slice<R>(self, range: R) -> ISlice<Self> where
+        R: misc::GenericRange,
         Self: Sized,
     {
         ISlice::new(self, range)
@@ -666,8 +669,9 @@ impl<T: ?Sized> Itertools for T where T: Iterator { }
 ///
 /// Return the number of elements written.
 #[inline]
-pub fn write<'a, A: 'a, I: Iterator<Item=&'a mut A>, J: Iterator<Item=A>>
-    (mut to: I, from: J) -> usize
+pub fn write<'a, A: 'a, I, J>(mut to: I, from: J) -> usize where
+    I: Iterator<Item=&'a mut A>,
+    J: Iterator<Item=A>
 {
     let mut count = 0;
     for elt in from {

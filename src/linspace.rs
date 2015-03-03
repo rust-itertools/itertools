@@ -19,7 +19,8 @@ pub type Linspace<F> = iter::Take<iter::Counter<F>>;
 ///            vec![0., 0.25, 0.5, 0.75, 1.0]);
 /// ```
 #[inline]
-pub fn linspace<F: Float>(a: F, b: F, n: usize) -> Linspace<F>
+pub fn linspace<F>(a: F, b: F, n: usize) -> Linspace<F> where
+    F: Float,
 {
     let nf: F = NumCast::from(n).unwrap();
     let step = (b - a)/(nf - Float::one());

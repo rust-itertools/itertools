@@ -49,10 +49,10 @@ macro_rules! impl_zip_iter {
                 $B: Iterator,
             )*
         {
-            type Item = ($(<$B as Iterator>::Item,)*);
+            type Item = ($($B::Item,)*);
 
             fn next(&mut self) -> Option<
-                    ($(<$B as Iterator>::Item,)*)
+                    ($($B::Item,)*)
                 >
             {
                 let &mut Zip { t : ($(ref mut $B,)*)} = self;
@@ -207,7 +207,7 @@ macro_rules! impl_zip_trusted {
                 $B: TrustedIterator,
             )*
         {
-            type Item = ($(<$B as Iterator>::Item,)*);
+            type Item = ($($B::Item,)*);
 
             fn next(&mut self) -> Option<<Self as Iterator>::Item>
             {

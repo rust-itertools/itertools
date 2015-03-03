@@ -24,7 +24,8 @@ impl<I> Clone for RcIter<I>
     }
 }
 
-impl<A, I: Iterator<Item=A>> Iterator for RcIter<I>
+impl<A, I> Iterator for RcIter<I> where
+    I: Iterator<Item=A>,
 {
     type Item = A;
     #[inline]
@@ -39,13 +40,16 @@ impl<A, I: Iterator<Item=A>> Iterator for RcIter<I>
     }
 }
 
-impl<I: DoubleEndedIterator> DoubleEndedIterator for RcIter<I>
+impl<I> DoubleEndedIterator for RcIter<I> where
+    I: DoubleEndedIterator,
 {
     #[inline]
-    fn next_back(&mut self) -> Option< <I as Iterator>::Item>
+    fn next_back(&mut self) -> Option<I::Item>
     {
         self.rciter.borrow_mut().next_back()
     }
 }
 
-impl<I: ExactSizeIterator> ExactSizeIterator for RcIter<I> {}
+impl<I> ExactSizeIterator for RcIter<I> where
+    I: ExactSizeIterator
+{}
