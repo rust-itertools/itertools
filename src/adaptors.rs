@@ -573,6 +573,8 @@ impl<I, J> Iterator for Merge<I, J> where
     }
 }
 
+/// An iterator adaptor that enumerates the iterator elements,
+/// with a custom starting value and integer type.
 pub struct EnumerateFrom<I, K>
 {
     index: K,
