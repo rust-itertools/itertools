@@ -31,6 +31,8 @@
 //!
 //!
 
+use std::fmt::Write;
+
 pub use adaptors::{
     Interleave,
     Product,
@@ -108,7 +110,7 @@ macro_rules! iproduct {
 }
 
 #[macro_export]
-/// **Note: This macro is deprecated, use *Zip::new* instead.**
+/// **Deprecated: use *Zip::new* instead.**
 ///
 /// Create an iterator running multiple iterators in lockstep.
 ///
@@ -513,7 +515,7 @@ pub trait Itertools : Iterator {
         self
     }
 
-    /// **Deprecated:** because of a name clash, use .count() or .foreach() instead as appropriate.
+    /// **Deprecated: because of a name clash, use .count() or .foreach() instead as appropriate.**
     ///
     /// Run the iterator, eagerly, to the end and consume all its elements.
     ///
@@ -532,11 +534,11 @@ pub trait Itertools : Iterator {
         for _ in self.by_ref() { /* nothing */ }
     }
 
+    /// **Deprecated: Use *.foreach()* instead.**
+    ///
     /// Run the closure **f** eagerly on each element of the iterator.
     ///
     /// Consumes the iterator until its end.
-    ///
-    /// **Note: This method is deprecated, use *.foreach()* instead.**
     fn apply<F: FnMut(Self::Item)>(&mut self, f: F) where
         Self: Sized
     {
@@ -589,37 +591,9 @@ pub trait Itertools : Iterator {
         count
     }
 
-    /// Combine all iterator elements into one String, seperated by **sep**.
+    /// **Deprecated: Use *.join()* instead, it's more efficient.**.
     ///
-    /// ## Example
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// assert_eq!(["a", "b", "c"].iter().join(", "), "a, b, c");
-    /// ```
-    fn join(&mut self, sep: &str) -> String where
-        Self::Item: Str,
-    {
-        // estimate capacity
-        match self.next() {
-            None => String::new(),
-            Some(first_elt) => {
-                let (lower, _) = self.size_hint();
-                let s = first_elt.as_slice();
-                let mut res = String::with_capacity(s.len() + sep.len() * lower);
-                res.push_str(s);
-
-                for elt in self {
-                    res.push_str(sep);
-                    res.push_str(elt.as_slice());
-                }
-                res
-            }
-        }
-    }
-
-    /// Convert all iterators to String before joining them all together.
+    /// Convert each element to String before joining them all together.
     ///
     /// Like *.join()*, but converts each element to **String** explicitly first.
     ///
@@ -634,6 +608,37 @@ pub trait Itertools : Iterator {
         Self::Item: ToString,
     {
         self.map(|elt| elt.to_string()).join(sep)
+    }
+
+    /// Combine all iterator elements into one String, seperated by **sep**.
+    ///
+    /// Use the **Display** implementation of each element.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// assert_eq!(["a", "b", "c"].iter().join(", "), "a, b, c");
+    /// assert_eq!([1, 2, 3].iter().join(", "), "1, 2, 3");
+    /// ```
+    fn join(&mut self, sep: &str) -> String where
+        Self::Item: std::fmt::Display,
+    {
+        match self.next() {
+            None => String::new(),
+            Some(first_elt) => {
+                // estimate lower bound of capacity needed
+                let (lower, _) = self.size_hint();
+                let mut result = String::with_capacity(sep.len() * lower);
+                write!(&mut result, "{}", first_elt).unwrap();
+                for elt in self {
+                    result.push_str(sep);
+                    write!(&mut result, "{}", elt).unwrap();
+                }
+                result
+            }
+        }
     }
 
     /// Returns an iterator adapter that allows peeking multiple values.
