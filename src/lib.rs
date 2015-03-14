@@ -57,6 +57,7 @@ pub use times::times;
 pub use linspace::{linspace, Linspace};
 pub use zip::{ZipLongest, EitherOrBoth};
 pub use ziptuple::{Zip, ZipTrusted, TrustedIterator};
+pub use inplacemut::{Combine, CombineError, InplaceMappable};
 mod adaptors;
 mod intersperse;
 mod islice;
@@ -68,6 +69,7 @@ mod tee;
 mod times;
 mod zip;
 mod ziptuple;
+mod inplacemut;
 
 #[macro_export]
 /// Create an iterator over the “cartesian product” of iterators.
