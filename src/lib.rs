@@ -645,8 +645,8 @@ pub trait Itertools : Iterator {
     /// let mut it = (0..5).feedable();
     /// it.next();
     /// it.next();
-    /// it.feed(0);
     /// it.feed(1);
+    /// it.feed(0);
     ///
     /// assert_eq!(it.collect::<Vec<u8>>(), (0..5).collect::<Vec<u8>>());
     /// ```

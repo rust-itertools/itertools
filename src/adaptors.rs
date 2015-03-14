@@ -207,7 +207,7 @@ impl<I: Iterator> Iterator for Feed<I>
         if self.top.is_empty() {
             self.iter.next()
         } else {
-            Some(self.top.remove(0))
+            self.top.pop()
         }
     }
     #[inline]

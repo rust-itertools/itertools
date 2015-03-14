@@ -238,8 +238,8 @@ fn feed() {
     let mut feed = xs.iter().cloned().feedable();
     feed.next();
     feed.next();
-    feed.feed(0);
     feed.feed(1);
+    feed.feed(0);
     assert_iters_equal(feed, xs.iter().cloned());
 }
 
