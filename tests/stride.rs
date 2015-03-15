@@ -165,7 +165,7 @@ fn stride_index() {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn stride_index_fail() {
     let xs = &[7, 9, 8, 10];
     let it = Stride::from_slice(xs, 2);
