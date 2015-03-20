@@ -36,7 +36,7 @@ fn assert_iters_equal<A, I, J>(mut it: I, mut jt: J) where
 fn product2() {
     let s = "αβ";
 
-    let mut prod = iproduct!(s.chars(), range(0, 2));
+    let mut prod = iproduct!(s.chars(), 0..2);
     assert!(prod.next() == Some(('α', 0)));
     assert!(prod.next() == Some(('α', 1)));
     assert!(prod.next() == Some(('β', 0)));
@@ -46,35 +46,35 @@ fn product2() {
 
 #[test]
 fn product3() {
-    let prod = iproduct!(range(0, 3), range(0, 2), range(0, 2));
+    let prod = iproduct!(0..3, 0..2, 0..2);
     assert_eq!(prod.size_hint(), (12, Some(12)));
     let v = prod.collect_vec();
-    for i in range(0,3) {
-        for j in range(0, 2) {
-            for k in range(0, 2) {
+    for i in 0..3 {
+        for j in 0..2 {
+            for k in 0..2 {
                 assert!((i, j, k) == v[(i * 2 * 2 + j * 2 + k) as usize]);
             }
         }
     }
-    for (_, _, _, _) in iproduct!(range(0, 3), range(0, 2), range(0, 2), range(0, 3)) {
+    for (_, _, _, _) in iproduct!(0..3, 0..2, 0..2, 0..3) {
         /* test compiles */
     }
 }
 
 #[test]
 fn izip3() {
-    let mut zip = Zip::new((range(0, 3), range(0, 2), range(0, 2i8)));
-    for i in range(0, 2) {
+    let mut zip = Zip::new((0..3, 0..2, 0..2i8));
+    for i in 0..2 {
         assert!((i as usize, i, i as i8) == zip.next().unwrap());
     }
     assert!(zip.next().is_none());
 
     
     let xs: [isize; 0] = [];
-    let mut zip = Zip::new((range(0, 3), range(0, 2), range(0, 2i8), xs.iter()));
+    let mut zip = Zip::new((0..3, 0..2, 0..2i8, xs.iter()));
     assert!(zip.next().is_none());
 
-    for (_, _, _, _) in Zip::new((range(0, 3), range(0, 2), range(0, 2), range(0, 3))) {
+    for (_, _, _, _) in Zip::new((0..3, 0..2, 0..2, 0..3)) {
         /* test compiles */
     }
 }
@@ -87,7 +87,7 @@ fn write_to() {
     assert!(cnt == xs.len());
     assert!(ys == [7, 9, 8, 0, 0]);
 
-    let cnt = it::write(ys.iter_mut(), range(0,10));
+    let cnt = it::write(ys.iter_mut(), 0..10);
     assert!(cnt == ys.len());
     assert!(ys == [0, 1, 2, 3, 4]);
 }
