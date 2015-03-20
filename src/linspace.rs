@@ -1,11 +1,12 @@
 
+use std::ops::RangeFrom;
 use std::iter;
 use std::num::{Float, NumCast};
 
 /// An iterator of `n` evenly spaced floats.
 ///
 /// Iterator element type is `F`.
-pub type Linspace<F> = iter::Take<iter::Counter<F>>;
+pub type Linspace<F> = iter::Take<iter::StepBy<F, RangeFrom<F>>>;
 
 /// Return an iterator with `n` elements, where the first
 /// element is `a` and the last element is `b`.
@@ -24,5 +25,5 @@ pub fn linspace<F>(a: F, b: F, n: usize) -> Linspace<F> where
 {
     let nf: F = NumCast::from(n).unwrap();
     let step = (b - a)/(nf - Float::one());
-    iter::count(a, step).take(n)
+    (a..).step_by(step).take(n)
 }
