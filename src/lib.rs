@@ -1,4 +1,6 @@
-#![feature(core, std_misc)]
+#![feature(core,
+           step_by,
+           std_misc)]
 #![crate_name="itertools"]
 #![crate_type="dylib"]
 
