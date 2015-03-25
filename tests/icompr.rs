@@ -1,4 +1,5 @@
 #![feature(
+    str_words,
     core,
     )]
 

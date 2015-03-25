@@ -219,11 +219,11 @@ macro_rules! stride_impl {
             /// Return a reference to the element at a given index.
             ///
             /// **Panics** if the index is out of bounds.
-            fn index<'b>(&'b self, i: &usize) -> &'b A
+            fn index<'b>(&'b self, i: usize) -> &'b A
             {
-                assert!(*i < self.len());
+                assert!(i < self.len());
                 unsafe {
-                    let ptr = self.begin.offset(self.offset + self.stride * (*i as isize));
+                    let ptr = self.begin.offset(self.offset + self.stride * (i as isize));
                     mem::transmute(ptr)
                 }
             }
@@ -263,11 +263,11 @@ impl<'a, A> IndexMut<usize> for StrideMut<'a, A>
     /// Return a mutable reference to the element at a given index.
     ///
     /// **Panics** if the index is out of bounds.
-    fn index_mut<'b>(&'b mut self, i: &usize) -> &'b mut A
+    fn index_mut<'b>(&'b mut self, i: usize) -> &'b mut A
     {
-        assert!(*i < self.len());
+        assert!(i < self.len());
         unsafe {
-            let ptr = self.begin.offset(self.offset + self.stride * (*i as isize));
+            let ptr = self.begin.offset(self.offset + self.stride * (i as isize));
             mem::transmute(ptr)
         }
     }
