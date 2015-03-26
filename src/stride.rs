@@ -143,7 +143,7 @@ macro_rules! stride_impl {
                 let len = (it.end - it.offset) / it.stride;
                 let newstride = it.stride * step;
                 let (d, r) = div_rem(len as usize, step as usize);
-                let len = d as usize + if r > 0 { 1 } else { 0 };
+                let len = d + if r > 0 { 1 } else { 0 };
                 unsafe {
                     $name::from_ptr_len(it.begin, len, newstride)
                 }
