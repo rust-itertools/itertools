@@ -5,6 +5,7 @@
 //! except according to those terms.
 
 use std::mem;
+#[cfg(feature = "unstable")]
 use std::num::Int;
 use std::usize;
 use std::iter::{Fuse, Peekable};
@@ -590,6 +591,7 @@ impl<K, I> EnumerateFrom<I, K> where
     }
 }
 
+#[cfg(feature = "unstable")]
 impl<K, I> Iterator for EnumerateFrom<I, K> where
     K: Int,
     I: Iterator,

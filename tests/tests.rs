@@ -4,14 +4,13 @@
 //! option. This file may not be copied, modified, or distributed
 //! except according to those terms.
 
-#![feature(core, test)]
+#![cfg_attr(feature = "unstable", feature(core))]
 
 #[macro_use]
 extern crate itertools;
 
-extern crate test;
-
 use std::fmt::Debug;
+#[cfg(feature = "unstable")]
 use std::iter::order;
 use itertools::Itertools;
 use itertools::Interleave;
@@ -92,6 +91,7 @@ fn write_to() {
     assert!(ys == [0, 1, 2, 3, 4]);
 }
 
+#[cfg(feature = "unstable")]
 #[test]
 fn interleave() {
     let xs: [u8; 0]  = [];
@@ -161,6 +161,7 @@ fn intersperse() {
     assert!(it.next() == None);
 }
 
+#[cfg(feature = "unstable")]
 #[test]
 fn linspace() {
     let mut iter = it::linspace::<f32>(0., 2., 3);

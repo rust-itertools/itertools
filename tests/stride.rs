@@ -1,7 +1,3 @@
-#![feature(
-    core,
-    )]
-
 extern crate itertools;
 
 use itertools::Itertools;

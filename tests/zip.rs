@@ -1,22 +1,22 @@
-#![feature(
-    core,
-    )]
+#![cfg_attr(feature = "unstable", feature(core))]
 
 extern crate itertools;
 
 use std::fmt::Debug;
-use std::iter::count;
+#[cfg(feature = "unstable")]
 use std::iter::RandomAccessIterator;
 use itertools::Itertools;
 use itertools::EitherOrBoth::{Both, Left};
 use itertools::{
     Zip,
-    ZipTrusted,
 };
+#[cfg(feature = "unstable")]
+use itertools::ZipTrusted;
 
+#[cfg(feature = "unstable")]
 #[test]
 fn test_zip_longest_size_hint() {
-    let c = count(0, 1);
+    let c = 0..;
     let v: &[_] = &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     let v2 = &[10, 11, 12];
 
@@ -24,6 +24,8 @@ fn test_zip_longest_size_hint() {
 
     assert_eq!(v.iter().zip_longest(v2.iter()).size_hint(), (10, Some(10)));
 }
+
+#[cfg(feature = "unstable")]
 #[test]
 fn test_double_ended_zip_longest() {
     let xs = [1, 2, 3, 4, 5, 6];
@@ -41,6 +43,7 @@ fn test_double_ended_zip_longest() {
 }
 
 
+#[cfg(feature = "unstable")]
 // This function copied from std::iter in rust-lang/rust
 #[cfg(test)]
 fn check_randacc_iter<A, T>(a: T, len: usize) where
@@ -62,6 +65,8 @@ fn check_randacc_iter<A, T>(a: T, len: usize) where
         check_randacc_iter(b, len-1);
     }
 }
+
+#[cfg(feature = "unstable")]
 #[test]
 fn test_random_access_zip_longest() {
     let xs = [1, 2, 3, 4, 5];
@@ -97,6 +102,7 @@ fn assert_iters_equal<
     }
 }
 
+#[cfg(feature = "unstable")]
 #[test]
 fn ziptrusted_1() {
     let mut xs = [0; 6];

@@ -125,6 +125,7 @@ unsafe impl<I> TrustedIterator for iter::Take<I> where
 { }
 
 
+#[cfg(feature = "unstable")]
 #[derive(Clone)]
 /// Create an iterator running multiple iterators in lockstep.
 ///
@@ -158,10 +159,12 @@ pub struct ZipTrusted<T> {
     t: T
 }
 
+#[cfg(feature = "unstable")]
 trait SetLength {
     fn set_length(&mut self);
 }
 
+#[cfg(feature = "unstable")]
 impl<T> ZipTrusted<T> where ZipTrusted<T>: SetLength
 {
     /// Create a new **ZipTrusted** from a tuple of iterators.
@@ -242,13 +245,22 @@ macro_rules! impl_zip_trusted {
     );
 }
 
+#[cfg(feature = "unstable")]
 impl_zip_trusted!(A);
+#[cfg(feature = "unstable")]
 impl_zip_trusted!(A, B);
+#[cfg(feature = "unstable")]
 impl_zip_trusted!(A, B, C);
+#[cfg(feature = "unstable")]
 impl_zip_trusted!(A, B, C, D);
+#[cfg(feature = "unstable")]
 impl_zip_trusted!(A, B, C, D, E);
+#[cfg(feature = "unstable")]
 impl_zip_trusted!(A, B, C, D, E, F);
+#[cfg(feature = "unstable")]
 impl_zip_trusted!(A, B, C, D, E, F, G);
+#[cfg(feature = "unstable")]
 impl_zip_trusted!(A, B, C, D, E, F, G, H);
+#[cfg(feature = "unstable")]
 impl_zip_trusted!(A, B, C, D, E, F, G, H, I);
 

@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::rc::Rc;
-use std::num::Int;
 
 /// Common buffer object for the two tee halves
 struct TeeBuffer<A, I>

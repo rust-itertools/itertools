@@ -9,3 +9,7 @@ documentation = "http://bluss.github.io/rust-itertools/"
 authors = ["bluss"]
 
 description = "extra iterator adaptors, functions and macros"
+
+[features]
+
+unstable = []

@@ -1,8 +1,4 @@
-#![feature(core,
-           step_by,
-           std_misc)]
-#![crate_name="itertools"]
-#![crate_type="dylib"]
+#![cfg_attr(feature = "unstable", feature(step_by, core, std_misc))]
 
 //! Itertools — extra iterator adaptors, functions and macros
 //!
@@ -45,9 +41,10 @@ pub use adaptors::{
     GroupBy,
     Step,
     Merge,
-    EnumerateFrom,
     MultiPeek,
 };
+#[cfg(feature = "unstable")]
+pub use adaptors::EnumerateFrom;
 pub use intersperse::Intersperse;
 pub use islice::{ISlice};
 pub use rciter::RcIter;
@@ -56,12 +53,16 @@ pub use stride::StrideMut;
 pub use tee::Tee;
 pub use times::Times;
 pub use times::times;
+#[cfg(feature = "unstable")]
 pub use linspace::{linspace, Linspace};
 pub use zip::{ZipLongest, EitherOrBoth};
-pub use ziptuple::{Zip, ZipTrusted, TrustedIterator};
+pub use ziptuple::{Zip, TrustedIterator};
+#[cfg(feature = "unstable")]
+pub use ziptuple::ZipTrusted;
 mod adaptors;
 mod intersperse;
 mod islice;
+#[cfg(feature = "unstable")]
 mod linspace;
 pub mod misc;
 mod rciter;
@@ -467,6 +468,7 @@ pub trait Itertools : Iterator {
     ///     [(-10, 'α'), (-9, 'β'), (-8, 'γ')]
     /// );
     /// ```
+    #[cfg(feature = "unstable")]
     fn enumerate_from<K>(self, start: K) -> EnumerateFrom<Self, K> where
         Self: Sized,
     {
