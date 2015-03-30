@@ -484,7 +484,7 @@ pub trait Itertools : Iterator {
         Self: Sized,
     {
         let mut index = 0usize;
-        for elt in IteratorExt::by_ref(self) {
+        for elt in self.by_ref() {
             if pred(&elt) {
                 return Some((index, elt))
             }
