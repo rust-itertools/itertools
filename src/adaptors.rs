@@ -574,6 +574,7 @@ impl<I, J> Iterator for Merge<I, J> where
     }
 }
 
+#[cfg(feature = "unstable")]
 /// An iterator adaptor that enumerates the iterator elements,
 /// with a custom starting value and integer type.
 pub struct EnumerateFrom<I, K>
@@ -582,6 +583,7 @@ pub struct EnumerateFrom<I, K>
     iter: I,
 }
 
+#[cfg(feature = "unstable")]
 impl<K, I> EnumerateFrom<I, K> where
     I: Iterator,
 {

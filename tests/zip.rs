@@ -25,7 +25,6 @@ fn test_zip_longest_size_hint() {
     assert_eq!(v.iter().zip_longest(v2.iter()).size_hint(), (10, Some(10)));
 }
 
-#[cfg(feature = "unstable")]
 #[test]
 fn test_double_ended_zip_longest() {
     let xs = [1, 2, 3, 4, 5, 6];

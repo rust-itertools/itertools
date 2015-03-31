@@ -54,7 +54,6 @@ impl<A, B, T, U> Iterator for ZipLongest<T, U> where
     }
 }
 
-#[cfg(feature = "unstable")]
 impl<A, B, T, U> DoubleEndedIterator for ZipLongest<T, U> where
     T: DoubleEndedIterator<Item=A> + ExactSizeIterator,
     U: DoubleEndedIterator<Item=B> + ExactSizeIterator,
@@ -97,7 +96,6 @@ impl<A, B, T, U> RandomAccessIterator for ZipLongest<T, U> where
     }
 }
 
-#[cfg(feature = "unstable")]
 impl<T, U> ExactSizeIterator for ZipLongest<T, U> where
     T: ExactSizeIterator,
     U: ExactSizeIterator,
