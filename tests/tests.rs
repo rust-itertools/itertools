@@ -10,8 +10,6 @@
 extern crate itertools;
 
 use std::fmt::Debug;
-#[cfg(feature = "unstable")]
-use std::iter::order;
 use itertools::Itertools;
 use itertools::Interleave;
 use itertools::Zip;
@@ -91,18 +89,17 @@ fn write_to() {
     assert!(ys == [0, 1, 2, 3, 4]);
 }
 
-#[cfg(feature = "unstable")]
 #[test]
 fn interleave() {
     let xs: [u8; 0]  = [];
     let ys = [7u8, 9, 8, 10];
     let zs = [2u8, 77];
     let it = Interleave::new(xs.iter(), ys.iter());
-    assert!(order::eq(it, ys.iter()));
+    assert_iters_equal(it, ys.iter());
 
     let rs = [7u8, 2, 9, 77, 8, 10];
     let it = Interleave::new(ys.iter(), zs.iter());
-    assert!(order::eq(it, rs.iter()));
+    assert_iters_equal(it, rs.iter());
 }
 
 #[test]
@@ -341,7 +338,7 @@ fn multipeek() {
     let nums = vec![1u8,2,3,4,5];
 
     let multipeek = nums.iter().map(|&x| x).multipeek();
-    assert_eq!(nums, multipeek.collect());
+    assert_eq!(nums, multipeek.collect::<Vec<_>>());
 
     let mut multipeek = nums.iter().map(|&x| x).multipeek();
     assert_eq!(multipeek.peek(), Some(&1));
