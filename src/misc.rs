@@ -111,3 +111,15 @@ impl GenericRange for Range<usize> {
     fn end(&self) -> Option<usize> { Some(self.end) }
 }
 
+pub trait ToFloat<F> : Copy {
+    fn to_float(self) -> F;
+}
+
+impl ToFloat<f32> for usize {
+    fn to_float(self) -> f32 { self as f32 }
+}
+
+impl ToFloat<f64> for usize {
+    fn to_float(self) -> f64 { self as f64 }
+}
+

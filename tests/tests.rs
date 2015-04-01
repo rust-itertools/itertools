@@ -158,7 +158,6 @@ fn intersperse() {
     assert!(it.next() == None);
 }
 
-#[cfg(feature = "unstable")]
 #[test]
 fn linspace() {
     let mut iter = it::linspace::<f32>(0., 2., 3);
