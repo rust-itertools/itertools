@@ -180,6 +180,62 @@ impl<I> Clone for PutBack<I> where
 }
 
 
+/// An iterator adaptor that allows putting multiple
+/// items in front of the iterator.
+///
+/// Iterator element type is **I::Item**.
+pub struct Feed<I: Iterator>
+{
+    top: Vec<I::Item>,
+    iter: I
+}
+
+impl<I: Iterator> Feed<I>
+{
+    /// Iterator element type is `A`
+    #[inline]
+    pub fn new(it: I) -> Self
+    {
+        Feed{top: vec![], iter: it}
+    }
+
+    /// Puts x in front of the iterator.
+    #[inline]
+    pub fn feed(&mut self, x: I::Item)
+    {
+        self.top.push(x);
+    }
+}
+
+impl<I: Iterator> Iterator for Feed<I>
+{
+    type Item = I::Item;
+    #[inline]
+    fn next(&mut self) -> Option<I::Item> {
+        if self.top.is_empty() {
+            self.iter.next()
+        } else {
+            self.top.pop()
+        }
+    }
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let (lo, hi) = self.iter.size_hint();
+        (lo.saturating_add(self.top.len()), hi.and_then(|x| x.checked_add(self.top.len())))
+    }
+}
+
+impl<I: Iterator> Clone for Feed<I> where
+    I: Clone,
+    I::Item: Clone
+{
+    fn clone(&self) -> Self
+    {
+        clone_fields!(Feed, self, top, iter)
+    }
+}
+
+
 /// An iterator adaptor that iterates over the cartesian product of
 /// the element sets of two iterators **I** and **J**.
 ///

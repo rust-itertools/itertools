@@ -36,6 +36,7 @@ pub use adaptors::{
     Interleave,
     Product,
     PutBack,
+    Feed,
     FnMap,
     Dedup,
     Batching,
@@ -665,6 +666,29 @@ pub trait Itertools : Iterator {
         Self: Sized
     {
         MultiPeek::new(self)
+    }
+
+    /// Returns an Iterator adaptor that allows one to put multiple values in front of the iterator.
+    ///
+    /// The values are yielded in order.
+    ///
+    /// ## Example
+    ///
+    /// ```rust
+    /// use itertools::Itertools;
+    ///
+    /// let mut it = (0..5).feedable();
+    /// it.next();
+    /// it.next();
+    /// it.feed(1);
+    /// it.feed(0);
+    ///
+    /// assert_eq!(it.collect::<Vec<u8>>(), (0..5).collect::<Vec<u8>>());
+    /// ```
+    fn feedable(self) -> Feed<Self> where
+        Self: Sized
+    {
+        Feed::new(self)
     }
 }
 

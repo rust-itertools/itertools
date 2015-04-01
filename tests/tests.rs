@@ -230,6 +230,17 @@ fn put_back() {
 }
 
 #[test]
+fn feed() {
+    let xs = [0, 1, 1, 1, 2, 1, 3, 3];
+    let mut feed = xs.iter().cloned().feedable();
+    feed.next();
+    feed.next();
+    feed.feed(1);
+    feed.feed(0);
+    assert_iters_equal(feed, xs.iter().cloned());
+}
+
+#[test]
 fn tee() {
     let xs  = [0, 1, 2, 3];
     let (mut t1, mut t2) = xs.iter().cloned().tee();
