@@ -8,7 +8,6 @@ use super::misc::GenericRange;
 ///
 /// ## Example
 /// ```
-/// # #![feature(slicing_syntax)]
 /// # extern crate itertools;
 /// # fn main() {
 /// use std::iter::repeat;

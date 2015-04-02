@@ -386,7 +386,6 @@ pub trait Itertools : Iterator {
     ///
     /// ## Example
     /// ```
-    /// # #![feature(slicing_syntax)]
     /// # extern crate itertools;
     /// # fn main() {
     /// use itertools::Itertools;
