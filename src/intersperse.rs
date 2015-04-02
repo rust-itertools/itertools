@@ -1,16 +1,4 @@
-macro_rules! clone_fields {
-    ($name:ident, $($field:ident),+) => (
-        fn clone(&self) -> Self
-        {
-            $name {
-                $(
-                    $field : self . $field .clone()
-                ),*
-            }
-        }
-    );
-}
-
+#[derive(Clone)]
 /// An iterator adaptor to insert a particular value
 /// between each element of the adapted iterator.
 ///
@@ -21,13 +9,6 @@ pub struct Intersperse<I> where
     element: I::Item,
     iter: I,
     peek: Option<I::Item>,
-}
-
-impl<I> Clone for Intersperse<I> where
-    I: Iterator + Clone,
-    I::Item: Clone,
-{
-    clone_fields!(Intersperse, element, iter, peek);
 }
 
 impl<I> Intersperse<I> where

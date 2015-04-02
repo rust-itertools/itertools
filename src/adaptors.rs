@@ -117,6 +117,7 @@ impl<B, I> Clone for FnMap<B, I> where
     }
 }
 
+#[derive(Clone)]
 /// An iterator adaptor that allows putting back a single
 /// item to the front of the iterator.
 ///
@@ -169,17 +170,7 @@ impl<I> Iterator for PutBack<I> where
     }
 }
 
-impl<I> Clone for PutBack<I> where
-    I: Iterator + Clone,
-    I::Item: Clone
-{
-    fn clone(&self) -> Self
-    {
-        clone_fields!(PutBack, self, top, iter)
-    }
-}
-
-
+#[derive(Clone)]
 /// An iterator adaptor that iterates over the cartesian product of
 /// the element sets of two iterators **I** and **J**.
 ///
@@ -191,17 +182,6 @@ pub struct Product<I, J> where
     a_cur: Option<I::Item>,
     b: J,
     b_orig: J,
-}
-
-impl<I, J> Clone for Product<I, J> where
-    I: Iterator + Clone,
-    J: Clone,
-    I::Item: Clone,
-{
-    fn clone(&self) -> Self
-    {
-        clone_fields!(Product, self, a, a_cur, b, b_orig)
-    }
 }
 
 impl<I, J> Product<I, J> where
@@ -265,6 +245,7 @@ impl<I, J> Iterator for Product<I, J> where
     }
 }
 
+#[derive(Clone)]
 /// Remove duplicates from sections of consecutive identical elements.
 /// If the iterator is sorted, all elements will be unique.
 ///
@@ -274,19 +255,6 @@ pub struct Dedup<I> where
 {
     last: Option<I::Item>,
     iter: I,
-}
-
-impl<I> Clone for Dedup<I> where
-    I: Iterator + Clone,
-    I::Item: Clone,
-{
-    fn clone(&self) -> Self
-    {
-        Dedup {
-            last: self.last.clone(),
-            iter: self.iter.clone(),
-        }
-    }
 }
 
 impl<I> Dedup<I> where I: Iterator
@@ -374,6 +342,7 @@ impl<B, F, I> Iterator for Batching<I, F> where
     }
 }
 
+#[derive(Clone)]
 /// Group iterator elements. Consecutive elements that map to the same key ("runs"),
 /// are returned as the iterator elements of `GroupBy`.
 ///
@@ -385,18 +354,6 @@ pub struct GroupBy<K, I, F> where
     iter: I,
     current_key: Option<K>,
     elts: Vec<I::Item>,
-}
-
-impl<K, I, F> Clone for GroupBy<K, I, F> where
-    K: Clone,
-    F: Clone,
-    I: Clone + Iterator,
-    I::Item: Clone,
-{
-    fn clone(&self) -> Self
-    {
-        clone_fields!(GroupBy, self, key, iter, current_key, elts)
-    }
 }
 
 impl<K, F, I> GroupBy<K, I, F> where
@@ -514,18 +471,6 @@ pub struct Merge<I, J> where
     b: Peekable<J>,
 }
 
-impl<I, J> Clone for Merge<I, J> where
-    I: Iterator,
-    J: Iterator<Item=I::Item>,
-    Peekable<I>: Clone,
-    Peekable<J>: Clone,
-{
-    fn clone(&self) -> Self
-    {
-        clone_fields!(Merge, self, a, b)
-    }
-}
-
 impl<I, J> Merge<I, J> where
     I: Iterator,
     J: Iterator<Item=I::Item>,
@@ -614,6 +559,7 @@ impl<K, I> Iterator for EnumerateFrom<I, K> where
     }
 }
 
+#[derive(Clone)]
 /// An Iterator adaptor that allows the user to peek at multiple *.next()* values without advancing itself.
 pub struct MultiPeek<I> where
     I: Iterator,
@@ -664,14 +610,4 @@ impl<I> Iterator for MultiPeek<I> where
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
-}
-
-impl<I> Clone for MultiPeek<I> where
-    I: Iterator + Clone,
-    I::Item: Clone
-{
-    fn clone(&self) -> Self
-    {
-        clone_fields!(MultiPeek, self, iter, buf, index)
-    }
 }
