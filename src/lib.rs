@@ -665,6 +665,47 @@ pub trait Itertools : Iterator {
             }
         }
     }
+
+    /// Fold **Result** values from an iterator.
+    ///
+    /// Only **Ok** values are folded. If no error is encountered, the folded
+    /// value is returned inside **Ok**. Otherwise and the operation terminates
+    /// and returns the first error it encounters. No iterator elements are 
+    /// consumed after the first error.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use std::ops::Add;
+    /// use itertools::Itertools;
+    ///
+    /// let values = [1, 2, -2, -1, 2, 1];
+    /// assert_eq!(
+    ///     values.iter()
+    ///         .map(Ok::<_, ()>)
+    ///         .fold_results(0, Add::add),
+    ///     Ok(3)
+    /// );
+    /// assert!(
+    ///     values.iter()
+    ///         .map(|&x| if x >= 0 { Ok(x) } else { Err("Negative number") })
+    ///         .fold_results(0, Add::add)
+    ///         .is_err()
+    /// );
+    /// ```
+    fn fold_results<A, E, B, F>(&mut self, mut start: B, mut f: F) -> Result<B, E> where
+        Self: Iterator<Item=Result<A, E>>,
+        F: FnMut(B, A) -> B,
+    {
+        for elt in self {
+            match elt {
+                Ok(v) => start = f(start, v),
+                Err(u) => return Err(u),
+            }
+        }
+        Ok(start)
+    }
+
 }
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }
