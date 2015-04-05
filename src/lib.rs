@@ -473,6 +473,29 @@ pub trait Itertools : Iterator {
         EnumerateFrom::new(self, start)
     }
 
+    /// Returns an iterator adapter that allows peeking multiple values.
+    ///
+    /// After a call to *.next()* the peeking cursor gets resetted.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let nums = vec![1u8,2,3,4,5];
+    /// let mut peekable = nums.into_iter().multipeek();
+    /// assert_eq!(peekable.peek(), Some(&1));
+    /// assert_eq!(peekable.peek(), Some(&2));
+    /// assert_eq!(peekable.peek(), Some(&3));
+    /// assert_eq!(peekable.next(), Some(1));
+    /// assert_eq!(peekable.peek(), Some(&2));
+    /// ```
+    fn multipeek(self) -> MultiPeek<Self> where
+        Self: Sized
+    {
+        MultiPeek::new(self)
+    }
+
     // non-adaptor methods
 
     /// Find the position and value of the first element satisfying a predicate.
@@ -641,29 +664,6 @@ pub trait Itertools : Iterator {
                 result
             }
         }
-    }
-
-    /// Returns an iterator adapter that allows peeking multiple values.
-    ///
-    /// After a call to *.next()* the peeking cursor gets resetted.
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// let nums = vec![1u8,2,3,4,5];
-    /// let mut peekable = nums.into_iter().multipeek();
-    /// assert_eq!(peekable.peek(), Some(&1));
-    /// assert_eq!(peekable.peek(), Some(&2));
-    /// assert_eq!(peekable.peek(), Some(&3));
-    /// assert_eq!(peekable.next(), Some(1));
-    /// assert_eq!(peekable.peek(), Some(&2));
-    /// ```
-    fn multipeek(self) -> MultiPeek<Self> where
-        Self: Sized
-    {
-        MultiPeek::new(self)
     }
 }
 
