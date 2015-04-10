@@ -27,7 +27,17 @@ impl<F> Iterator for Linspace<F> where
             Some(elt)
         }
     }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>)
+    {
+        (self.len, Some(self.len))
+    }
 }
+
+impl<F> ExactSizeIterator for Linspace<F> where
+    Linspace<F>: Iterator
+{ }
 
 /// Return an iterator with `n` elements, where the first
 /// element is `a` and the last element is `b`.
