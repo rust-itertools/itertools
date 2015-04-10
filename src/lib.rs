@@ -56,9 +56,9 @@ pub use times::Times;
 pub use times::times;
 pub use linspace::{linspace, Linspace};
 pub use zip::{ZipLongest, EitherOrBoth};
-pub use ziptuple::{Zip, TrustedIterator};
+pub use ziptuple::{Zip};
 #[cfg(feature = "unstable")]
-pub use ziptuple::ZipTrusted;
+pub use ziptrusted::{ZipTrusted, TrustedIterator};
 mod adaptors;
 mod intersperse;
 mod islice;
@@ -70,6 +70,8 @@ mod tee;
 mod times;
 mod zip;
 mod ziptuple;
+#[cfg(feature = "unstable")]
+mod ziptrusted;
 
 #[macro_export]
 /// Create an iterator over the “cartesian product” of iterators.
