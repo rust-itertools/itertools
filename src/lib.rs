@@ -1,4 +1,4 @@
-#![cfg_attr(feature = "unstable", feature(core))]
+#![cfg_attr(feature = "unstable", feature(core, zero_one))]
 #![crate_name="itertools"]
 
 //! Itertools — extra iterator adaptors, functions and macros

@@ -6,7 +6,9 @@
 
 use std::mem;
 #[cfg(feature = "unstable")]
-use std::num::Int;
+use std::num::One;
+#[cfg(feature = "unstable")]
+use std::ops::Add;
 use std::usize;
 use std::iter::{Fuse, Peekable};
 use super::Itertools;
@@ -540,7 +542,7 @@ impl<K, I> EnumerateFrom<I, K> where
 
 #[cfg(feature = "unstable")]
 impl<K, I> Iterator for EnumerateFrom<I, K> where
-    K: Int,
+    K: Copy + One + Add<Output=K>,
     I: Iterator,
 {
     type Item = (K, I::Item);
