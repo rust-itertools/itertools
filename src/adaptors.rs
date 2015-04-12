@@ -13,6 +13,17 @@ use std::usize;
 use std::iter::{Fuse, Peekable};
 use super::Itertools;
 
+macro_rules! clone_fields {
+    ($name:ident, $base:expr, $($field:ident),+) => (
+        $name {
+            $(
+                $field : $base . $field .clone()
+            ),*
+        }
+    );
+}
+
+
 /// Alternate elements from two iterators until both
 /// are run out
 ///
@@ -473,6 +484,17 @@ impl<I, J> Merge<I, J> where
             a: a.peekable(),
             b: b.peekable(),
         }
+    }
+}
+
+impl<I, J> Clone for Merge<I, J> where
+    I: Iterator,
+    J: Iterator<Item=I::Item>,
+    Peekable<I>: Clone,
+    Peekable<J>: Clone,
+{
+    fn clone(&self) -> Self {
+        clone_fields!(Merge, self, a, b)
     }
 }
 
