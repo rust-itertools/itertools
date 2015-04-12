@@ -13,17 +13,6 @@ use std::usize;
 use std::iter::{Fuse, Peekable};
 use super::Itertools;
 
-macro_rules! clone_fields {
-    ($name:ident, $base:expr, $($field:ident),+) => (
-        $name {
-            $(
-                $field : $base . $field .clone()
-            ),*
-        }
-    );
-}
-
-
 /// Alternate elements from two iterators until both
 /// are run out
 ///
