@@ -4,6 +4,10 @@ extern crate itertools;
 
 use itertools::Stride;
 
+#[cfg(not(feature = "unstable"))]
+use itertools::Zip;
+
+#[cfg(feature = "unstable")]
 use itertools::{Zip, ZipTrusted};
 
 use std::iter::repeat;
@@ -45,7 +49,7 @@ fn stride_iter_rev(b: &mut test::Bencher)
     })
 }
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 struct ZipSlices<'a, T: 'a, U :'a>
 {
     t_ptr: *const T,
@@ -152,6 +156,7 @@ fn zipslices(b: &mut test::Bencher)
     })
 }
 
+#[cfg(feature = "unstable")]
 #[bench]
 fn ziptrusted(b: &mut test::Bencher)
 {
@@ -164,6 +169,7 @@ fn ziptrusted(b: &mut test::Bencher)
     })
 }
 
+#[cfg(feature = "unstable")]
 #[bench]
 fn ziptrusted3(b: &mut test::Bencher)
 {
