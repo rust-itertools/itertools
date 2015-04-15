@@ -503,10 +503,9 @@ pub trait Itertools : Iterator {
     /// Find the position and value of the first element satisfying a predicate.
     fn find_position<P>(&mut self, mut pred: P) -> Option<(usize, Self::Item)> where
         P: FnMut(&Self::Item) -> bool,
-        Self: Sized,
     {
         let mut index = 0usize;
-        for elt in self.by_ref() {
+        for elt in self {
             if pred(&elt) {
                 return Some((index, elt))
             }
@@ -555,10 +554,9 @@ pub trait Itertools : Iterator {
     /// "hi".chars().map(|c| cnt += 1).drain();
     /// ```
     ///
-    fn drain(&mut self) where
-        Self: Sized
+    fn drain(&mut self)
     {
-        for _ in self.by_ref() { /* nothing */ }
+        for _ in self { /* nothing */ }
     }
 
     /// **Deprecated: Use *.foreach()* instead.**
@@ -566,8 +564,8 @@ pub trait Itertools : Iterator {
     /// Run the closure **f** eagerly on each element of the iterator.
     ///
     /// Consumes the iterator until its end.
-    fn apply<F: FnMut(Self::Item)>(&mut self, f: F) where
-        Self: Sized
+    fn apply<F>(&mut self, f: F) where
+        F: FnMut(Self::Item),
     {
         self.foreach(f)
     }
@@ -575,10 +573,10 @@ pub trait Itertools : Iterator {
     /// Run the closure **f** eagerly on each element of the iterator.
     ///
     /// Consumes the iterator until its end.
-    fn foreach<F: FnMut(Self::Item)>(&mut self, mut f: F) where
-        Self: Sized
+    fn foreach<F>(&mut self, mut f: F) where
+        F: FnMut(Self::Item),
     {
-        for elt in self.by_ref() { f(elt) }
+        for elt in self { f(elt) }
     }
 
     /// **.collect_vec()** is simply a type specialization of **.collect()**,

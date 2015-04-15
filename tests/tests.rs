@@ -286,8 +286,8 @@ fn step() {
 
 #[test]
 fn trait_pointers() {
-    /*
     struct ByRef<'r, I: ?Sized>(&'r mut I) where I: 'r;
+
     impl<'r, X, I: ?Sized> Iterator for ByRef<'r, I> where
         I: 'r + Iterator<Item=X>
     {
@@ -297,21 +297,23 @@ fn trait_pointers() {
             self.0.next()
         }
     }
-    */
+
     let mut it = Box::new(0..10) as Box<Iterator<Item=i32>>;
     assert_eq!(it.next(), Some(0));
 
-    let mut jt: &mut Iterator<Item=i32> = &mut *it;
-    assert_eq!(jt.next(), Some(1));
+    {
+        /* make sure foreach works on non-Sized */
+        let mut jt: &mut Iterator<Item=i32> = &mut *it;
+        assert_eq!(jt.next(), Some(1));
 
-    // they all crash/ICE at the moment.
-    /*
-    let mut r = ByRef(jt);
-    //assert_eq!(r.next(), Some(2));
+        {
+            let mut r = ByRef(jt);
+            assert_eq!(r.next(), Some(2));
+        }
 
-    //it.drain();
-    //assert_eq!(it.dropn(2), 2);
-    */
+        assert_eq!(jt.find_position(|x| *x == 4), Some((1, 4)));
+        jt.foreach(|_| ());
+    }
 }
 
 #[test]

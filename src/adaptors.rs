@@ -345,8 +345,8 @@ impl<B, F, I> Iterator for Batching<I, F> where
 }
 
 #[derive(Clone)]
-/// Group iterator elements. Consecutive elements that map to the same key ("runs"),
-/// are returned as the iterator elements of `GroupBy`.
+/// Group iterator elements. Consecutive elements that map to the same key (“runs”),
+/// are returned as the iterator elements of **GroupBy**.
 ///
 /// Iterator element type is **(K, Vec\<A\>)**
 pub struct GroupBy<K, I, F> where
