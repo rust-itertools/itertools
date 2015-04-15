@@ -1,5 +1,6 @@
 language: rust
 script:
+  - cargo test
   - cargo test --features unstable
   - cargo bench --features unstable
   - cargo doc --features unstable
