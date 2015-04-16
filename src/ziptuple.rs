@@ -48,13 +48,13 @@ macro_rules! impl_zip_iter {
         {
             type Item = ($($B::Item,)*);
 
-            fn next(&mut self) -> Option<
-                    ($($B::Item,)*)
-                >
+            fn next(&mut self) -> Option<<Self as Iterator>::Item>
             {
-                let &mut Zip { t : ($(ref mut $B,)*)} = self;
-                // WARNING: partial consume possible
-                // Zip worked the same.
+                let ($(ref mut $B,)*) = self.t;
+
+                // NOTE: Just like iter::Zip, we check the iterators
+                // for None in order. We may finish unevenly (some
+                // iterators gave n + 1 elements, some only n).
                 $(
                     let $B = match $B.next() {
                         None => return None,
@@ -68,7 +68,7 @@ macro_rules! impl_zip_iter {
             {
                 let low = ::std::usize::MAX;
                 let high = None;
-                let &Zip { t : ($(ref $B,)*) } = self;
+                let ($(ref $B,)*) = self.t;
                 $(
                     // update estimate
                     let (l, h) = $B.size_hint();
