@@ -322,6 +322,29 @@ fn merge() {
 }
 
 #[test]
+fn merge_by() {
+    let odd : Vec<(u32, &str)> = vec![(1, "hello"), (3, "world"), (5, "!")];
+    let even = vec![(2, "foo"), (4, "bar"), (6, "baz")];
+    let expected = vec![(1, "hello"), (2, "foo"), (3, "world"), (4, "bar"), (5, "!"), (6, "baz")];
+    let results = odd.iter().merge_by(even.iter(), |a, b|{ a.0.cmp(&b.0)});
+    assert_iters_equal(results, expected.iter());
+}
+
+#[test]
+fn merge_by_btree() {
+    use std::collections::BTreeMap;
+    let mut bt1 = BTreeMap::new();
+    bt1.insert("hello", 1);
+    bt1.insert("world", 3);
+    let mut bt2 = BTreeMap::new();
+    bt2.insert("foo", 2);
+    bt2.insert("bar", 4);
+    let results = bt1.into_iter().merge_by(bt2.into_iter(), |a, b|{a.0.cmp(&b.0)});
+    let expected = vec![("bar", 4), ("foo", 2), ("hello", 1), ("world", 3)];
+    assert_iters_equal(results, expected.into_iter());
+}
+
+#[test]
 fn to_string_join() {
     let many = [1, 2, 3];
     let one  = [1];

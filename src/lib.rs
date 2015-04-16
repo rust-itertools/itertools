@@ -31,6 +31,7 @@
 //!
 
 use std::fmt::Write;
+use std::cmp::Ordering;
 
 pub use adaptors::{
     Interleave,
@@ -424,12 +425,45 @@ pub trait Itertools : Iterator {
     /// assert_eq!(it.next(), Some(4));
     /// assert_eq!(it.next(), Some(6));
     /// ```
-    fn merge<J>(self, other: J) -> Merge<Self, J> where
+    fn merge<J>(self, other: J)
+        -> Merge<Self, J, fn(&Self::Item, &Self::Item) -> Ordering> where
         Self: Sized,
         Self::Item: PartialOrd,
         J: Iterator<Item=Self::Item>,
     {
-        Merge::new(self, other)
+        fn wrapper<A: PartialOrd>(a: &A, b: &A) -> Ordering { 
+            a.partial_cmp(b).unwrap_or(Ordering::Less) 
+        };
+        self.merge_by(other, wrapper)
+    }
+
+    /// Return an iterator adaptor that merges the two base iterators in an order.
+    /// This is much like merge_by but allows for descending orders or sorting tuples.
+    /// This can be especially useful walking a BTreeMap structure.
+    ///
+    /// Iterator element type is **Self::Item**.
+    ///
+    /// ## Example
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let a = (0..10).step(2);
+    /// let b = (1..10).step(3);
+    /// let mut it = a.merge_by(b, |x, y|{x.cmp(&y)});
+    /// assert_eq!(it.next(), Some(0));
+    /// assert_eq!(it.next(), Some(1));
+    /// assert_eq!(it.next(), Some(2));
+    /// assert_eq!(it.next(), Some(4));
+    /// assert_eq!(it.next(), Some(4));
+    /// assert_eq!(it.next(), Some(6));
+    /// ```
+
+    fn merge_by<J, F>(self, other: J, cmp: F) -> Merge<Self, J, F> where
+        Self: Sized,
+        J: Iterator<Item=Self::Item>,
+        F: Fn(&Self::Item, &Self::Item) -> Ordering
+    {
+        Merge::new(self, other, cmp)
     }
 
     /// Return an iterator adaptor that iterates over the cartesian product of
