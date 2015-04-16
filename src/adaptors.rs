@@ -9,6 +9,7 @@ use std::mem;
 use std::num::One;
 #[cfg(feature = "unstable")]
 use std::ops::Add;
+use std::cmp::Ordering;
 use std::usize;
 use std::iter::{Fuse, Peekable};
 use super::Itertools;
@@ -465,49 +466,62 @@ impl<I> Iterator for Step<I>
 /// If both base iterators are sorted (ascending), the result is sorted.
 ///
 /// Iterator element type is **I::Item**.
-pub struct Merge<I, J> where
+pub struct Merge<I, J, F> where
     I: Iterator,
     J: Iterator<Item=I::Item>,
+    F: Fn(&I::Item, &I::Item) -> Ordering
 {
     a: Peekable<I>,
     b: Peekable<J>,
+    cmp: F,
 }
 
-impl<I, J> Merge<I, J> where
+impl<I, J, F> Merge<I, J, F> where
     I: Iterator,
     J: Iterator<Item=I::Item>,
+    F: Fn(&I::Item, &I::Item) -> Ordering
 {
     /// Create a **Merge** iterator.
-    pub fn new(a: I, b: J) -> Self
+    pub fn new(a: I, b: J, cmp: F) -> Self
     {
         Merge {
             a: a.peekable(),
             b: b.peekable(),
+            cmp: cmp,
         }
     }
 }
 
-impl<I, J> Clone for Merge<I, J> where
+impl<I, J, F> Clone for Merge<I, J, F> where
     I: Iterator,
     J: Iterator<Item=I::Item>,
     Peekable<I>: Clone,
     Peekable<J>: Clone,
+    F: Clone,
+    F: Fn(&I::Item, &I::Item) -> Ordering
 {
     fn clone(&self) -> Self {
-        clone_fields!(Merge, self, a, b)
+        clone_fields!(Merge, self, a, b, cmp)
     }
 }
 
-impl<I, J> Iterator for Merge<I, J> where
+impl<I, J, F> Iterator for Merge<I, J, F> where
     I: Iterator,
     I::Item: PartialOrd,
     J: Iterator<Item=I::Item>,
+    F: Fn(&I::Item, &I::Item) -> Ordering
 {
     type Item = I::Item;
 
     fn next(&mut self) -> Option<I::Item> {
         if match (self.a.peek(), self.b.peek()) {
-            (Some(a), Some(b)) => a <= b,
+            (Some(a), Some(b)) => {
+                match (self.cmp)(a, b) {
+                    Ordering::Less => true,
+                    Ordering::Equal => true,
+                    Ordering::Greater => false,
+                }
+            }
             (Some(_), None) => true,
             (None, Some(_)) => false,
             (None, None) => return None,
