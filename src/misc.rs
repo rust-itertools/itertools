@@ -65,7 +65,7 @@ impl<X, T, I> Iterator for FlatTuples<I> where
 {
     type Item = T::Result;
     #[inline]
-    fn next(&mut self) -> Option<<Self as Iterator>::Item>
+    fn next(&mut self) -> Option<Self::Item>
     {
         self.iter.next().map(|(t, x)| t.append(x))
     }
@@ -80,7 +80,7 @@ impl<X, T, I> DoubleEndedIterator for FlatTuples<I> where
     T: AppendTuple<X>,
 {
     #[inline]
-    fn next_back(&mut self) -> Option<<Self as Iterator>::Item>
+    fn next_back(&mut self) -> Option<Self::Item>
     {
         self.iter.next_back().map(|(t, x)| t.append(x))
     }

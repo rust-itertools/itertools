@@ -115,7 +115,7 @@ macro_rules! impl_zip_trusted {
         {
             type Item = ($($B::Item,)*);
 
-            fn next(&mut self) -> Option<<Self as Iterator>::Item>
+            fn next(&mut self) -> Option<Self::Item>
             {
                 let ($(ref mut $B,)*) = self.t;
 
