@@ -8,7 +8,9 @@ repository = "https://github.com/bluss/rust-itertools"
 documentation = "http://bluss.github.io/rust-itertools/"
 authors = ["bluss"]
 
-description = "extra iterator adaptors, functions and macros"
+description = "Extra iterator adaptors, iterator methods and macros."
+
+keywords = ["iterator", "data-structure", "zip", "product"]
 
 [features]
 
