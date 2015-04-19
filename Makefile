@@ -1,7 +1,7 @@
-STYLE = customdocstyle.html
-SRC = src/lib.rs
 
-docs: $(STYLE) $(SRC)
-	rustdoc --html-in-header $(STYLE) -L target/deps $(SRC)
+docs:
+	cargo doc --no-deps
+	rm -rf ./doc
+	cp -r ./target/doc ./doc
 
 .PHONY: docs
