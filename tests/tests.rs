@@ -5,14 +5,12 @@
 //! except according to those terms.
 
 #[macro_use]
-extern crate itertools;
+extern crate itertools as it;
 
 use std::fmt::Debug;
-use itertools::Itertools;
-use itertools::Interleave;
-use itertools::Zip;
-
-use itertools as it;
+use it::Itertools;
+use it::Interleave;
+use it::Zip;
 
 fn assert_iters_equal<A, I, J>(mut it: I, mut jt: J) where
     A: PartialEq + Debug,
@@ -378,4 +376,50 @@ fn multipeek() {
     assert_eq!(multipeek.next(), None);
     assert_eq!(multipeek.peek(), None);
 
+}
+
+#[test]
+fn repeatn() {
+    let s = "α";
+    let mut it = it::RepeatN::new(s, 3);
+    assert_eq!(it.len(), 3);
+    assert_eq!(it.next(), Some(s));
+    assert_eq!(it.next(), Some(s));
+    assert_eq!(it.next(), Some(s));
+    assert_eq!(it.next(), None);
+    assert_eq!(it.next(), None);
+}
+
+#[test]
+fn count_clones() {
+    // Check that RepeatN only clones N - 1 times.
+
+    use std::cell::Cell;
+    #[derive(PartialEq, Debug)]
+    struct Foo {
+        n: Cell<usize>
+    }
+
+    impl Clone for Foo
+    {
+        fn clone(&self) -> Self
+        {
+            let n = self.n.get();
+            self.n.set(n + 1);
+            Foo { n: Cell::new(n + 1) }
+        }
+    }
+
+
+    for n in 0..10 {
+        let f = Foo{n: Cell::new(0)};
+        let mut it = it::RepeatN::new(f, n);
+        // drain it
+        let last = it.last();
+        if n == 0 {
+            assert_eq!(last, None);
+        } else {
+            assert_eq!(last, Some(Foo{n: Cell::new(n - 1)}));
+        }
+    }
 }

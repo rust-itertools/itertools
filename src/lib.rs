@@ -49,6 +49,7 @@ pub use adaptors::{
 pub use adaptors::EnumerateFrom;
 pub use intersperse::Intersperse;
 pub use islice::{ISlice};
+pub use repeatn::RepeatN;
 pub use rciter::RcIter;
 pub use stride::Stride;
 pub use stride::StrideMut;
@@ -66,6 +67,7 @@ mod islice;
 mod linspace;
 pub mod misc;
 mod rciter;
+mod repeatn;
 mod stride;
 mod tee;
 mod times;
