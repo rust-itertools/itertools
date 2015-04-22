@@ -1,3 +1,4 @@
+#![warn(missing_docs)]
 #![cfg_attr(feature = "unstable", feature(core, zero_one))]
 #![crate_name="itertools"]
 

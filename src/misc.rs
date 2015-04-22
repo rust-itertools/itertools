@@ -9,10 +9,12 @@ use std::ops::{
 };
 
 
-/// A helper trait for (x,y,z) ++ w => (x,y,z,w),
-/// used for implementing `iproduct!` and `izip!`
+/// A helper trait for (x, y, z) ++ w => (x, y, z, w),
+/// used for implementing `iproduct!`.
 pub trait AppendTuple<X> {
+    /// Resulting tuple type
     type Result;
+    /// “Append” value **x** to a tuple.
     fn append(self, x: X) -> Self::Result;
 }
 
@@ -111,7 +113,9 @@ impl GenericRange for Range<usize> {
     fn end(&self) -> Option<usize> { Some(self.end) }
 }
 
+/// Helper trait to convert usize to floating point type.
 pub trait ToFloat<F> : Copy {
+    /// Convert usize to float.
     fn to_float(self) -> F;
 }
 

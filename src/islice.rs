@@ -27,6 +27,7 @@ pub struct ISlice<I> {
 impl<I> ISlice<I>
     where I: Iterator
 {
+    /// Create a new **ISlice**.
     pub fn new<R: GenericRange>(iter: I, range: R) -> Self
     {
         ISlice {
