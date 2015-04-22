@@ -627,6 +627,9 @@ pub trait Itertools : Iterator {
     /// Assign to each reference in **self** from the **from** iterator,
     /// stopping at the shortest of the two iterators.
     ///
+    /// The **from** iterator is queried for its next element before the **self**
+    /// iterator, and if either is exhausted the method is done.
+    ///
     /// Return the number of elements written.
     ///
     /// ## Example
