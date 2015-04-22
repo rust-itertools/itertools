@@ -450,21 +450,20 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let a = (0..10).step(2);
-    /// let b = (1..10).step(3);
-    /// let mut it = a.merge_by(b, |x, y|{x.cmp(&y)});
-    /// assert_eq!(it.next(), Some(0));
-    /// assert_eq!(it.next(), Some(1));
-    /// assert_eq!(it.next(), Some(2));
-    /// assert_eq!(it.next(), Some(4));
-    /// assert_eq!(it.next(), Some(4));
-    /// assert_eq!(it.next(), Some(6));
+    /// let a = (0..).zip("bc".chars());
+    /// let b = (0..).zip("ad".chars());
+    /// let mut it = a.merge_by(b, |x, y| x.1.cmp(&y.1));
+    /// assert_eq!(it.next(), Some((0, 'a')));
+    /// assert_eq!(it.next(), Some((0, 'b')));
+    /// assert_eq!(it.next(), Some((1, 'c')));
+    /// assert_eq!(it.next(), Some((1, 'd')));
+    /// assert_eq!(it.next(), None);
     /// ```
 
     fn merge_by<J, F>(self, other: J, cmp: F) -> Merge<Self, J, F> where
         Self: Sized,
         J: Iterator<Item=Self::Item>,
-        F: Fn(&Self::Item, &Self::Item) -> Ordering
+        F: FnMut(&Self::Item, &Self::Item) -> Ordering
     {
         Merge::new(self, other, cmp)
     }
