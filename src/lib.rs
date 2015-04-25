@@ -131,21 +131,25 @@ macro_rules! iproduct {
 ///
 /// ## Example
 ///
-/// ```ignore
+/// ```
+/// #[macro_use]
+/// extern crate itertools;
+/// # fn main() {
 /// // Iterate over three sequences side-by-side
 /// let mut xs = [0, 0, 0];
 /// let ys = [72, 73, 74];
-/// for (i, a, b) in izip!(0..100, xs.mut_iter(), ys.iter()) {
+/// for (i, a, b) in izip!(0..100, &mut xs, &ys) {
 ///    *a = i ^ *b;
 /// }
+/// # }
 /// ```
 macro_rules! izip {
     ($I:expr) => (
-        ($I)
+        ($I.into_iter())
     );
-    (($I:expr),*) => (
+    ($($I:expr),*) => (
         {
-            $crate::Zip::new(($I),*)
+            $crate::Zip::new(($($I.into_iter()),*))
         }
     );
 }
