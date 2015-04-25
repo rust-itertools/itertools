@@ -748,7 +748,31 @@ pub trait Itertools : Iterator {
         }
         Ok(start)
     }
+}
 
+/// Return **true** if both iterators produce equal sequences
+/// (elements pairwise equal and sequences of the same length).
+///
+/// ## Example
+///
+/// ```
+/// assert!(itertools::equal(vec![1, 2, 3], 1..4));
+/// assert!(!itertools::equal(&[0, 0], &[0, 0, 0]));
+/// ```
+pub fn equal<I, J>(a: I, b: J) -> bool where
+    I: IntoIterator,
+    J: IntoIterator,
+    I::Item: PartialEq<J::Item>,
+{
+    let mut ia = a.into_iter();
+    let mut ib = b.into_iter();
+    loop {
+        match (ia.next(), ib.next()) {
+            (Some(ref x), Some(ref y)) if x == y => { }
+            (None, None) => return true,
+            _ => return false,
+        }
+    }
 }
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }
