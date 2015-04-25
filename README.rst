@@ -6,6 +6,14 @@ Please read the `API documentation here`__
 
 __ http://bluss.github.io/rust-itertools/
 
+Recent Changes
+==============
+
+Version 0.3.0
+
+- Use IntoIterator where possible
+- Removed previously deprecated items
+
 License
 =======
 
