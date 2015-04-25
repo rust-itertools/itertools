@@ -205,6 +205,15 @@ pub trait Itertools : Iterator {
     /// run out.
     ///
     /// Iterator element type is **Self::Item**.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let it = (0..3).interleave(vec![7, 7]);
+    /// assert!(itertools::equal(it, vec![0, 7, 1, 7, 2]));
+    /// ```
     fn interleave<J>(self, other: J) -> Interleave<Self, J::IntoIter> where
         J: IntoIterator<Item=Self::Item>,
         Self: Sized
@@ -233,10 +242,8 @@ pub trait Itertools : Iterator {
     /// ```rust
     /// use itertools::EitherOrBoth::{Both, Right};
     /// use itertools::Itertools;
-    /// let mut it = (0..1).zip_longest(1..3);
-    /// assert_eq!(it.next(), Some(Both(0, 1)));
-    /// assert_eq!(it.next(), Some(Right(2)));
-    /// assert_eq!(it.next(), None);
+    /// let it = (0..1).zip_longest(1..3);
+    /// assert!(itertools::equal(it, vec![Both(0, 1), Right(2)]));
     /// ```
     ///
     /// Iterator element type is **EitherOrBoth\<Self::Item, B\>**.
@@ -267,8 +274,9 @@ pub trait Itertools : Iterator {
     ///
     /// ```
     /// use itertools::Itertools;
+    ///
     /// // An adaptor that gathers elements up in pairs
-    /// let mut pit = (0..4).batching(|mut it| {
+    /// let pit = (0..4).batching(|mut it| {
     ///            match it.next() {
     ///                None => None,
     ///                Some(x) => match it.next() {
@@ -277,9 +285,8 @@ pub trait Itertools : Iterator {
     ///                }
     ///            }
     ///        });
-    /// assert_eq!(pit.next(), Some((0, 1)));
-    /// assert_eq!(pit.next(), Some((2, 3)));
-    /// assert_eq!(pit.next(), None);
+    ///
+    /// assert!(itertools::equal(pit, vec![(0, 1), (2, 3)]));
     /// ```
     ///
     fn batching<B, F: FnMut(&mut Self) -> Option<B>>(self, f: F) -> Batching<Self, F> where
@@ -393,16 +400,10 @@ pub trait Itertools : Iterator {
     ///
     /// ## Example
     /// ```
-    /// # extern crate itertools;
-    /// # fn main() {
     /// use itertools::Itertools;
     ///
-    /// let mut it = (0..8).step(3);
-    /// assert_eq!(it.next(), Some(0));
-    /// assert_eq!(it.next(), Some(3));
-    /// assert_eq!(it.next(), Some(6));
-    /// assert_eq!(it.next(), None);
-    /// # }
+    /// let it = (0..8).step(3);
+    /// assert!(itertools::equal(it, vec![0, 3, 6]));
     /// ```
     fn step(self, n: usize) -> Step<Self> where
         Self: Sized,
@@ -419,15 +420,10 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let a = (0..10).step(2);
-    /// let b = (1..10).step(3);
-    /// let mut it = a.merge(b);
-    /// assert_eq!(it.next(), Some(0));
-    /// assert_eq!(it.next(), Some(1));
-    /// assert_eq!(it.next(), Some(2));
-    /// assert_eq!(it.next(), Some(4));
-    /// assert_eq!(it.next(), Some(4));
-    /// assert_eq!(it.next(), Some(6));
+    /// let a = (0..11).step(3);
+    /// let b = (0..11).step(5);
+    /// let it = a.merge(b);
+    /// assert!(itertools::equal(it.take(7), vec![0, 0, 3, 5, 6, 9, 10]));
     /// ```
     fn merge<J>(self, other: J)
         -> Merge<Self, J::IntoIter, fn(&Self::Item, &Self::Item) -> Ordering> where
@@ -454,12 +450,8 @@ pub trait Itertools : Iterator {
     ///
     /// let a = (0..).zip("bc".chars());
     /// let b = (0..).zip("ad".chars());
-    /// let mut it = a.merge_by(b, |x, y| x.1.cmp(&y.1));
-    /// assert_eq!(it.next(), Some((0, 'a')));
-    /// assert_eq!(it.next(), Some((0, 'b')));
-    /// assert_eq!(it.next(), Some((1, 'c')));
-    /// assert_eq!(it.next(), Some((1, 'd')));
-    /// assert_eq!(it.next(), None);
+    /// let it = a.merge_by(b, |x, y| x.1.cmp(&y.1));
+    /// assert!(itertools::equal(it, vec![(0, 'a'), (0, 'b'), (1, 'c'), (1, 'd')]));
     /// ```
 
     fn merge_by<J, F>(self, other: J, cmp: F) -> Merge<Self, J::IntoIter, F> where
@@ -478,12 +470,8 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let mut it = (0..2).cartesian_product("αβ".chars());
-    /// assert_eq!(it.next(), Some((0, 'α')));
-    /// assert_eq!(it.next(), Some((0, 'β')));
-    /// assert_eq!(it.next(), Some((1, 'α')));
-    /// assert_eq!(it.next(), Some((1, 'β')));
-    /// assert_eq!(it.next(), None);
+    /// let it = (0..2).cartesian_product("αβ".chars());
+    /// assert!(itertools::equal(it, vec![(0, 'α'), (0, 'β'), (1, 'α'), (1, 'β')]));
     /// ```
     fn cartesian_product<J>(self, other: J) -> Product<Self, J::IntoIter> where
         Self: Sized,
