@@ -421,7 +421,7 @@ pub trait Itertools : Iterator {
     /// let a = (0..11).step(3);
     /// let b = (0..11).step(5);
     /// let it = a.merge(b);
-    /// assert!(itertools::equal(it.take(7), vec![0, 0, 3, 5, 6, 9, 10]));
+    /// assert!(itertools::equal(it, vec![0, 0, 3, 5, 6, 9, 10]));
     /// ```
     fn merge<J>(self, other: J)
         -> Merge<Self, J::IntoIter, fn(&Self::Item, &Self::Item) -> Ordering> where
