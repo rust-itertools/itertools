@@ -2,6 +2,7 @@
 
 extern crate itertools;
 
+#[cfg(feature = "unstable")]
 use std::fmt::Debug;
 #[cfg(feature = "unstable")]
 use std::iter::RandomAccessIterator;
@@ -88,6 +89,7 @@ fn zip_tuple() {
     assert_eq!(jt.next(), Some((1, 1, 1)));
 }
 
+#[cfg(feature = "unstable")]
 fn assert_iters_equal<
     A: PartialEq + Debug,
     I: Iterator<Item=A>,

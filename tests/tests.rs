@@ -413,7 +413,7 @@ fn count_clones() {
 
     for n in 0..10 {
         let f = Foo{n: Cell::new(0)};
-        let mut it = it::RepeatN::new(f, n);
+        let it = it::RepeatN::new(f, n);
         // drain it
         let last = it.last();
         if n == 0 {
