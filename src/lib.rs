@@ -115,8 +115,6 @@ macro_rules! iproduct {
 }
 
 #[macro_export]
-/// **Deprecated: use *Zip::new* instead.**
-///
 /// Create an iterator running multiple iterators in lockstep.
 ///
 /// The izip! iterator yields elements until any subiterator
