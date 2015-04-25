@@ -201,7 +201,7 @@ pub trait Itertools : Iterator {
     }
 
     /// Alternate elements from two iterators until both
-    /// are run out
+    /// run out.
     ///
     /// Iterator element type is **Self::Item**.
     fn interleave<J>(self, other: J) -> Interleave<Self, J> where
@@ -222,8 +222,8 @@ pub trait Itertools : Iterator {
         Intersperse::new(self, element)
     }
 
-    /// Creates an iterator which iterates over both this and the specified
-    /// iterators simultaneously, yielding pairs of two optional elements.
+    /// Create an iterator which iterates over both this and the specified
+    /// iterator simultaneously, yielding pairs of two optional elements.
     /// When both iterators return None, all further invocations of next() will
     /// return None.
     ///
@@ -440,9 +440,10 @@ pub trait Itertools : Iterator {
         self.merge_by(other, wrapper)
     }
 
-    /// Return an iterator adaptor that merges the two base iterators in an order.
-    /// This is much like merge_by but allows for descending orders or sorting tuples.
-    /// This can be especially useful walking a BTreeMap structure.
+    /// Return an iterator adaptor that merges the two base iterators in order.
+    /// This is much like *.merge()* but allows for a custom ordering.
+    ///
+    /// This can be especially useful for sequences of tuples.
     ///
     /// Iterator element type is **Self::Item**.
     ///
@@ -513,7 +514,7 @@ pub trait Itertools : Iterator {
 
     /// Returns an iterator adapter that allows peeking multiple values.
     ///
-    /// After a call to *.next()* the peeking cursor gets resetted.
+    /// After a call to *.next()* the peeking cursor is reset.
     ///
     /// ## Example
     ///
@@ -554,7 +555,8 @@ pub trait Itertools : Iterator {
     ///
     /// Return actual number of elements consumed,
     /// until done or reaching the end.
-    fn dropn(&mut self, mut n: usize) -> usize {
+    fn dropn(&mut self, mut n: usize) -> usize
+    {
         let start = n;
         while n > 0 {
             match self.next() {

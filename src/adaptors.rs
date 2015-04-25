@@ -25,10 +25,8 @@ macro_rules! clone_fields {
 }
 
 
-/// Alternate elements from two iterators until both
-/// are run out
-///
-/// Iterator element type is `A` if `I: Iterator<A>`
+/// An iterator adaptor that alternates elements from two iterators until both
+/// run out.
 #[derive(Clone)]
 pub struct Interleave<I, J> {
     a: I,
@@ -65,12 +63,12 @@ impl<I, J> Iterator for Interleave<I, J> where
     }
 }
 
-/// Clonable iterator adaptor to map elementwise
-/// from `Iterator<A>` to `Iterator<B>`
+/// A clonable iterator adaptor to map elementwise
+/// from one iterator to another, using a function pointer.
 ///
-/// Created with `.fn_map(..)` on an iterator
+/// Created with the method *.fn_map()* on an iterator.
 ///
-/// Iterator element type is `B`
+/// Iterator element type is **B**.
 pub struct FnMap<B, I> where
     I: Iterator,
 {
@@ -250,10 +248,9 @@ impl<I, J> Iterator for Product<I, J> where
 }
 
 #[derive(Clone)]
-/// Remove duplicates from sections of consecutive identical elements.
-/// If the iterator is sorted, all elements will be unique.
-///
-/// Iterator element type is **I::Item**.
+/// An iterator adaptor that removes duplicates from sections of consecutive
+/// identical elements.  If the iterator is sorted, all elements will be
+/// unique.
 pub struct Dedup<I> where
     I: Iterator,
 {
@@ -347,10 +344,8 @@ impl<B, F, I> Iterator for Batching<I, F> where
 }
 
 #[derive(Clone)]
-/// Group iterator elements. Consecutive elements that map to the same key (“runs”),
-/// are returned as the iterator elements of **GroupBy**.
-///
-/// Iterator element type is **(K, Vec\<A\>)**
+/// An iterator adaptor that groups iterator elements. Consecutive elements
+/// that map to the same key (“runs”), are returned as the iterator elements.
 pub struct GroupBy<K, I, F> where
     I: Iterator,
 {
@@ -363,7 +358,7 @@ pub struct GroupBy<K, I, F> where
 impl<K, F, I> GroupBy<K, I, F> where
     I: Iterator,
 {
-    /// Create a new GroupBy iterator.
+    /// Create a new **GroupBy** iterator.
     pub fn new(iter: I, key: F) -> Self
     {
         GroupBy{key: key, iter: iter, current_key: None, elts: Vec::new()}
@@ -586,7 +581,8 @@ impl<K, I> Iterator for EnumerateFrom<I, K> where
 }
 
 #[derive(Clone)]
-/// An Iterator adaptor that allows the user to peek at multiple *.next()* values without advancing itself.
+/// An Iterator adaptor that allows the user to peek at multiple *.next()*
+/// values without advancing itself.
 pub struct MultiPeek<I> where
     I: Iterator,
 {
@@ -601,8 +597,9 @@ impl<I: Iterator> MultiPeek<I> {
         MultiPeek{ iter: iter.fuse(), buf: Vec::new(), index: 0 }
     }
 
-    /// Works exactly like *.next()* with the only difference that it doesn't advance itself.
-    /// *.peek()* kann be called multiple times, behaving exactly like *.next()*.
+    /// Works exactly like *.next()* with the only difference that it doesn't
+    /// advance itself. *.peek()* can be called multiple times, to peek
+    /// further ahead.
     pub fn peek(&mut self) -> Option<&I::Item> {
         let ret = if self.index < self.buf.len() {
             Some(&self.buf[self.index])
