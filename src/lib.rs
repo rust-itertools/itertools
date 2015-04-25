@@ -652,9 +652,26 @@ pub trait Itertools : Iterator {
     /// Fold **Result** values from an iterator.
     ///
     /// Only **Ok** values are folded. If no error is encountered, the folded
-    /// value is returned inside **Ok**. Otherwise and the operation terminates
-    /// and returns the first error it encounters. No iterator elements are 
+    /// value is returned inside **Ok**. Otherwise, the operation terminates
+    /// and returns the first **Err** value it encounters. No iterator elements are
     /// consumed after the first error.
+    ///
+    /// The first accumulator value is the **start** parameter.
+    /// Each iteration passes the accumulator value and the next value inside **Ok**
+    /// to the fold function **f** and its return value becomes the new accumulator value.
+    ///
+    /// For example the sequence *Ok(1), Ok(2), Ok(3)* will result in a
+    /// computation like this:
+    ///
+    /// ```ignore
+    /// let mut accum = start;
+    /// accum = f(accum, 1);
+    /// accum = f(accum, 2);
+    /// accum = f(accum, 3);
+    /// ```
+    ///
+    /// With a **start** value of 0 and an addition as folding function,
+    /// this effetively results in *((0 + 1) + 2) + 3*
     ///
     /// ## Example
     ///
@@ -691,7 +708,8 @@ pub trait Itertools : Iterator {
 }
 
 /// Return **true** if both iterators produce equal sequences
-/// (elements pairwise equal and sequences of the same length).
+/// (elements pairwise equal and sequences of the same length),
+/// **false** otherwise.
 ///
 /// ## Example
 ///
