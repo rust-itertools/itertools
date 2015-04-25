@@ -85,7 +85,7 @@ mod ziptrusted;
 ///
 /// ## Example
 ///
-/// ```ignore
+/// ```
 /// #[macro_use]
 /// extern crate itertools;
 /// # fn main() {
@@ -98,19 +98,16 @@ mod ziptrusted;
 /// ```
 macro_rules! iproduct {
     ($I:expr) => (
-        ($I)
+        ($I.into_iter())
     );
     ($I:expr, $J:expr) => (
-        {
-            let it = $crate::Product::new($I, $J);
-            it
-        }
+        $crate::Product::new($I.into_iter(), $J.into_iter())
     );
     ($I:expr, $J:expr, $($K:expr),+) => (
         {
-            let it = $crate::Product::new($I, $J);
+            let it = iproduct!($I, $J);
             $(
-                let it = $crate::misc::FlatTuples::new($crate::Product::new(it, $K));
+                let it = $crate::misc::FlatTuples::new(iproduct!(it, $K));
             )*
             it
         }
@@ -208,11 +205,11 @@ pub trait Itertools : Iterator {
     /// run out.
     ///
     /// Iterator element type is **Self::Item**.
-    fn interleave<J>(self, other: J) -> Interleave<Self, J> where
-        J: Iterator<Item=Self::Item>,
+    fn interleave<J>(self, other: J) -> Interleave<Self, J::IntoIter> where
+        J: IntoIterator<Item=Self::Item>,
         Self: Sized
     {
-        Interleave::new(self, other)
+        Interleave::new(self, other.into_iter())
     }
 
     /// An iterator adaptor to insert a particular value
@@ -244,11 +241,11 @@ pub trait Itertools : Iterator {
     ///
     /// Iterator element type is **EitherOrBoth\<Self::Item, B\>**.
     #[inline]
-    fn zip_longest<U>(self, other: U) -> ZipLongest<Self, U> where
-        U: Iterator,
+    fn zip_longest<J>(self, other: J) -> ZipLongest<Self, J::IntoIter> where
+        J: IntoIterator,
         Self: Sized,
     {
-        ZipLongest::new(self, other)
+        ZipLongest::new(self, other.into_iter())
     }
 
     /// Remove duplicates from sections of consecutive identical elements.
@@ -433,10 +430,10 @@ pub trait Itertools : Iterator {
     /// assert_eq!(it.next(), Some(6));
     /// ```
     fn merge<J>(self, other: J)
-        -> Merge<Self, J, fn(&Self::Item, &Self::Item) -> Ordering> where
+        -> Merge<Self, J::IntoIter, fn(&Self::Item, &Self::Item) -> Ordering> where
         Self: Sized,
         Self::Item: PartialOrd,
-        J: Iterator<Item=Self::Item>,
+        J: IntoIterator<Item=Self::Item>,
     {
         fn wrapper<A: PartialOrd>(a: &A, b: &A) -> Ordering { 
             a.partial_cmp(b).unwrap_or(Ordering::Less) 
@@ -465,12 +462,12 @@ pub trait Itertools : Iterator {
     /// assert_eq!(it.next(), None);
     /// ```
 
-    fn merge_by<J, F>(self, other: J, cmp: F) -> Merge<Self, J, F> where
+    fn merge_by<J, F>(self, other: J, cmp: F) -> Merge<Self, J::IntoIter, F> where
         Self: Sized,
-        J: Iterator<Item=Self::Item>,
+        J: IntoIterator<Item=Self::Item>,
         F: FnMut(&Self::Item, &Self::Item) -> Ordering
     {
-        Merge::new(self, other, cmp)
+        Merge::new(self, other.into_iter(), cmp)
     }
 
     /// Return an iterator adaptor that iterates over the cartesian product of
@@ -488,12 +485,13 @@ pub trait Itertools : Iterator {
     /// assert_eq!(it.next(), Some((1, 'β')));
     /// assert_eq!(it.next(), None);
     /// ```
-    fn cartesian_product<J>(self, other: J) -> Product<Self, J> where
+    fn cartesian_product<J>(self, other: J) -> Product<Self, J::IntoIter> where
         Self: Sized,
         Self::Item: Clone,
-        J: Clone + Iterator,
+        J: IntoIterator,
+        J::IntoIter: Clone,
     {
-        Product::new(self, other)
+        Product::new(self, other.into_iter())
     }
 
     /// Return an iterator adaptor that enumerates the iterator elements,
@@ -648,7 +646,7 @@ pub trait Itertools : Iterator {
     #[inline]
     fn set_from<'a, A: 'a, J>(&mut self, from: J) -> usize where
         Self: Iterator<Item=&'a mut A>,
-        J: Iterator<Item=A>,
+        J: IntoIterator<Item=A>,
     {
         let mut count = 0;
         for elt in from {
