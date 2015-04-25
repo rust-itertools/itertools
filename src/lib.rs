@@ -31,6 +31,7 @@
 //!
 //!
 
+use std::iter::IntoIterator;
 use std::fmt::Write;
 use std::cmp::Ordering;
 
@@ -101,10 +102,10 @@ pub type MergeAscend<I, J, A> = Merge<I, J, fn(&A, &A) -> Ordering>;
 /// ```
 macro_rules! iproduct {
     ($I:expr) => (
-        ($I.into_iter())
+        (::std::iter::IntoIterator::into_iter($I))
     );
     ($I:expr, $J:expr) => (
-        $crate::Product::new($I.into_iter(), $J.into_iter())
+        $crate::Product::new(iproduct!($I), iproduct!($J))
     );
     ($I:expr, $J:expr, $($K:expr),+) => (
         {
@@ -143,11 +144,11 @@ macro_rules! iproduct {
 /// ```
 macro_rules! izip {
     ($I:expr) => (
-        ($I.into_iter())
+        (::std::iter::IntoIterator::into_iter($I))
     );
     ($($I:expr),*) => (
         {
-            $crate::Zip::new(($($I.into_iter()),*))
+            $crate::Zip::new(($(izip!($I)),*))
         }
     );
 }
