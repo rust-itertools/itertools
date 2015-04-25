@@ -9,12 +9,12 @@ use std::marker;
 use std::mem;
 use std::ops::{Index, IndexMut};
 
-/// Stride is similar to the slice iterator, but with a certain number of steps
+/// An iterator similar to the slice iterator, but with a certain number of steps
 /// (the stride) skipped per iteration.
 ///
-/// Stride does not support zero-sized types for `A`.
+/// **Stride** does not support zero-sized types for **A**.
 ///
-/// Iterator element type is `&'a A`.
+/// Iterator element type is **&'a A**.
 pub struct Stride<'a, A: 'a> {
     /// base pointer -- does not change during iteration
     begin: *const A,
@@ -30,9 +30,11 @@ impl<'a, A> Copy for Stride<'a, A> {}
 unsafe impl<'a, A> Send for Stride<'a, A> where A: Send {}
 unsafe impl<'a, A> Sync for Stride<'a, A> where A: Sync {}
 
-/// StrideMut is like Stride, but with mutable elements.
+/// The mutable equivalent of Stride.
 ///
-/// Iterator element type is `&'a mut A`.
+/// **StrideMut** does not support zero-sized types for **A**.
+///
+/// Iterator element type is **&'a mut A**.
 pub struct StrideMut<'a, A: 'a> {
     begin: *mut A,
     offset: isize,

@@ -2,7 +2,7 @@
 #![cfg_attr(feature = "unstable", feature(core, zero_one))]
 #![crate_name="itertools"]
 
-//! Itertools — extra iterator adaptors, functions and macros
+//! Itertools — extra iterator adaptors, functions and macros.
 //!
 //! To use the iterator methods in this crate, import the [**Itertools** trait](./trait.Itertools.html):
 //!
@@ -10,8 +10,9 @@
 //! use itertools::Itertools;
 //! ```
 //!
-//! Some adaptors are just used directly like regular structs,
-//! for example [**PutBack**](./struct.PutBack.html), [**Zip**](./struct.Zip.html), [**Stride**](./struct.Stride.html), [**StrideMut**](./struct.StrideMut.html).
+//! Some iterators or adaptors are used directly like regular structs, for example
+//! [**PutBack**](./struct.PutBack.html), [**Zip**](./struct.Zip.html),
+//! [**Stride**](./struct.Stride.html), [**StrideMut**](./struct.StrideMut.html).
 //!
 //! To use the macros in this crate, use the `#[macro_use]` attribute:
 //!

@@ -581,7 +581,7 @@ impl<K, I> Iterator for EnumerateFrom<I, K> where
 }
 
 #[derive(Clone)]
-/// An Iterator adaptor that allows the user to peek at multiple *.next()*
+/// An iterator adaptor that allows the user to peek at multiple *.next()*
 /// values without advancing itself.
 pub struct MultiPeek<I> where
     I: Iterator,

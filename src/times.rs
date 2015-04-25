@@ -9,7 +9,7 @@ pub fn times(n: usize) -> Times
     Times{i: 0, n: n}
 }
 
-/// Iterator to repeat a simple number of times
+/// A simple iterator to repeat a given number of times
 ///
 /// Created with the `times()` function.
 ///

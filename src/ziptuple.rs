@@ -1,7 +1,7 @@
 use std::cmp;
 
 #[derive(Clone)]
-/// Create an iterator running multiple iterators in lockstep.
+/// An iterator that generalizes *.zip()* and allows running multiple iterators in lockstep.
 ///
 /// The iterator **Zip\<(I, J, ..., M)\>** is formed from a tuple of iterators and yields elements
 /// until any of the subiterators yields **None**.
