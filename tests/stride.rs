@@ -1,6 +1,5 @@
 extern crate itertools;
 
-use itertools::Itertools;
 use itertools::Stride;
 use itertools::StrideMut;
 
@@ -92,7 +91,7 @@ fn from_stride_empty()
 {
     let xs = &[1, 2, 3, 4, 5, 6, 7, 8, 9];
     let mut odds = Stride::from_slice(xs, 2);
-    odds.drain();
+    odds.by_ref().count();
     assert!(odds.len() == 0);
     assert!(odds.next().is_none());
     let mut it = Stride::from_stride(odds, 2);

@@ -76,11 +76,11 @@ fn izip3() {
 fn write_to() {
     let xs = [7, 9, 8];
     let mut ys = [0; 5];
-    let cnt = it::write(ys.iter_mut(), xs.iter().map(|x| *x));
+    let cnt = ys.iter_mut().set_from(xs.iter().map(|x| *x));
     assert!(cnt == xs.len());
     assert!(ys == [7, 9, 8, 0, 0]);
 
-    let cnt = it::write(ys.iter_mut(), 0..10);
+    let cnt = ys.iter_mut().set_from(0..10);
     assert!(cnt == ys.len());
     assert!(ys == [0, 1, 2, 3, 4]);
 }
@@ -102,14 +102,6 @@ fn interleave() {
 fn times() {
     assert!(it::times(0).count() == 0);
     assert!(it::times(5).count() == 5);
-}
-
-#[test]
-fn drain() {
-    let xs = [1i32,2,3];
-    let mut sum = 0;
-    xs.iter().map(|elt| sum += *elt).drain();
-    assert!(sum == 6);
 }
 
 #[test]
@@ -343,14 +335,14 @@ fn merge_by_btree() {
 }
 
 #[test]
-fn to_string_join() {
+fn join() {
     let many = [1, 2, 3];
     let one  = [1];
     let none: Vec<i32> = vec![];
 
-    assert_eq!(many.iter().to_string_join(", "), "1, 2, 3");
-    assert_eq!( one.iter().to_string_join(", "), "1");
-    assert_eq!(none.iter().to_string_join(", "), "");
+    assert_eq!(many.iter().join(", "), "1, 2, 3");
+    assert_eq!( one.iter().join(", "), "1");
+    assert_eq!(none.iter().join(", "), "");
 }
 
 #[test]

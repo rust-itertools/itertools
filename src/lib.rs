@@ -567,35 +567,6 @@ pub trait Itertools : Iterator {
         self
     }
 
-    /// **Deprecated: because of a name clash, use .count() or .foreach() instead as appropriate.**
-    ///
-    /// Run the iterator, eagerly, to the end and consume all its elements.
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// let mut cnt = 0;
-    /// "hi".chars().map(|c| cnt += 1).drain();
-    /// ```
-    ///
-    fn drain(&mut self)
-    {
-        for _ in self { /* nothing */ }
-    }
-
-    /// **Deprecated: Use *.foreach()* instead.**
-    ///
-    /// Run the closure **f** eagerly on each element of the iterator.
-    ///
-    /// Consumes the iterator until its end.
-    fn apply<F>(&mut self, f: F) where
-        F: FnMut(Self::Item),
-    {
-        self.foreach(f)
-    }
-
     /// Run the closure **f** eagerly on each element of the iterator.
     ///
     /// Consumes the iterator until its end.
@@ -643,25 +614,6 @@ pub trait Itertools : Iterator {
             count += 1;
         }
         count
-    }
-
-    /// **Deprecated: Use *.join()* instead, it's more efficient.**.
-    ///
-    /// Convert each element to String before joining them all together.
-    ///
-    /// Like *.join()*, but converts each element to **String** explicitly first.
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// assert_eq!([1, 2, 3].iter().to_string_join(", "), "1, 2, 3");
-    /// ```
-    fn to_string_join(&mut self, sep: &str) -> String where
-        Self::Item: ToString,
-    {
-        self.map(|elt| elt.to_string()).join(sep)
     }
 
     /// Combine all iterator elements into one String, seperated by **sep**.
@@ -763,24 +715,3 @@ pub fn equal<I, J>(a: I, b: J) -> bool where
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }
 
-/// **Deprecated: Use *.set_from()* instead**.
-///
-/// Assign to each reference in `to` from `from`, stopping
-/// at the shortest of the two iterators.
-///
-/// Return the number of elements written.
-#[inline]
-pub fn write<'a, A: 'a, I, J>(mut to: I, from: J) -> usize where
-    I: Iterator<Item=&'a mut A>,
-    J: Iterator<Item=A>
-{
-    let mut count = 0;
-    for elt in from {
-        match to.next() {
-            None => break,
-            Some(ptr) => *ptr = elt
-        }
-        count += 1;
-    }
-    count
-}
