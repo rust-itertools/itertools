@@ -167,11 +167,13 @@ fn size_product3(a: Iter<u16>, b: Iter<u16>, c: Iter<u16>) -> bool {
 }
 
 #[quickcheck]
-fn size_step(a: Iter<u16>, mut s: usize) -> bool {
+fn size_step(a: Iter<i16>, mut s: usize) -> bool {
     if s == 0 {
         s += 1; // never zero
     }
-    exact_size(a.step(s))
+    let filt = a.clone().dedup();
+    correct_size_hint(filt.step(s)) &&
+        exact_size(a.step(s))
 }
 
 #[quickcheck]
@@ -202,12 +204,18 @@ fn size_merge(a: Iter<u16>, b: Iter<u16>) -> bool {
 
 #[quickcheck]
 fn size_zip(a: Iter<i16>, b: Iter<i16>, c: Iter<i16>) -> bool {
-    exact_size(Zip::new((a, b, c)))
+    let filt = a.clone().dedup();
+    correct_size_hint(Zip::new((filt, b.clone(), c.clone()))) &&
+        exact_size(Zip::new((a, b, c)))
 }
 
 #[quickcheck]
 fn size_zip_longest(a: Iter<i16>, b: Iter<i16>) -> bool {
-    exact_size(a.zip_longest(b))
+    let filt = a.clone().dedup();
+    let filt2 = b.clone().dedup();
+    correct_size_hint(filt.zip_longest(b.clone())) &&
+    correct_size_hint(a.clone().zip_longest(filt2)) &&
+        exact_size(a.zip_longest(b))
 }
 
 #[quickcheck]
@@ -239,8 +247,8 @@ fn equal_islice(a: Vec<i16>, x: usize, y: usize) -> bool {
 
 fn size_islice(a: Vec<i16>, x: usize, y: usize) -> bool {
     if x > y || y > a.len() { return true; }
-    let slc = &a[x..y];
-    exact_size(a.iter().slice(x..y))
+    correct_size_hint(a.iter().dedup().slice(x..y)) &&
+        exact_size(a.iter().slice(x..y))
 }
 
 #[quickcheck]
@@ -342,6 +350,15 @@ fn size_tee(a: Vec<u8>) -> bool {
     t1.next();
     t2.next();
     exact_size(t1) && exact_size(t2)
+}
+
+#[quickcheck]
+fn size_tee_2(a: Vec<u8>) -> bool {
+    let (mut t1, mut t2) = a.iter().dedup().tee();
+    t1.next();
+    t1.next();
+    t2.next();
+    correct_size_hint(t1) && correct_size_hint(t2)
 }
 
 }
