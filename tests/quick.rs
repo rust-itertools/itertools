@@ -237,6 +237,13 @@ fn size_group_by(a: Vec<i8>) -> bool {
 }
 
 #[quickcheck]
+fn size_linspace(a: f32, b: f32, n: usize) -> bool {
+    let it = itertools::linspace(a, b, n);
+    it.len() == n &&
+        exact_size(it)
+}
+
+#[quickcheck]
 fn equal_repeatn(n: usize, x: i32) -> bool {
     let it = itertools::RepeatN::new(x, n);
     exact_size(it)
