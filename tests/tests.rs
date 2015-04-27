@@ -55,6 +55,20 @@ fn product3() {
 }
 
 #[test]
+fn izip_macro() {
+    let mut zip = izip!(0..3, 0..2, 0..2i8);
+    for i in 0..2 {
+        assert!((i as usize, i, i as i8) == zip.next().unwrap());
+    }
+    assert!(zip.next().is_none());
+
+    
+    let xs: [isize; 0] = [];
+    let mut zip = izip!(0..3, 0..2, 0..2i8, &xs);
+    assert!(zip.next().is_none());
+}
+
+#[test]
 fn izip3() {
     let mut zip = Zip::new((0..3, 0..2, 0..2i8));
     for i in 0..2 {
