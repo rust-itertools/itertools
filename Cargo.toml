@@ -12,6 +12,12 @@ description = "Extra iterator adaptors, iterator methods and macros."
 
 keywords = ["iterator", "data-structure", "zip", "product"]
 
+[dependencies.quickcheck]
+optional = true
+[dependencies.quickcheck_macros]
+optional = true
+
 [features]
 
 unstable = []
+qc = ["quickcheck", "quickcheck_macros"]
