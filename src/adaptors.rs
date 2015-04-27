@@ -10,9 +10,9 @@ use std::num::One;
 #[cfg(feature = "unstable")]
 use std::ops::Add;
 use std::cmp::Ordering;
-use std::usize;
 use std::iter::{Fuse, Peekable};
 use super::Itertools;
+use super::size_hint;
 
 macro_rules! clone_fields {
     ($name:ident, $base:expr, $($field:ident),+) => (
@@ -170,11 +170,7 @@ impl<I> Iterator for PutBack<I> where
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         // Not ExactSizeIterator because size may be larger than usize
-        let (lo, hi) = self.iter.size_hint();
-        match self.top {
-            Some(_) => (lo.saturating_add(1), hi.and_then(|x| x.checked_add(1))),
-            None => (lo, hi)
-        }
+        size_hint::add_scalar(self.iter.size_hint(), self.top.is_some() as usize)
     }
 }
 
@@ -241,17 +237,12 @@ impl<I, J> Iterator for Product<I, J> where
     {
         let has_cur = self.a_cur.is_some() as usize;
         // Not ExactSizeIterator because size may be larger than usize
-        let (a, ah) = self.a.size_hint();
-        let (b, bh) = self.b.size_hint();
-        let (bo, boh) = self.b_orig.size_hint();
+        let (b, _) = self.b.size_hint();
 
-        // Compute a * bo + b for both lower and upper bound
-        let low = a.checked_mul(bo)
-                    .unwrap_or(::std::usize::MAX)
-                    .saturating_add(b * has_cur);
-        let high = ah.and_then(|x| boh.and_then(|y| x.checked_mul(y)))
-                     .and_then(|x| bh.and_then(|y| x.checked_add(y)));
-        (low, high)
+        // Compute a * b_orig + b for both lower and upper bound
+        size_hint::add_scalar(
+            size_hint::mul(self.a.size_hint(), self.b_orig.size_hint()),
+            b * has_cur)
     }
 }
 
@@ -409,14 +400,13 @@ impl<K, I, F> Iterator for GroupBy<K, I, F> where
 
     fn size_hint(&self) -> (usize, Option<usize>)
     {
-        let (lower, upper) = self.iter.size_hint();
         let stored_count = self.current_key.is_some() as usize;
-        let my_upper = upper.and_then(|x| x.checked_add(stored_count));
-        if lower > 0 || stored_count > 0 {
-            (1, my_upper)
-        } else {
-            (0, my_upper)
+        let mut sh = size_hint::add_scalar(self.iter.size_hint(),
+                                           stored_count);
+        if sh.0 > 0 {
+            sh.0 = 1;
         }
+        sh
     }
 }
 
@@ -544,16 +534,7 @@ impl<I, J, F> Iterator for Merge<I, J, F> where
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         // Not ExactSizeIterator because size may be larger than usize
-        let (a_min, a_max) = self.a.size_hint();
-        let (b_min, b_max) = self.b.size_hint();
-
-        let min = a_min.checked_add(b_min).unwrap_or(usize::MAX);
-        let max = match (a_max, b_max) {
-            (Some(a_min), Some(b_min)) => a_min.checked_add(b_min),
-            _ => None,
-        };
-
-        (min, max)
+        size_hint::add(self.a.size_hint(), self.b.size_hint())
     }
 }
 
@@ -664,10 +645,7 @@ impl<I> Iterator for MultiPeek<I> where
 
     fn size_hint(&self) -> (usize, Option<usize>)
     {
-        let (mut low, mut hi) = self.iter.size_hint();
-        low = low.saturating_add(self.buf.len());
-        hi = hi.and_then(|x| x.checked_add(self.buf.len()));
-        (low, hi)
+        size_hint::add_scalar(self.iter.size_hint(), self.buf.len())
     }
 }
 

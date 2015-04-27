@@ -319,4 +319,14 @@ fn size_ziptrusted_mix(a: Vec<u8>, b: Vec<()>, x: u8, y: u8) -> bool {
     exact_size(itertools::ZipTrusted::new((a.iter(), b.iter(), x..y)))
 }
 
+#[quickcheck]
+fn size_put_back(a: Vec<u8>, x: Option<u8>) -> bool {
+    let mut it = itertools::PutBack::new(a.into_iter());
+    match x {
+        Some(t) => it.put_back(t),
+        None => {}
+    }
+    correct_size_hint(it)
+}
+
 }

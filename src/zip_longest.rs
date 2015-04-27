@@ -1,6 +1,7 @@
 use std::cmp;
 #[cfg(feature = "unstable")]
 use std::iter::RandomAccessIterator;
+use super::size_hint;
 use self::EitherOrBoth::{Right, Left, Both};
 
 // ZipLongest originally written by SimonSapin,
@@ -40,17 +41,7 @@ impl<A, B, T, U> Iterator for ZipLongest<T, U> where
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let (a_lower, a_upper) = self.a.size_hint();
-        let (b_lower, b_upper) = self.b.size_hint();
-
-        let lower = cmp::max(a_lower, b_lower);
-
-        let upper = match (a_upper, b_upper) {
-            (Some(x), Some(y)) => Some(cmp::max(x,y)),
-            _ => None
-        };
-
-        (lower, upper)
+        size_hint::max(self.a.size_hint(), self.b.size_hint())
     }
 }
 

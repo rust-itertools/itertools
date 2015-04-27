@@ -71,6 +71,7 @@ mod linspace;
 pub mod misc;
 mod rciter;
 mod repeatn;
+pub mod size_hint;
 mod stride;
 mod tee;
 mod times;
