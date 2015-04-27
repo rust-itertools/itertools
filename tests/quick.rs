@@ -2,6 +2,11 @@
 #![cfg_attr(feature="qc", plugin(quickcheck_macros))]
 #![allow(dead_code)]
 
+//! The purpose of these tests is to cover corner cases of iterators
+//! and adaptors.
+//!
+//! In particular we test the tedious size_hint and exact size correctness.
+
 #[macro_use]
 extern crate itertools;
 
@@ -83,6 +88,25 @@ fn exact_size<I: ExactSizeIterator>(mut it: I) -> bool {
     let (low, hi) = it.size_hint();
     low == 0 && hi == Some(0)
 }
+
+/*
+ * NOTE: Range<i8> is broken!
+ * (all signed ranges are)
+#[quickcheck]
+fn size_range_i8(a: Iter<i8>) -> bool {
+    exact_size(a)
+}
+
+#[quickcheck]
+fn size_range_i16(a: Iter<i16>) -> bool {
+    exact_size(a)
+}
+
+#[quickcheck]
+fn size_range_u8(a: Iter<u8>) -> bool {
+    exact_size(a)
+}
+ */
 
 #[quickcheck]
 fn size_stride(data: Vec<u8>, stride: isize) -> bool {
