@@ -9,6 +9,12 @@ __ http://bluss.github.io/rust-itertools/
 Recent Changes
 ==============
 
+Version 0.3.1
+
+- Use IntoIterator in Zip::new
+- Use --features qc to run quickcheck tests
+- Add itertools::size_hint for arithmetic on size hint values
+
 Version 0.3.0
 
 - Use IntoIterator where possible
