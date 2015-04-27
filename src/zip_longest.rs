@@ -1,3 +1,5 @@
+use std::cmp::Ordering::{Equal, Greater, Less};
+#[cfg(feature = "unstable")]
 use std::cmp;
 #[cfg(feature = "unstable")]
 use std::iter::RandomAccessIterator;
@@ -51,7 +53,6 @@ impl<A, B, T, U> DoubleEndedIterator for ZipLongest<T, U> where
 {
     #[inline]
     fn next_back(&mut self) -> Option<EitherOrBoth<A, B>> {
-        use std::cmp::Ordering::{Equal, Greater, Less};
         match self.a.len().cmp(&self.b.len()) {
             Equal => match (self.a.next_back(), self.b.next_back()) {
                 (None, None) => None,
