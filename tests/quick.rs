@@ -67,11 +67,36 @@ impl<T> qc::Arbitrary for Iter<T> where T: qc::Arbitrary
     }
 }
 
-fn correct_size_hint<I: Iterator>(it: I) -> bool {
+fn correct_size_hint_fast<I: Iterator>(it: I) -> bool {
     let (low, hi) = it.size_hint();
     let cnt = it.count();
     cnt >= low &&
         (hi.is_none() || hi.unwrap() >= cnt)
+}
+
+fn correct_size_hint<I: Iterator>(mut it: I) -> bool {
+    // record size hint at each iteration
+    let initial_hint = it.size_hint();
+    let mut hints = Vec::with_capacity(initial_hint.0 + 1);
+    hints.push(initial_hint);
+    while let Some(_) = it.next() {
+        hints.push(it.size_hint())
+    }
+
+    let mut true_count = hints.len(); // start off +1 too much
+
+    // check all the size hints
+    for &(low, hi) in &hints {
+        true_count -= 1;
+        if low > true_count ||
+            (hi.is_some() && hi.unwrap() < true_count)
+        {
+            println!("True size: {:?}, size hint: {:?}", true_count, (low, hi));
+            println!("All hints: {:?}", hints);
+            return false
+        }
+    }
+    true
 }
 
 fn exact_size<I: ExactSizeIterator>(mut it: I) -> bool {
