@@ -8,6 +8,15 @@ use std::ops::{
     RangeFrom
 };
 
+/// Apply **IntoIterator** on each element of a tuple.
+pub trait IntoIteratorTuple
+{
+    /// Tuple of values that implement **Iterator**.
+    type Output;
+
+    /// Return a tuple of iterators.
+    fn into_iterator_tuple(self) -> Self::Output;
+}
 
 /// A helper trait for (x, y, z) ++ w => (x, y, z, w),
 /// used for implementing `iproduct!`.

@@ -81,7 +81,7 @@ fn izip3() {
     let mut zip = Zip::new((0..3, 0..2, 0..2i8, xs.iter()));
     assert!(zip.next().is_none());
 
-    for (_, _, _, _) in Zip::new((0..3, 0..2, 0..2, 0..3)) {
+    for (_, _, _, _, _) in Zip::new((0..3, 0..2, xs.iter(), &xs, xs.to_vec())) {
         /* test compiles */
     }
 }
