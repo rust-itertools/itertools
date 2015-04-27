@@ -110,6 +110,11 @@ impl<B, I> DoubleEndedIterator for FnMap<B, I> where
     }
 }
 
+// same size
+impl<B, I> ExactSizeIterator for FnMap<B, I> where
+    I: ExactSizeIterator,
+{ }
+
 impl<B, I> Clone for FnMap<B, I> where
     I: Clone + Iterator,
 {
@@ -164,6 +169,7 @@ impl<I> Iterator for PutBack<I> where
     }
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
+        // Not ExactSizeIterator because size may be larger than usize
         let (lo, hi) = self.iter.size_hint();
         match self.top {
             Some(_) => (lo.saturating_add(1), hi.and_then(|x| x.checked_add(1))),
@@ -233,6 +239,7 @@ impl<I, J> Iterator for Product<I, J> where
 
     fn size_hint(&self) -> (usize, Option<usize>)
     {
+        // Not ExactSizeIterator because size may be larger than usize
         let (a, ah) = self.a.size_hint();
         let (b, bh) = self.b.size_hint();
         let (bo, boh) = self.b_orig.size_hint();
@@ -458,6 +465,11 @@ impl<I> Iterator for Step<I>
     }
 }
 
+// known size
+impl<I> ExactSizeIterator for Step<I> where
+    I: ExactSizeIterator,
+{ }
+
 /// An iterator adaptor that merges the two base iterators in ascending order.
 /// If both base iterators are sorted (ascending), the result is sorted.
 ///
@@ -526,6 +538,7 @@ impl<I, J, F> Iterator for Merge<I, J, F> where
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
+        // Not ExactSizeIterator because size may be larger than usize
         let (a_min, a_max) = self.a.size_hint();
         let (b_min, b_max) = self.b.size_hint();
 
@@ -578,7 +591,19 @@ impl<K, I> Iterator for EnumerateFrom<I, K> where
             }
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>)
+    {
+        self.iter.size_hint()
+    }
 }
+
+// Same size
+#[cfg(feature = "unstable")]
+impl<K, I> ExactSizeIterator for EnumerateFrom<I, K> where
+    K: Copy + One + Add<Output=K>,
+    I: ExactSizeIterator,
+{ }
 
 #[derive(Clone)]
 /// An iterator adaptor that allows the user to peek at multiple *.next()*
@@ -634,3 +659,8 @@ impl<I> Iterator for MultiPeek<I> where
 
     fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
 }
+
+// Same size
+impl<I> ExactSizeIterator for MultiPeek<I> where
+    I: ExactSizeIterator,
+{ }

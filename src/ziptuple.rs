@@ -96,6 +96,13 @@ macro_rules! impl_zip_iter {
                 (low, high)
             }
         }
+
+        #[allow(non_snake_case)]
+        impl<$($B),*> ExactSizeIterator for Zip<($($B,)*)> where
+            $(
+                $B: ExactSizeIterator,
+            )*
+        { }
     );
 }
 
