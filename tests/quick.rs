@@ -1,6 +1,6 @@
-#![cfg_attr(feature = "qc", feature(plugin, custom_attribute, core))]
-#![allow(dead_code)]
+#![cfg_attr(feature = "qc", feature(plugin, custom_attribute))]
 #![cfg_attr(feature="qc", plugin(quickcheck_macros))]
+#![allow(dead_code)]
 
 #[macro_use]
 extern crate itertools;
@@ -180,10 +180,19 @@ fn size_intersperse(a: Iter<i16>, x: i16) -> bool {
 }
 
 #[quickcheck]
-fn equal_intersperse(a: Iter<i32>, x: i32) -> bool {
-    if a.len() == 0 { return true }
-    a.clone().intersperse(x).sum::<i32>() ==
-        (a.clone().sum::<i32>() + (a.len() as i32 - 1) * x)
+fn equal_intersperse(a: Vec<i32>, x: i32) -> bool {
+    let mut inter = false;
+    let mut i = 0;
+    for elt in a.iter().cloned().intersperse(x) {
+        if inter {
+            if elt != x { return false }
+        } else {
+            if elt != a[i] { return false }
+            i += 1;
+        }
+        inter = !inter;
+    }
+    true
 }
 
 #[quickcheck]
