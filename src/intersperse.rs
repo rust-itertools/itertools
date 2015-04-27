@@ -43,13 +43,16 @@ impl<I> Iterator for Intersperse<I> where
 
     fn size_hint(&self) -> (usize, Option<usize>)
     {
+        let has_peek = self.peek.is_some() as usize;
         let (mut low, mut hi) = self.iter.size_hint();
         if low > 0 {
-            low = low.saturating_add((low - 1));
+            low = low.saturating_add(low);
         }
+        low = low.saturating_add(has_peek);
         hi = hi.and_then(|x| if x > 0 {
-            x.checked_add(x - 1)
+            x.checked_add(x)
         } else { Some (x) });
+        hi = hi.and_then(|x| x.checked_add(has_peek));
         (low, hi)
     }
 }

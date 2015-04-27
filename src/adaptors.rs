@@ -239,6 +239,7 @@ impl<I, J> Iterator for Product<I, J> where
 
     fn size_hint(&self) -> (usize, Option<usize>)
     {
+        let has_cur = self.a_cur.is_some() as usize;
         // Not ExactSizeIterator because size may be larger than usize
         let (a, ah) = self.a.size_hint();
         let (b, bh) = self.b.size_hint();
@@ -246,8 +247,8 @@ impl<I, J> Iterator for Product<I, J> where
 
         // Compute a * bo + b for both lower and upper bound
         let low = a.checked_mul(bo)
-                    .and_then(|x| x.checked_add(b))
-                    .unwrap_or(::std::usize::MAX);
+                    .unwrap_or(::std::usize::MAX)
+                    .saturating_add(b * has_cur);
         let high = ah.and_then(|x| boh.and_then(|y| x.checked_mul(y)))
                      .and_then(|x| bh.and_then(|y| x.checked_add(y)));
         (low, high)
@@ -302,13 +303,17 @@ impl<I> Iterator for Dedup<I> where
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>)
     {
-        let (lower, upper) = self.iter.size_hint();
+        let (mut lower, mut upper) = self.iter.size_hint();
         if self.last.is_some() || lower > 0 {
-            (1, upper.and_then(|x| x.checked_add(1)))
+            lower = 1;
         } else {
             // they might all be duplicates
-            (0, upper)
+            lower = 0;
         }
+        if self.last.is_some() {
+            upper = upper.and_then(|x| x.checked_add(1));
+        }
+        (lower, upper)
     }
 }
 
