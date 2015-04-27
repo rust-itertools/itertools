@@ -105,7 +105,7 @@ fn exact_size<I: ExactSizeIterator>(mut it: I) -> bool {
     if Some(low) != hi { return false; }
     while let Some(_) = it.next() {
         let (xlow, xhi) = it.size_hint();
-        if low - 1 != xlow { return false; }
+        if low != xlow + 1 { return false; }
         low = xlow;
         hi = xhi;
         if Some(low) != hi { return false; }
@@ -134,17 +134,18 @@ fn size_range_u8(a: Iter<u8>) -> bool {
  */
 
 #[quickcheck]
-fn size_stride(data: Vec<u8>, stride: isize) -> bool {
+fn size_stride(data: Vec<u8>, mut stride: isize) -> bool {
     if stride == 0 {
-        return true
+        stride += 1; // never zero
     }
     exact_size(Stride::from_slice(&data, stride))
 }
 
 #[quickcheck]
-fn equal_stride(data: Vec<u8>, stride: i8) -> bool {
+fn equal_stride(data: Vec<u8>, mut stride: i8) -> bool {
     if stride == 0 {
-        return true
+        // never zero
+        stride += 1;
     }
     if stride > 0 {
         itertools::equal(Stride::from_slice(&data, stride as isize),
@@ -163,6 +164,24 @@ fn size_product(a: Iter<u16>, b: Iter<u16>) -> bool {
 #[quickcheck]
 fn size_product3(a: Iter<u16>, b: Iter<u16>, c: Iter<u16>) -> bool {
     correct_size_hint(iproduct!(a, b, c))
+}
+
+#[quickcheck]
+fn size_step(a: Iter<u16>, mut s: usize) -> bool {
+    if s == 0 {
+        s += 1; // never zero
+    }
+    exact_size(a.step(s))
+}
+
+#[quickcheck]
+fn size_multipeek(a: Iter<u16>, s: u8) -> bool {
+    let mut it = a.multipeek();
+    // peek a few times
+    for _ in 0..s {
+        it.peek();
+    }
+    exact_size(it)
 }
 
 #[quickcheck]
