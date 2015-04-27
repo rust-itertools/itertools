@@ -60,7 +60,7 @@ pub use tee::Tee;
 pub use times::Times;
 pub use times::times;
 pub use linspace::{linspace, Linspace};
-pub use zip::{ZipLongest, EitherOrBoth};
+pub use zip_longest::{ZipLongest, EitherOrBoth};
 pub use ziptuple::{Zip};
 #[cfg(feature = "unstable")]
 pub use ziptrusted::{ZipTrusted, TrustedIterator};
@@ -74,7 +74,7 @@ mod repeatn;
 mod stride;
 mod tee;
 mod times;
-mod zip;
+mod zip_longest;
 mod ziptuple;
 #[cfg(feature = "unstable")]
 mod ziptrusted;
