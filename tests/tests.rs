@@ -271,6 +271,11 @@ fn rciter() {
     assert_eq!(z.next(), Some((2, 1)));
     assert_eq!(z.next(), Some((3, 5)));
     assert_eq!(z.next(), None);
+
+    // test intoiterator
+    let r1 = (0..5).into_rc();
+    let mut z = izip!(&r1, r1);
+    assert_eq!(z.next(), Some((0, 1)));
 }
 
 #[test]

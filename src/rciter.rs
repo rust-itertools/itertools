@@ -1,4 +1,5 @@
 
+use std::iter::IntoIterator;
 use std::rc::Rc;
 use std::cell::RefCell;
 
@@ -16,6 +17,7 @@ impl<I> RcIter<I>
         RcIter{rciter: Rc::new(RefCell::new(iter))}
     }
 }
+
 impl<I> Clone for RcIter<I>
 {
     #[inline]
@@ -53,3 +55,16 @@ impl<I> DoubleEndedIterator for RcIter<I> where
 impl<I> ExactSizeIterator for RcIter<I> where
     I: ExactSizeIterator
 {}
+
+/// Return an iterator from **&RcIter\<I\>** (by simply cloning it).
+impl<'a, I> IntoIterator for &'a RcIter<I> where
+    I: Iterator,
+{
+    type Item = I::Item;
+    type IntoIter = RcIter<I>;
+
+    fn into_iter(self) -> RcIter<I>
+    {
+        self.clone()
+    }
+}
