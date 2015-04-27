@@ -145,6 +145,14 @@ macro_rules! impl_zip_trusted {
                 (self.length, Some(self.length))
             }
         }
+
+        #[allow(non_snake_case)]
+        impl<$($B),*> ExactSizeIterator for ZipTrusted<($($B,)*)>
+            where
+            $(
+                $B: TrustedIterator,
+            )*
+        { }
     );
 }
 
