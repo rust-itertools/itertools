@@ -1,3 +1,5 @@
+use super::size_hint;
+
 use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::rc::Rc;
@@ -57,13 +59,18 @@ impl<I> Iterator for Tee<I> where
     fn size_hint(&self) -> (usize, Option<usize>)
     {
         let buffer = self.rcbuffer.borrow();
-        let (mut lower, mut upper) = buffer.iter.size_hint();
+        let sh = buffer.iter.size_hint();
 
         if buffer.owner == self.id {
             let log_len = buffer.backlog.len();
-            lower = lower.saturating_add(log_len);
-            upper = upper.and_then(|x| x.checked_add(log_len));
+            size_hint::add_scalar(sh, log_len)
+        } else {
+            sh
         }
-        (lower, upper)
     }
 }
+
+impl<I> ExactSizeIterator for Tee<I> where
+    I: ExactSizeIterator,
+    I::Item: Clone,
+{ }

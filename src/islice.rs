@@ -1,4 +1,5 @@
 use super::Itertools;
+use super::size_hint;
 use super::misc::GenericRange;
 
 /// An iterator adaptor that yields a subset (a slice) of the base iterator.
@@ -62,4 +63,14 @@ impl<I> Iterator for ISlice<I>
             None
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>)
+    {
+        let len = self.end - self.start;
+        size_hint::min(self.iter.size_hint(), (len, Some(len)))
+    }
 }
+
+impl<I> ExactSizeIterator for ISlice<I>
+    where I: ExactSizeIterator
+{ }

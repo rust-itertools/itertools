@@ -237,6 +237,12 @@ fn equal_islice(a: Vec<i16>, x: usize, y: usize) -> bool {
     itertools::equal(a.iter().slice(x..y), slc)
 }
 
+fn size_islice(a: Vec<i16>, x: usize, y: usize) -> bool {
+    if x > y || y > a.len() { return true; }
+    let slc = &a[x..y];
+    exact_size(a.iter().slice(x..y))
+}
+
 #[quickcheck]
 fn size_interleave(a: Iter<i16>, b: Iter<i16>) -> bool {
     correct_size_hint(a.interleave(b))
@@ -327,6 +333,15 @@ fn size_put_back(a: Vec<u8>, x: Option<u8>) -> bool {
         None => {}
     }
     correct_size_hint(it)
+}
+
+#[quickcheck]
+fn size_tee(a: Vec<u8>) -> bool {
+    let (mut t1, mut t2) = a.iter().tee();
+    t1.next();
+    t1.next();
+    t2.next();
+    exact_size(t1) && exact_size(t2)
 }
 
 }
