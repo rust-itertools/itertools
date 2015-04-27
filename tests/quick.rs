@@ -210,6 +210,12 @@ fn size_zip(a: Iter<i16>, b: Iter<i16>, c: Iter<i16>) -> bool {
 }
 
 #[quickcheck]
+fn size_zip_rc(a: Iter<i16>, b: Iter<i16>) -> bool {
+    let rc = a.clone().into_rc();
+    correct_size_hint(Zip::new((&rc, &rc, b)))
+}
+
+#[quickcheck]
 fn size_zip_longest(a: Iter<i16>, b: Iter<i16>) -> bool {
     let filt = a.clone().dedup();
     let filt2 = b.clone().dedup();
