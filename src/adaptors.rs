@@ -662,7 +662,13 @@ impl<I> Iterator for MultiPeek<I> where
         }
     }
 
-    fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
+    fn size_hint(&self) -> (usize, Option<usize>)
+    {
+        let (mut low, mut hi) = self.iter.size_hint();
+        low = low.saturating_add(self.buf.len());
+        hi = hi.and_then(|x| x.checked_add(self.buf.len()));
+        (low, hi)
+    }
 }
 
 // Same size
