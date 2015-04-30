@@ -16,6 +16,8 @@ extern crate quickcheck;
 #[cfg(feature = "qc")]
 mod quicktests {
 
+use std::default::Default;
+
 use quickcheck as qc;
 use std::ops::Range;
 use itertools;
@@ -27,32 +29,60 @@ use itertools::{
 };
 
 /// Our base iterator that we can impl Arbitrary for
+///
+/// NOTE: Iter is tricky and is not fused, to help catch bugs.
+/// At the end it will return None once, then return Some(0),
+/// then return None again.
 #[derive(Clone, Debug)]
-pub struct Iter<T>(Range<T>);
+struct Iter<T>(Range<T>, i32); // with fuse/done flag
 
-impl<T> Iterator for Iter<T> where Range<T>: Iterator
+impl<T> Iter<T>
+{
+    fn new(it: Range<T>) -> Self
+    {
+        Iter(it, 0)
+    }
+}
+
+impl<T> Iterator for Iter<T> where Range<T>: Iterator,
+    <Range<T> as Iterator>::Item: Default,
 {
     type Item = <Range<T> as Iterator>::Item;
-    fn next(&mut self) -> Option<Self::Item> { self.0.next() }
+
+    fn next(&mut self) -> Option<Self::Item>
+    {
+        let elt = self.0.next();
+        if elt.is_none() {
+            self.1 += 1;
+            // check fuse flag
+            if self.1 == 2 {
+                return Some(Default::default())
+            }
+        }
+        elt
+    }
+
     fn size_hint(&self) -> (usize, Option<usize>)
     {
         self.0.size_hint()
     }
 }
 
-impl<T> DoubleEndedIterator for Iter<T> where Range<T>: DoubleEndedIterator
+impl<T> DoubleEndedIterator for Iter<T> where Range<T>: DoubleEndedIterator,
+    <Range<T> as Iterator>::Item: Default,
 {
     fn next_back(&mut self) -> Option<Self::Item> { self.0.next_back() }
 }
 
-impl<T> ExactSizeIterator for Iter<T> where Range<T>: ExactSizeIterator
+impl<T> ExactSizeIterator for Iter<T> where Range<T>: ExactSizeIterator,
+    <Range<T> as Iterator>::Item: Default,
 { }
 
 impl<T> qc::Arbitrary for Iter<T> where T: qc::Arbitrary
 {
     fn arbitrary<G: qc::Gen>(g: &mut G) -> Self
     {
-        Iter(T::arbitrary(g)..T::arbitrary(g))
+        Iter::new(T::arbitrary(g)..T::arbitrary(g))
     }
 
     fn shrink(&self) -> Box<Iterator<Item=Iter<T>>>
@@ -62,7 +92,7 @@ impl<T> qc::Arbitrary for Iter<T> where T: qc::Arbitrary
             r.start.shrink().flat_map(move |x| {
                 r.end.shrink().map(move |y| (x.clone(), y))
             })
-            .map(|(a, b)| Iter(a..b))
+            .map(|(a, b)| Iter::new(a..b))
         )
     }
 }
@@ -92,7 +122,7 @@ fn correct_size_hint<I: Iterator>(mut it: I) -> bool {
             (hi.is_some() && hi.unwrap() < true_count)
         {
             println!("True size: {:?}, size hint: {:?}", true_count, (low, hi));
-            println!("All hints: {:?}", hints);
+            //println!("All hints: {:?}", hints);
             return false
         }
     }
@@ -251,10 +281,9 @@ fn equal_islice(a: Vec<i16>, x: usize, y: usize) -> bool {
     itertools::equal(a.iter().slice(x..y), slc)
 }
 
-fn size_islice(a: Vec<i16>, x: usize, y: usize) -> bool {
-    if x > y || y > a.len() { return true; }
-    correct_size_hint(a.iter().dedup().slice(x..y)) &&
-        exact_size(a.iter().slice(x..y))
+fn size_islice(a: Iter<i16>, x: usize, y: usize) -> bool {
+    correct_size_hint(a.clone().dedup().slice(x..y)) &&
+        exact_size(a.clone().slice(x..y))
 }
 
 #[quickcheck]
