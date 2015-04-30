@@ -62,7 +62,6 @@ fn izip_macro() {
     }
     assert!(zip.next().is_none());
 
-    
     let xs: [isize; 0] = [];
     let mut zip = izip!(0..3, 0..2, 0..2i8, &xs);
     assert!(zip.next().is_none());
@@ -76,7 +75,6 @@ fn izip3() {
     }
     assert!(zip.next().is_none());
 
-    
     let xs: [isize; 0] = [];
     let mut zip = Zip::new((0..3, 0..2, 0..2i8, xs.iter()));
     assert!(zip.next().is_none());

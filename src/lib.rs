@@ -434,8 +434,8 @@ pub trait Itertools : Iterator {
         Self::Item: PartialOrd,
         J: IntoIterator<Item=Self::Item>,
     {
-        fn wrapper<A: PartialOrd>(a: &A, b: &A) -> Ordering { 
-            a.partial_cmp(b).unwrap_or(Ordering::Less) 
+        fn wrapper<A: PartialOrd>(a: &A, b: &A) -> Ordering {
+            a.partial_cmp(b).unwrap_or(Ordering::Less)
         };
         self.merge_by(other, wrapper)
     }

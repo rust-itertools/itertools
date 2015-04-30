@@ -31,7 +31,7 @@ pub fn add(a: SizeHint, b: SizeHint) -> SizeHint
 }
 
 /// Multiply **x** correctly with a **SizeHint**.
-/// 
+///
 /// # Examples
 ///
 /// ```
@@ -53,7 +53,7 @@ pub fn mul_scalar(sh: SizeHint, x: usize) -> SizeHint
 }
 
 /// Multiply **SizeHint** correctly
-/// 
+///
 /// # Examples
 ///
 /// ```
