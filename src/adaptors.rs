@@ -27,17 +27,22 @@ macro_rules! clone_fields {
 
 /// An iterator adaptor that alternates elements from two iterators until both
 /// run out.
+///
+/// This iterator is *fused*.
 #[derive(Clone)]
 pub struct Interleave<I, J> {
-    a: I,
-    b: J,
+    a: Fuse<I>,
+    b: Fuse<J>,
     flag: bool,
 }
 
-impl<I, J> Interleave<I, J> {
-    ///
+impl<I, J> Interleave<I, J> where
+    I: Iterator,
+    J: Iterator,
+{
+    /// Creat a new **Interleave** iterator.
     pub fn new(a: I, b: J) -> Interleave<I, J> {
-        Interleave{a: a, b: b, flag: false}
+        Interleave{a: a.fuse(), b: b.fuse(), flag: false}
     }
 }
 
@@ -250,11 +255,13 @@ impl<I, J> Iterator for Product<I, J> where
 /// An iterator adaptor that removes duplicates from sections of consecutive
 /// identical elements.  If the iterator is sorted, all elements will be
 /// unique.
+///
+/// This iterator is *fused*.
 pub struct Dedup<I> where
     I: Iterator,
 {
     last: Option<I::Item>,
-    iter: I,
+    iter: Fuse<I>,
 }
 
 impl<I> Dedup<I> where I: Iterator
@@ -262,7 +269,7 @@ impl<I> Dedup<I> where I: Iterator
     /// Create a new Dedup Iterator.
     pub fn new(iter: I) -> Dedup<I>
     {
-        Dedup{last: None, iter: iter}
+        Dedup{last: None, iter: iter.fuse()}
     }
 }
 
@@ -474,6 +481,7 @@ pub struct Merge<I, J, F> where
     a: Peekable<I>,
     b: Peekable<J>,
     cmp: F,
+    fused: Option<bool>,
 }
 
 impl<I, J, F> Merge<I, J, F> where
@@ -488,6 +496,7 @@ impl<I, J, F> Merge<I, J, F> where
             a: a.peekable(),
             b: b.peekable(),
             cmp: cmp,
+            fused: None,
         }
     }
 }
@@ -500,7 +509,7 @@ impl<I, J, F> Clone for Merge<I, J, F> where
     F: Clone,
 {
     fn clone(&self) -> Self {
-        clone_fields!(Merge, self, a, b, cmp)
+        clone_fields!(Merge, self, a, b, cmp, fused)
     }
 }
 
@@ -512,18 +521,29 @@ impl<I, J, F> Iterator for Merge<I, J, F> where
     type Item = I::Item;
 
     fn next(&mut self) -> Option<I::Item> {
-        if match (self.a.peek(), self.b.peek()) {
-            (Some(a), Some(b)) => {
-                match (self.cmp)(a, b) {
-                    Ordering::Less => true,
-                    Ordering::Equal => true,
-                    Ordering::Greater => false,
+        let less_than = match self.fused {
+            Some(lt) => lt,
+            None => match (self.a.peek(), self.b.peek()) {
+                (Some(a), Some(b)) => {
+                    match (self.cmp)(a, b) {
+                        Ordering::Less => true,
+                        Ordering::Equal => true,
+                        Ordering::Greater => false,
+                    }
                 }
+                (Some(_), None) => {
+                    self.fused = Some(true);
+                    true
+                }
+                (None, Some(_)) => {
+                    self.fused = Some(false);
+                    false
+                }
+                (None, None) => return None,
             }
-            (Some(_), None) => true,
-            (None, Some(_)) => false,
-            (None, None) => return None,
-        } {
+        };
+
+        if less_than {
             self.a.next()
         } else {
             self.b.next()

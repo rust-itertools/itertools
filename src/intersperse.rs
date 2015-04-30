@@ -1,3 +1,4 @@
+use std::iter::Fuse;
 use super::size_hint;
 
 #[derive(Clone)]
@@ -5,11 +6,13 @@ use super::size_hint;
 /// between each element of the adapted iterator.
 ///
 /// Iterator element type is **I::Item**
+///
+/// This iterator is *fused*.
 pub struct Intersperse<I> where
     I: Iterator,
 {
     element: I::Item,
-    iter: I,
+    iter: Fuse<I>,
     peek: Option<I::Item>,
 }
 
@@ -17,8 +20,9 @@ impl<I> Intersperse<I> where
     I: Iterator,
 {
     /// Create a new Intersperse iterator
-    pub fn new(mut iter: I, elt: I::Item) -> Self
+    pub fn new(iter: I, elt: I::Item) -> Self
     {
+        let mut iter = iter.fuse();
         Intersperse{peek: iter.next(), iter: iter, element: elt}
     }
 }

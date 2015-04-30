@@ -4,35 +4,41 @@ use std::cmp;
 #[cfg(feature = "unstable")]
 use std::iter::RandomAccessIterator;
 use super::size_hint;
+use std::iter::Fuse;
 use self::EitherOrBoth::{Right, Left, Both};
 
 // ZipLongest originally written by SimonSapin,
 // and dedicated to itertools https://github.com/rust-lang/rust/pull/19283
 
 /// An iterator which iterates two other iterators simultaneously
+///
+/// This iterator is *fused*.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct ZipLongest<T, U> {
-    a: T,
-    b: U
+    a: Fuse<T>,
+    b: Fuse<U>,
 }
 
-impl<T, U> ZipLongest<T, U>
+impl<T, U> ZipLongest<T, U> where
+    T: Iterator,
+    U: Iterator,
 {
-    /// Create a new ZipLongest iterator.
+    /// Create a new **ZipLongest** iterator.
     pub fn new(a: T, b: U) -> ZipLongest<T, U>
     {
-        ZipLongest{a: a, b: b}
+        ZipLongest{a: a.fuse(), b: b.fuse()}
     }
 }
 
-impl<A, B, T, U> Iterator for ZipLongest<T, U> where
-    T: Iterator<Item=A>,
-    U: Iterator<Item=B>,
+impl<T, U> Iterator for ZipLongest<T, U> where
+    T: Iterator,
+    U: Iterator,
 {
-    type Item = EitherOrBoth<A, B>;
+    type Item = EitherOrBoth<T::Item, U::Item>;
+
     #[inline]
-    fn next(&mut self) -> Option<EitherOrBoth<A, B>> {
+    fn next(&mut self) -> Option<Self::Item> {
         match (self.a.next(), self.b.next()) {
             (None, None) => None,
             (Some(a), None) => Some(Left(a)),
@@ -47,12 +53,12 @@ impl<A, B, T, U> Iterator for ZipLongest<T, U> where
     }
 }
 
-impl<A, B, T, U> DoubleEndedIterator for ZipLongest<T, U> where
-    T: DoubleEndedIterator<Item=A> + ExactSizeIterator,
-    U: DoubleEndedIterator<Item=B> + ExactSizeIterator,
+impl<T, U> DoubleEndedIterator for ZipLongest<T, U> where
+    T: DoubleEndedIterator + ExactSizeIterator,
+    U: DoubleEndedIterator + ExactSizeIterator,
 {
     #[inline]
-    fn next_back(&mut self) -> Option<EitherOrBoth<A, B>> {
+    fn next_back(&mut self) -> Option<Self::Item> {
         match self.a.len().cmp(&self.b.len()) {
             Equal => match (self.a.next_back(), self.b.next_back()) {
                 (None, None) => None,
@@ -68,9 +74,9 @@ impl<A, B, T, U> DoubleEndedIterator for ZipLongest<T, U> where
 }
 
 #[cfg(feature = "unstable")]
-impl<A, B, T, U> RandomAccessIterator for ZipLongest<T, U> where
-    T: RandomAccessIterator<Item=A>,
-    U: RandomAccessIterator<Item=B>,
+impl<T, U> RandomAccessIterator for ZipLongest<T, U> where
+    T: RandomAccessIterator,
+    U: RandomAccessIterator,
 {
     #[inline]
     fn indexable(&self) -> usize {
@@ -78,7 +84,7 @@ impl<A, B, T, U> RandomAccessIterator for ZipLongest<T, U> where
     }
 
     #[inline]
-    fn idx(&mut self, index: usize) -> Option<EitherOrBoth<A, B>> {
+    fn idx(&mut self, index: usize) -> Option<Self::Item> {
         match (self.a.idx(index), self.b.idx(index)) {
             (None, None) => None,
             (Some(a), None) => Some(Left(a)),

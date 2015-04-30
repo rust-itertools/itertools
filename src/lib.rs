@@ -210,6 +210,8 @@ pub trait Itertools : Iterator {
     ///
     /// Iterator element type is **Self::Item**.
     ///
+    /// This iterator is *fused*.
+    ///
     /// ## Example
     ///
     /// ```
@@ -229,6 +231,8 @@ pub trait Itertools : Iterator {
     /// between each element of the adapted iterator.
     ///
     /// Iterator element type is **Self::Item**.
+    ///
+    /// This iterator is *fused*.
     fn intersperse(self, element: Self::Item) -> Intersperse<Self> where
         Self: Sized,
         Self::Item: Clone
@@ -238,8 +242,11 @@ pub trait Itertools : Iterator {
 
     /// Create an iterator which iterates over both this and the specified
     /// iterator simultaneously, yielding pairs of two optional elements.
-    /// When both iterators return None, all further invocations of next() will
-    /// return None.
+    ///
+    /// This iterator is *fused*.
+    ///
+    /// When both iterators return **None**, all further invocations of *.next()* 
+    /// will return **None**.
     ///
     /// # Example
     ///
@@ -263,6 +270,8 @@ pub trait Itertools : Iterator {
     /// If the iterator is sorted, all elements will be unique.
     ///
     /// Iterator element type is **Self::Item**.
+    ///
+    /// This iterator is *fused*.
     fn dedup(self) -> Dedup<Self> where
         Self: Sized,
     {
