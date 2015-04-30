@@ -293,7 +293,8 @@ pub trait Itertools : Iterator {
     /// assert!(itertools::equal(pit, vec![(0, 1), (2, 3)]));
     /// ```
     ///
-    fn batching<B, F: FnMut(&mut Self) -> Option<B>>(self, f: F) -> Batching<Self, F> where
+    fn batching<B, F>(self, f: F) -> Batching<Self, F> where
+        F: FnMut(&mut Self) -> Option<B>,
         Self: Sized,
     {
         Batching::new(self, f)

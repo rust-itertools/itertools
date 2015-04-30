@@ -136,8 +136,8 @@ pub struct PutBack<I> where
     iter: I
 }
 
-impl<I> PutBack<I>
-    where I: Iterator,
+impl<I> PutBack<I> where
+    I: Iterator,
 {
     /// Iterator element type is `A`
     #[inline]
@@ -421,8 +421,7 @@ pub struct Step<I> {
     skip: usize,
 }
 
-impl<I> Step<I>
-    where I: Iterator
+impl<I> Step<I> where I: Iterator
 {
     /// Create a **Step** iterator.
     ///
@@ -434,8 +433,7 @@ impl<I> Step<I>
     }
 }
 
-impl<I> Iterator for Step<I>
-    where I: Iterator
+impl<I> Iterator for Step<I> where I: Iterator
 {
     type Item = I::Item;
     #[inline]
