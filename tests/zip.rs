@@ -7,9 +7,6 @@ use std::fmt::Debug;
 use std::iter::RandomAccessIterator;
 use itertools::Itertools;
 use itertools::EitherOrBoth::{Both, Left, Right};
-use itertools::{
-    Zip,
-};
 #[cfg(feature = "unstable")]
 use itertools::ZipTrusted;
 
@@ -83,21 +80,6 @@ fn test_random_access_zip_longest() {
     let xs = [1, 2, 3, 4, 5];
     let ys = [7, 9, 11];
     check_randacc_iter(xs.iter().zip_longest(ys.iter()), std::cmp::max(xs.len(), ys.len()));
-}
-
-#[test]
-fn zip_tuple() {
-    let xs = [1, 2, 3];
-    let ys = b"ab";
-    let mut it = Zip::new((xs.iter().cloned(), ));
-    assert!(it.next() != None);
-    let mut jt = Zip::new((xs.iter().cloned(), ys.iter().cloned()));
-    assert_eq!(jt.next(), Some((1, b'a')));
-    assert_eq!(jt.next(), Some((2, b'b')));
-    assert_eq!(jt.next(), None);
-
-    let mut jt = Zip::new((xs.iter().cloned(), xs.iter().cloned(), xs.iter().cloned()));
-    assert_eq!(jt.next(), Some((1, 1, 1)));
 }
 
 fn assert_iters_equal<
