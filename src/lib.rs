@@ -582,6 +582,31 @@ pub trait Itertools : Iterator {
         self
     }
 
+    /// Consume the last **n** elements from the iterator eagerly,
+    /// and return the same iterator again.
+    ///
+    /// This is only possible on double ended iterators. **n** may be
+    /// larger than the number of elements.
+    ///
+    /// Note: This method is eager, dropping the back elements immediately and
+    /// preserves the iterator type.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let init = vec![0, 3, 6, 9].into_iter().dropping_back(1);
+    /// assert!(itertools::equal(init, vec![0, 3, 6]));
+    /// ```
+    fn dropping_back(mut self, n: usize) -> Self where
+        Self: Sized,
+        Self: DoubleEndedIterator,
+    {
+        self.by_ref().rev().dropn(n);
+        self
+    }
+
     /// Run the closure **f** eagerly on each element of the iterator.
     ///
     /// Consumes the iterator until its end.
