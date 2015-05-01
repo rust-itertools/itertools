@@ -718,6 +718,34 @@ pub trait Itertools : Iterator {
         }
         Ok(start)
     }
+
+    /// Accumulator of the elements in the iterator.
+    ///
+    /// Like *.fold()*, without a base case. If the iterator is
+    /// empty, return **None**. With just one element, return it.
+    /// Otherwise elements are accumulated in sequence using the closure **f**.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// assert_eq!((0..10).fold1(|x, y| x + y).unwrap_or(0), 45);
+    /// assert_eq!((0..0).fold1(|x, y| x * y), None);
+    /// ```
+    fn fold1<F>(&mut self, mut f: F) -> Option<Self::Item> where
+        F: FnMut(Self::Item, Self::Item) -> Self::Item,
+    {
+        match self.next() {
+            None => None,
+            Some(mut x) => {
+                for y in self {
+                    x = f(x, y);
+                }
+                Some(x)
+            }
+        }
+    }
 }
 
 /// Return **true** if both iterators produce equal sequences
