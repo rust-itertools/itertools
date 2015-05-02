@@ -6,11 +6,14 @@
 
 #[macro_use]
 extern crate itertools as it;
+extern crate unicode_segmentation as uniseg;
 
 use std::fmt::Debug;
 use it::Itertools;
 use it::Interleave;
 use it::Zip;
+
+use uniseg::UnicodeSegmentation;
 
 fn assert_iters_equal<A, I, J>(mut it: I, mut jt: J) where
     A: PartialEq + Debug,
@@ -440,4 +443,17 @@ fn count_clones() {
 fn enumerate_from_overflow() {
     for _ in (0..1000).enumerate_from(0i8) {
     }
+}
+
+#[test]
+fn mend_slices() {
+    let text = "α-toco (and) β-toco";
+    let full_text = text.split_word_bounds().mend_slices().join("");
+    assert_eq!(text, full_text);
+
+    // join certain different pieces together again
+    let words = text.split_word_bounds()
+                    .filter(|s| !s.chars().any(char::is_whitespace))
+                    .mend_slices().collect::<Vec<_>>();
+    assert_eq!(words, vec!["α-toco", "(and)", "β-toco"]);
 }

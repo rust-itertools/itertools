@@ -45,6 +45,7 @@ pub use adaptors::{
     Batching,
     GroupBy,
     Step,
+    MendSlices,
     Merge,
     MultiPeek,
 };
@@ -515,7 +516,7 @@ pub trait Itertools : Iterator {
         EnumerateFrom::new(self, start)
     }
 
-    /// Returns an iterator adapter that allows peeking multiple values.
+    /// Return an iterator adapter that allows peeking multiple values.
     ///
     /// After a call to *.next()* the peeking cursor is reset.
     ///
@@ -536,6 +537,27 @@ pub trait Itertools : Iterator {
         Self: Sized
     {
         MultiPeek::new(self)
+    }
+
+    /// Return an iterator adaptor that joins together adjacent slices if possible.
+    ///
+    /// Only slices that are contiguous together can be joined.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let text = String::from("let there be text");
+    /// let excerpts = [&text[0..4], &text[4..9], &text[10..12], &text[12..]];
+    ///
+    /// assert!(itertools::equal(excerpts.iter().cloned().mend_slices(),
+    ///                          vec!["let there", "be text"]));
+    /// ```
+    fn mend_slices(self) -> MendSlices<Self> where
+        Self: Sized,
+    {
+        MendSlices::new(self)
     }
 
     // non-adaptor methods

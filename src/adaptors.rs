@@ -11,8 +11,9 @@ use std::num::One;
 use std::ops::Add;
 use std::cmp::Ordering;
 use std::iter::{Fuse, Peekable};
-use super::Itertools;
-use super::size_hint;
+use Itertools;
+use size_hint;
+use misc;
 
 macro_rules! clone_fields {
     ($name:ident, $base:expr, $($field:ident),+) => (
@@ -671,3 +672,60 @@ impl<I> Iterator for MultiPeek<I> where
 impl<I> ExactSizeIterator for MultiPeek<I> where
     I: ExactSizeIterator,
 { }
+
+/// An iterator adaptor that joins together adjacent slices if possible.
+///
+#[derive(Clone)]
+pub struct MendSlices<I> where
+    I: Iterator,
+{
+    iter: Fuse<I>,
+    last: Option<I::Item>,
+}
+
+impl<I> MendSlices<I> where
+    I: Iterator,
+{
+    /// Create a new **MendSlices**.
+    pub fn new(iter: I) -> Self
+    {
+        MendSlices {
+            iter: iter.fuse(),
+            last: None
+        }
+    }
+}
+
+impl<I> Iterator for MendSlices<I> where
+    I: Iterator,
+    I::Item: misc::MendSlice,
+{
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<I::Item>
+    {
+        for next in &mut self.iter {
+            match self.last {
+                None => self.last = Some(next),
+                Some(lst) => {
+                    match misc::MendSlice::mend(lst, next) {
+                        Some(joined) => self.last = Some(joined),
+                        None => {
+                            self.last = Some(next);
+                            return Some(lst)
+                        }
+                    }
+                }
+            }
+        }
+
+        self.last.take()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>)
+    {
+        let (low, hi) = size_hint::add_scalar(self.iter.size_hint(),
+                                              self.last.is_some() as usize);
+        ((low > 0) as usize, hi)
+    }
+}

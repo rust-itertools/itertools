@@ -8,6 +8,9 @@ use std::ops::{
     RangeFrom
 };
 
+use std::mem;
+use std::slice;
+
 /// Apply **IntoIterator** on each element of a tuple.
 pub trait IntoIteratorTuple
 {
@@ -136,3 +139,34 @@ impl ToFloat<f64> for usize {
     fn to_float(self) -> f64 { self as f64 }
 }
 
+/// A trait for items that can *maybe* be joined together.
+pub trait MendSlice : Copy
+{
+    /// If the slices are contiguous, return them joined into one.
+    fn mend(Self, Self) -> Option<Self>;
+}
+
+impl<'a, T> MendSlice for &'a [T]
+{
+    fn mend(a: &'a [T], b: &'a [T]) -> Option<&'a [T]>
+    {
+        unsafe {
+            let a_end = a.as_ptr().offset(a.len() as isize);
+            if a_end == b.as_ptr() {
+                Some(slice::from_raw_parts(a.as_ptr(), a.len() + b.len()))
+            } else {
+                None
+            }
+        }
+    }
+}
+
+impl<'a> MendSlice for &'a str
+{
+    fn mend(a: &'a str, b: &'a str) -> Option<&'a str>
+    {
+        unsafe {
+            mem::transmute(MendSlice::mend(a.as_bytes(), b.as_bytes()))
+        }
+    }
+}

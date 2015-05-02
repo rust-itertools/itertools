@@ -396,4 +396,16 @@ fn size_tee_2(a: Vec<u8>) -> bool {
     correct_size_hint(t1) && correct_size_hint(t2)
 }
 
+#[quickcheck]
+fn size_mend_slices(a: Vec<u8>, splits: Vec<usize>) -> bool {
+    let slice_iter = splits.into_iter().map(|ix|
+        if ix < a.len() {
+            &a[ix..(ix + 1)]
+        } else {
+            &a[0..0]
+        }
+    ).mend_slices();
+    correct_size_hint(slice_iter)
+}
+
 }

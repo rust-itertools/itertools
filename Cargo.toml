@@ -17,6 +17,10 @@ optional = true
 [dependencies.quickcheck_macros]
 optional = true
 
+[dev-dependencies]
+
+unicode-segmentation = "0.1"
+
 [features]
 
 unstable = []
