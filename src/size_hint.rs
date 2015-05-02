@@ -48,7 +48,11 @@ pub fn mul_scalar(sh: SizeHint, x: usize) -> SizeHint
 {
     let (mut low, mut hi) = sh;
     low = low.checked_mul(x).unwrap_or(usize::MAX);
-    hi = hi.and_then(|elt| elt.checked_mul(x));
+    if x == 0 {
+        hi = Some(0)
+    } else {
+        hi = hi.and_then(|elt| elt.checked_mul(x));
+    }
     (low, hi)
 }
 
@@ -62,8 +66,12 @@ pub fn mul_scalar(sh: SizeHint, x: usize) -> SizeHint
 ///
 /// assert_eq!(size_hint::mul((3, Some(4)), (3, Some(4))),
 ///            (9, Some(16)));
+///
 /// assert_eq!(size_hint::mul((3, Some(4)), (usize::MAX, None)),
 ///            (usize::MAX, None));
+///
+/// assert_eq!(size_hint::mul((3, None), (0, Some(0))),
+///            (0, Some(0)));
 /// ```
 #[inline]
 pub fn mul(a: SizeHint, b: SizeHint) -> SizeHint
@@ -71,6 +79,7 @@ pub fn mul(a: SizeHint, b: SizeHint) -> SizeHint
     let low = a.0.checked_mul(b.0).unwrap_or(usize::MAX);
     let hi = match (a.1, b.1) {
         (Some(x), Some(y)) => x.checked_mul(y),
+        (Some(0), None) | (None, Some(0)) => Some(0),
         _ => None,
     };
     (low, hi)
