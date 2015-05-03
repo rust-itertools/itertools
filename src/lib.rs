@@ -41,14 +41,14 @@ pub use adaptors::{
     Product,
     PutBack,
     FnMap,
-    Dedup,
     Batching,
     GroupBy,
     Step,
-    MendSlices,
     Merge,
     MultiPeek,
     TakeWhileRef,
+    Coalesce,
+    CoalesceFn,
 };
 #[cfg(feature = "unstable")]
 pub use adaptors::EnumerateFrom;
@@ -266,28 +266,6 @@ pub trait Itertools : Iterator {
         Self: Sized,
     {
         ZipLongest::new(self, other.into_iter())
-    }
-
-    /// Remove duplicates from sections of consecutive identical elements.
-    /// If the iterator is sorted, all elements will be unique.
-    ///
-    /// Iterator element type is **Self::Item**.
-    ///
-    /// This iterator is *fused*.
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// let data = vec![1., 1., 2., 3., 3., 2., 2.];
-    /// assert!(itertools::equal(data.into_iter().dedup(),
-    ///                          vec![1., 2., 3., 2.]));
-    /// ```
-    fn dedup(self) -> Dedup<Self> where
-        Self: Sized,
-    {
-        Dedup::new(self)
     }
 
     /// A “meta iterator adaptor”. Its closure recives a reference to the iterator
@@ -550,8 +528,71 @@ pub trait Itertools : Iterator {
         MultiPeek::new(self)
     }
 
+    /// Return an iterator adaptor that uses the passed-in closure to
+    /// optionally merge together consecutive elements. For each pair the closure
+    /// is passed the latest two elements, `x`, `y` and may return either `Ok(z)`
+    /// to merge the two values or `Err((x, y))` to indicate they can't be merged.
+    ///
+    /// *.dedup()* and *.mend_slices()* are specializations of the coalesce
+    /// adaptor.
+    ///
+    /// Iterator element type is **Self::Item**.
+    ///
+    /// This iterator is *fused*.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // sum same-sign runs together
+    /// let data = vec![-1., -2., -3., 3., 1., 0., -1.];
+    /// assert!(itertools::equal(data.into_iter().coalesce(|x, y|
+    ///         if (x >= 0.) == (y >= 0.) {
+    ///             Ok(x + y)
+    ///         } else {
+    ///             Err((x, y))
+    ///         }),
+    ///         vec![-6., 4., -1.]));
+    /// ```
+    fn coalesce<F>(self, f: F) -> Coalesce<Self, F> where
+        Self: Sized,
+        F: FnMut(Self::Item, Self::Item) -> Result<Self::Item, (Self::Item, Self::Item)>
+    {
+        Coalesce::new(self, f)
+    }
+
+    /// Remove duplicates from sections of consecutive identical elements.
+    /// If the iterator is sorted, all elements will be unique.
+    ///
+    /// Iterator element type is **Self::Item**.
+    ///
+    /// This iterator is *fused*.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![1., 1., 2., 3., 3., 2., 2.];
+    /// assert!(itertools::equal(data.into_iter().dedup(),
+    ///                          vec![1., 2., 3., 2.]));
+    /// ```
+    fn dedup(self) -> CoalesceFn<Self> where
+        Self: Sized,
+        Self::Item: PartialEq,
+    {
+        fn eq<T: PartialEq>(x: T, y: T) -> Result<T, (T, T)>
+        {
+            if x == y { Ok(x) } else { Err((x, y)) }
+        }
+        Coalesce::new(self, eq)
+    }
+
+
     /// Return an iterator adaptor that joins together adjacent slices if possible.
     ///
+    /// Only implemented for iterators with slice or string slice elements.
     /// Only slices that are contiguous together can be joined.
     ///
     /// ## Example
@@ -565,10 +606,18 @@ pub trait Itertools : Iterator {
     /// assert!(itertools::equal(excerpts.into_iter().mend_slices(),
     ///                          vec!["let there", "be text"]));
     /// ```
-    fn mend_slices(self) -> MendSlices<Self> where
+    fn mend_slices(self) -> CoalesceFn<Self> where
         Self: Sized,
+        Self::Item: misc::MendSlice
     {
-        MendSlices::new(self)
+        fn mend<T: misc::MendSlice>(x: T, y: T) -> Result<T, (T, T)>
+        {
+            match misc::MendSlice::mend(x, y) {
+                Some(z) => Ok(z),
+                None => Err((x, y)),
+            }
+        }
+        Coalesce::new(self, mend)
     }
 
     /// Return an iterator adaptor that borrows from a **Clone**-able iterator

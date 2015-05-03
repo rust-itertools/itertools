@@ -13,7 +13,6 @@ use std::cmp::Ordering;
 use std::iter::{Fuse, Peekable};
 use Itertools;
 use size_hint;
-use misc;
 
 macro_rules! clone_fields {
     ($name:ident, $base:expr, $($field:ident),+) => (
@@ -251,68 +250,6 @@ impl<I, J> Iterator for Product<I, J> where
             b * has_cur)
     }
 }
-
-#[derive(Clone)]
-/// An iterator adaptor that removes duplicates from sections of consecutive
-/// identical elements.  If the iterator is sorted, all elements will be
-/// unique.
-///
-/// This iterator is *fused*.
-pub struct Dedup<I> where
-    I: Iterator,
-{
-    last: Option<I::Item>,
-    iter: I,
-}
-
-impl<I> Dedup<I> where I: Iterator
-{
-    /// Create a new Dedup Iterator.
-    pub fn new(mut iter: I) -> Dedup<I>
-    {
-        Dedup{last: iter.next(), iter: iter}
-    }
-}
-
-impl<I> Iterator for Dedup<I> where
-    I: Iterator,
-    I::Item: PartialEq
-{
-    type Item = I::Item;
-    #[inline]
-    fn next(&mut self) -> Option<I::Item>
-    {
-        // this fuses the iterator
-        let last = match self.last.take() {
-            None => return None,
-            Some(x) => x,
-        };
-        for elt in &mut self.iter {
-            if last != elt {
-                self.last = Some(elt);
-                return Some(last)
-            }
-        }
-        Some(last)
-    }
-
-    #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>)
-    {
-        let (mut lower, mut upper) = self.iter.size_hint();
-        if self.last.is_some() || lower > 0 {
-            lower = 1;
-        } else {
-            // they might all be duplicates
-            lower = 0;
-        }
-        if self.last.is_some() {
-            upper = upper.and_then(|x| x.checked_add(1));
-        }
-        (lower, upper)
-    }
-}
-
 
 /// A “meta iterator adaptor”. Its closure recives a reference to the iterator
 /// and may pick off as many elements as it likes, to produce the next iterator element.
@@ -670,32 +607,37 @@ impl<I> ExactSizeIterator for MultiPeek<I> where
     I: ExactSizeIterator,
 { }
 
-/// An iterator adaptor that joins together adjacent slices if possible.
-///
+/// An iterator adaptor that may join together adjacent elements.
 #[derive(Clone)]
-pub struct MendSlices<I> where
+pub struct Coalesce<I, F> where
     I: Iterator,
 {
     iter: I,
     last: Option<I::Item>,
+    f: F,
 }
 
-impl<I> MendSlices<I> where
+/// An iterator adaptor that may joins together adjacent elements.
+pub type CoalesceFn<I> where I: Iterator =
+    Coalesce<I, fn(I::Item, I::Item) -> Result<I::Item, (I::Item, I::Item)>>;
+
+impl<I, F> Coalesce<I, F> where
     I: Iterator,
 {
-    /// Create a new **MendSlices**.
-    pub fn new(mut iter: I) -> Self
+    /// Create a new **Coalesce**.
+    pub fn new(mut iter: I, f: F) -> Self
     {
-        MendSlices {
+        Coalesce {
             last: iter.next(),
             iter: iter,
+            f: f,
         }
     }
 }
 
-impl<I> Iterator for MendSlices<I> where
+impl<I, F> Iterator for Coalesce<I, F> where
     I: Iterator,
-    I::Item: misc::MendSlice,
+    F: FnMut(I::Item, I::Item) -> Result<I::Item, (I::Item, I::Item)>
 {
     type Item = I::Item;
 
@@ -707,11 +649,11 @@ impl<I> Iterator for MendSlices<I> where
             Some(x) => x,
         };
         for next in &mut self.iter {
-            match misc::MendSlice::mend(last, next) {
-                Some(joined) => last = joined,
-                None => {
-                    self.last = Some(next);
-                    return Some(last)
+            match (self.f)(last, next) {
+                Ok(joined) => last = joined,
+                Err((last_, next_)) => {
+                    self.last = Some(next_);
+                    return Some(last_)
                 }
             }
         }
@@ -726,6 +668,7 @@ impl<I> Iterator for MendSlices<I> where
         ((low > 0) as usize, hi)
     }
 }
+
 
 
 /// An iterator adaptor that borrows from a **Clone**-able iterator
