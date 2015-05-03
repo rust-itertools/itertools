@@ -726,3 +726,53 @@ impl<I> Iterator for MendSlices<I> where
         ((low > 0) as usize, hi)
     }
 }
+
+
+/// An iterator adaptor that borrows from a **Clone**-able iterator
+/// to only pick off elements while the predicate returns **true**.
+pub struct TakeWhileRef<'a, I: 'a, F>
+{
+    iter: &'a mut I,
+    f: F,
+}
+
+impl<'a, I, F> TakeWhileRef<'a, I, F> where I: Iterator + Clone,
+{
+    /// Create a new **TakeWhileRef** from a reference to clonable iterator.
+    pub fn new(iter: &'a mut I, f: F) -> Self
+    {
+        TakeWhileRef {
+            iter: iter,
+            f: f,
+        }
+    }
+}
+
+impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F> where
+    I: Iterator + Clone,
+    F: FnMut(&I::Item) -> bool,
+{
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<I::Item>
+    {
+        let old = self.iter.clone();
+        match self.iter.next() {
+            None => None,
+            Some(elt) => {
+                if (self.f)(&elt) {
+                    Some(elt)
+                } else {
+                    *self.iter = old;
+                    None
+                }
+            }
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>)
+    {
+        let (_, hi) = self.iter.size_hint();
+        (0, hi)
+    }
+}

@@ -48,6 +48,7 @@ pub use adaptors::{
     MendSlices,
     Merge,
     MultiPeek,
+    TakeWhileRef,
 };
 #[cfg(feature = "unstable")]
 pub use adaptors::EnumerateFrom;
@@ -568,6 +569,32 @@ pub trait Itertools : Iterator {
         Self: Sized,
     {
         MendSlices::new(self)
+    }
+
+    /// Return an iterator adaptor that borrows from a **Clone**-able iterator
+    /// to only pick off elements while the predicate **f** returns **true**.
+    ///
+    /// It uses the **Clone** trait to restore the original iterator so that the last
+    /// and rejected element is still available when **TakeWhileRef** is done.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut alphanumerics = "abcdef012345".chars();
+    ///
+    /// let alphas = alphanumerics.take_while_ref(|c| c.is_alphabetic())
+    ///                           .collect::<String>();
+    /// assert_eq!(alphas, "abcdef");
+    /// assert_eq!(alphanumerics.next(), Some('0'));
+    ///
+    /// ```
+    fn take_while_ref<'a, F>(&'a mut self, f: F) -> TakeWhileRef<'a, Self, F> where
+        Self: Clone,
+        F: FnMut(&Self::Item) -> bool,
+    {
+        TakeWhileRef::new(self, f)
     }
 
     // non-adaptor methods

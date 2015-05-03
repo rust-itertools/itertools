@@ -408,4 +408,9 @@ fn size_mend_slices(a: Vec<u8>, splits: Vec<usize>) -> bool {
     correct_size_hint(slice_iter)
 }
 
+#[quickcheck]
+fn size_take_while_ref(a: Vec<u8>, stop: u8) -> bool {
+    correct_size_hint(a.iter().take_while_ref(|x| **x != stop))
+}
+
 }
