@@ -358,7 +358,7 @@ pub trait Itertools : Iterator {
     /// use std::iter::repeat;
     /// use itertools::Itertools;
     ///
-    /// let mut it = repeat('a').slice(..3);
+    /// let it = repeat('a').slice(..3);
     /// assert_eq!(it.count(), 3);
     /// ```
     fn slice<R>(self, range: R) -> ISlice<Self> where

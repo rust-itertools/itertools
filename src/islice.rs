@@ -9,14 +9,11 @@ use super::misc::GenericRange;
 ///
 /// ## Example
 /// ```
-/// # extern crate itertools;
-/// # fn main() {
 /// use std::iter::repeat;
-/// # use itertools::Itertools;
+/// use itertools::Itertools;
 ///
-/// let mut it = repeat('a').slice(..3);
+/// let it = repeat('a').slice(..3);
 /// assert_eq!(it.count(), 3);
-/// # }
 /// ```
 #[derive(Copy, Clone)]
 pub struct ISlice<I> {
