@@ -273,6 +273,16 @@ pub trait Itertools : Iterator {
     /// Iterator element type is **Self::Item**.
     ///
     /// This iterator is *fused*.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![1., 1., 2., 3., 3., 2., 2.];
+    /// assert!(itertools::equal(data.into_iter().dedup(),
+    ///                          vec![1., 2., 3., 2.]));
+    /// ```
     fn dedup(self) -> Dedup<Self> where
         Self: Sized,
     {

@@ -262,15 +262,15 @@ pub struct Dedup<I> where
     I: Iterator,
 {
     last: Option<I::Item>,
-    iter: Fuse<I>,
+    iter: I,
 }
 
 impl<I> Dedup<I> where I: Iterator
 {
     /// Create a new Dedup Iterator.
-    pub fn new(iter: I) -> Dedup<I>
+    pub fn new(mut iter: I) -> Dedup<I>
     {
-        Dedup{last: None, iter: iter.fuse()}
+        Dedup{last: iter.next(), iter: iter}
     }
 }
 
@@ -282,21 +282,18 @@ impl<I> Iterator for Dedup<I> where
     #[inline]
     fn next(&mut self) -> Option<I::Item>
     {
-        for elt in self.iter.by_ref() {
-            match self.last {
-                Some(ref x) if x == &elt => continue,
-                None => {
-                    self.last = Some(elt);
-                    continue;
-                }
-
-                ref mut lst => {
-                    let ret = mem::replace(lst, Some(elt));
-                    return ret
-                }
+        // this fuses the iterator
+        let last = match self.last.take() {
+            None => return None,
+            Some(x) => x,
+        };
+        for elt in &mut self.iter {
+            if last != elt {
+                self.last = Some(elt);
+                return Some(last)
             }
         }
-        self.last.take()
+        Some(last)
     }
 
     #[inline]
