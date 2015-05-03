@@ -728,6 +728,22 @@ pub trait Itertools : Iterator {
     /// Run the closure **f** eagerly on each element of the iterator.
     ///
     /// Consumes the iterator until its end.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use std::sync::mpsc::channel;
+    /// use itertools::Itertools;
+    ///
+    /// let (tx, rx) = channel();
+    ///
+    /// // use .foreach() to apply a function to each value -- sending it
+    /// (0..5).map(|x| x * 2 + 1).foreach(|x| { tx.send(x).unwrap(); } );
+    ///
+    /// drop(tx);
+    ///
+    /// assert!(itertools::equal(rx.iter(), vec![1, 3, 5, 7, 9]));
+    /// ```
     fn foreach<F>(&mut self, mut f: F) where
         F: FnMut(Self::Item),
     {
