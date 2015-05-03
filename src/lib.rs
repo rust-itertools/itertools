@@ -193,7 +193,17 @@ macro_rules! icompr {
     );
 }
 
-/// Extra iterator methods for arbitrary iterators
+/// The trait **Itertools**: extra iterator adaptors and methods for iterators.
+///
+/// This trait defines a number of methods. They are divided into two groups:
+///
+/// * *Adaptors* take an interator and parameter as input, and return
+/// a new iterator value. These are listed first in the trait. An example
+/// of an adaptor is [*.interleave()*](#method.interleave)
+///
+/// * *Regular methods* are those that don't return iterators and instead
+/// return a regular value of some other kind. [*.find_position()*](#method.find_position)
+/// is an example and the first regular method in the list.
 pub trait Itertools : Iterator {
     // adaptors
 
