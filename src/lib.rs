@@ -549,9 +549,9 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// let text = String::from("let there be text");
-    /// let excerpts = [&text[0..4], &text[4..9], &text[10..12], &text[12..]];
+    /// let excerpts = vec![&text[0..4], &text[4..9], &text[10..12], &text[12..]];
     ///
-    /// assert!(itertools::equal(excerpts.iter().cloned().mend_slices(),
+    /// assert!(itertools::equal(excerpts.into_iter().mend_slices(),
     ///                          vec!["let there", "be text"]));
     /// ```
     fn mend_slices(self) -> MendSlices<Self> where

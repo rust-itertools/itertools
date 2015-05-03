@@ -679,7 +679,7 @@ impl<I> ExactSizeIterator for MultiPeek<I> where
 pub struct MendSlices<I> where
     I: Iterator,
 {
-    iter: Fuse<I>,
+    iter: I,
     last: Option<I::Item>,
 }
 
@@ -687,11 +687,11 @@ impl<I> MendSlices<I> where
     I: Iterator,
 {
     /// Create a new **MendSlices**.
-    pub fn new(iter: I) -> Self
+    pub fn new(mut iter: I) -> Self
     {
         MendSlices {
-            iter: iter.fuse(),
-            last: None
+            last: iter.next(),
+            iter: iter,
         }
     }
 }
@@ -704,22 +704,22 @@ impl<I> Iterator for MendSlices<I> where
 
     fn next(&mut self) -> Option<I::Item>
     {
+        // this fuses the iterator
+        let mut last = match self.last.take() {
+            None => return None,
+            Some(x) => x,
+        };
         for next in &mut self.iter {
-            match self.last {
-                None => self.last = Some(next),
-                Some(lst) => {
-                    match misc::MendSlice::mend(lst, next) {
-                        Some(joined) => self.last = Some(joined),
-                        None => {
-                            self.last = Some(next);
-                            return Some(lst)
-                        }
-                    }
+            match misc::MendSlice::mend(last, next) {
+                Some(joined) => last = joined,
+                None => {
+                    self.last = Some(next);
+                    return Some(last)
                 }
             }
         }
 
-        self.last.take()
+        Some(last)
     }
 
     fn size_hint(&self) -> (usize, Option<usize>)
