@@ -9,16 +9,14 @@ __ http://bluss.github.io/rust-itertools/
 Recent Changes
 ==============
 
-Version 0.3.1
+Recently added:
 
-- Use IntoIterator in Zip::new
-- Use --features qc to run quickcheck tests
-- Add itertools::size_hint for arithmetic on size hint values
-
-Version 0.3.0
-
-- Use IntoIterator where possible
-- Removed previously deprecated items
+- .take_while_ref() *by-ref adaptor*
+- .coalesce() *adaptor*
+- .mend_slices() *adaptor*
+- .dropping_back() *method*
+- .fold1() *method*
+- .is_empty_hint() *method*
 
 License
 =======
@@ -30,5 +28,3 @@ http://www.apache.org/licenses/LICENSE-2.0 or the MIT license
 http://opensource.org/licenses/MIT, at your
 option. This file may not be copied, modified, or distributed
 except according to those terms.
-
-
