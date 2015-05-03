@@ -269,7 +269,7 @@ pub trait Itertools : Iterator {
     /// assert!(itertools::equal(it, vec![Both(0, 1), Right(2)]));
     /// ```
     ///
-    /// Iterator element type is **EitherOrBoth\<Self::Item, B\>**.
+    /// Iterator element type is **EitherOrBoth\<Self::Item, J::Item\>**.
     #[inline]
     fn zip_longest<J>(self, other: J) -> ZipLongest<Self, J::IntoIter> where
         J: IntoIterator,
@@ -395,7 +395,7 @@ pub trait Itertools : Iterator {
     ///
     /// **Panics** in iterator methods if a borrow error is encountered,
     /// but it can only happen if the RcIter is reentered in for example **.next()**,
-    /// i.e. if it somehow participates in an "iterator knot" where it is an adaptor of itself.
+    /// i.e. if it somehow participates in an “iterator knot” where it is an adaptor of itself.
     fn into_rc(self) -> RcIter<Self> where
         Self: Sized,
     {
