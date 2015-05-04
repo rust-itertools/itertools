@@ -67,6 +67,7 @@ pub struct FlatTuples<I> {
 impl<I> FlatTuples<I>
 {
     /// Create a new **FlatTuples**.
+    #[doc(hidden)]
     pub fn new(iter: I) -> Self
     {
         FlatTuples{iter: iter}
@@ -103,8 +104,10 @@ impl<X, T, I> DoubleEndedIterator for FlatTuples<I> where
 /// **GenericRange** is implemented by Rust's built-in range types, produced
 /// by range syntax like `a..`, `..b` or `c..d`.
 pub trait GenericRange {
+    #[doc(hidden)]
     /// Start index (inclusive)
     fn start(&self) -> Option<usize> { None }
+    #[doc(hidden)]
     /// End index (exclusive)
     fn end(&self) -> Option<usize> { None }
 }
@@ -127,6 +130,7 @@ impl GenericRange for Range<usize> {
 
 /// Helper trait to convert usize to floating point type.
 pub trait ToFloat<F> : Copy {
+    #[doc(hidden)]
     /// Convert usize to float.
     fn to_float(self) -> F;
 }
@@ -142,6 +146,7 @@ impl ToFloat<f64> for usize {
 /// A trait for items that can *maybe* be joined together.
 pub trait MendSlice : Copy
 {
+    #[doc(hidden)]
     /// If the slices are contiguous, return them joined into one.
     fn mend(Self, Self) -> Option<Self>;
 }
