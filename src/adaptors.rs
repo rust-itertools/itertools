@@ -138,7 +138,7 @@ pub struct PutBack<I> where
     I: Iterator,
 {
     top: Option<I::Item>,
-    iter: I
+    iter: I,
 }
 
 impl<I> PutBack<I> where
