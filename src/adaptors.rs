@@ -68,12 +68,7 @@ impl<I, J> Iterator for Interleave<I, J> where
     }
 }
 
-/// A clonable iterator adaptor to map elementwise
-/// from one iterator to another, using a function pointer.
-///
-/// Created with the method *.fn_map()* on an iterator.
-///
-/// Iterator element type is **B**.
+/// **Deprecated:** Use *.map_fn()* instead.
 pub struct FnMap<B, I> where
     I: Iterator,
 {
@@ -84,7 +79,7 @@ pub struct FnMap<B, I> where
 impl<B, I> FnMap<B, I> where
     I: Iterator
 {
-    /// Create a new **FnMap**.
+    /// **Deprecated:** Use *.map_fn()* instead.
     pub fn new(iter: I, map: fn(I::Item) -> B) -> Self
     {
         FnMap{iter: iter, map: map}

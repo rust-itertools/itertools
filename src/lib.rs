@@ -32,7 +32,7 @@
 //!
 //!
 
-use std::iter::IntoIterator;
+use std::iter::{self, IntoIterator};
 use std::fmt::Write;
 use std::cmp::Ordering;
 
@@ -81,6 +81,9 @@ mod zip_longest;
 mod ziptuple;
 #[cfg(feature = "unstable")]
 mod ziptrusted;
+
+/// The function pointer map iterator created with *.map_fn()*.
+pub type MapFn<I, B> where I: Iterator = iter::Map<I, fn(I::Item) -> B>;
 
 /// An ascending order merge iterator created with *.merge()*.
 pub type MergeAscend<I, J> where I: Iterator = Merge<I, J, fn(&I::Item, &I::Item) -> Ordering>;
@@ -206,16 +209,6 @@ macro_rules! icompr {
 /// is an example and the first regular method in the list.
 pub trait Itertools : Iterator {
     // adaptors
-
-    /// Like regular *.map()*, but using a simple function pointer instead,
-    /// so that the resulting **FnMap** iterator value can be cloned.
-    ///
-    /// Iterator element type is **B**.
-    fn fn_map<B>(self, map: fn(Self::Item) -> B) -> FnMap<B, Self> where
-        Self: Sized
-    {
-        FnMap::new(self, map)
-    }
 
     /// Alternate elements from two iterators until both
     /// run out.
@@ -658,6 +651,24 @@ pub trait Itertools : Iterator {
     {
         TakeWhileRef::new(self, f)
     }
+
+    /// Like regular *.map()*, specialized to using a simple function pointer instead,
+    /// so that the resulting **Map** iterator value can be cloned.
+    ///
+    /// Iterator element type is **B**.
+    fn map_fn<B>(self, f: fn(Self::Item) -> B) -> MapFn<Self, B> where
+        Self: Sized
+    {
+        self.map(f)
+    }
+
+    /// **Deprecated:** Use *.map_fn()* instead.
+    fn fn_map<B>(self, map: fn(Self::Item) -> B) -> FnMap<B, Self> where
+        Self: Sized
+    {
+        FnMap::new(self, map)
+    }
+
 
     // non-adaptor methods
 

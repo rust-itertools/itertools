@@ -498,3 +498,23 @@ fn mend_slices() {
                     .mend_slices().collect::<Vec<_>>();
     assert_eq!(words, vec!["α-toco", "(and)", "β-toco"]);
 }
+
+#[test]
+fn fn_map() {
+    // make sure it can be cloned
+    fn mapper<T: ToString>(x: T) -> String { x.to_string() }
+    let it = (0..4).fn_map(mapper);
+    let jt = it.clone();
+    assert_iters_equal((0..4).map(|x| x.to_string()), it);
+    assert_iters_equal((0..4).map(mapper), jt);
+}
+
+#[test]
+fn map_fn() {
+    // make sure it can be cloned
+    fn mapper<T: ToString>(x: T) -> String { x.to_string() }
+    let it = (0..4).map_fn(mapper);
+    let jt = it.clone();
+    assert_iters_equal((0..4).map(|x| x.to_string()), it);
+    assert_iters_equal((0..4).map(mapper), jt);
+}
