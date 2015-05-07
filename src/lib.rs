@@ -322,6 +322,9 @@ pub trait Itertools : Iterator {
     /// Split into an iterator pair that both yield all elements from
     /// the original iterator.
     ///
+    /// **Note:** If the iterator is clonable, prefer using that instead
+    /// of using this method. It is likely to be more efficient.
+    ///
     /// Iterator element type is **Self::Item**.
     ///
     /// ## Example
