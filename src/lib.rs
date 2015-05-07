@@ -83,7 +83,7 @@ mod ziptuple;
 mod ziptrusted;
 
 /// An ascending order merge iterator created with *.merge()*.
-pub type MergeAscend<I, J, A> = Merge<I, J, fn(&A, &A) -> Ordering>;
+pub type MergeAscend<I, J> where I: Iterator = Merge<I, J, fn(&I::Item, &I::Item) -> Ordering>;
 
 #[macro_export]
 /// Create an iterator over the “cartesian product” of iterators.
@@ -439,7 +439,7 @@ pub trait Itertools : Iterator {
     /// let it = a.merge(b);
     /// assert!(itertools::equal(it, vec![0, 0, 3, 5, 6, 9, 10]));
     /// ```
-    fn merge<J>(self, other: J) -> MergeAscend<Self, J::IntoIter, Self::Item> where
+    fn merge<J>(self, other: J) -> MergeAscend<Self, J::IntoIter> where
         Self: Sized,
         Self::Item: PartialOrd,
         J: IntoIterator<Item=Self::Item>,
