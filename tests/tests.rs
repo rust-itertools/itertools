@@ -522,3 +522,20 @@ fn map_fn() {
     assert_iters_equal((0..4).map(|x| x.to_string()), it);
     assert_iters_equal((0..4).map(mapper), jt);
 }
+
+#[test]
+fn part() {
+    let mut data = [7, 1, 1, 9, 1, 1, 3];
+    let i = it::partition(&mut data, |elt| *elt >= 3);
+    assert_eq!(i, 3);
+    assert_eq!(data, [7, 3, 9, 1, 1, 1, 1]);
+
+    let i = it::partition(&mut data, |elt| *elt == 1);
+    assert_eq!(i, 4);
+    assert_eq!(data, [1, 1, 1, 1, 9, 3, 7]);
+
+    let mut data = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    let i = it::partition(&mut data, |elt| *elt % 3 == 0);
+    assert_eq!(i, 3);
+    assert_eq!(data, [9, 6, 3, 4, 5, 2, 7, 8, 1]);
+}
