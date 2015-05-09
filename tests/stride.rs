@@ -2,6 +2,7 @@ extern crate itertools;
 
 use itertools::Stride;
 use itertools::StrideMut;
+use itertools::equal;
 
 #[test]
 fn mut_stride() {
@@ -28,20 +29,14 @@ fn mut_stride_compose() {
 #[test]
 fn stride_uneven() {
     let xs = &[7, 9, 8];
-    let mut it = Stride::from_slice(xs, 2);
+    let it = Stride::from_slice(xs, 2);
     assert!(it.size_hint() == (2, Some(2)));
-    assert!(*it.next().unwrap() == 7);
-    assert!(*it.next().unwrap() == 8);
-    assert!(it.len() == 0);
-    assert!(it.next().is_none());
+    assert!(equal(it, &[7, 8]));
 
     let xs = &[7, 9, 8, 10];
-    let mut it = Stride::from_slice(&xs[1..], 2);
+    let it = Stride::from_slice(&xs[1..], 2);
     assert!(it.size_hint() == (2, Some(2)));
-    assert!(*it.next().unwrap() == 9);
-    assert!(*it.next().unwrap() == 10);
-    assert!(it.len() == 0);
-    assert!(it.next().is_none());
+    assert!(equal(it, &[9, 10]));
 }
 
 #[test]
@@ -49,41 +44,35 @@ fn stride_compose() {
     let xs = &[1, 2, 3, 4, 5, 6, 7, 8, 9];
     let odds = Stride::from_slice(xs, 2);
     let it = Stride::from_stride(odds, 2);
-    let ans: Vec<isize> = it.map(|&x| x).collect();
-    assert_eq!(ans, vec![1, 5, 9]);
+    assert!(equal(it, &[1, 5, 9]));
 
     let xs = &[1, 2, 3, 4, 5, 6, 7, 8, 9];
     let evens = Stride::from_slice(&xs[1..], 2);
     let it = Stride::from_stride(evens, 2);
-    let ans: Vec<isize> = it.map(|&x| x).collect();
-    assert_eq!(ans, vec![2, 6]);
+    assert!(equal(it, &[2, 6]));
 
     let xs = &[1, 2, 3, 4, 5, 6, 7, 8, 9];
     let evens = Stride::from_slice(&xs[1..], 2);
     let it = Stride::from_stride(evens, 1);
-    let ans: Vec<isize> = it.map(|&x| x).collect();
-    assert_eq!(ans, vec![2, 4, 6, 8]);
+    assert!(equal(it, &[2, 4, 6, 8]));
 
     let xs = &[1, 2, 3, 4, 5, 6, 7, 8, 9];
     let mut odds = Stride::from_slice(xs, 2);
     odds.swap_ends();
     let it = Stride::from_stride(odds, 2);
-    let ans: Vec<isize> = it.map(|&x| x).collect();
-    assert_eq!(ans, vec![9, 5, 1]);
+    assert!(equal(it, &[9, 5, 1]));
 
     let xs = &[1, 2, 3];
     let every = Stride::from_slice(xs, 1);
     assert_eq!(every.len(), 3);
     let odds = Stride::from_stride(every, 2);
     assert_eq!(odds.len(), 2);
-    let v = odds.cloned().collect::<Vec<isize>>();
-    assert_eq!(v, vec![1, 3]);
+    assert!(equal(odds, &[1, 3]));
 
     let xs = &[1, 2, 3, 4, 5, 6, 7, 8, 9];
     let evens = Stride::from_slice(&xs[1..], 2);
     let it = Stride::from_stride(evens, -2);
-    let ans: Vec<isize> = it.map(|&x| x).collect();
-    assert_eq!(ans, vec![8, 4]);
+    assert!(equal(it, &[8, 4]));
 }
 
 #[test]
@@ -107,48 +96,31 @@ fn stride() {
     assert!(it.next().is_none());
 
     let xs = &[7, 9, 8, 10];
-    let mut it = Stride::from_slice(xs, 2);
+    let it = Stride::from_slice(xs, 2);
     assert!(it.size_hint() == (2, Some(2)));
-    assert!(*it.next().unwrap() == 7);
-    assert!(*it.next().unwrap() == 8);
-    assert!(it.next().is_none());
+    assert!(equal(it, &[7, 8]));
 
-    let mut it = Stride::from_slice(xs, 2).rev();
+    let it = Stride::from_slice(xs, 2).rev();
     assert!(it.size_hint() == (2, Some(2)));
-    assert!(*it.next().unwrap() == 8);
-    assert!(*it.next().unwrap() == 7);
-    assert!(it.next().is_none());
+    assert!(equal(it, &[8, 7]));
 
     let xs = &[7, 9, 8, 10];
-    let mut it = Stride::from_slice(xs, 1);
+    let it = Stride::from_slice(xs, 1);
     assert!(it.size_hint() == (4, Some(4)));
-    assert!(*it.next().unwrap() == 7);
-    assert!(*it.next().unwrap() == 9);
-    assert!(*it.next().unwrap() == 8);
-    assert!(*it.next().unwrap() == 10);
-    assert!(it.len() == 0);
-    assert!(it.next().is_none());
+    assert!(equal(it, &[7, 9, 8, 10]));
 
-    let mut it = Stride::from_slice(xs, 1).rev();
+    let it = Stride::from_slice(xs, 1).rev();
     assert!(it.size_hint() == (4, Some(4)));
-    assert!(*it.next().unwrap() == 10);
-    assert!(*it.next().unwrap() == 8);
-    assert!(*it.next().unwrap() == 9);
-    assert!(*it.next().unwrap() == 7);
-    assert!(it.next().is_none());
+    assert!(equal(it, &[10, 8, 9, 7]));
 
     let mut it = Stride::from_slice(xs, 2);
     it.swap_ends();
     assert!(it.size_hint() == (2, Some(2)));
-    assert!(*it.next().unwrap() == 8);
-    assert!(*it.next().unwrap() == 7);
-    assert!(it.next().is_none());
+    assert!(equal(it, &[8, 7]));
 
-    let mut it = Stride::from_slice(xs, -2);
+    let it = Stride::from_slice(xs, -2);
     assert_eq!(it.size_hint(), (2, Some(2)));
-    assert_eq!(*it.next().unwrap(), 10);
-    assert_eq!(*it.next().unwrap(), 9);
-    assert_eq!(it.next(), None);
+    assert!(equal(it, &[10, 9]));
 }
 
 #[test]
