@@ -222,7 +222,8 @@ fn equal_merge(a: Vec<i16>, b: Vec<i16>) -> bool {
     let mut sb = b.clone();
     sa.sort();
     sb.sort();
-    let mut merged = sa.clone() + &sb;
+    let mut merged = sa.clone();
+    merged.extend(sb.iter().cloned());
     merged.sort();
     itertools::equal(&merged, sa.iter().merge(&sb))
 
@@ -411,6 +412,18 @@ fn size_mend_slices(a: Vec<u8>, splits: Vec<usize>) -> bool {
 #[quickcheck]
 fn size_take_while_ref(a: Vec<u8>, stop: u8) -> bool {
     correct_size_hint(a.iter().take_while_ref(|x| **x != stop))
+}
+
+#[quickcheck]
+fn equal_partition(mut a: Vec<i32>) -> bool {
+    let mut ap = a.clone();
+    let split_index = itertools::partition(&mut ap, |x| *x >= 0);
+    let parted = (0..split_index).all(|i| ap[i] >= 0) &&
+        (split_index..a.len()).all(|i| ap[i] < 0);
+
+    a.sort();
+    ap.sort();
+    parted && (a == ap)
 }
 
 }
