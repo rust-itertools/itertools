@@ -442,8 +442,8 @@ fn enumerate_from_overflow() {
     }
 }
 
-/// Like CharIndices iterator, except it yeilds slices instead
-#[derive(Clone)]
+/// Like CharIndices iterator, except it yields slices instead
+#[derive(Copy, Clone, Debug)]
 struct CharSlices<'a> {
     slice: &'a str,
     offset: usize,
@@ -467,22 +467,26 @@ impl<'a> Iterator for CharSlices<'a>
     fn next(&mut self) -> Option<Self::Item>
     {
         if self.slice.len() == 0 {
-            None
-        } else {
-            // count continuation bytes
-            let mut char_len = 1;
-            for byte in self.slice.bytes().dropping(1) {
-                if (byte & 0xC0) != 0x80 {
-                    break
-                }
-                char_len += 1;
-            }
-            let ch_slice = &self.slice[..char_len];
-            self.slice = &self.slice[char_len..];
-            let off = self.offset;
-            self.offset += char_len;
-            Some((off, ch_slice))
+            return None
         }
+        // count continuation bytes
+        let mut char_len = 1;
+        let mut bytes = self.slice.bytes();
+        bytes.next();
+        for byte in bytes {
+            if (byte & 0xC0) != 0x80 {
+                break
+            }
+            char_len += 1;
+        }
+        let ch_slice;
+        unsafe {
+            ch_slice = self.slice.slice_unchecked(0, char_len);
+            self.slice = self.slice.slice_unchecked(char_len, self.slice.len());
+        }
+        let off = self.offset;
+        self.offset += char_len;
+        Some((off, ch_slice))
     }
 }
 
