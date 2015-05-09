@@ -612,7 +612,7 @@ pub struct Coalesce<I, F> where
     f: F,
 }
 
-/// An iterator adaptor that may joins together adjacent elements.
+/// An iterator adaptor that may join together adjacent elements.
 pub type CoalesceFn<I> where I: Iterator =
     Coalesce<I, fn(I::Item, I::Item) -> Result<I::Item, (I::Item, I::Item)>>;
 
