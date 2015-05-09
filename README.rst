@@ -12,6 +12,7 @@ Recent Changes
 - 0.3.6
 
   - Added itertools::partition, partition a sequence in place based on a predicate.
+  - Deprecate icompr!() with no replacement.
 
 - 0.3.5
 

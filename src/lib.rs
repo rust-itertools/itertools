@@ -160,6 +160,12 @@ macro_rules! izip {
     );
 }
 
+/// **Deprecated:** Will hopefully be replaced by a dedicated
+/// syntax extension that can offer real convenient python-like syntax.
+///
+/// **Note:** A Python like syntax of `<expression> for <pattern> in <iterator>` is
+/// **not possible** with the stable macro rules since Rust 1.0.0-alpha.
+///
 /// `icompr` as in “iterator comprehension” allows creating a
 /// mapped iterator with simple syntax, similar to set builder notation,
 /// and directly inspired by Python. Supports an optional filter clause.
@@ -183,9 +189,6 @@ macro_rules! izip {
 /// ```ignore
 /// let mut squares = icompr!(x * x, x, 1..100);
 /// ```
-///
-/// **Note:** A Python like syntax of `<expression> for <pattern> in <iterator>` is
-/// **not possible** with the stable macro rules since Rust 1.0.0-alpha.
 #[macro_export]
 macro_rules! icompr {
     ($r:expr, $x:pat, $J:expr, $pred:expr) => (
