@@ -992,29 +992,29 @@ pub fn equal<I, J>(a: I, b: J) -> bool where
 /// ```
 /// use itertools::partition;
 ///
-/// let mut data = [7, 1, 1, 9, 1, 1, 3];
+/// # // use repeated numbers to not promise any ordering
+/// let mut data = [7, 1, 1, 7, 1, 1, 7];
 /// let split_index = partition(&mut data, |elt| *elt >= 3);
 ///
-/// assert_eq!(data, [7, 3, 9, 1, 1, 1, 1]);
+/// assert_eq!(data, [7, 7, 7, 1, 1, 1, 1]);
 /// assert_eq!(split_index, 3);
 /// ```
-pub fn partition<'a, T: 'a, I, F>(it: I, mut pred: F) -> usize where
-    I: IntoIterator<Item=&'a mut T>,
+pub fn partition<'a, A: 'a, I, F>(iter: I, mut pred: F) -> usize where
+    I: IntoIterator<Item=&'a mut A>,
     I::IntoIter: DoubleEndedIterator,
-    F: FnMut(&T) -> bool,
+    F: FnMut(&A) -> bool,
 {
     let mut split_index = 0;
-    let mut it = it.into_iter();
-    'main: while let Some(front) = it.next() {
-        if !pred(&*front) {
+    let mut iter = iter.into_iter();
+    'main: while let Some(front) = iter.next() {
+        if !pred(front) {
             loop {
-                if let Some(back) = it.next_back() {
-                    if pred(&*back) {
+                match iter.next_back() {
+                    Some(back) => if pred(back) {
                         std::mem::swap(front, back);
                         break;
-                    }
-                } else {
-                    break 'main;
+                    },
+                    None => break 'main,
                 }
             }
         }
