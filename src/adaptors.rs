@@ -717,15 +717,15 @@ impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F> where
 
 /// An iterator to iterate through all the combinations of pairs in a **Clone**-able iterator.
 #[derive(Clone)]
-pub struct CombinatePair<I: Iterator> {
+pub struct Combinations<I: Iterator> {
     iter: I,
     next_iter: I,
     val: Option<I::Item>,
 }
-impl<I> CombinatePair<I> where I: Iterator + Clone {
-    /// Create a new **CombinatePair** from a clonable iterator.
-    pub fn new(iter: I) -> CombinatePair<I> {
-        CombinatePair { 
+impl<I> Combinations<I> where I: Iterator + Clone {
+    /// Create a new **Combinations** from a clonable iterator.
+    pub fn new(iter: I) -> Combinations<I> {
+        Combinations { 
             next_iter: iter.clone(), 
             iter: iter, 
             val: None,
@@ -733,7 +733,7 @@ impl<I> CombinatePair<I> where I: Iterator + Clone {
     }
 }
 
-impl<I> Iterator for CombinatePair<I> where I: Iterator + Clone, I::Item: Clone{
+impl<I> Iterator for Combinations<I> where I: Iterator + Clone, I::Item: Clone{
     type Item = (I::Item, I::Item);
     fn next(&mut self) -> Option<Self::Item> {
         // not having a value means we iterate once more through the first iterator
