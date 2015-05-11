@@ -668,7 +668,7 @@ pub trait Itertools : Iterator {
     /// assert!(itertools::equal(it, vec![(1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)]));
     /// ```
     fn combinate_pairs(self) -> CombinatePair<Self> where
-        Self: Sized + Clone
+        Self: Sized + Clone, Self::Item: Clone
     {
         CombinatePair::new(self)
     }

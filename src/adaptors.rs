@@ -716,17 +716,18 @@ impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F> where
 }
 
 /// An iterator to iterate through all the combinations of pairs in a **Clone**-able iterator.
+#[derive(Clone)]
 pub struct CombinatePair<I: Iterator> {
     iter: I,
-    next_iter: Option<I>,
+    next_iter: I,
     val: Option<I::Item>,
 }
-impl<I> CombinatePair<I> where I: Iterator {
+impl<I> CombinatePair<I> where I: Iterator + Clone {
     /// Create a new **CombinatePair** from a clonable iterator.
     pub fn new(iter: I) -> CombinatePair<I> {
         CombinatePair { 
+            next_iter: iter.clone(), 
             iter: iter, 
-            next_iter: None, 
             val: None,
         }
     }
@@ -735,21 +736,21 @@ impl<I> CombinatePair<I> where I: Iterator {
 impl<I> Iterator for CombinatePair<I> where I: Iterator + Clone, I::Item: Clone{
     type Item = (I::Item, I::Item);
     fn next(&mut self) -> Option<Self::Item> {
-        // not having a value means we iterate once more throug the first iterator
+        // not having a value means we iterate once more through the first iterator
         if self.val.is_none() {
             self.val = self.iter.next();
-            self.next_iter = Some(self.iter.clone());
+            self.next_iter = self.iter.clone();
         }
-        // if its still none, we're out of values
-        if self.val.is_none() {
-            return None;
-        }
-        
 
-        let ret_ele = self.val.clone().unwrap();
-        match self.next_iter.as_mut().unwrap().next() {
+        // if its still none, we're out of values
+        let elt = match self.val {
+            Some(ref x) => x.clone(),
+            None => return None,
+        };
+
+        match self.next_iter.next() {
             Some(ref x) => {
-                return Some((ret_ele, x.clone()));
+                return Some((elt, x.clone()));
             },
             None => {
                 self.val = None;
@@ -760,13 +761,9 @@ impl<I> Iterator for CombinatePair<I> where I: Iterator + Clone, I::Item: Clone{
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let (_, hi) = self.iter.size_hint();
-        match self.next_iter {
-            Some(ref i) => {
-                let (low, hi_next) = i.size_hint();
-                (low, hi.and_then(|x| hi_next.and_then(|y| Some(x * y))))
-            },
-            None => (0, hi),
-        }
+        let (lo, hi) = self.iter.size_hint();
+        let (lo, hi) = size_hint::mul((lo, hi), (lo - 1, hi.map(|hi|hi - 1)));
+        // won't truncate because x * (x - 1) is guarenteed to be even
+        (lo / 2, hi.map(|hi| hi / 2))
     }
 }
