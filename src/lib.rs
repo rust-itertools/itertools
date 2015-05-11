@@ -664,7 +664,7 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let it = (1..5).combinate_pairs();
+    /// let it = (1..5).combinations();
     /// assert!(itertools::equal(it, vec![(1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)]));
     /// ```
     fn combinations(self) -> Combinations<Self> where
