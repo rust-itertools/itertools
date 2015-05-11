@@ -230,6 +230,17 @@ fn put_back() {
 }
 
 #[test]
+fn put_back_n() {
+    let xs = [0, 1, 1, 1, 2, 1, 3, 3];
+    let mut pb = it::PutBackN::new(xs.iter().cloned());
+    pb.next();
+    pb.next();
+    pb.put_back(1);
+    pb.put_back(0);
+    assert_iters_equal(pb, xs.iter().cloned());
+}
+
+#[test]
 fn tee() {
     let xs  = [0, 1, 2, 3];
     let (mut t1, mut t2) = xs.iter().cloned().tee();
