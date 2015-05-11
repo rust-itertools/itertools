@@ -176,13 +176,13 @@ impl<I: Iterator> Clone for PutBack<I> where
 /// items in front of the iterator.
 ///
 /// Iterator element type is **I::Item**.
-pub struct Feed<I: Iterator>
+pub struct PutBackN<I: Iterator>
 {
     top: Vec<I::Item>,
     iter: I
 }
 
-impl<I: Iterator> Feed<I>
+impl<I: Iterator> PutBackN<I>
 {
     /// Iterator element type is `A`
     #[inline]
@@ -193,13 +193,13 @@ impl<I: Iterator> Feed<I>
 
     /// Puts x in front of the iterator.
     #[inline]
-    pub fn feed(&mut self, x: I::Item)
+    pub fn put_back(&mut self, x: I::Item)
     {
         self.top.push(x);
     }
 }
 
-impl<I: Iterator> Iterator for Feed<I>
+impl<I: Iterator> Iterator for PutBackN<I>
 {
     type Item = I::Item;
     #[inline]
@@ -217,7 +217,7 @@ impl<I: Iterator> Iterator for Feed<I>
     }
 }
 
-impl<I: Iterator> Clone for Feed<I> where
+impl<I: Iterator> Clone for PutBackN<I> where
     I: Clone,
     I::Item: Clone
 {

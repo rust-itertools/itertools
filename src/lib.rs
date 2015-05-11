@@ -642,18 +642,18 @@ pub trait Itertools : Iterator {
     /// ```rust
     /// use itertools::Itertools;
     ///
-    /// let mut it = (0..5).feedable();
+    /// let mut it = (0..5).put_back_n();
     /// it.next();
     /// it.next();
-    /// it.feed(1);
-    /// it.feed(0);
+    /// it.put_back(1);
+    /// it.put_back(0);
     ///
     /// assert_eq!(it.collect::<Vec<u8>>(), (0..5).collect::<Vec<u8>>());
     /// ```
-    fn feedable(self) -> Feed<Self> where
+    fn put_back_n(self) -> PutBackN<Self> where
         Self: Sized
     {
-        Feed::new(self)
+        PutBackN::new(self)
     }
 }
 
