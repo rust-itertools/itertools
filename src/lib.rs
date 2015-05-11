@@ -49,6 +49,7 @@ pub use adaptors::{
     TakeWhileRef,
     Coalesce,
     CoalesceFn,
+    Combinations,
 };
 #[cfg(feature = "unstable")]
 pub use adaptors::EnumerateFrom;
@@ -653,6 +654,23 @@ pub trait Itertools : Iterator {
         F: FnMut(&Self::Item) -> bool,
     {
         TakeWhileRef::new(self, f)
+    }
+
+    /// Return an iterator adaptor that iterates over the combinations of
+    /// the elements from an iterator.
+    ///
+    /// Iterator element type is **(Self::Item, Self::Item)**.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let it = (1..5).combinate_pairs();
+    /// assert!(itertools::equal(it, vec![(1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)]));
+    /// ```
+    fn combinations(self) -> Combinations<Self> where
+        Self: Sized + Clone, Self::Item: Clone
+    {
+        Combinations::new(self)
     }
 
     /// Like regular *.map()*, specialized to using a simple function pointer instead,
