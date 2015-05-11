@@ -35,7 +35,7 @@ pub use adaptors::{
     Interleave,
     Product,
     PutBack,
-    Feed,
+    PutBackN,
     FnMap,
     Dedup,
     Batching,

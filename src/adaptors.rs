@@ -188,7 +188,7 @@ impl<I: Iterator> PutBackN<I>
     #[inline]
     pub fn new(it: I) -> Self
     {
-        Feed{top: vec![], iter: it}
+        PutBackN{top: vec![], iter: it}
     }
 
     /// Puts x in front of the iterator.
@@ -223,7 +223,7 @@ impl<I: Iterator> Clone for PutBackN<I> where
 {
     fn clone(&self) -> Self
     {
-        clone_fields!(Feed, self, top, iter)
+        clone_fields!(PutBackN, self, top, iter)
     }
 }
 
