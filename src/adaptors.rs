@@ -174,6 +174,76 @@ impl<I> Iterator for PutBack<I> where
     }
 }
 
+/// An iterator adaptor that allows putting multiple
+/// items in front of the iterator.
+///
+/// Iterator element type is **I::Item**.
+pub struct PutBackN<I: Iterator>
+{
+    top: Vec<I::Item>,
+    iter: I
+}
+
+impl<I: Iterator> PutBackN<I>
+{
+    /// Iterator element type is `A`
+    #[inline]
+    pub fn new(it: I) -> Self
+    {
+        PutBackN{top: vec![], iter: it}
+    }
+
+    /// Puts x in front of the iterator.
+    /// The values are yielded in order.
+    ///
+    /// ## Example
+    ///
+    /// ```rust
+    /// use itertools::PutBackN;
+    ///
+    /// let mut it = PutBackN::new(0..5);
+    /// it.next();
+    /// it.next();
+    /// it.put_back(1);
+    /// it.put_back(0);
+    ///
+    /// assert_eq!(it.collect::<Vec<u8>>(), (0..5).collect::<Vec<u8>>());
+    /// ```
+    #[inline]
+    pub fn put_back(&mut self, x: I::Item)
+    {
+        self.top.push(x);
+    }
+}
+
+impl<I: Iterator> Iterator for PutBackN<I>
+{
+    type Item = I::Item;
+    #[inline]
+    fn next(&mut self) -> Option<I::Item> {
+        if self.top.is_empty() {
+            self.iter.next()
+        } else {
+            self.top.pop()
+        }
+    }
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let (lo, hi) = self.iter.size_hint();
+        (lo.saturating_add(self.top.len()), hi.and_then(|x| x.checked_add(self.top.len())))
+    }
+}
+
+impl<I: Iterator> Clone for PutBackN<I> where
+    I: Clone,
+    I::Item: Clone
+{
+    fn clone(&self) -> Self
+    {
+        clone_fields!(PutBackN, self, top, iter)
+    }
+}
+
 #[derive(Clone)]
 /// An iterator adaptor that iterates over the cartesian product of
 /// the element sets of two iterators **I** and **J**.

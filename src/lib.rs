@@ -40,6 +40,7 @@ pub use adaptors::{
     Interleave,
     Product,
     PutBack,
+    PutBackN,
     FnMap,
     Batching,
     GroupBy,
