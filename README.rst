@@ -1,13 +1,24 @@
 
-Itertools — extra iterator adaptors, functions and macros
-=========================================================
+Itertools
+=========
+
+Extra iterator adaptors, functions and macros.
 
 Please read the `API documentation here`__
 
 __ http://bluss.github.io/rust-itertools/
 
+|build_status|_ |crates|_
+
+.. |build_status| image:: https://travis-ci.org/bluss/rust-itertools.svg?branch=master
+.. _build_status: https://travis-ci.org/bluss/rust-itertools
+
+.. |crates| image:: http://meritbadge.herokuapp.com/itertools
+.. _crates: https://crates.io/crates/itertools
+
+
 Recent Changes
-==============
+--------------
 
 - 0.3.7
 
@@ -36,7 +47,7 @@ Recent Changes
   - .is_empty_hint() *method*
 
 License
-=======
+-------
 
 Dual-licensed to be compatible with the Rust project.
 
