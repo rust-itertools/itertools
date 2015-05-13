@@ -201,13 +201,12 @@ impl<I: Iterator> PutBackN<I>
     /// ```rust
     /// use itertools::PutBackN;
     ///
-    /// let mut it = PutBackN::new(0..5);
-    /// it.next();
+    /// let mut it = PutBackN::new(1..5);
     /// it.next();
     /// it.put_back(1);
     /// it.put_back(0);
     ///
-    /// assert_eq!(it.collect::<Vec<u8>>(), (0..5).collect::<Vec<u8>>());
+    /// assert!(itertools::equal(it, 0..5));
     /// ```
     #[inline]
     pub fn put_back(&mut self, x: I::Item)
