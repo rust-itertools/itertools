@@ -9,6 +9,11 @@ __ http://bluss.github.io/rust-itertools/
 Recent Changes
 ==============
 
+- 0.3.7
+
+  - Added adaptor PutBackN
+  - Added adaptor .combinations()
+
 - 0.3.6
 
   - Added itertools::partition, partition a sequence in place based on a predicate.
