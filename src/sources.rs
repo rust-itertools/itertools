@@ -4,7 +4,7 @@
 /// An iterator source that produces elements indefinitely by calling
 /// a given closure.
 ///
-/// Iterator elment type is the return type of the closure.
+/// Iterator element type is the return type of the closure.
 ///
 /// ## Example
 ///
