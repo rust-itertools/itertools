@@ -973,6 +973,8 @@ pub trait Itertools : Iterator {
     }
 }
 
+impl<T: ?Sized> Itertools for T where T: Iterator { }
+
 /// Return **true** if both iterators produce equal sequences
 /// (elements pairwise equal and sequences of the same length),
 /// **false** otherwise.
@@ -1041,7 +1043,3 @@ pub fn partition<'a, A: 'a, I, F>(iter: I, mut pred: F) -> usize where
     }
     split_index
 }
-
-
-impl<T: ?Sized> Itertools for T where T: Iterator { }
-
