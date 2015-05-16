@@ -147,12 +147,16 @@ macro_rules! iproduct {
 /// #[macro_use]
 /// extern crate itertools;
 /// # fn main() {
+///
 /// // Iterate over three sequences side-by-side
 /// let mut xs = [0, 0, 0];
-/// let ys = [72, 73, 74];
+/// let ys = [69, 107, 101];
+///
 /// for (i, a, b) in izip!(0..100, &mut xs, &ys) {
 ///    *a = i ^ *b;
 /// }
+///
+/// assert_eq!(xs, [69, 106, 103]);
 /// # }
 /// ```
 macro_rules! izip {
