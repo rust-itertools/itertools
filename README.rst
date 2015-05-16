@@ -20,6 +20,10 @@ __ http://bluss.github.io/rust-itertools/
 Recent Changes
 --------------
 
+- 0.3.8
+
+  - Added source RepeatCall
+
 - 0.3.7
 
   - Added adaptor PutBackN
