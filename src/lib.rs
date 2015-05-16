@@ -64,6 +64,9 @@ pub use tee::Tee;
 pub use times::Times;
 pub use times::times;
 pub use linspace::{linspace, Linspace};
+pub use sources::{
+    RepeatCall,
+};
 pub use zip_longest::{ZipLongest, EitherOrBoth};
 pub use ziptuple::{Zip};
 #[cfg(feature = "unstable")]
@@ -75,6 +78,7 @@ mod linspace;
 pub mod misc;
 mod rciter;
 mod repeatn;
+mod sources;
 pub mod size_hint;
 mod stride;
 mod tee;
