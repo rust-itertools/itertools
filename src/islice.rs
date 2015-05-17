@@ -15,6 +15,8 @@ use super::misc::GenericRange;
 /// let it = repeat('a').slice(..3);
 /// assert_eq!(it.count(), 3);
 /// ```
+///
+/// See [*.slice()*](trait.Itertools.html#method.slice) for more information.
 #[derive(Copy, Clone)]
 pub struct ISlice<I> {
     start: usize,

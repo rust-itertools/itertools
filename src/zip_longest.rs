@@ -13,6 +13,8 @@ use self::EitherOrBoth::{Right, Left, Both};
 /// An iterator which iterates two other iterators simultaneously
 ///
 /// This iterator is *fused*.
+///
+/// See [*.zip_longest()*](trait.Itertools.html#method.zip_longest) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct ZipLongest<T, U> {
@@ -101,8 +103,9 @@ impl<T, U> ExactSizeIterator for ZipLongest<T, U> where
 
 
 /// A value yielded by `ZipLongest`.
-/// Contains one or two values,
-/// depending on which of the input iterators are exhausted.
+/// Contains one or two values, depending on which of the input iterators are exhausted.
+///
+/// See [*.zip_longest()*](trait.Itertools.html#method.zip_longest) for more information.
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum EitherOrBoth<A, B> {
     /// Neither input iterator is exhausted yet, yielding two values.

@@ -29,6 +29,8 @@ macro_rules! clone_fields {
 /// run out.
 ///
 /// This iterator is *fused*.
+///
+/// See [*.interleave()*](trait.Itertools.html#method.interleave) for more information.
 #[derive(Clone)]
 pub struct Interleave<I, J> {
     a: Fuse<I>,
@@ -248,6 +250,8 @@ impl<I: Iterator> Clone for PutBackN<I> where
 /// the element sets of two iterators **I** and **J**.
 ///
 /// Iterator element type is **(I::Item, J::Item)**.
+///
+/// See [*.cartesian_product()*](trait.Itertools.html#method.cartesian_product) for more information.
 pub struct Product<I, J> where
     I: Iterator,
 {
@@ -319,6 +323,8 @@ impl<I, J> Iterator for Product<I, J> where
 /// and may pick off as many elements as it likes, to produce the next iterator element.
 ///
 /// Iterator element type is *X*, if the return type of **F** is *Option\<X\>*.
+///
+/// See [*.batching()*](trait.Itertools.html#method.batching) for more information.
 #[derive(Clone)]
 pub struct Batching<I, F> {
     f: F,
@@ -355,6 +361,8 @@ impl<B, F, I> Iterator for Batching<I, F> where
 #[derive(Clone)]
 /// An iterator adaptor that groups iterator elements. Consecutive elements
 /// that map to the same key (“runs”), are returned as the iterator elements.
+///
+/// See [*.group_by()*](trait.Itertools.html#method.group_by) for more information.
 pub struct GroupBy<K, I, F> where
     I: Iterator,
 {
@@ -421,6 +429,8 @@ impl<K, I, F> Iterator for GroupBy<K, I, F> where
 ///
 /// The iterator steps by yielding the next element from the base iterator,
 /// then skipping forward *n-1* elements.
+///
+/// See [*.step()*](trait.Itertools.html#method.step) for more information.
 #[derive(Clone)]
 pub struct Step<I> {
     iter: Fuse<I>,
@@ -473,6 +483,8 @@ impl<I> ExactSizeIterator for Step<I> where
 /// If both base iterators are sorted (ascending), the result is sorted.
 ///
 /// Iterator element type is **I::Item**.
+///
+/// See [*.merge_by()*](trait.Itertools.html#method.merge_by) for more information.
 pub struct Merge<I, J, F> where
     I: Iterator,
     J: Iterator<Item=I::Item>,
@@ -558,6 +570,8 @@ impl<I, J, F> Iterator for Merge<I, J, F> where
 #[cfg(feature = "unstable")]
 /// An iterator adaptor that enumerates the iterator elements,
 /// with a custom starting value and integer type.
+///
+/// See [*.enumerate_from()*](trait.Itertools.html#method.enumerate_from) for more information.
 pub struct EnumerateFrom<I, K>
 {
     index: K,
@@ -611,6 +625,8 @@ impl<K, I> ExactSizeIterator for EnumerateFrom<I, K> where
 #[derive(Clone)]
 /// An iterator adaptor that allows the user to peek at multiple *.next()*
 /// values without advancing itself.
+///
+/// See [*.multipeek()*](trait.Itertools.html#method.multipeek) for more information.
 pub struct MultiPeek<I> where
     I: Iterator,
 {
@@ -672,6 +688,8 @@ impl<I> ExactSizeIterator for MultiPeek<I> where
 { }
 
 /// An iterator adaptor that may join together adjacent elements.
+///
+/// See [*.coalesce()*](trait.Itertools.html#method.coalesce) for more information.
 #[derive(Clone)]
 pub struct Coalesce<I, F> where
     I: Iterator,
@@ -737,6 +755,8 @@ impl<I, F> Iterator for Coalesce<I, F> where
 
 /// An iterator adaptor that borrows from a **Clone**-able iterator
 /// to only pick off elements while the predicate returns **true**.
+///
+/// See [*.take_while_ref()*](trait.Itertools.html#method.take_while_ref) for more information.
 pub struct TakeWhileRef<'a, I: 'a, F>
 {
     iter: &'a mut I,
@@ -785,6 +805,8 @@ impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F> where
 }
 
 /// An iterator to iterate through all the combinations of pairs in a **Clone**-able iterator.
+///
+/// See [*.combinations()*](trait.Itertools.html#method.combinations) for more information.
 #[derive(Clone)]
 pub struct Combinations<I: Iterator> {
     iter: I,

@@ -8,6 +8,8 @@ use super::size_hint;
 /// Iterator element type is **I::Item**
 ///
 /// This iterator is *fused*.
+///
+/// See [*.intersperse()*](trait.Itertools.html#method.intersperse) for more information.
 pub struct Intersperse<I> where
     I: Iterator,
 {

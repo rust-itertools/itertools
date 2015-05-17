@@ -4,6 +4,8 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 /// A wrapper for **Rc\<RefCell\<I\>\>**, that implements the **Iterator** trait.
+///
+/// See [*.into_rc()*](trait.Itertools.html#method.into_rc) for more information.
 pub struct RcIter<I> {
     /// The boxed iterator.
     pub rciter: Rc<RefCell<I>>,
