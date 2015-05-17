@@ -235,8 +235,8 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let it = (0..3).interleave(vec![7, 7]);
-    /// assert!(itertools::equal(it, vec![0, 7, 1, 7, 2]));
+    /// let it = (0..3).interleave(vec![7, 8]);
+    /// assert!(itertools::equal(it, vec![0, 7, 1, 8, 2]));
     /// ```
     fn interleave<J>(self, other: J) -> Interleave<Self, J::IntoIter> where
         J: IntoIterator<Item=Self::Item>,
@@ -251,6 +251,14 @@ pub trait Itertools : Iterator {
     /// Iterator element type is **Self::Item**.
     ///
     /// This iterator is *fused*.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// assert!(itertools::equal((0..3).intersperse(8), vec![0, 8, 1, 8, 2]));
+    /// ```
     fn intersperse(self, element: Self::Item) -> Intersperse<Self> where
         Self: Sized,
         Self::Item: Clone
@@ -319,6 +327,19 @@ pub trait Itertools : Iterator {
     /// are returned as the iterator elements of **GroupBy**.
     ///
     /// Iterator element type is **(K, Vec\<Self::Item\>)**
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // group data into runs of larger than zero or not.
+    /// let data = vec![1, 2, -3, 4, 5];
+    ///
+    /// let mut iter = data.into_iter().group_by(|elt| *elt >= 0);
+    /// assert_eq!(iter.next(), Some((true, vec![1, 2])));
+    /// assert_eq!(iter.next(), Some((false, vec![-3])));
+    /// ```
     fn group_by<K, F: FnMut(&Self::Item) -> K>(self, key: F) -> GroupBy<K, Self, F> where
         Self: Sized,
     {
@@ -686,6 +707,20 @@ pub trait Itertools : Iterator {
     /// so that the resulting **Map** iterator value can be cloned.
     ///
     /// Iterator element type is **B**.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![Ok(1), Ok(0), Err("No result")];
+    ///
+    /// let iter = data.iter().cloned().map_fn(Result::ok);
+    /// let iter_copy = iter.clone();
+    ///
+    /// assert!(itertools::equal(iter, vec![Some(1), Some(0), None]));
+    /// assert!(itertools::equal(iter_copy, vec![Some(1), Some(0), None]));
+    /// ```
     fn map_fn<B>(self, f: fn(Self::Item) -> B) -> MapFn<Self, B> where
         Self: Sized
     {
@@ -703,6 +738,18 @@ pub trait Itertools : Iterator {
     // non-adaptor methods
 
     /// Find the position and value of the first element satisfying a predicate.
+    ///
+    /// The iterator is not advanced past the first element found.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let text = "α-0";
+    /// assert_eq!(text.chars().find_position(|ch| ch.is_numeric()), Some((2, '0')));
+    /// assert_eq!(text.chars().find_position(|ch| ch.is_uppercase()), None);
+    /// ```
     fn find_position<P>(&mut self, mut pred: P) -> Option<(usize, Self::Item)> where
         P: FnMut(&Self::Item) -> bool,
     {
@@ -718,8 +765,19 @@ pub trait Itertools : Iterator {
 
     /// Consume the first **n** elements of the iterator eagerly.
     ///
-    /// Return actual number of elements consumed,
-    /// until done or reaching the end.
+    /// Return actual number of elements consumed, until done or reaching the end.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut iter = "αβγ".chars();
+    /// iter.dropn(2);
+    /// assert!(itertools::equal(iter, "γ".chars()));
+    ///
+    /// assert_eq!((0..10).dropn(50), 10);
+    /// ```
     fn dropn(&mut self, mut n: usize) -> usize
     {
         let start = n;
@@ -737,6 +795,15 @@ pub trait Itertools : Iterator {
     ///
     /// It works similarly to **.skip(n)** except it is eager and
     /// preserves the iterator type.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut iter = "αβγ".chars().dropping(2);
+    /// assert!(itertools::equal(iter, "γ".chars()));
+    /// ```
     fn dropping(mut self, n: usize) -> Self where
         Self: Sized,
     {
