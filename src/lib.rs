@@ -654,14 +654,7 @@ pub trait Itertools : Iterator {
         Self: Sized,
         Self::Item: misc::MendSlice
     {
-        fn mend<T: misc::MendSlice>(x: T, y: T) -> Result<T, (T, T)>
-        {
-            match misc::MendSlice::mend(x, y) {
-                Some(z) => Ok(z),
-                None => Err((x, y)),
-            }
-        }
-        Coalesce::new(self, mend)
+        Coalesce::new(self, misc::MendSlice::mend)
     }
 
     /// Return an iterator adaptor that borrows from a **Clone**-able iterator

@@ -144,23 +144,40 @@ impl ToFloat<f64> for usize {
 }
 
 /// A trait for items that can *maybe* be joined together.
-pub trait MendSlice : Copy
+pub trait MendSlice
 {
     #[doc(hidden)]
     /// If the slices are contiguous, return them joined into one.
-    fn mend(Self, Self) -> Option<Self>;
+    fn mend(Self, Self) -> Result<Self, (Self, Self)>;
 }
 
 impl<'a, T> MendSlice for &'a [T]
 {
-    fn mend(a: &'a [T], b: &'a [T]) -> Option<&'a [T]>
+    #[inline]
+    fn mend(a: Self, b: Self) -> Result<Self, (Self, Self)>
     {
         unsafe {
             let a_end = a.as_ptr().offset(a.len() as isize);
             if a_end == b.as_ptr() {
-                Some(slice::from_raw_parts(a.as_ptr(), a.len() + b.len()))
+                Ok(slice::from_raw_parts(a.as_ptr(), a.len() + b.len()))
             } else {
-                None
+                Err((a, b))
+            }
+        }
+    }
+}
+
+impl<'a, T> MendSlice for &'a mut [T]
+{
+    #[inline]
+    fn mend(a: Self, b: Self) -> Result<Self, (Self, Self)>
+    {
+        unsafe {
+            let a_end = a.as_ptr().offset(a.len() as isize);
+            if a_end == b.as_ptr() {
+                Ok(slice::from_raw_parts_mut(a.as_mut_ptr(), a.len() + b.len()))
+            } else {
+                Err((a, b))
             }
         }
     }
@@ -168,7 +185,8 @@ impl<'a, T> MendSlice for &'a [T]
 
 impl<'a> MendSlice for &'a str
 {
-    fn mend(a: &'a str, b: &'a str) -> Option<&'a str>
+    #[inline]
+    fn mend(a: Self, b: Self) -> Result<Self, (Self, Self)>
     {
         unsafe {
             mem::transmute(MendSlice::mend(a.as_bytes(), b.as_bytes()))

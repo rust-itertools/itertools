@@ -12,11 +12,13 @@ use it::Itertools;
 use it::Interleave;
 use it::Zip;
 
-fn assert_iters_equal<A, I, J>(mut it: I, mut jt: J) where
+fn assert_iters_equal<A, I, J>(a: I, b: J) where
     A: PartialEq + Debug,
-    I: Iterator<Item=A>,
-    J: Iterator<Item=A>,
+    I: IntoIterator<Item=A>,
+    J: IntoIterator<Item=A>,
 {
+    let mut it = a.into_iter();
+    let mut jt = b.into_iter();
     loop {
         let elti = it.next();
         let eltj = jt.next();
@@ -512,6 +514,26 @@ fn mend_slices() {
                     .filter(|s| !s.chars().any(char::is_whitespace))
                     .mend_slices().collect::<Vec<_>>();
     assert_eq!(words, vec!["α-toco", "(and)", "β-toco"]);
+}
+
+#[test]
+fn mend_slices_mut() {
+    let mut data = [1, 2, 3];
+    let mut copy = data.to_vec();
+    {
+        let slc = data.chunks_mut(1).mend_slices().next().unwrap();
+        assert_eq!(slc, &mut copy[..]);
+    }
+    {
+        let slc = data.chunks_mut(2).mend_slices().next().unwrap();
+        assert_eq!(slc, &mut copy[..]);
+    }
+    {
+        let mut iter = data.chunks_mut(1).filter(|c| c[0] != 2).mend_slices();
+        assert_eq!(iter.next(), Some(&mut [1][..]));
+        assert_eq!(iter.next(), Some(&mut [3][..]));
+        assert_eq!(iter.next(), None);
+    }
 }
 
 #[test]
