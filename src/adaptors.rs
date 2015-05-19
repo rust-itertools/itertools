@@ -228,10 +228,10 @@ impl<I: Iterator> Iterator for PutBackN<I>
             self.top.pop()
         }
     }
+
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let (lo, hi) = self.iter.size_hint();
-        (lo.saturating_add(self.top.len()), hi.and_then(|x| x.checked_add(self.top.len())))
+        size_hint::add_scalar(self.iter.size_hint(), self.top.len())
     }
 }
 
