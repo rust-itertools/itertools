@@ -7,16 +7,6 @@ use std::cmp;
 /// **SizeHint** is the return type of **Iterator::size_hint()**.
 pub type SizeHint = (usize, Option<usize>);
 
-/// Add **x** correctly to a **SizeHint**.
-#[inline]
-pub fn add_scalar(sh: SizeHint, x: usize) -> SizeHint
-{
-    let (mut low, mut hi) = sh;
-    low = low.saturating_add(x);
-    hi = hi.and_then(|elt| elt.checked_add(x));
-    (low, hi)
-}
-
 /// Add **SizeHint** correctly.
 #[inline]
 pub fn add(a: SizeHint, b: SizeHint) -> SizeHint
@@ -29,6 +19,27 @@ pub fn add(a: SizeHint, b: SizeHint) -> SizeHint
 
     (min, max)
 }
+
+/// Add **x** correctly to a **SizeHint**.
+#[inline]
+pub fn add_scalar(sh: SizeHint, x: usize) -> SizeHint
+{
+    let (mut low, mut hi) = sh;
+    low = low.saturating_add(x);
+    hi = hi.and_then(|elt| elt.checked_add(x));
+    (low, hi)
+}
+
+/// Sbb **x** correctly to a **SizeHint**.
+#[inline]
+pub fn sub_scalar(sh: SizeHint, x: usize) -> SizeHint
+{
+    let (mut low, mut hi) = sh;
+    low = low.saturating_sub(x);
+    hi = hi.map(|elt| elt.saturating_sub(x));
+    (low, hi)
+}
+
 
 /// Multiply **x** correctly with a **SizeHint**.
 ///
