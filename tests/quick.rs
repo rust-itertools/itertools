@@ -435,4 +435,25 @@ fn equal_partition(mut a: Vec<i32>) -> bool {
     parted && (a == ap)
 }
 
+#[quickcheck]
+fn size_combinations(it: Iter<i16>) -> bool {
+    correct_size_hint(it.combinations())
+}
+
+#[quickcheck]
+fn equal_combinations(mut it: Iter<i16>) -> bool {
+    let values = it.clone().collect_vec();
+    let mut cmb = it.combinations();
+    for i in 0..values.len() {
+        for j in i+1..values.len() {
+            let pair = (values[i], values[j]);
+            if pair != cmb.next().unwrap() {
+                return false;
+            }
+        }
+    }
+
+    cmb.next() == None
+}
+
 }

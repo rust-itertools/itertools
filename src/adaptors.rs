@@ -852,9 +852,13 @@ impl<I> Iterator for Combinations<I> where I: Iterator + Clone, I::Item: Clone{
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let (lo, hi) = self.iter.size_hint();
-        let (lo, hi) = size_hint::mul((lo, hi), (lo - 1, hi.map(|hi|hi - 1)));
+        let sh = self.iter.size_hint();
+        let (lo, hi) = size_hint::mul(sh, size_hint::sub_scalar(sh, 1));
+        let mut extra = (0, Some(0));
+        if self.val.is_some() {
+            extra = self.next_iter.size_hint();
+        }
         // won't truncate because x * (x - 1) is guarenteed to be even
-        (lo / 2, hi.map(|hi| hi / 2))
+        size_hint::add((lo / 2, hi.map(|hi| hi / 2)), extra)
     }
 }
