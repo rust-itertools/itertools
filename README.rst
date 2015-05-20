@@ -20,6 +20,10 @@ __ http://bluss.github.io/rust-itertools/
 Recent Changes
 --------------
 
+- 0.3.10
+
+  - Bugfix .combinations() size_hint.
+
 - 0.3.8
 
   - Added source RepeatCall
