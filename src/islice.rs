@@ -7,7 +7,6 @@ use super::misc::GenericRange;
 /// **Note:** slicing an iterator is not constant time, and much less efficient than
 /// slicing for example a vector.
 ///
-/// ## Example
 /// ```
 /// use std::iter::repeat;
 /// use itertools::Itertools;

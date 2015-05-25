@@ -6,8 +6,6 @@
 ///
 /// Iterator element type is the return type of the closure.
 ///
-/// ## Example
-///
 /// ```
 /// use itertools::RepeatCall;
 ///

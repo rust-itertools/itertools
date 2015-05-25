@@ -100,8 +100,6 @@ pub type MergeAscend<I, J> where I: Iterator = Merge<I, J, fn(&I::Item, &I::Item
 /// Iterator element type is like **(A, B, ..., E)** if formed
 /// from iterators **(I, J, ..., M)** with element types **I::Item = A**, **J::Item = B**, etc.
 ///
-/// ## Example
-///
 /// ```
 /// #[macro_use]
 /// extern crate itertools;
@@ -140,8 +138,6 @@ macro_rules! iproduct {
 /// Iterator element type is like `(A, B, ..., E)` if formed
 /// from iterators `(I, J, ..., M)` implementing `I: Iterator<A>`,
 /// `J: Iterator<B>`, ..., `M: Iterator<E>`
-///
-/// ## Example
 ///
 /// ```
 /// #[macro_use]
@@ -194,8 +190,6 @@ macro_rules! izip {
 ///
 /// Iterator element type is the type of `<expression>`
 ///
-/// ## Example
-///
 /// ```ignore
 /// let mut squares = icompr!(x * x, x, 1..100);
 /// ```
@@ -230,8 +224,6 @@ pub trait Itertools : Iterator {
     ///
     /// This iterator is *fused*.
     ///
-    /// ## Example
-    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -251,8 +243,6 @@ pub trait Itertools : Iterator {
     /// Iterator element type is **Self::Item**.
     ///
     /// This iterator is *fused*.
-    ///
-    /// ## Example
     ///
     /// ```
     /// use itertools::Itertools;
@@ -274,8 +264,6 @@ pub trait Itertools : Iterator {
     /// When both iterators return **None**, all further invocations of *.next()* 
     /// will return **None**.
     ///
-    /// # Example
-    ///
     /// ```rust
     /// use itertools::EitherOrBoth::{Both, Right};
     /// use itertools::Itertools;
@@ -296,8 +284,6 @@ pub trait Itertools : Iterator {
     /// and may pick off as many elements as it likes, to produce the next iterator element.
     ///
     /// Iterator element type is **B**.
-    ///
-    /// ## Example
     ///
     /// ```
     /// use itertools::Itertools;
@@ -328,8 +314,6 @@ pub trait Itertools : Iterator {
     ///
     /// Iterator element type is **(K, Vec\<Self::Item\>)**
     ///
-    /// ## Example
-    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -354,7 +338,6 @@ pub trait Itertools : Iterator {
     ///
     /// Iterator element type is **Self::Item**.
     ///
-    /// ## Example
     /// ```
     /// use itertools::Itertools;
     /// let xs = vec![0, 1, 2, 3];
@@ -382,7 +365,6 @@ pub trait Itertools : Iterator {
     ///
     /// Iterator element type is **Self::Item**.
     ///
-    /// ## Example
     /// ```
     /// use std::iter::repeat;
     /// use itertools::Itertools;
@@ -407,8 +389,6 @@ pub trait Itertools : Iterator {
     /// (If it is not obvious: this has a performance penalty.)
     ///
     /// Iterator element type is **Self::Item**.
-    ///
-    /// ## Example
     ///
     /// ```
     /// use itertools::Itertools;
@@ -442,7 +422,6 @@ pub trait Itertools : Iterator {
     ///
     /// **Panics** if the step is 0.
     ///
-    /// ## Example
     /// ```
     /// use itertools::Itertools;
     ///
@@ -460,7 +439,6 @@ pub trait Itertools : Iterator {
     ///
     /// Iterator element type is **Self::Item**.
     ///
-    /// ## Example
     /// ```
     /// use itertools::Itertools;
     ///
@@ -487,7 +465,6 @@ pub trait Itertools : Iterator {
     ///
     /// Iterator element type is **Self::Item**.
     ///
-    /// ## Example
     /// ```
     /// use itertools::Itertools;
     ///
@@ -549,8 +526,6 @@ pub trait Itertools : Iterator {
     ///
     /// After a call to *.next()* the peeking cursor is reset.
     ///
-    /// ## Example
-    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -580,8 +555,6 @@ pub trait Itertools : Iterator {
     ///
     /// This iterator is *fused*.
     ///
-    /// ## Example
-    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -609,8 +582,6 @@ pub trait Itertools : Iterator {
     ///
     /// This iterator is *fused*.
     ///
-    /// ## Example
-    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -634,8 +605,6 @@ pub trait Itertools : Iterator {
     ///
     /// Only implemented for iterators with slice or string slice elements.
     /// Only slices that are contiguous together can be joined.
-    ///
-    /// ## Example
     ///
     /// ```
     /// use itertools::Itertools;
@@ -662,8 +631,6 @@ pub trait Itertools : Iterator {
     ///
     /// It uses the **Clone** trait to restore the original iterator so that the last
     /// and rejected element is still available when **TakeWhileRef** is done.
-    ///
-    /// ## Example
     ///
     /// ```
     /// use itertools::Itertools;
@@ -705,8 +672,6 @@ pub trait Itertools : Iterator {
     ///
     /// Iterator element type is **B**.
     ///
-    /// ## Example
-    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -738,8 +703,6 @@ pub trait Itertools : Iterator {
     ///
     /// The iterator is not advanced past the first element found.
     ///
-    /// ## Example
-    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -763,8 +726,6 @@ pub trait Itertools : Iterator {
     /// Consume the first **n** elements of the iterator eagerly.
     ///
     /// Return actual number of elements consumed, until done or reaching the end.
-    ///
-    /// ## Example
     ///
     /// ```
     /// use itertools::Itertools;
@@ -793,8 +754,6 @@ pub trait Itertools : Iterator {
     /// It works similarly to **.skip(n)** except it is eager and
     /// preserves the iterator type.
     ///
-    /// ## Example
-    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -817,8 +776,6 @@ pub trait Itertools : Iterator {
     /// Note: This method is eager, dropping the back elements immediately and
     /// preserves the iterator type.
     ///
-    /// ## Example
-    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -836,8 +793,6 @@ pub trait Itertools : Iterator {
     /// Run the closure **f** eagerly on each element of the iterator.
     ///
     /// Consumes the iterator until its end.
-    ///
-    /// ## Example
     ///
     /// ```
     /// use std::sync::mpsc::channel;
@@ -874,7 +829,6 @@ pub trait Itertools : Iterator {
     ///
     /// Return the number of elements written.
     ///
-    /// ## Example
     /// ```
     /// use itertools::Itertools;
     ///
@@ -901,8 +855,6 @@ pub trait Itertools : Iterator {
     /// Combine all iterator elements into one String, seperated by **sep**.
     ///
     /// Use the **Display** implementation of each element.
-    ///
-    /// ## Example
     ///
     /// ```
     /// use itertools::Itertools;
@@ -953,8 +905,6 @@ pub trait Itertools : Iterator {
     /// With a **start** value of 0 and an addition as folding function,
     /// this effetively results in *((0 + 1) + 2) + 3*
     ///
-    /// ## Example
-    ///
     /// ```
     /// use std::ops::Add;
     /// use itertools::Itertools;
@@ -992,8 +942,6 @@ pub trait Itertools : Iterator {
     /// empty, return **None**. With just one element, return it.
     /// Otherwise elements are accumulated in sequence using the closure **f**.
     ///
-    /// ## Example
-    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -1017,8 +965,6 @@ pub trait Itertools : Iterator {
     /// Tell if the iterator is empty or not according to its size hint.
     /// Return **None** if the size hint does not tell, or return a **Some**
     /// value with the emptiness if it's possible to tell.
-    ///
-    /// ## Example
     ///
     /// ```
     /// use itertools::Itertools;
@@ -1051,8 +997,6 @@ impl<T: ?Sized> Itertools for T where T: Iterator { }
 /// (elements pairwise equal and sequences of the same length),
 /// **false** otherwise.
 ///
-/// ## Example
-///
 /// ```
 /// assert!(itertools::equal(vec![1, 2, 3], 1..4));
 /// assert!(!itertools::equal(&[0, 0], &[0, 0, 0]));
@@ -1079,8 +1023,6 @@ pub fn equal<I, J>(a: I, b: J) -> bool where
 /// The order within the partitions is arbitrary.
 ///
 /// Return the index of the split point.
-///
-/// ## Example
 ///
 /// ```
 /// use itertools::partition;

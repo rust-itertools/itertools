@@ -43,8 +43,6 @@ pub fn sub_scalar(sh: SizeHint, x: usize) -> SizeHint
 
 /// Multiply **x** correctly with a **SizeHint**.
 ///
-/// # Examples
-///
 /// ```
 /// use std::usize;
 /// use itertools::size_hint;
@@ -68,8 +66,6 @@ pub fn mul_scalar(sh: SizeHint, x: usize) -> SizeHint
 }
 
 /// Multiply **SizeHint** correctly
-///
-/// # Examples
 ///
 /// ```
 /// use std::usize;

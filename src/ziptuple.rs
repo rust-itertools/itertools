@@ -11,8 +11,6 @@ use super::size_hint;
 /// The iterator element type is a tuple like like **(A, B, ..., E)** where **A** to **E** are the
 /// element types of the subiterator.
 ///
-/// ## Example
-///
 /// ```
 /// use itertools::Zip;
 ///

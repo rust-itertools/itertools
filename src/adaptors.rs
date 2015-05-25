@@ -198,8 +198,6 @@ impl<I: Iterator> PutBackN<I>
     /// Puts x in front of the iterator.
     /// The values are yielded in order.
     ///
-    /// ## Example
-    ///
     /// ```rust
     /// use itertools::PutBackN;
     ///

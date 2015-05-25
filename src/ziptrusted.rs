@@ -44,8 +44,6 @@ unsafe impl<I> TrustedIterator for iter::Take<I> where
 /// Iterator element type is like **(A, B, ..., E)** where **A** to **E** are the respective
 /// subiterator types.
 ///
-/// ## Example
-///
 /// ```
 /// use itertools::ZipTrusted;
 ///

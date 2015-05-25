@@ -89,8 +89,6 @@ macro_rules! stride_impl {
             ///
             /// If `step` is negative, start from the back.
             ///
-            /// ## Example
-            ///
             /// ```
             /// use itertools::Stride;
             ///
