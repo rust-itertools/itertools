@@ -1,0 +1,3 @@
+
+.docblock pre.rust { background: #eeeeff; }
+pre.trait, pre.fn, pre.struct, pre.enum, pre.typedef { background: #fcfefc; }
