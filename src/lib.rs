@@ -51,6 +51,7 @@ pub use adaptors::{
     TakeWhileRef,
     Coalesce,
     CoalesceFn,
+    Subdivide,
     Combinations,
 };
 #[cfg(feature = "unstable")]
@@ -625,6 +626,33 @@ pub trait Itertools : Iterator {
         Self::Item: misc::MendSlice
     {
         Coalesce::new(self, misc::MendSlice::mend)
+    }
+
+    /// Return an iterator adaptor that uses the passed-in closure to
+    /// optionally split iterator elements.
+    ///
+    /// The closure is passed each iterator element and may return either
+    /// `Ok((a, b))` where `a` is the current elmement to produce and `b` will
+    /// be passed as the next element, or `Err(c)` where `c` is the current
+    /// element for that was not split.
+    ///
+    /// Iterator element type is **B**, which may be distinct from **Self::Item**.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// itertools::assert_equal(Some("a rust dust").into_iter().subdivide(|s|
+    ///     match s.find(' ') {
+    ///         Some(ix) => Ok((&s[..ix], &s[ix + 1..])),
+    ///         _ => Err(s),
+    ///     }),
+    ///     vec!["a", "rust", "dust"]);
+    /// ```
+    fn subdivide<F, B>(self, f: F) -> Subdivide<Self, F> where
+        Self: Sized,
+        F: FnMut(Self::Item) -> Result<(B, Self::Item), B>
+    {
+        Subdivide::new(self, f)
     }
 
     /// Return an iterator adaptor that borrows from a **Clone**-able iterator
