@@ -14,7 +14,7 @@
 //! [**PutBack**](./struct.PutBack.html), [**Zip**](./struct.Zip.html),
 //! [**Stride**](./struct.Stride.html), [**StrideMut**](./struct.StrideMut.html).
 //!
-//! To use the macros in this crate, use the `#[macro_use]` attribute:
+//! To enable the macros in this crate, use the `#[macro_use]` attribute:
 //!
 //! ```ignore
 //! #[macro_use]
