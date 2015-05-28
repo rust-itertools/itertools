@@ -2,7 +2,6 @@
 
 extern crate itertools;
 
-use std::fmt::Debug;
 #[cfg(feature = "unstable")]
 use std::iter::RandomAccessIterator;
 use itertools::Itertools;
@@ -18,7 +17,7 @@ fn zip_longest_fused()
 
     let unfused = a.iter().batching(|mut it| *it.next().unwrap())
         .zip_longest(b.iter().cloned());
-    assert_iters_equal(unfused,
+    itertools::assert_equal(unfused,
                        vec![Both(1, 1), Right(2), Right(3)]);
 }
 
@@ -82,21 +81,6 @@ fn test_random_access_zip_longest() {
     check_randacc_iter(xs.iter().zip_longest(ys.iter()), std::cmp::max(xs.len(), ys.len()));
 }
 
-fn assert_iters_equal<
-    A: PartialEq + Debug,
-    I: IntoIterator<Item=A>,
-    J: IntoIterator<Item=A>>(it: I, jt: J)
-{
-    let mut it = it.into_iter();
-    let mut jt = jt.into_iter();
-    loop {
-        let elti = it.next();
-        let eltj = jt.next();
-        assert_eq!(elti, eltj);
-        if elti.is_none() { break; }
-    }
-}
-
 #[cfg(feature = "unstable")]
 #[test]
 fn ziptrusted_1() {
@@ -110,11 +94,11 @@ fn ziptrusted_1() {
 
     let it = ZipTrusted::new((xs.iter(), ys.iter()));
     assert_eq!(it.size_hint(), (6, Some(6)));
-    assert_iters_equal(it, xs.iter().zip(ys.iter()));
+    itertools::assert_equal(it, xs.iter().zip(ys.iter()));
 
     let it = ZipTrusted::new((xs.iter(), ys.iter(), zs.iter()));
     assert_eq!(it.size_hint(), (6, Some(6)));
-    assert_iters_equal(it, xs.iter()
+    itertools::assert_equal(it, xs.iter()
                              .zip(ys.iter())
                              .zip(zs.iter())
                              .map(|((a, b), c)| (a, b, c)));

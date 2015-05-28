@@ -35,6 +35,7 @@
 use std::iter::{self, IntoIterator};
 use std::fmt::Write;
 use std::cmp::Ordering;
+use std::fmt;
 
 pub use adaptors::{
     Interleave,
@@ -228,7 +229,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// let it = (0..3).interleave(vec![7, 8]);
-    /// assert!(itertools::equal(it, vec![0, 7, 1, 8, 2]));
+    /// itertools::assert_equal(it, vec![0, 7, 1, 8, 2]);
     /// ```
     fn interleave<J>(self, other: J) -> Interleave<Self, J::IntoIter> where
         J: IntoIterator<Item=Self::Item>,
@@ -247,7 +248,7 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// assert!(itertools::equal((0..3).intersperse(8), vec![0, 8, 1, 8, 2]));
+    /// itertools::assert_equal((0..3).intersperse(8), vec![0, 8, 1, 8, 2]);
     /// ```
     fn intersperse(self, element: Self::Item) -> Intersperse<Self> where
         Self: Sized,
@@ -268,7 +269,7 @@ pub trait Itertools : Iterator {
     /// use itertools::EitherOrBoth::{Both, Right};
     /// use itertools::Itertools;
     /// let it = (0..1).zip_longest(1..3);
-    /// assert!(itertools::equal(it, vec![Both(0, 1), Right(2)]));
+    /// itertools::assert_equal(it, vec![Both(0, 1), Right(2)]);
     /// ```
     ///
     /// Iterator element type is **EitherOrBoth\<Self::Item, J::Item\>**.
@@ -299,7 +300,7 @@ pub trait Itertools : Iterator {
     ///            }
     ///        });
     ///
-    /// assert!(itertools::equal(pit, vec![(0, 1), (2, 3)]));
+    /// itertools::assert_equal(pit, vec![(0, 1), (2, 3)]);
     /// ```
     ///
     fn batching<B, F>(self, f: F) -> Batching<Self, F> where
@@ -426,7 +427,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// let it = (0..8).step(3);
-    /// assert!(itertools::equal(it, vec![0, 3, 6]));
+    /// itertools::assert_equal(it, vec![0, 3, 6]);
     /// ```
     fn step(self, n: usize) -> Step<Self> where
         Self: Sized,
@@ -445,7 +446,7 @@ pub trait Itertools : Iterator {
     /// let a = (0..11).step(3);
     /// let b = (0..11).step(5);
     /// let it = a.merge(b);
-    /// assert!(itertools::equal(it, vec![0, 0, 3, 5, 6, 9, 10]));
+    /// itertools::assert_equal(it, vec![0, 0, 3, 5, 6, 9, 10]);
     /// ```
     fn merge<J>(self, other: J) -> MergeAscend<Self, J::IntoIter> where
         Self: Sized,
@@ -471,7 +472,7 @@ pub trait Itertools : Iterator {
     /// let a = (0..).zip("bc".chars());
     /// let b = (0..).zip("ad".chars());
     /// let it = a.merge_by(b, |x, y| x.1.cmp(&y.1));
-    /// assert!(itertools::equal(it, vec![(0, 'a'), (0, 'b'), (1, 'c'), (1, 'd')]));
+    /// itertools::assert_equal(it, vec![(0, 'a'), (0, 'b'), (1, 'c'), (1, 'd')]);
     /// ```
 
     fn merge_by<J, F>(self, other: J, cmp: F) -> Merge<Self, J::IntoIter, F> where
@@ -491,7 +492,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// let it = (0..2).cartesian_product("αβ".chars());
-    /// assert!(itertools::equal(it, vec![(0, 'α'), (0, 'β'), (1, 'α'), (1, 'β')]));
+    /// itertools::assert_equal(it, vec![(0, 'α'), (0, 'β'), (1, 'α'), (1, 'β')]);
     /// ```
     fn cartesian_product<J>(self, other: J) -> Product<Self, J::IntoIter> where
         Self: Sized,
@@ -560,13 +561,13 @@ pub trait Itertools : Iterator {
     ///
     /// // sum same-sign runs together
     /// let data = vec![-1., -2., -3., 3., 1., 0., -1.];
-    /// assert!(itertools::equal(data.into_iter().coalesce(|x, y|
+    /// itertools::assert_equal(data.into_iter().coalesce(|x, y|
     ///         if (x >= 0.) == (y >= 0.) {
     ///             Ok(x + y)
     ///         } else {
     ///             Err((x, y))
     ///         }),
-    ///         vec![-6., 4., -1.]));
+    ///         vec![-6., 4., -1.]);
     /// ```
     fn coalesce<F>(self, f: F) -> Coalesce<Self, F> where
         Self: Sized,
@@ -586,8 +587,8 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// let data = vec![1., 1., 2., 3., 3., 2., 2.];
-    /// assert!(itertools::equal(data.into_iter().dedup(),
-    ///                          vec![1., 2., 3., 2.]));
+    /// itertools::assert_equal(data.into_iter().dedup(),
+    ///                         vec![1., 2., 3., 2.]);
     /// ```
     fn dedup(self) -> CoalesceFn<Self> where
         Self: Sized,
@@ -617,7 +618,7 @@ pub trait Itertools : Iterator {
     /// let words = char_slices.filter(|s| !s.chars().any(char::is_whitespace))
     ///                        .mend_slices();
     ///
-    /// assert!(itertools::equal(words, vec!["Warning:", "γ-radiation", "(ionizing)"]));
+    /// itertools::assert_equal(words, vec!["Warning:", "γ-radiation", "(ionizing)"]);
     /// ```
     fn mend_slices(self) -> CoalesceFn<Self> where
         Self: Sized,
@@ -659,7 +660,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// let it = (1..5).combinations();
-    /// assert!(itertools::equal(it, vec![(1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)]));
+    /// itertools::assert_equal(it, vec![(1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)]);
     /// ```
     fn combinations(self) -> Combinations<Self> where
         Self: Sized + Clone, Self::Item: Clone
@@ -680,8 +681,8 @@ pub trait Itertools : Iterator {
     /// let iter = data.iter().cloned().map_fn(Result::ok);
     /// let iter_copy = iter.clone();
     ///
-    /// assert!(itertools::equal(iter, vec![Some(1), Some(0), None]));
-    /// assert!(itertools::equal(iter_copy, vec![Some(1), Some(0), None]));
+    /// itertools::assert_equal(iter, vec![Some(1), Some(0), None]);
+    /// itertools::assert_equal(iter_copy, vec![Some(1), Some(0), None]);
     /// ```
     fn map_fn<B>(self, f: fn(Self::Item) -> B) -> MapFn<Self, B> where
         Self: Sized
@@ -732,7 +733,7 @@ pub trait Itertools : Iterator {
     ///
     /// let mut iter = "αβγ".chars();
     /// iter.dropn(2);
-    /// assert!(itertools::equal(iter, "γ".chars()));
+    /// itertools::assert_equal(iter, "γ".chars());
     ///
     /// assert_eq!((0..10).dropn(50), 10);
     /// ```
@@ -758,7 +759,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// let mut iter = "αβγ".chars().dropping(2);
-    /// assert!(itertools::equal(iter, "γ".chars()));
+    /// itertools::assert_equal(iter, "γ".chars());
     /// ```
     fn dropping(mut self, n: usize) -> Self where
         Self: Sized,
@@ -780,7 +781,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// let init = vec![0, 3, 6, 9].into_iter().dropping_back(1);
-    /// assert!(itertools::equal(init, vec![0, 3, 6]));
+    /// itertools::assert_equal(init, vec![0, 3, 6]);
     /// ```
     fn dropping_back(mut self, n: usize) -> Self where
         Self: Sized,
@@ -805,7 +806,7 @@ pub trait Itertools : Iterator {
     ///
     /// drop(tx);
     ///
-    /// assert!(itertools::equal(rx.iter(), vec![1, 3, 5, 7, 9]));
+    /// itertools::assert_equal(rx.iter(), vec![1, 3, 5, 7, 9]);
     /// ```
     fn foreach<F>(&mut self, mut f: F) where
         F: FnMut(Self::Item),
@@ -1013,6 +1014,36 @@ pub fn equal<I, J>(a: I, b: J) -> bool where
             (Some(ref x), Some(ref y)) if x == y => { }
             (None, None) => return true,
             _ => return false,
+        }
+    }
+}
+
+/// Assert that two iterators produce equal sequences, with the same
+/// semantics as *equal(a, b)*.
+///
+/// **Panics** on assertion failure with a message that shows the
+/// two iteration elements.
+///
+/// ```ignore
+/// assert_equal("exceed".split('c'), "excess".split('c'));
+/// // ^PANIC: panicked at 'Failed assertion Some("eed") == Some("ess") for iteration 1',
+/// ```
+pub fn assert_equal<I, J>(a: I, b: J)
+    where I: IntoIterator,
+          J: IntoIterator<Item=I::Item>,
+          I::Item: fmt::Debug + PartialEq,
+{
+    let mut ia = a.into_iter();
+    let mut ib = b.into_iter();
+    let mut i = 0;
+    loop {
+        match (ia.next(), ib.next()) {
+            (None, None) => return,
+            (a, b) => {
+                assert!(a == b, "Failed assertion {a:?} == {b:?} for iteration {i}",
+                        i=i, a=a, b=b);
+                i += 1;
+            }
         }
     }
 }

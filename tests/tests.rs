@@ -7,25 +7,9 @@
 #[macro_use]
 extern crate itertools as it;
 
-use std::fmt::Debug;
 use it::Itertools;
 use it::Interleave;
 use it::Zip;
-
-fn assert_iters_equal<A, I, J>(a: I, b: J) where
-    A: PartialEq + Debug,
-    I: IntoIterator<Item=A>,
-    J: IntoIterator<Item=A>,
-{
-    let mut it = a.into_iter();
-    let mut jt = b.into_iter();
-    loop {
-        let elti = it.next();
-        let eltj = jt.next();
-        assert_eq!(elti, eltj);
-        if elti.is_none() { break; }
-    }
-}
 
 #[test]
 fn product2() {
@@ -105,11 +89,11 @@ fn interleave() {
     let ys = [7u8, 9, 8, 10];
     let zs = [2u8, 77];
     let it = Interleave::new(xs.iter(), ys.iter());
-    assert_iters_equal(it, ys.iter());
+    it::assert_equal(it, ys.iter());
 
     let rs = [7u8, 2, 9, 77, 8, 10];
     let it = Interleave::new(ys.iter(), zs.iter());
-    assert_iters_equal(it, rs.iter());
+    it::assert_equal(it, rs.iter());
 }
 
 #[test]
@@ -187,10 +171,10 @@ fn linspace() {
 fn dedup() {
     let xs = [0, 1, 1, 1, 2, 1, 3, 3];
     let ys = [0, 1, 2, 1, 3];
-    assert_iters_equal(ys.iter(), xs.iter().dedup());
+    it::assert_equal(ys.iter(), xs.iter().dedup());
     let xs = [0, 0, 0, 0, 0];
     let ys = [0];
-    assert_iters_equal(ys.iter(), xs.iter().dedup());
+    it::assert_equal(ys.iter(), xs.iter().dedup());
 }
 
 #[test]
@@ -208,7 +192,7 @@ fn batching() {
                    }
                }
            });
-    assert_iters_equal(pit, ys.iter().cloned());
+    it::assert_equal(pit, ys.iter().cloned());
 }
 
 #[test]
@@ -218,7 +202,7 @@ fn group_by() {
                    (2, vec![2]), (1, vec![1]), (3, vec![3, 3])];
     
     let gb = xs.iter().cloned().group_by(|elt| *elt);
-    assert_iters_equal(gb, ans.into_iter());
+    it::assert_equal(gb, ans.into_iter());
 }
 
 #[test]
@@ -228,7 +212,7 @@ fn put_back() {
     pb.next();
     pb.put_back(1);
     pb.put_back(0);
-    assert_iters_equal(pb, xs.iter().cloned());
+    it::assert_equal(pb, xs.iter().cloned());
 }
 
 #[test]
@@ -239,7 +223,7 @@ fn put_back_n() {
     pb.next();
     pb.put_back(1);
     pb.put_back(0);
-    assert_iters_equal(pb, xs.iter().cloned());
+    it::assert_equal(pb, xs.iter().cloned());
 }
 
 #[test]
@@ -261,11 +245,11 @@ fn tee() {
     assert_eq!(t2.next(), None);
 
     let (t1, t2) = xs.iter().cloned().tee();
-    assert_iters_equal(t1, xs.iter().cloned());
-    assert_iters_equal(t2, xs.iter().cloned());
+    it::assert_equal(t1, xs.iter().cloned());
+    it::assert_equal(t2, xs.iter().cloned());
 
     let (t1, t2) = xs.iter().cloned().tee();
-    assert_iters_equal(t1.zip(t2), xs.iter().cloned().zip(xs.iter().cloned()));
+    it::assert_equal(t1.zip(t2), xs.iter().cloned().zip(xs.iter().cloned()));
 }
 
 
@@ -291,17 +275,17 @@ fn rciter() {
 
 #[test]
 fn slice() {
-    assert_iters_equal((0..10).slice(..3), 0..3);
-    assert_iters_equal((0..10).slice(3..7), 3..7);
-    assert_iters_equal((0..10).slice(3..27), 3..10);
-    assert_iters_equal((0..10).slice(44..), 0..0);
+    it::assert_equal((0..10).slice(..3), 0..3);
+    it::assert_equal((0..10).slice(3..7), 3..7);
+    it::assert_equal((0..10).slice(3..27), 3..10);
+    it::assert_equal((0..10).slice(44..), 0..0);
 }
 
 #[test]
 fn step() {
-    assert_iters_equal((0..10).step(1), (0..10));
-    assert_iters_equal((0..10).step(2), (0..10).filter(|x: &i32| *x % 2 == 0));
-    assert_iters_equal((0..10).step(10), 0..1);
+    it::assert_equal((0..10).step(1), (0..10));
+    it::assert_equal((0..10).step(2), (0..10).filter(|x: &i32| *x % 2 == 0));
+    it::assert_equal((0..10).step(10), 0..1);
 }
 
 #[test]
@@ -338,7 +322,7 @@ fn trait_pointers() {
 
 #[test]
 fn merge() {
-    assert_iters_equal((0..10).step(2).merge((1..10).step(2)), (0..10));
+    it::assert_equal((0..10).step(2).merge((1..10).step(2)), (0..10));
 }
 
 #[test]
@@ -347,7 +331,7 @@ fn merge_by() {
     let even = vec![(2, "foo"), (4, "bar"), (6, "baz")];
     let expected = vec![(1, "hello"), (2, "foo"), (3, "world"), (4, "bar"), (5, "!"), (6, "baz")];
     let results = odd.iter().merge_by(even.iter(), |a, b|{ a.0.cmp(&b.0)});
-    assert_iters_equal(results, expected.iter());
+    it::assert_equal(results, expected.iter());
 }
 
 #[test]
@@ -361,7 +345,7 @@ fn merge_by_btree() {
     bt2.insert("bar", 4);
     let results = bt1.into_iter().merge_by(bt2.into_iter(), |a, b|{a.0.cmp(&b.0)});
     let expected = vec![("bar", 4), ("foo", 2), ("hello", 1), ("world", 3)];
-    assert_iters_equal(results, expected.into_iter());
+    it::assert_equal(results, expected.into_iter());
 }
 
 #[test]
@@ -542,8 +526,8 @@ fn fn_map() {
     fn mapper<T: ToString>(x: T) -> String { x.to_string() }
     let it = (0..4).fn_map(mapper);
     let jt = it.clone();
-    assert_iters_equal((0..4).map(|x| x.to_string()), it);
-    assert_iters_equal((0..4).map(mapper), jt);
+    it::assert_equal((0..4).map(|x| x.to_string()), it);
+    it::assert_equal((0..4).map(mapper), jt);
 }
 
 #[test]
@@ -552,8 +536,8 @@ fn map_fn() {
     fn mapper<T: ToString>(x: T) -> String { x.to_string() }
     let it = (0..4).map_fn(mapper);
     let jt = it.clone();
-    assert_iters_equal((0..4).map(|x| x.to_string()), it);
-    assert_iters_equal((0..4).map(mapper), jt);
+    it::assert_equal((0..4).map(|x| x.to_string()), it);
+    it::assert_equal((0..4).map(mapper), jt);
 }
 
 #[test]
