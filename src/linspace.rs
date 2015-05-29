@@ -45,10 +45,10 @@ impl<F> ExactSizeIterator for Linspace<F> where
 /// Iterator element type is `F`.
 ///
 /// ```
-/// use itertools as it;
-/// let mut xs = it::linspace::<f32>(0., 1., 5);
-/// assert_eq!(xs.collect::<Vec<_>>(),
-///            vec![0., 0.25, 0.5, 0.75, 1.0]);
+/// use itertools::linspace;
+///
+/// itertools::assert_equal(linspace::<f32>(0., 1., 5),
+///                         vec![0., 0.25, 0.5, 0.75, 1.0]);
 /// ```
 #[inline]
 pub fn linspace<F>(a: F, b: F, n: usize) -> Linspace<F> where
