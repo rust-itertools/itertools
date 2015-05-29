@@ -16,9 +16,25 @@ __ http://bluss.github.io/rust-itertools/
 .. |crates| image:: http://meritbadge.herokuapp.com/itertools
 .. _crates: https://crates.io/crates/itertools
 
+How to use with cargo::
+
+    [dependencies]
+    itertools = "0.3"
+
+How to use in your crate::
+
+    #[macro_use]
+    extern crate itertools;
+
+    use itertools::Itertools;
+
 
 Recent Changes
 --------------
+
+- 0.3.11
+
+  - Added assert_equal function
 
 - 0.3.10
 
