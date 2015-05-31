@@ -1,3 +1,8 @@
 
 .docblock pre.rust { background: #eeeeff; }
 pre.trait, pre.fn, pre.struct, pre.enum, pre.typedef { background: #fcfefc; }
+
+/* Shift "where ..." part of FUNCTION definition down a line */
+.content .fn .where { display: block; }
+/* Bit of whitespace to indent it */
+.content .fn .where::before { content: '  '; }
