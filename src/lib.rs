@@ -68,6 +68,7 @@ pub use linspace::{linspace, Linspace};
 pub use sources::{
     RepeatCall,
 };
+pub use unique::{Unique};
 pub use zip_longest::{ZipLongest, EitherOrBoth};
 pub use ziptuple::{Zip};
 #[cfg(feature = "unstable")]
@@ -84,6 +85,7 @@ pub mod size_hint;
 mod stride;
 mod tee;
 mod times;
+pub mod unique;
 mod zip_longest;
 mod ziptuple;
 #[cfg(feature = "unstable")]
