@@ -690,14 +690,6 @@ pub trait Itertools : Iterator {
         self.map(f)
     }
 
-    /// **Deprecated:** Use *.map_fn()* instead.
-    fn fn_map<B>(self, map: fn(Self::Item) -> B) -> FnMap<B, Self> where
-        Self: Sized
-    {
-        FnMap::new(self, map)
-    }
-
-
     // non-adaptor methods
 
     /// Find the position and value of the first element satisfying a predicate.
