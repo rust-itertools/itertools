@@ -1,3 +1,4 @@
+//#![trace_macros]
 #![warn(missing_docs)]
 #![cfg_attr(feature = "unstable", feature(core, zero_one))]
 #![crate_name="itertools"]
@@ -53,6 +54,7 @@ pub use adaptors::{
     CoalesceFn,
     Combinations,
 };
+
 #[cfg(feature = "unstable")]
 pub use adaptors::EnumerateFrom;
 pub use intersperse::Intersperse;
@@ -76,6 +78,8 @@ mod adaptors;
 mod intersperse;
 mod islice;
 mod linspace;
+#[cfg(feature = "unstable")]
+mod macros;
 pub mod misc;
 mod rciter;
 mod repeatn;
@@ -167,42 +171,6 @@ macro_rules! izip {
     );
 }
 
-/// **Deprecated:** Will hopefully be replaced by a dedicated
-/// syntax extension that can offer real convenient python-like syntax.
-///
-/// **Note:** A Python like syntax of `<expression> for <pattern> in <iterator>` is
-/// **not possible** with the stable macro rules since Rust 1.0.0-alpha.
-///
-/// `icompr` as in “iterator comprehension” allows creating a
-/// mapped iterator with simple syntax, similar to set builder notation,
-/// and directly inspired by Python. Supports an optional filter clause.
-///
-/// Syntax:
-///
-///  `icompr!(<expression>, <pattern>, <iterator>)`
-///
-/// or
-///
-///  `icompr!(<expression>, <pattern>, <iterator>, <expression>)`
-///
-/// Each element from the `<iterator>` expression is pattern matched
-/// with the `<pattern>`, and the bound names are used to express the
-/// mapped-to value.
-///
-/// Iterator element type is the type of `<expression>`
-///
-/// ```ignore
-/// let mut squares = icompr!(x * x, x, 1..100);
-/// ```
-#[macro_export]
-macro_rules! icompr {
-    ($r:expr, $x:pat, $J:expr, $pred:expr) => (
-        ($J).filter_map(|$x| if $pred { Some($r) } else { None })
-    );
-    ($r:expr, $x:pat, $J:expr) => (
-        ($J).filter_map(|$x| Some($r))
-    );
-}
 
 /// The trait **Itertools**: extra iterator adaptors and methods for iterators.
 ///
