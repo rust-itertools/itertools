@@ -2,17 +2,24 @@
 /// mapped iterator with simple syntax, similar to set builder notation,
 /// and directly inspired by Python. Supports an optional filter clause.
 ///
-/// Syntax:
+/// Syntax in form (1):
 ///
 ///  `icompr!(<expression> for <pattern> in <iterator>)`
 ///
-/// or
+/// or (2):
 ///
 ///  `icompr!(<expression> for <pattern> in <iterator> if <expression>)`
+///
+/// or (3):
+///
+///  `icompr!(<expression> for let <pattern> in <iterator> [ if <expression> ])`
 ///
 /// Each element from the `<iterator>` expression is pattern matched
 /// with the `<pattern>`, and the bound names are used to express the
 /// mapped-to value.
+///
+/// Form (3) is a `for let` loop, which skips elements that don't match
+/// a *refutable* pattern.
 ///
 /// Iterator element type is the type of `<expression>`
 ///
@@ -26,6 +33,9 @@
 ///
 /// let odds = icompr!(y for y in 0..6 if y % 2 == 1);
 /// itertools::assert_equal(odds, vec![1, 3, 5]);
+///
+/// let numbers = icompr!(x for let Some(x) in vec![Some(1), None]);
+/// itertools::assert_equal(numbers, vec![1]);
 /// # }
 /// ```
 ///
@@ -64,21 +74,52 @@ macro_rules! itertools_split_if {
     };
 }
 
+// Remove optional `let`
+#[doc(hidden)]
+#[macro_export]
+macro_rules! itertools_strip_let {
+    (($m: ident $($args:tt)*) let $($rest:tt)+) => {
+        $m ! ($($args)* yes $($rest)+)
+    };
+    (($m: ident $($args:tt)*) $($rest:tt)+) => {
+        $m ! ($($args)* no $($rest)+)
+    };
+}
+
 #[doc(hidden)]
 #[macro_export]
 macro_rules! itertools_icompr_internal {
     (start $($t:tt)+) => {
-        itertools_split_for!(=> (itertools_icompr_internal part1) [] $($t)+);
+        itertools_split_for!(=> (itertools_icompr_internal match_let) [] $($t)+);
     };
-    (part1 $e:expr => $p:pat in $($iter:tt)+) => {
-        itertools_split_if!(=> (itertools_icompr_internal part2 $e => $p =>) [] $($iter)+);
+    (match_let $e:expr => $($rest:tt)+) => {
+        itertools_strip_let!((itertools_icompr_internal match_if $e =>) $($rest)+);
     };
-    (part2 $e:expr => $p:pat => $iter:expr =>) => {
+    (match_if $e:expr => $yesno:ident $p:pat in $($iter:tt)+) => {
+        itertools_split_if!(=> (itertools_icompr_internal build $yesno $e => $p =>) [] $($iter)+);
+    };
+    (build no $e:expr => $p:pat => $iter:expr =>) => {
         ::std::iter::IntoIterator::into_iter($iter).map(|$p| $e)
     };
-    (part2 $e:expr => $p:pat => $iter:expr => $pred:expr) => {
+    (build no $e:expr => $p:pat => $iter:expr => $pred:expr) => {
         ::std::iter::IntoIterator::into_iter($iter)
             .filter_map(|$p| if $pred { Some($e) } else { None })
+    };
+    (build yes $e:expr => $p:pat => $iter:expr =>) => {
+        ::std::iter::IntoIterator::into_iter($iter).filter_map(|elt|
+            match elt {
+                $p => Some($e),
+                _ => None,
+            }
+        )
+    };
+    (build yes $e:expr => $p:pat => $iter:expr => $pred:expr) => {
+        ::std::iter::IntoIterator::into_iter($iter).filter_map(|elt|
+            match elt {
+                $p => if $pred { Some($e) } else { None },
+                _ => None,
+            }
+        )
     };
 }
 
