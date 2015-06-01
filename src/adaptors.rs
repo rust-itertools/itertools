@@ -749,6 +749,55 @@ impl<I, F> Iterator for Coalesce<I, F> where
     }
 }
 
+/// An iterator adaptor that may split elements.
+///
+/// See [*.subdivide()*](trait.Itertools.html#method.subdivide) for more information.
+#[derive(Clone)]
+pub struct Subdivide<I, F> where
+    I: Iterator,
+{
+    iter: I,
+    last: Option<I::Item>,
+    f: F,
+}
+
+impl<I, F> Subdivide<I, F> where
+    I: Iterator,
+{
+    /// Create a new **Subdivide**.
+    pub fn new(iter: I, f: F) -> Self
+    {
+        Subdivide {
+            last: None,
+            iter: iter,
+            f: f,
+        }
+    }
+}
+
+
+impl<I, F, B> Iterator for Subdivide<I, F> where
+    I: Iterator,
+    F: FnMut(I::Item) -> Result<(B, I::Item), B>
+{
+    type Item = B;
+
+    fn next(&mut self) -> Option<Self::Item>
+    {
+        match self.last.take().or_else(|| self.iter.next()) {
+            None => return None,
+            Some(next) => {
+                match (self.f)(next) {
+                    Err(next) => Some(next),
+                    Ok((split_, next_)) => {
+                        self.last = Some(next_);
+                        Some(split_)
+                    }
+                }
+            }
+        }
+    }
+}
 
 
 /// An iterator adaptor that borrows from a **Clone**-able iterator
