@@ -1030,8 +1030,9 @@ pub fn equal<I, J>(a: I, b: J) -> bool where
 /// ```
 pub fn assert_equal<I, J>(a: I, b: J)
     where I: IntoIterator,
-          J: IntoIterator<Item=I::Item>,
-          I::Item: fmt::Debug + PartialEq,
+          J: IntoIterator,
+          I::Item: fmt::Debug + PartialEq<J::Item>,
+          J::Item: fmt::Debug,
 {
     let mut ia = a.into_iter();
     let mut ib = b.into_iter();
@@ -1040,7 +1041,11 @@ pub fn assert_equal<I, J>(a: I, b: J)
         match (ia.next(), ib.next()) {
             (None, None) => return,
             (a, b) => {
-                assert!(a == b, "Failed assertion {a:?} == {b:?} for iteration {i}",
+                let equal = match (&a, &b) {
+                    (&Some(ref a), &Some(ref b)) => a == b,
+                    _ => false,
+                };
+                assert!(equal, "Failed assertion {a:?} == {b:?} for iteration {i}",
                         i=i, a=a, b=b);
                 i += 1;
             }
