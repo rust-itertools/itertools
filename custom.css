@@ -6,3 +6,13 @@ pre.trait, pre.fn, pre.struct, pre.enum, pre.typedef { background: #fcfefc; }
 .content .fn .where { display: block; }
 /* Bit of whitespace to indent it */
 .content .fn .where::before { content: '  '; }
+
+/* Small “example” label for doc examples */
+.docblock pre.rust::before {
+    content: "example";
+    float: right;
+    font-style: italic;
+    font-size: 0.8em;
+    margin-top: -10px;
+    margin-right: -5px;
+}
