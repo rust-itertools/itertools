@@ -556,3 +556,14 @@ fn part() {
     assert_eq!(i, 3);
     assert_eq!(data, [9, 6, 3, 4, 5, 2, 7, 8, 1]);
 }
+
+#[test]
+fn pad_tail_using() {
+    let v: Vec<usize> = vec![0, 1, 2];
+    let r: Vec<_> = v.into_iter().pad_tail_using(5, |n| n).collect();
+    assert_eq!(r, vec![0, 1, 2, 3, 4]);
+
+    let v: Vec<usize> = vec![0, 1, 2];
+    let r: Vec<_> = v.into_iter().pad_tail_using(1, |_| panic!()).collect();
+    assert_eq!(r, vec![0, 1, 2]);
+}

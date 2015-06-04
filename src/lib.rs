@@ -57,6 +57,7 @@ pub use adaptors::{
 pub use adaptors::EnumerateFrom;
 pub use intersperse::Intersperse;
 pub use islice::{ISlice};
+pub use pad_tail::PadTailUsing;
 pub use repeatn::RepeatN;
 pub use rciter::RcIter;
 pub use stride::Stride;
@@ -77,6 +78,7 @@ mod intersperse;
 mod islice;
 mod linspace;
 pub mod misc;
+mod pad_tail;
 mod rciter;
 mod repeatn;
 mod sources;
@@ -666,6 +668,32 @@ pub trait Itertools : Iterator {
         Self: Sized + Clone, Self::Item: Clone
     {
         Combinations::new(self)
+    }
+
+    /**
+        Return an iterator adaptor that pads the sequence to a minimum length of
+        **min** by filling missing elements using a closure **f**.
+
+        Iterator element type is **Self::Item**.
+
+        ```
+        use itertools::Itertools;
+
+        let it = (0..5).pad_tail_using(10, |i| 2*i);
+        itertools::assert_equal(it, vec![0, 1, 2, 3, 4, 10, 12, 14, 16, 18]);
+
+        let it = (0..10).pad_tail_using(5, |i| 2*i);
+        itertools::assert_equal(it, vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+        let it = (0..5).pad_tail_using(10, |i| 2*i).rev();
+        itertools::assert_equal(it, vec![18, 16, 14, 12, 10, 4, 3, 2, 1, 0]);
+        ```
+    */
+    fn pad_tail_using<F>(self, min: usize, f: F) -> PadTailUsing<Self, F> where
+        Self: Sized,
+        F: FnMut(usize) -> Self::Item,
+    {
+        PadTailUsing::new(self, min, f)
     }
 
     /// Like regular *.map()*, specialized to using a simple function pointer instead,
