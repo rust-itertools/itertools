@@ -97,6 +97,31 @@ fn interleave() {
 }
 
 #[test]
+fn interleave_shortest() {
+    let v0: Vec<i32> = vec![0, 2, 4];
+    let v1: Vec<i32> = vec![1, 3, 5, 7];
+    let it = v0.into_iter().interleave_shortest(v1.into_iter());
+    assert_eq!(it.size_hint(), (6, Some(6)));
+    assert_eq!(it.collect_vec(), vec![0, 1, 2, 3, 4, 5]);
+
+    let v0: Vec<i32> = vec![0, 2, 4, 6, 8];
+    let v1: Vec<i32> = vec![1, 3, 5];
+    let it = v0.into_iter().interleave_shortest(v1.into_iter());
+    assert_eq!(it.size_hint(), (7, Some(7)));
+    assert_eq!(it.collect_vec(), vec![0, 1, 2, 3, 4, 5, 6]);
+
+    let i0 = ::std::iter::repeat(0);
+    let v1: Vec<_> = vec![1, 3, 5];
+    let it = i0.interleave_shortest(v1.into_iter());
+    assert_eq!(it.size_hint(), (7, Some(7)));
+
+    let v0: Vec<_> = vec![0, 2, 4];
+    let i1 = ::std::iter::repeat(1);
+    let it = v0.into_iter().interleave_shortest(i1);
+    assert_eq!(it.size_hint(), (6, Some(6)));
+}
+
+#[test]
 fn times() {
     assert!(it::times(0).count() == 0);
     assert!(it::times(5).count() == 5);

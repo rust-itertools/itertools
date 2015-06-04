@@ -39,6 +39,7 @@ use std::fmt;
 
 pub use adaptors::{
     Interleave,
+    InterleaveShortest,
     Product,
     PutBack,
     PutBackN,
@@ -238,6 +239,25 @@ pub trait Itertools : Iterator {
         Self: Sized
     {
         Interleave::new(self, other.into_iter())
+    }
+
+    /// Alternate elements from two iterators until one of them runs out.
+    ///
+    /// Iterator element type is **Self::Item**.
+    ///
+    /// This iterator is *fused*.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let it = (0..5).interleave_shortest(vec![7, 8]);
+    /// itertools::assert_equal(it, vec![0, 7, 1, 8, 2]);
+    /// ```
+    fn interleave_shortest<J>(self, other: J) -> InterleaveShortest<Self, J::IntoIter> where
+        J: IntoIterator<Item=Self::Item>,
+        Self: Sized
+    {
+        InterleaveShortest::new(self, other.into_iter())
     }
 
     /// An iterator adaptor to insert a particular value
