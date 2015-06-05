@@ -70,6 +70,84 @@ impl<I, J> Iterator for Interleave<I, J> where
     }
 }
 
+/// An iterator adaptor that alternates elements from the two iterators until
+/// one of them runs out.
+///
+/// This iterator is *fused*.
+///
+/// See [*.interleave_shortest()*](trait.Itertools.html#method.interleave_shortest)
+/// for more information.
+#[derive(Clone)]
+pub struct InterleaveShortest<I, J> where
+    I: Iterator,
+    J: Iterator<Item=I::Item>,
+{
+    it0: Fuse<I>,
+    it1: Fuse<J>,
+    phase: bool, // false ==> it0, true ==> it1
+}
+
+impl<I, J> InterleaveShortest<I, J> where
+    I: Iterator,
+    J: Iterator<Item=I::Item>,
+{
+    /// Create a new **InterleaveShortest** iterator.
+    pub fn new(a: I, b: J) -> InterleaveShortest<I, J> {
+        InterleaveShortest {
+            it0: a.fuse(),
+            it1: b.fuse(),
+            phase: false,
+        }
+    }
+}
+
+impl<I, J> Iterator for InterleaveShortest<I, J> where
+    I: Iterator,
+    J: Iterator<Item=I::Item>,
+{
+    type Item = I::Item;
+
+    #[inline]
+    fn next(&mut self) -> Option<I::Item> {
+        match self.phase {
+            false => match self.it0.next() {
+                None => None,
+                e => {
+                    self.phase = true;
+                    e
+                }
+            },
+            true => match self.it1.next() {
+                None => None,
+                e => {
+                    self.phase = false;
+                    e
+                }
+            },
+        }
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        fn bound(a: usize, b: usize) -> Option<usize> {
+            use std::cmp::min;
+            2usize.checked_mul(min(a, b))
+                .and_then(|lhs| lhs.checked_add(if a > b { 1 } else { 0 }))
+        }
+
+        let (l0, u0) = self.it0.size_hint();
+        let (l1, u1) = self.it1.size_hint();
+        let lb = bound(l0, l1).unwrap_or(usize::max_value());
+        let ub = match (u0, u1) {
+            (None, None) => None,
+            (Some(u0), None) => 2usize.checked_mul(u0),
+            (None, Some(u1)) => 2usize.checked_mul(u1).and_then(|l| l.checked_add(1)),
+            (Some(u0), Some(u1)) => bound(u0, u1)
+        };
+        (lb, ub)
+    }
+}
+
 /// **Deprecated:** Use *.map_fn()* instead.
 pub struct FnMap<B, I> where
     I: Iterator,
