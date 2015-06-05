@@ -583,12 +583,14 @@ fn part() {
 }
 
 #[test]
-fn pad_tail_using() {
+fn pad_using() {
+    it::assert_equal((0..0).pad_using(1, |_| 1), (1..2));
+
     let v: Vec<usize> = vec![0, 1, 2];
-    let r: Vec<_> = v.into_iter().pad_tail_using(5, |n| n).collect();
+    let r: Vec<_> = v.into_iter().pad_using(5, |n| n).collect();
     assert_eq!(r, vec![0, 1, 2, 3, 4]);
 
     let v: Vec<usize> = vec![0, 1, 2];
-    let r: Vec<_> = v.into_iter().pad_tail_using(1, |_| panic!()).collect();
+    let r: Vec<_> = v.into_iter().pad_using(1, |_| panic!()).collect();
     assert_eq!(r, vec![0, 1, 2]);
 }

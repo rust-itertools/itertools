@@ -1,28 +1,28 @@
+use std::iter::Fuse;
+use size_hint;
+
 /// An iterator adaptor that pads a sequence to a minimum length by filling
 /// missing elements using a closure.
 ///
 /// Iterator element type is **I::Item**.
 ///
-/// See [*.pad_tail_using()*](trait.Itertools.html#method.pad_tail_using) for more information.
-#[derive(Clone, Debug)]
-pub struct PadTailUsing<I, F> where
-    I: Iterator,
-    F: FnMut(usize) -> I::Item,
-{
-    iter: I,
+/// See [*.pad_using()*](trait.Itertools.html#method.pad_using) for more information.
+#[derive(Clone)]
+pub struct PadUsing<I, F> {
+    iter: Fuse<I>,
     min: usize,
     pos: usize,
     filler: F,
 }
 
-impl<I, F> PadTailUsing<I, F> where
+impl<I, F> PadUsing<I, F> where
     I: Iterator,
     F: FnMut(usize) -> I::Item,
 {
-    /// Create a new `PadTailUsing` iterator.
-    pub fn new(iter: I, min: usize, filler: F) -> PadTailUsing<I, F> {
-        PadTailUsing {
-            iter: iter,
+    /// Create a new **PadUsing** iterator.
+    pub fn new(iter: I, min: usize, filler: F) -> PadUsing<I, F> {
+        PadUsing {
+            iter: iter.fuse(),
             min: min,
             pos: 0,
             filler: filler,
@@ -30,7 +30,7 @@ impl<I, F> PadTailUsing<I, F> where
     }
 }
 
-impl<I, F> Iterator for PadTailUsing<I, F> where
+impl<I, F> Iterator for PadUsing<I, F> where
     I: Iterator,
     F: FnMut(usize) -> I::Item,
 {
@@ -54,9 +54,14 @@ impl<I, F> Iterator for PadTailUsing<I, F> where
             }
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let tail = self.min.saturating_sub(self.pos);
+        size_hint::max(self.iter.size_hint(), (tail, Some(tail)))
+    }
 }
 
-impl<I, F> DoubleEndedIterator for PadTailUsing<I, F> where
+impl<I, F> DoubleEndedIterator for PadUsing<I, F> where
     I: DoubleEndedIterator + ExactSizeIterator,
     F: FnMut(usize) -> I::Item,
 {
@@ -72,3 +77,8 @@ impl<I, F> DoubleEndedIterator for PadTailUsing<I, F> where
         }
     }
 }
+
+impl<I, F> ExactSizeIterator for PadUsing<I, F>
+    where I: Iterator,
+          F: FnMut(usize) -> I::Item,
+{ }

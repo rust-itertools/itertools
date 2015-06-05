@@ -456,4 +456,15 @@ fn equal_combinations(mut it: Iter<i16>) -> bool {
     cmb.next() == None
 }
 
+#[quickcheck]
+fn size_pad_tail(it: Iter<i8>, pad: u8) -> bool {
+    correct_size_hint(it.clone().pad_using(pad as usize, |_| 0)) &&
+        correct_size_hint(it.dropping(1).rev().pad_using(pad as usize, |_| 0))
+}
+
+#[quickcheck]
+fn size_pad_tail2(it: Iter<i8>, pad: u8) -> bool {
+    exact_size(it.pad_using(pad as usize, |_| 0))
+}
+
 }
