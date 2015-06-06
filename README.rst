@@ -32,6 +32,11 @@ How to use in your crate::
 Recent Changes
 --------------
 
+- 0.3.13
+
+  - Added adaptor .interleave_shortest()
+  - Added adaptor .pad_using()
+
 - 0.3.11
 
   - Added assert_equal function
