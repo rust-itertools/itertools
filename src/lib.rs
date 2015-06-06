@@ -493,7 +493,7 @@ pub trait Itertools : Iterator {
     ///
     /// let a = (0..).zip("bc".chars());
     /// let b = (0..).zip("ad".chars());
-    /// let it = a.merge_by(b, |x, y| x.1.cmp(&y.1));
+    /// let it = a.merge_by(b, |x, y| Ord::cmp(&x.1, &y.1));
     /// itertools::assert_equal(it, vec![(0, 'a'), (0, 'b'), (1, 'c'), (1, 'd')]);
     /// ```
 
