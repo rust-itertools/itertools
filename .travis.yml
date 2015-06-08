@@ -4,6 +4,7 @@ matrix:
   include:
     - rust: stable
     - rust: nightly
+  allow_failures:
     - rust: nightly
       env:
        - FEATURES='unstable qc'
