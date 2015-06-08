@@ -1,9 +1,9 @@
 language: rust
 sudo: false
+rust:
+  - stable
+  - nightly
 matrix:
-  include:
-    - rust: stable
-    - rust: nightly
   allow_failures:
     - rust: nightly
       env:
