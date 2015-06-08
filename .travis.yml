@@ -1,10 +1,9 @@
 language: rust
 sudo: false
-rust:
-  - stable
-  - nightly
 matrix:
-  allow_failures:
+  include:
+    - rust: stable
+    - rust: nightly
     - rust: nightly
       env:
        - FEATURES='unstable qc'
