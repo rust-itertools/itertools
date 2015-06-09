@@ -6,9 +6,9 @@
 ///
 /// 
 
-extern crate itertools as it;
+extern crate itertools;
 
-use it::Itertools;
+use itertools::Itertools;
 use std::str::FromStr;
 use std::collections::HashMap;
 
@@ -19,9 +19,6 @@ struct Iris {
     name: String,
     data: [f32; 4],
 }
-
-//#[derive(Clone, Debug)]
-//struct ParseError(&'static str);
 
 #[derive(Clone, Debug)]
 enum ParseError {
@@ -51,7 +48,7 @@ impl FromStr for Iris {
 }
 
 fn main() {
-    // using itertools::Itertools::fold_results
+    // using itertools::Itertools::fold_results to create the result of parsing
     let irises = DATA.lines()
                      .map(str::parse)
                      .fold_results(Vec::new(), |mut v, iris: Iris| {
@@ -116,6 +113,7 @@ fn main() {
         }
 
         // render plot
+        //
         // using itertools::Itertools::join
         for line in plot.chunks(n) {
             println!("{}", line.iter().join(" "))
