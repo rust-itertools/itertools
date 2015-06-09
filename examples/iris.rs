@@ -84,6 +84,8 @@ fn main() {
 
     // Look at all combinations of the four columns
     //
+    // See https://en.wikipedia.org/wiki/Iris_flower_data_set
+    //
     // using itertools::Itertools::combinations
     for (a, b) in (0..4).combinations() {
         println!("Column {} vs {}:", a, b);
@@ -108,8 +110,9 @@ fn main() {
             // round to the grid
             let ix = ((x - min_x) / (max_x - min_x) * ((n - 1) as f32)) as usize;
             let iy = ((y - min_y) / (max_y - min_y) * ((n - 1) as f32)) as usize;
+            let iy = n - 1 - iy; // reverse y axis' direction
 
-            plot[n * ix + iy] = symbol;
+            plot[n * iy + ix] = symbol;
         }
 
         // render plot
