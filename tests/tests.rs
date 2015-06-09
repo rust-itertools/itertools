@@ -587,10 +587,17 @@ fn pad_using() {
     it::assert_equal((0..0).pad_using(1, |_| 1), (1..2));
 
     let v: Vec<usize> = vec![0, 1, 2];
-    let r: Vec<_> = v.into_iter().pad_using(5, |n| n).collect();
-    assert_eq!(r, vec![0, 1, 2, 3, 4]);
+    let r = v.into_iter().pad_using(5, |n| n);
+    it::assert_equal(r, vec![0, 1, 2, 3, 4]);
 
     let v: Vec<usize> = vec![0, 1, 2];
-    let r: Vec<_> = v.into_iter().pad_using(1, |_| panic!()).collect();
-    assert_eq!(r, vec![0, 1, 2]);
+    let r = v.into_iter().pad_using(1, |_| panic!());
+    it::assert_equal(r, vec![0, 1, 2]);
+}
+
+#[test]
+fn while_some() {
+    let ns = (1..10).map(|x| if x % 5 != 0 { Some(x) } else { None })
+                    .while_some();
+    it::assert_equal(ns, vec![1, 2, 3, 4]);
 }

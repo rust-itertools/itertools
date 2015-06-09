@@ -34,6 +34,10 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 
+
+  - Added adaptor .while_some()
+
 - 0.3.13
 
   - Added adaptor .interleave_shortest()

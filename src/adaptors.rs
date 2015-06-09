@@ -880,6 +880,40 @@ impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F> where
     }
 }
 
+/// An iterator adaptor that filters **Option\<A\>** iterator elements
+/// and produces **A**. Stops on the first **None** encountered.
+///
+/// See [*.while_some()*](trait.Itertools.html#method.while_some) for more information.
+#[derive(Clone)]
+pub struct WhileSome<I> {
+    iter: I,
+}
+
+impl<I> WhileSome<I> {
+    /// Create a new **WhileSome\<I\>**.
+    pub fn new(iter: I) -> Self {
+        WhileSome { iter: iter }
+    }
+}
+
+impl<I, A> Iterator for WhileSome<I> where
+    I: Iterator<Item=Option<A>>
+{
+    type Item = A;
+
+    fn next(&mut self) -> Option<A> {
+        match self.iter.next() {
+            None | Some(None) => None,
+            Some(elt) => elt,
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let sh = self.iter.size_hint();
+        (0, sh.1)
+    }
+}
+
 /// An iterator to iterate through all the combinations of pairs in a **Clone**-able iterator.
 ///
 /// See [*.combinations()*](trait.Itertools.html#method.combinations) for more information.
