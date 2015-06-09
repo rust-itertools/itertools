@@ -21,7 +21,9 @@ How to use with cargo::
     [dependencies]
     itertools = "0.3"
 
-How to use in your crate::
+How to use in your crate:
+
+.. code:: rust
 
     #[macro_use]
     extern crate itertools;
@@ -31,6 +33,11 @@ How to use in your crate::
 
 Recent Changes
 --------------
+
+- 0.3.13
+
+  - Added adaptor .interleave_shortest()
+  - Added adaptor .pad_using()
 
 - 0.3.11
 

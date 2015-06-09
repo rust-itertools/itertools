@@ -102,7 +102,7 @@ impl<T, U> ExactSizeIterator for ZipLongest<T, U> where
 {}
 
 
-/// A value yielded by `ZipLongest`.
+/// A value yielded by **ZipLongest**.
 /// Contains one or two values, depending on which of the input iterators are exhausted.
 ///
 /// See [*.zip_longest()*](trait.Itertools.html#method.zip_longest) for more information.

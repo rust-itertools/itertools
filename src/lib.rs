@@ -40,6 +40,7 @@ use std::fmt;
 
 pub use adaptors::{
     Interleave,
+    InterleaveShortest,
     Product,
     PutBack,
     PutBackN,
@@ -50,6 +51,7 @@ pub use adaptors::{
     Merge,
     MultiPeek,
     TakeWhileRef,
+    WhileSome,
     Coalesce,
     CoalesceFn,
     Subdivide,
@@ -60,6 +62,7 @@ pub use adaptors::{
 pub use adaptors::EnumerateFrom;
 pub use intersperse::Intersperse;
 pub use islice::{ISlice};
+pub use pad_tail::PadUsing;
 pub use repeatn::RepeatN;
 pub use rciter::RcIter;
 pub use stride::Stride;
@@ -82,6 +85,7 @@ mod linspace;
 #[cfg(feature = "unstable")]
 mod macros;
 pub mod misc;
+mod pad_tail;
 mod rciter;
 mod repeatn;
 mod sources;
@@ -207,6 +211,25 @@ pub trait Itertools : Iterator {
         Interleave::new(self, other.into_iter())
     }
 
+    /// Alternate elements from two iterators until one of them runs out.
+    ///
+    /// Iterator element type is **Self::Item**.
+    ///
+    /// This iterator is *fused*.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let it = (0..5).interleave_shortest(vec![7, 8]);
+    /// itertools::assert_equal(it, vec![0, 7, 1, 8, 2]);
+    /// ```
+    fn interleave_shortest<J>(self, other: J) -> InterleaveShortest<Self, J::IntoIter> where
+        J: IntoIterator<Item=Self::Item>,
+        Self: Sized
+    {
+        InterleaveShortest::new(self, other.into_iter())
+    }
+
     /// An iterator adaptor to insert a particular value
     /// between each element of the adapted iterator.
     ///
@@ -234,14 +257,15 @@ pub trait Itertools : Iterator {
     /// When both iterators return **None**, all further invocations of *.next()* 
     /// will return **None**.
     ///
+    /// Iterator element type is 
+    /// [**EitherOrBoth\<Self::Item, J::Item\>**](enum.EitherOrBoth.html).
+    ///
     /// ```rust
     /// use itertools::EitherOrBoth::{Both, Right};
     /// use itertools::Itertools;
     /// let it = (0..1).zip_longest(1..3);
     /// itertools::assert_equal(it, vec![Both(0, 1), Right(2)]);
     /// ```
-    ///
-    /// Iterator element type is **EitherOrBoth\<Self::Item, J::Item\>**.
     #[inline]
     fn zip_longest<J>(self, other: J) -> ZipLongest<Self, J::IntoIter> where
         J: IntoIterator,
@@ -440,7 +464,7 @@ pub trait Itertools : Iterator {
     ///
     /// let a = (0..).zip("bc".chars());
     /// let b = (0..).zip("ad".chars());
-    /// let it = a.merge_by(b, |x, y| x.1.cmp(&y.1));
+    /// let it = a.merge_by(b, |x, y| Ord::cmp(&x.1, &y.1));
     /// itertools::assert_equal(it, vec![(0, 'a'), (0, 'b'), (1, 'c'), (1, 'd')]);
     /// ```
 
@@ -647,6 +671,16 @@ pub trait Itertools : Iterator {
         TakeWhileRef::new(self, f)
     }
 
+    /// Return an iterator adaptor that filters **Option\<A\>** iterator elements
+    /// and produces **A**. Stops on the first **None** encountered.
+    ///
+    /// Iterator element type is **A**, the unwrapped element.
+    fn while_some<A>(self) -> WhileSome<Self> where
+        Self: Sized + Iterator<Item=Option<A>>,
+    {
+        WhileSome::new(self)
+    }
+
     /// Return an iterator adaptor that iterates over the combinations of
     /// the elements from an iterator.
     ///
@@ -662,6 +696,30 @@ pub trait Itertools : Iterator {
         Self: Sized + Clone, Self::Item: Clone
     {
         Combinations::new(self)
+    }
+
+    /// Return an iterator adaptor that pads the sequence to a minimum length of
+    /// **min** by filling missing elements using a closure **f**.
+    ///
+    /// Iterator element type is **Self::Item**.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let it = (0..5).pad_using(10, |i| 2*i);
+    /// itertools::assert_equal(it, vec![0, 1, 2, 3, 4, 10, 12, 14, 16, 18]);
+    ///
+    /// let it = (0..10).pad_using(5, |i| 2*i);
+    /// itertools::assert_equal(it, vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    ///
+    /// let it = (0..5).pad_using(10, |i| 2*i).rev();
+    /// itertools::assert_equal(it, vec![18, 16, 14, 12, 10, 4, 3, 2, 1, 0]);
+    /// ```
+    fn pad_using<F>(self, min: usize, f: F) -> PadUsing<Self, F> where
+        Self: Sized,
+        F: FnMut(usize) -> Self::Item,
+    {
+        PadUsing::new(self, min, f)
     }
 
     /// Like regular *.map()*, specialized to using a simple function pointer instead,
