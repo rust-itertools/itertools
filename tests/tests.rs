@@ -594,3 +594,7 @@ fn pad_using() {
     let r: Vec<_> = v.into_iter().pad_using(1, |_| panic!()).collect();
     assert_eq!(r, vec![0, 1, 2]);
 }
+
+#[test]
+fn while_some() {
+}

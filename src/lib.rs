@@ -50,6 +50,7 @@ pub use adaptors::{
     Merge,
     MultiPeek,
     TakeWhileRef,
+    WhileSome,
     Coalesce,
     CoalesceFn,
     Combinations,
@@ -672,6 +673,16 @@ pub trait Itertools : Iterator {
         F: FnMut(&Self::Item) -> bool,
     {
         TakeWhileRef::new(self, f)
+    }
+
+    /// Return an iterator adaptor that filters **Option\<A\>** iterator elements
+    /// and produces **A**. Stops on the first **None** encountered.
+    ///
+    /// Iterator element type is **A**, the unwrapped element.
+    fn while_some<A>(self) -> WhileSome<Self> where
+        Self: Sized + Iterator<Item=Option<A>>,
+    {
+        WhileSome::new(self)
     }
 
     /// Return an iterator adaptor that iterates over the combinations of
