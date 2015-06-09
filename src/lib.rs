@@ -287,14 +287,15 @@ pub trait Itertools : Iterator {
     /// When both iterators return **None**, all further invocations of *.next()* 
     /// will return **None**.
     ///
+    /// Iterator element type is 
+    /// [**EitherOrBoth\<Self::Item, J::Item\>**](enum.EitherOrBoth.html).
+    ///
     /// ```rust
     /// use itertools::EitherOrBoth::{Both, Right};
     /// use itertools::Itertools;
     /// let it = (0..1).zip_longest(1..3);
     /// itertools::assert_equal(it, vec![Both(0, 1), Right(2)]);
     /// ```
-    ///
-    /// Iterator element type is **EitherOrBoth\<Self::Item, J::Item\>**.
     #[inline]
     fn zip_longest<J>(self, other: J) -> ZipLongest<Self, J::IntoIter> where
         J: IntoIterator,
