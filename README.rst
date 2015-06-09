@@ -21,7 +21,9 @@ How to use with cargo::
     [dependencies]
     itertools = "0.3"
 
-How to use in your crate::
+How to use in your crate:
+
+.. code:: rust
 
     #[macro_use]
     extern crate itertools;
