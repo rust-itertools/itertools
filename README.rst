@@ -34,7 +34,7 @@ How to use in your crate:
 Recent Changes
 --------------
 
-- 
+- 0.3.14
 
   - Added adaptor .while_some()
 
