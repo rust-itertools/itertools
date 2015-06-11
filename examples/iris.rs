@@ -11,6 +11,7 @@ extern crate itertools;
 use itertools::Itertools;
 use std::str::FromStr;
 use std::collections::HashMap;
+use std::num::ParseFloatError;
 
 static DATA: &'static str = include_str!("iris.data");
 
@@ -26,6 +27,12 @@ enum ParseError {
     Other(&'static str),
 }
 
+impl From<ParseFloatError> for ParseError {
+    fn from(err: ParseFloatError) -> Self {
+        ParseError::Numeric(err)
+    }
+}
+
 /// Parse an Iris from a comma-separated line
 impl FromStr for Iris {
     type Err = ParseError;
@@ -36,7 +43,7 @@ impl FromStr for Iris {
 
         // using Iterator::by_ref()
         for (index, part) in parts.by_ref().take(4).enumerate() {
-            iris.data[index] = try!(part.parse::<f32>().map_err(ParseError::Numeric));
+            iris.data[index] = try!(part.parse::<f32>());
         }
         if let Some(name) = parts.next() {
             iris.name = name.into();
