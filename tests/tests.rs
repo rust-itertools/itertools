@@ -385,6 +385,17 @@ fn join() {
 }
 
 #[test]
+fn sort_by() {
+    let sc = [3, 4, 1, 2].iter().cloned().sort_by(|&a, &b| {
+        a.cmp(&b)
+    });
+    assert_eq!(sc, vec![1, 2, 3, 4]);
+
+    let v = (0..5).sort_by(|&a, &b| a.cmp(&b).reverse());
+    assert_eq!(v, vec![4, 3, 2, 1, 0]);
+}
+
+#[test]
 fn multipeek() {
     let nums = vec![1u8,2,3,4,5];
 
