@@ -1058,6 +1058,37 @@ pub trait Itertools : Iterator {
             None
         }
     }
+
+    /// Sort iterator elements.
+    ///
+    /// **Note:** This consumes the entire iterator, uses the
+    /// **slice::sort_by()** function and returns the sorted vector.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // sort people in descending order by age
+    /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 27)];
+    ///
+    /// let oldest_people_first = people
+    ///     .into_iter()
+    ///     .sort_by(|&a, &b| {
+    ///         a.1.cmp(&b.1).reverse()
+    ///     })
+    ///     .into_iter()
+    ///     .map(|(person, _age)| person)
+    ///     .collect::<Vec<_>>();
+    ///
+    /// assert_eq!(oldest_people_first, vec!["Jill", "Jack", "Jane", "John"]);
+    /// ```
+    fn sort_by<F: FnMut(&Self::Item, &Self::Item) -> Ordering>(self, cmp: F) -> Vec<Self::Item> where
+        Self: Sized
+    {
+        let mut v: Vec<Self::Item> = self.collect();
+
+        v.sort_by(cmp);
+        v
+    }
 }
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }
