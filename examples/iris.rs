@@ -23,7 +23,7 @@ struct Iris {
 
 #[derive(Clone, Debug)]
 enum ParseError {
-    Numeric(<f32 as FromStr>::Err),
+    Numeric(ParseFloatError),
     Other(&'static str),
 }
 
