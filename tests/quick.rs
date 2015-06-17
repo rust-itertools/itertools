@@ -467,4 +467,9 @@ fn size_pad_tail2(it: Iter<i8>, pad: u8) -> bool {
     exact_size(it.pad_using(pad as usize, |_| 0))
 }
 
+#[quickcheck]
+fn size_unique(it: Iter<i8>) -> bool {
+    correct_size_hint(it.unique())
+}
+
 }

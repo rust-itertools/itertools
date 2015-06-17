@@ -975,7 +975,7 @@ impl<I> Iterator for Combinations<I> where I: Iterator + Clone, I::Item: Clone{
     }
 }
 
-/// An iterator adapter to filter non-unique elements.
+/// An iterator adapter to filter out duplicate elements.
 ///
 /// See [*.unique()*](trait.Itertools.html#method.unique) for more information.
 #[derive(Clone)]
@@ -985,7 +985,10 @@ pub struct UniqueBy<I: Iterator, V, F> {
     f: F,
 }
 
-impl<I: Iterator, V, F> UniqueBy<I, V, F> where V: Clone + Eq + Hash, F: FnMut(&I::Item) -> V {
+impl<I: Iterator, V, F> UniqueBy<I, V, F>
+    where V: Eq + Hash,
+          F: FnMut(&I::Item) -> V
+{
     /// Create a new **UniqueBy** iterator.
     pub fn new(iter: I, f: F) -> UniqueBy<I, V, F> {
         UniqueBy {
@@ -998,7 +1001,7 @@ impl<I: Iterator, V, F> UniqueBy<I, V, F> where V: Clone + Eq + Hash, F: FnMut(&
 
 impl<I, V, F> Iterator for UniqueBy<I, V, F> where
     I: Iterator,
-    V: Clone + Eq + Hash,
+    V: Eq + Hash,
     F: FnMut(&I::Item) -> V
 {
     type Item = I::Item;
@@ -1019,10 +1022,11 @@ impl<I, V, F> Iterator for UniqueBy<I, V, F> where
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        (0, self.iter.size_hint().1)
+        let (low, hi) = self.iter.size_hint();
+        ((low > 0 && self.used.is_empty()) as usize, hi)
     }
 }
 
-/// An iterator adapter to filter non-unique elements.
+/// An iterator adapter to filter out duplicate elements.
 pub type Unique<I> where I: Iterator =
     UniqueBy<I, I::Item, fn(&I::Item) -> I::Item>;

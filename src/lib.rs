@@ -628,9 +628,11 @@ pub trait Itertools : Iterator {
         Coalesce::new(self, eq)
     }
 
-    /// Filter non-unique elements from the iterator.
+    /// Return an iterator adaptor that filters out elements that have
+    /// already been produced once during the iteration. Duplicates
+    /// are detected using hash and equality.
     ///
-    /// Copies of visited elements are stored in a hash set in the
+    /// Clones of visited elements are stored in a hash set in the
     /// iterator.
     ///
     /// ```
@@ -647,11 +649,12 @@ pub trait Itertools : Iterator {
         self.unique_by(Clone::clone)
     }
 
-    /// Filter non-unique elements from the iterator.
+    /// Return an iterator adaptor that filters out elements that have
+    /// already been produced once during the iteration.
     ///
-    /// Elemens are considered the same if supplied function returns
-    /// equal values for them. Those values are stored in a hash set in
-    /// the iterator.
+    /// Duplicates are detected by comparing the key they map to
+    /// with the keying function **f** by hash and equality.
+    /// The keys are stored in a hash set in the iterator.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -662,7 +665,7 @@ pub trait Itertools : Iterator {
     /// ```
     fn unique_by<V, F>(self, f: F) -> UniqueBy<Self, V, F> where
         Self: Sized,
-        V: Clone + Eq + Hash,
+        V: Eq + Hash,
         F: FnMut(&Self::Item) -> V
     {
         UniqueBy::new(self, f)
