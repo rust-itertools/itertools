@@ -34,6 +34,14 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.3.16
+
+  - Added adaptors .unique(), .unique_by()
+
+- 0.3.15
+
+  - Added method .sort_by()
+
 - 0.3.14
 
   - Added adaptor .while_some()
