@@ -3,6 +3,7 @@ sudo: false
 matrix:
   include:
     - rust: stable
+    - rust: beta
     - rust: nightly
     - rust: nightly
       env:
