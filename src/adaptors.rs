@@ -11,6 +11,8 @@ use std::num::One;
 use std::ops::Add;
 use std::cmp::Ordering;
 use std::iter::{Fuse, Peekable};
+use std::collections::HashSet;
+use std::hash::Hash;
 use Itertools;
 use size_hint;
 
@@ -972,3 +974,55 @@ impl<I> Iterator for Combinations<I> where I: Iterator + Clone, I::Item: Clone{
         size_hint::add((lo / 2, hi.map(|hi| hi / 2)), extra)
     }
 }
+
+/// An iterator adapter to filter non-unique elements.
+///
+/// See [*.unique()*](trait.Itertools.html#method.unique) for more information.
+#[derive(Clone)]
+pub struct UniqueBy<I: Iterator, V, F> {
+    iter: I,
+    used: HashSet<V>,
+    f: F,
+}
+
+impl<I: Iterator, V, F> UniqueBy<I, V, F> where V: Clone + Eq + Hash, F: FnMut(&I::Item) -> V {
+    /// Create a new **UniqueBy** iterator.
+    pub fn new(iter: I, f: F) -> UniqueBy<I, V, F> {
+        UniqueBy {
+            iter: iter,
+            used: HashSet::new(),
+            f: f,
+        }
+    }
+}
+
+impl<I, V, F> Iterator for UniqueBy<I, V, F> where
+    I: Iterator,
+    V: Clone + Eq + Hash,
+    F: FnMut(&I::Item) -> V
+{
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<I::Item> {
+        loop {
+            match self.iter.next() {
+                None => return None,
+                Some(v) => {
+                    let key = (self.f)(&v);
+                    if self.used.insert(key) {
+                        return Some(v);
+                    }
+                }
+            }
+        }
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, self.iter.size_hint().1)
+    }
+}
+
+/// An iterator adapter to filter non-unique elements.
+pub type Unique<I> where I: Iterator =
+    UniqueBy<I, I::Item, fn(&I::Item) -> I::Item>;

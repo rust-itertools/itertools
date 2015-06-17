@@ -203,6 +203,23 @@ fn dedup() {
 }
 
 #[test]
+fn unique_by() {
+    let xs = ["aaa", "bbbbb", "aa", "ccc", "bbbb", "aaaaa", "cccc"];
+    let ys = ["aaa", "bbbbb", "ccc"];
+    it::assert_equal(ys.iter(), xs.iter().unique_by(|x| x[..2].to_string()));
+}
+
+#[test]
+fn unique() {
+    let xs = [0, 1, 2, 3, 2, 1, 3];
+    let ys = [0, 1, 2, 3];
+    it::assert_equal(ys.iter(), xs.iter().unique());
+    let xs = [0, 1];
+    let ys = [0, 1];
+    it::assert_equal(ys.iter(), xs.iter().unique());
+}
+
+#[test]
 fn batching() {
     let xs = [0, 1, 2, 1, 3];
     let ys = [(0, 1), (2, 1)];
