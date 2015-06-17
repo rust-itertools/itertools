@@ -10,6 +10,15 @@ extern crate itertools as it;
 use it::Itertools;
 use it::Interleave;
 use it::Zip;
+use it::Unique;
+
+#[test]
+fn unique() {
+    let start: Vec<i32> = vec![1, 2, 2, 3, 2, 4];
+    let without_duplicates: Vec<i32> = start.into_iter().unique().collect();
+
+    assert_eq!(without_duplicates, vec![1, 2, 3, 4]);
+}
 
 #[test]
 fn product2() {
