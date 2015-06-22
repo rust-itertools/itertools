@@ -1,8 +1,4 @@
 use std::cmp::Ordering::{Equal, Greater, Less};
-#[cfg(feature = "unstable")]
-use std::cmp;
-#[cfg(feature = "unstable")]
-use std::iter::RandomAccessIterator;
 use super::size_hint;
 use std::iter::Fuse;
 use self::EitherOrBoth::{Right, Left, Both};
@@ -71,27 +67,6 @@ impl<T, U> DoubleEndedIterator for ZipLongest<T, U> where
             },
             Greater => self.a.next_back().map(Left),
             Less => self.b.next_back().map(Right),
-        }
-    }
-}
-
-#[cfg(feature = "unstable")]
-impl<T, U> RandomAccessIterator for ZipLongest<T, U> where
-    T: RandomAccessIterator,
-    U: RandomAccessIterator,
-{
-    #[inline]
-    fn indexable(&self) -> usize {
-        cmp::max(self.a.indexable(), self.b.indexable())
-    }
-
-    #[inline]
-    fn idx(&mut self, index: usize) -> Option<Self::Item> {
-        match (self.a.idx(index), self.b.idx(index)) {
-            (None, None) => None,
-            (Some(a), None) => Some(Left(a)),
-            (None, Some(b)) => Some(Right(b)),
-            (Some(a), Some(b)) => Some(Both(a, b)),
         }
     }
 }

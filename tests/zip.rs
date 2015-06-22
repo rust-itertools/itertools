@@ -1,9 +1,5 @@
-#![cfg_attr(feature = "unstable", feature(core))]
-
 extern crate itertools;
 
-#[cfg(feature = "unstable")]
-use std::iter::RandomAccessIterator;
 use itertools::Itertools;
 use itertools::EitherOrBoth::{Both, Left, Right};
 #[cfg(feature = "unstable")]
@@ -49,37 +45,6 @@ fn test_double_ended_zip_longest() {
     assert_eq!(it.next(), None);
 }
 
-
-#[cfg(feature = "unstable")]
-// This function copied from std::iter in rust-lang/rust
-#[cfg(test)]
-fn check_randacc_iter<A, T>(a: T, len: usize) where
-    A: PartialEq,
-    T: Clone + Iterator<Item=A> + RandomAccessIterator
-{
-    let mut b = a.clone();
-    assert_eq!(len, b.indexable());
-    let mut n = 0;
-    for (i, elt) in a.enumerate() {
-        assert!(Some(elt) == b.idx(i));
-        n += 1;
-    }
-    assert_eq!(n, len);
-    assert!(None == b.idx(n));
-    // call recursively to check after picking off an element
-    if len > 0 {
-        b.next();
-        check_randacc_iter(b, len-1);
-    }
-}
-
-#[cfg(feature = "unstable")]
-#[test]
-fn test_random_access_zip_longest() {
-    let xs = [1, 2, 3, 4, 5];
-    let ys = [7, 9, 11];
-    check_randacc_iter(xs.iter().zip_longest(ys.iter()), std::cmp::max(xs.len(), ys.len()));
-}
 
 #[cfg(feature = "unstable")]
 #[test]
