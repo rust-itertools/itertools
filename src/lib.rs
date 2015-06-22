@@ -11,8 +11,8 @@
 //! ```
 //!
 //! Some iterators or adaptors are used directly like regular structs, for example
-//! [**PutBack**](./struct.PutBack.html), [**Zip**](./struct.Zip.html),
-//! [**Stride**](./struct.Stride.html), [**StrideMut**](./struct.StrideMut.html).
+//! [**PutBack**](./struct.PutBack.html), [**Unfold**](./struct.Unfold.html),
+//! [**Zip**](./struct.Zip.html), [**Stride**](./struct.Stride.html)
 //!
 //! To enable the macros in this crate, use the `#[macro_use]` attribute:
 //!
@@ -73,6 +73,7 @@ pub use times::times;
 pub use linspace::{linspace, Linspace};
 pub use sources::{
     RepeatCall,
+    Unfold,
 };
 pub use zip_longest::{ZipLongest, EitherOrBoth};
 pub use ziptuple::{Zip};
