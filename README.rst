@@ -34,6 +34,10 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.3.17
+
+  - Added (adopted) Unfold from rust
+
 - 0.3.16
 
   - Added adaptors .unique(), .unique_by()
