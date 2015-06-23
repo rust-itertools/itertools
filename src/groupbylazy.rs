@@ -19,7 +19,7 @@ struct GroupInner<K, I, F>
 
     /// Buffered groups, from `bot` (index 0) to `top`.
     buffer: Vec<vec::IntoIter<I::Item>>,
-    /// index of last subgroup iter that was dropped
+    /// index of last group iter that was dropped
     dropped_group: Option<usize>,
 }
 
@@ -28,7 +28,7 @@ impl<K, I, F> GroupInner<K, I, F>
           F: FnMut(&I::Item) -> K,
           K: PartialEq,
 {
-    /// `client`: Index of subgroup that requests next element
+    /// `client`: Index of group that requests next element
     fn step(&mut self, client: usize) -> Option<I::Item> {
         /*
         println!("client={}, bot={}, top={}, buffers={:?}",
@@ -52,7 +52,7 @@ impl<K, I, F> GroupInner<K, I, F>
         } else if self.top == client {
             self.step_current()
         } else {
-            // requested a later subgroup -- walk through all groups up to
+            // requested a later group -- walk through all groups up to
             // the requested group index, and buffer the elements (unless
             // the group is marked as dropped).
             let mut group = Vec::new();
@@ -134,21 +134,21 @@ impl<K, I, F> GroupInner<K, I, F>
 impl<K, I, F> GroupInner<K, I, F>
     where I: Iterator,
 {
-    /// Called when a subgroup is dropped
-    fn drop_subgroup(&mut self, client: usize) {
+    /// Called when a group is dropped
+    fn drop_group(&mut self, client: usize) {
         self.dropped_group = Some(client);
     }
 }
 
 /// `GroupByLazy` is the storage for the lazy grouping operation.
 ///
-/// If the subgroups are consumed in their original order, or if each
-/// subgroup is dropped without keeping it around, then `GroupByLazy` uses
+/// If the groups are consumed in their original order, or if each
+/// group is dropped without keeping it around, then `GroupByLazy` uses
 /// no allocations. It needs allocations only if several group iterators
 /// are alive at the same time.
 ///
 /// This type implements `IntoIterator` (it is **not** an iterator
-/// itself), because the subgroup iterators need to borrow from this
+/// itself), because the group iterators need to borrow from this
 /// value. It should stored in a local variable or temporary and
 /// iterated.
 ///
@@ -157,7 +157,7 @@ pub struct GroupByLazy<K, I, F>
     where I: Iterator,
 {
     inner: RefCell<GroupInner<K, I, F>>,
-    // the subgroup iterator's current index. Keep this in the main value
+    // the group iterator's current index. Keep this in the main value
     // so that simultaneous iterators all use the same state.
     index: Cell<usize>,
 }
@@ -186,17 +186,17 @@ pub fn new<K, J, F>(iter: J, f: F) -> GroupByLazy<K, J::IntoIter, F>
 impl<K, I, F> GroupByLazy<K, I, F>
     where I: Iterator,
 {
-    /// `client`: Index of subgroup that requests next element
-    fn step(&self, client: usize) -> Option<I::Item> 
+    /// `client`: Index of group that requests next element
+    fn step(&self, client: usize) -> Option<I::Item>
         where F: FnMut(&I::Item) -> K,
               K: PartialEq,
     {
         self.inner.borrow_mut().step(client)
     }
 
-    /// `client`: Index of subgroup
-    fn drop_subgroup(&self, client: usize) {
-        self.inner.borrow_mut().drop_subgroup(client)
+    /// `client`: Index of group
+    fn drop_group(&self, client: usize) {
+        self.inner.borrow_mut().drop_group(client)
     }
 }
 
@@ -217,7 +217,7 @@ impl<'a, K, I, F> IntoIterator for &'a GroupByLazy<K, I, F>
 }
 
 
-/// An iterator that yields the roup iterators.
+/// An iterator that yields the Group iterators.
 ///
 /// Iterator element type is `Group<'a, K, I, F>`, another iterator.
 pub struct Groups<'a, K: 'a, I: 'a, F: 'a>
@@ -266,7 +266,7 @@ impl<'a, K, I, F> Drop for Group<'a, K, I, F>
           I::Item: 'a,
 {
     fn drop(&mut self) {
-        self.parent.drop_subgroup(self.index);
+        self.parent.drop_group(self.index);
     }
 }
 

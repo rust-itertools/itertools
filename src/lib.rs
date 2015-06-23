@@ -353,33 +353,51 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// // group data into runs of larger than zero or not.
-    /// let data = vec![1, 2, -3, 4, 5];
+    /// let data = vec![1, 3, -2, -2, 1, 0, 1, 2];
     ///
-    /// let mut iter = data.into_iter().group_by(|elt| *elt >= 0);
-    /// assert_eq!(iter.next(), Some((true, vec![1, 2])));
-    /// assert_eq!(iter.next(), Some((false, vec![-3])));
+    /// for (key, group) in data.into_iter().group_by(|elt| *elt >= 0) {
+    ///     // Check that the sum of each group is +/- 4.
+    ///     assert_eq!(4, group.iter().fold(0_i32, |a, b| a + b).abs());
+    /// }
     /// ```
-    fn group_by<K, F: FnMut(&Self::Item) -> K>(self, key: F) -> GroupBy<K, Self, F> where
-        Self: Sized,
+    fn group_by<K, F>(self, key: F) -> GroupBy<K, Self, F>
+        where Self: Sized,
+              F: FnMut(&Self::Item) -> K,
     {
         GroupBy::new(self, key)
     }
 
     /// Return an iterable that can group iterator elements.
+    /// Consecutive elements that map to the same key (“runs”), are assigned
+    /// to the same group.
     ///
     /// `GroupByLazy` is the storage for the lazy grouping operation.
     ///
-    /// If the subgroups are consumed in their original order, or if each
-    /// subgroup is dropped without keeping it around, then `GroupByLazy` uses
-    /// no allocations. It needs allocations only if several group iterators
+    /// If the groups are consumed in order, or if each group's iterator is
+    /// dropped without keeping it around, then `GroupByLazy` uses no
+    /// allocations.  It needs allocations only if several group iterators
     /// are alive at the same time.
     ///
     /// This type implements `IntoIterator` (it is **not** an iterator
-    /// itself), because the subgroup iterators need to borrow from this
+    /// itself), because the group iterators need to borrow from this
     /// value. It should stored in a local variable or temporary and
     /// iterated.
     ///
-    /// Iterator element type is `Groups` (an iterator).
+    /// Iterator element type is `Group` (an iterator).
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // group data into runs of larger than zero or not.
+    /// let data = vec![1, 3, -2, -2, 1, 0, 1, 2];
+    ///
+    /// // Note: The `&` is significant here, `GroupByLazy` is iterable
+    /// // only by reference. You can also call `.into_iter()` explicitly.
+    /// for group in &data.into_iter().group_by_lazy(|elt| *elt >= 0) {
+    ///     // Check that the sum of each group is +/- 4.
+    ///     assert_eq!(4, group.fold(0_i32, |a, b| a + b).abs());
+    /// }
+    /// ```
     fn group_by_lazy<K, F>(self, key: F) -> GroupByLazy<K, Self, F>
         where Self: Sized,
               F: FnMut(&Self::Item) -> K,
