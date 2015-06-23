@@ -49,6 +49,8 @@ impl<K, I, F> GroupInner<K, I, F>
                 }
             }
             elt
+        } else if self.done {
+            return None;
         } else if self.top == client {
             self.step_current()
         } else {
@@ -101,9 +103,7 @@ impl<K, I, F> GroupInner<K, I, F>
 
     /// This is the immediate case, where we use no buffering
     fn step_current(&mut self) -> Option<I::Item> {
-        if self.done {
-            return None;
-        }
+        debug_assert!(!self.done);
         if let elt @ Some(..) = self.current_elt.take() {
             return elt;
         }

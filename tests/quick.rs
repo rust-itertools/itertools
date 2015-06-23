@@ -472,4 +472,12 @@ fn size_unique(it: Iter<i8>) -> bool {
     correct_size_hint(it.unique())
 }
 
+#[quickcheck]
+fn fuzz_group_by_lazy(it: Iter<u8>) -> bool {
+    let jt = it.clone();
+    let groups = it.group_by_lazy(|k| *k);
+    let res = itertools::equal(jt, groups.into_iter().flat_map(|x| x));
+    res
+}
+
 }
