@@ -28,6 +28,18 @@ impl<K, I, F> GroupInner<K, I, F>
           F: FnMut(&I::Item) -> K,
           K: PartialEq,
 {
+    fn push_next_group(&mut self, group: Vec<I::Item>) {
+        // When we add a new buffered group, fill up slots between bot and top
+        while self.top - self.bot > self.buffer.len() {
+            if self.buffer.is_empty() {
+                self.bot += 1;
+            } else {
+                self.buffer.push(Vec::new().into_iter());
+            }
+        }
+        self.buffer.push(group.into_iter());
+        debug_assert!(self.top + 1 - self.bot == self.buffer.len());
+    }
     /// `client`: Index of group that requests next element
     fn step(&mut self, client: usize) -> Option<I::Item> {
         /*
@@ -67,9 +79,8 @@ impl<K, I, F> GroupInner<K, I, F>
             loop {
                 match self.iter.next() {
                     None => {
-                        if group.len() > 0 && self.dropped_group != Some(self.top) {
-                            self.buffer.push(group.into_iter());
-                            debug_assert!(self.top - self.bot + 1 == self.buffer.len());
+                        if self.dropped_group != Some(self.top) {
+                            self.push_next_group(group);
                         }
                         self.done = true;
                         return None;
@@ -79,10 +90,8 @@ impl<K, I, F> GroupInner<K, I, F>
                         match self.current_key.take() {
                             None => {}
                             Some(old_key) => if old_key != key {
-                                if group.len() > 0 && self.dropped_group != Some(self.top) {
-                                    let this_group = mem::replace(&mut group, Vec::new());
-                                    self.buffer.push(this_group.into_iter());
-                                    debug_assert!(self.top - self.bot + 1 == self.buffer.len());
+                                if self.dropped_group != Some(self.top) {
+                                    self.push_next_group(mem::replace(&mut group, Vec::new()));
                                 }
                                 self.top += 1;
                                 if self.top == client {
@@ -119,7 +128,6 @@ impl<K, I, F> GroupInner<K, I, F>
                     Some(old_key) => if old_key != key {
                         self.current_key = Some(key);
                         self.current_elt = Some(elt);
-                        self.bot += 1;
                         self.top += 1;
                         return None;
                     },

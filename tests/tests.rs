@@ -729,3 +729,43 @@ fn group_by_lazy() {
                          text.chars());
     }
 }
+
+#[test]
+fn group_by_lazy_2() {
+    let data = vec![0, 1];
+    let groups = data.iter().group_by_lazy(|k| *k);
+    let gs = groups.into_iter().collect_vec();
+    it::assert_equal(data.iter(), gs.into_iter().flat_map(|g| g));
+
+    let data = vec![0, 1, 1, 0, 0];
+    let groups = data.iter().group_by_lazy(|k| *k);
+    let mut gs = groups.into_iter().collect_vec();
+    gs[1..].reverse();
+    it::assert_equal(&[0, 0, 0, 1, 1], gs.into_iter().flat_map(|g| g));
+
+    let grouper = data.iter().group_by_lazy(|k| *k);
+    let mut groups = Vec::new();
+    for (i, group) in grouper.into_iter().enumerate() {
+        if i == 1 {
+            groups.push(group);
+        }
+    }
+    it::assert_equal(&mut groups[0], &[1, 1]);
+
+    let data = vec![0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
+    let grouper = data.iter().group_by_lazy(|k| *k);
+    let mut groups = Vec::new();
+    for (i, group) in grouper.into_iter().enumerate() {
+        if i < 2 {
+            groups.push(group);
+        } else if i < 4 {
+            for _ in group {
+            }
+        } else {
+            groups.push(group);
+        }
+    }
+    it::assert_equal(&mut groups[0], &[0, 0, 0]);
+    it::assert_equal(&mut groups[1], &[1, 1]);
+    it::assert_equal(&mut groups[2], &[3, 3]);
+}
