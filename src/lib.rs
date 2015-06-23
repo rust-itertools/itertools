@@ -64,6 +64,7 @@ pub use adaptors::{
 };
 #[cfg(feature = "unstable")]
 pub use adaptors::EnumerateFrom;
+pub use groupbylazy::{GroupByLazy, Group, Groups};
 pub use intersperse::Intersperse;
 pub use islice::{ISlice};
 pub use pad_tail::PadUsing;
@@ -84,6 +85,7 @@ pub use ziptuple::{Zip};
 #[cfg(feature = "unstable")]
 pub use ziptrusted::{ZipTrusted, TrustedIterator};
 mod adaptors;
+mod groupbylazy;
 mod intersperse;
 mod islice;
 mod linspace;
@@ -361,6 +363,28 @@ pub trait Itertools : Iterator {
         Self: Sized,
     {
         GroupBy::new(self, key)
+    }
+
+    /// Return an iterable that can group iterator elements.
+    ///
+    /// `GroupByLazy` is the storage for the lazy grouping operation.
+    ///
+    /// If the subgroups are consumed in their original order, or if each
+    /// subgroup is dropped without keeping it around, then `GroupByLazy` uses
+    /// no allocations. It needs allocations only if several group iterators
+    /// are alive at the same time.
+    ///
+    /// This type implements `IntoIterator` (it is **not** an iterator
+    /// itself), because the subgroup iterators need to borrow from this
+    /// value. It should stored in a local variable or temporary and
+    /// iterated.
+    ///
+    /// Iterator element type is `Groups` (an iterator).
+    fn group_by_lazy<K, F>(self, key: F) -> GroupByLazy<K, Self, F>
+        where Self: Sized,
+              F: FnMut(&Self::Item) -> K,
+    {
+        groupbylazy::new(self, key)
     }
 
     /// Split into an iterator pair that both yield all elements from
