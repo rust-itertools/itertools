@@ -44,7 +44,7 @@ impl<I, J> Interleave<I, J> where
     I: Iterator,
     J: Iterator,
 {
-    /// Creat a new **Interleave** iterator.
+    /// Creat a new `Interleave` iterator.
     pub fn new(a: I, b: J) -> Interleave<I, J> {
         Interleave{a: a.fuse(), b: b.fuse(), flag: false}
     }
@@ -93,7 +93,7 @@ impl<I, J> InterleaveShortest<I, J> where
     I: Iterator,
     J: Iterator<Item=I::Item>,
 {
-    /// Create a new **InterleaveShortest** iterator.
+    /// Create a new `InterleaveShortest` iterator.
     pub fn new(a: I, b: J) -> InterleaveShortest<I, J> {
         InterleaveShortest {
             it0: a.fuse(),
@@ -210,7 +210,7 @@ impl<B, I> Clone for FnMap<B, I> where
 /// An iterator adaptor that allows putting back a single
 /// item to the front of the iterator.
 ///
-/// Iterator element type is **I::Item**.
+/// Iterator element type is `I::Item`.
 pub struct PutBack<I> where
     I: Iterator,
 {
@@ -259,7 +259,7 @@ impl<I> Iterator for PutBack<I> where
 /// An iterator adaptor that allows putting multiple
 /// items in front of the iterator.
 ///
-/// Iterator element type is **I::Item**.
+/// Iterator element type is `I::Item`.
 pub struct PutBackN<I: Iterator>
 {
     top: Vec<I::Item>,
@@ -325,9 +325,9 @@ impl<I: Iterator> Clone for PutBackN<I> where
 
 #[derive(Clone)]
 /// An iterator adaptor that iterates over the cartesian product of
-/// the element sets of two iterators **I** and **J**.
+/// the element sets of two iterators `I` and `J`.
 ///
-/// Iterator element type is **(I::Item, J::Item)**.
+/// Iterator element type is `(I::Item, J::Item)`.
 ///
 /// See [*.cartesian_product()*](trait.Itertools.html#method.cartesian_product) for more information.
 pub struct Product<I, J> where
@@ -346,7 +346,7 @@ impl<I, J> Product<I, J> where
 {
     /// Create a new cartesian product iterator
     ///
-    /// Iterator element type is **(I::Item, J::Item)**.
+    /// Iterator element type is `(I::Item, J::Item)`.
     pub fn new(i: I, j: J) -> Self
     {
         let mut i = i;
@@ -400,7 +400,7 @@ impl<I, J> Iterator for Product<I, J> where
 /// A “meta iterator adaptor”. Its closure recives a reference to the iterator
 /// and may pick off as many elements as it likes, to produce the next iterator element.
 ///
-/// Iterator element type is *X*, if the return type of **F** is *Option\<X\>*.
+/// Iterator element type is *X*, if the return type of `F` is *Option\<X\>*.
 ///
 /// See [*.batching()*](trait.Itertools.html#method.batching) for more information.
 #[derive(Clone)]
@@ -453,7 +453,7 @@ pub struct GroupBy<K, I, F> where
 impl<K, F, I> GroupBy<K, I, F> where
     I: Iterator,
 {
-    /// Create a new **GroupBy** iterator.
+    /// Create a new `GroupBy` iterator.
     pub fn new(iter: I, key: F) -> Self
     {
         GroupBy{key: key, iter: iter, current_key: None, elts: Vec::new()}
@@ -517,7 +517,7 @@ pub struct Step<I> {
 
 impl<I> Step<I> where I: Iterator
 {
-    /// Create a **Step** iterator.
+    /// Create a `Step` iterator.
     ///
     /// **Panics** if the step is 0.
     pub fn new(iter: I, step: usize) -> Self
@@ -560,7 +560,7 @@ impl<I> ExactSizeIterator for Step<I> where
 /// An iterator adaptor that merges the two base iterators in ascending order.
 /// If both base iterators are sorted (ascending), the result is sorted.
 ///
-/// Iterator element type is **I::Item**.
+/// Iterator element type is `I::Item`.
 ///
 /// See [*.merge_by()*](trait.Itertools.html#method.merge_by) for more information.
 pub struct Merge<I, J, F> where
@@ -578,7 +578,7 @@ impl<I, J, F> Merge<I, J, F> where
     J: Iterator<Item=I::Item>,
     F: FnMut(&I::Item, &I::Item) -> Ordering
 {
-    /// Create a **Merge** iterator.
+    /// Create a `Merge` iterator.
     pub fn new(a: I, b: J, cmp: F) -> Self
     {
         Merge {
@@ -660,7 +660,7 @@ pub struct EnumerateFrom<I, K>
 impl<K, I> EnumerateFrom<I, K> where
     I: Iterator,
 {
-    /// Create a new **EnumerateFrom**.
+    /// Create a new `EnumerateFrom`.
     pub fn new(iter: I, start: K) -> Self
     {
         EnumerateFrom{index: start, iter: iter}
@@ -714,7 +714,7 @@ pub struct MultiPeek<I> where
 }
 
 impl<I: Iterator> MultiPeek<I> {
-    /// Create a **MultiPeek** iterator.
+    /// Create a `MultiPeek` iterator.
     pub fn new(iter: I) -> MultiPeek<I> {
         MultiPeek{ iter: iter.fuse(), buf: Vec::new(), index: 0 }
     }
@@ -784,7 +784,7 @@ pub type CoalesceFn<I> where I: Iterator =
 impl<I, F> Coalesce<I, F> where
     I: Iterator,
 {
-    /// Create a new **Coalesce**.
+    /// Create a new `Coalesce`.
     pub fn new(mut iter: I, f: F) -> Self
     {
         Coalesce {
@@ -831,8 +831,8 @@ impl<I, F> Iterator for Coalesce<I, F> where
 
 
 
-/// An iterator adaptor that borrows from a **Clone**-able iterator
-/// to only pick off elements while the predicate returns **true**.
+/// An iterator adaptor that borrows from a `Clone`-able iterator
+/// to only pick off elements while the predicate returns `true`.
 ///
 /// See [*.take_while_ref()*](trait.Itertools.html#method.take_while_ref) for more information.
 pub struct TakeWhileRef<'a, I: 'a, F>
@@ -843,7 +843,7 @@ pub struct TakeWhileRef<'a, I: 'a, F>
 
 impl<'a, I, F> TakeWhileRef<'a, I, F> where I: Iterator + Clone,
 {
-    /// Create a new **TakeWhileRef** from a reference to clonable iterator.
+    /// Create a new `TakeWhileRef` from a reference to clonable iterator.
     pub fn new(iter: &'a mut I, f: F) -> Self
     {
         TakeWhileRef {
@@ -882,8 +882,8 @@ impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F> where
     }
 }
 
-/// An iterator adaptor that filters **Option\<A\>** iterator elements
-/// and produces **A**. Stops on the first **None** encountered.
+/// An iterator adaptor that filters `Option<A>` iterator elements
+/// and produces `A`. Stops on the first `None` encountered.
 ///
 /// See [*.while_some()*](trait.Itertools.html#method.while_some) for more information.
 #[derive(Clone)]
@@ -892,7 +892,7 @@ pub struct WhileSome<I> {
 }
 
 impl<I> WhileSome<I> {
-    /// Create a new **WhileSome\<I\>**.
+    /// Create a new `WhileSome<I>`.
     pub fn new(iter: I) -> Self {
         WhileSome { iter: iter }
     }
@@ -916,7 +916,7 @@ impl<I, A> Iterator for WhileSome<I> where
     }
 }
 
-/// An iterator to iterate through all the combinations of pairs in a **Clone**-able iterator.
+/// An iterator to iterate through all the combinations of pairs in a `Clone`-able iterator.
 ///
 /// See [*.combinations()*](trait.Itertools.html#method.combinations) for more information.
 #[derive(Clone)]
@@ -926,7 +926,7 @@ pub struct Combinations<I: Iterator> {
     val: Option<I::Item>,
 }
 impl<I> Combinations<I> where I: Iterator + Clone {
-    /// Create a new **Combinations** from a clonable iterator.
+    /// Create a new `Combinations` from a clonable iterator.
     pub fn new(iter: I) -> Combinations<I> {
         Combinations { 
             next_iter: iter.clone(), 
@@ -989,7 +989,7 @@ impl<I: Iterator, V, F> UniqueBy<I, V, F>
     where V: Eq + Hash,
           F: FnMut(&I::Item) -> V
 {
-    /// Create a new **UniqueBy** iterator.
+    /// Create a new `UniqueBy` iterator.
     pub fn new(iter: I, f: F) -> UniqueBy<I, V, F> {
         UniqueBy {
             iter: iter,

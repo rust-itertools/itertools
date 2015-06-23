@@ -4,11 +4,11 @@ use super::size_hint;
 #[derive(Clone)]
 /// An iterator that generalizes *.zip()* and allows running multiple iterators in lockstep.
 ///
-/// The iterator **Zip\<(I, J, ..., M)\>** is formed from a tuple of iterators (or values that
-/// implement **IntoIterator**) and yields elements
-/// until any of the subiterators yields **None**.
+/// The iterator `Zip<(I, J, ..., M)>` is formed from a tuple of iterators (or values that
+/// implement `IntoIterator`) and yields elements
+/// until any of the subiterators yields `None`.
 ///
-/// The iterator element type is a tuple like like **(A, B, ..., E)** where **A** to **E** are the
+/// The iterator element type is a tuple like like `(A, B, ..., E)` where `A` to `E` are the
 /// element types of the subiterator.
 ///
 /// ```
@@ -32,7 +32,7 @@ impl<T> Zip<T> where
     T: IntoIteratorTuple,
     Zip<T::Output>: Iterator
 {
-    /// Create a new **Zip** from a tuple of iterators.
+    /// Create a new `Zip` from a tuple of iterators.
     pub fn new(t: T) -> Zip<T::Output>
     {
         Zip{t: t.into_iterator_tuple()}

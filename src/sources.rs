@@ -26,7 +26,7 @@ pub struct RepeatCall<F> {
 
 impl<F> RepeatCall<F>
 {
-    /// Create a new **RepeatCall** from a closure.
+    /// Create a new `RepeatCall` from a closure.
     pub fn new<A>(func: F) -> Self where
         F: FnMut() -> A,
     {
@@ -59,10 +59,10 @@ impl<A, F> DoubleEndedIterator for RepeatCall<F> where
 }
 
 
-/// **Unfold** is a general iterator builder: it has a mutable state value,
+/// `Unfold` is a general iterator builder: it has a mutable state value,
 /// and a closure with access to the state that produces the next value.
 ///
-/// This more or less equivalent to a regular struct with an **Iterator**
+/// This more or less equivalent to a regular struct with an `Iterator`
 /// implementation, and is useful for one-off iterators.
 ///
 /// ```

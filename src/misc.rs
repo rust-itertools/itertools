@@ -11,10 +11,10 @@ use std::ops::{
 use std::mem;
 use std::slice;
 
-/// Apply **IntoIterator** on each element of a tuple.
+/// Apply `IntoIterator` on each element of a tuple.
 pub trait IntoIteratorTuple
 {
-    /// Tuple of values that implement **Iterator**.
+    /// Tuple of values that implement `Iterator`.
     type Output;
 
     /// Return a tuple of iterators.
@@ -26,7 +26,7 @@ pub trait IntoIteratorTuple
 pub trait AppendTuple<X> {
     /// Resulting tuple type
     type Result;
-    /// “Append” value **x** to a tuple.
+    /// “Append” value `x` to a tuple.
     fn append(self, x: X) -> Self::Result;
 }
 
@@ -66,7 +66,7 @@ pub struct FlatTuples<I> {
 
 impl<I> FlatTuples<I>
 {
-    /// Create a new **FlatTuples**.
+    /// Create a new `FlatTuples`.
     #[doc(hidden)]
     pub fn new(iter: I) -> Self
     {
@@ -101,7 +101,7 @@ impl<X, T, I> DoubleEndedIterator for FlatTuples<I> where
     }
 }
 
-/// **GenericRange** is implemented by Rust's built-in range types, produced
+/// `GenericRange` is implemented by Rust's built-in range types, produced
 /// by range syntax like `a..`, `..b` or `c..d`.
 pub trait GenericRange {
     #[doc(hidden)]

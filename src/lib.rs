@@ -8,15 +8,15 @@
 
 //! Itertools — extra iterator adaptors, functions and macros.
 //!
-//! To use the iterator methods in this crate, import the [**Itertools** trait](./trait.Itertools.html):
+//! To use the iterator methods in this crate, import the [`Itertools` trait](./trait.Itertools.html):
 //!
 //! ```ignore
 //! use itertools::Itertools;
 //! ```
 //!
 //! Some iterators or adaptors are used directly like regular structs, for example
-//! [**PutBack**](./struct.PutBack.html), [**Unfold**](./struct.Unfold.html),
-//! [**Zip**](./struct.Zip.html), [**Stride**](./struct.Stride.html)
+//! [`PutBack`](./struct.PutBack.html), [`Unfold`](./struct.Unfold.html),
+//! [`Zip`](./struct.Zip.html), [`Stride`](./struct.Stride.html)
 //!
 //! To enable the macros in this crate, use the `#[macro_use]` attribute:
 //!
@@ -101,17 +101,17 @@ mod ziptuple;
 #[cfg(feature = "unstable")]
 mod ziptrusted;
 
-/// The function pointer map iterator created with *.map_fn()*.
+/// The function pointer map iterator created with `.map_fn()`.
 pub type MapFn<I, B> where I: Iterator = iter::Map<I, fn(I::Item) -> B>;
 
-/// An ascending order merge iterator created with *.merge()*.
+/// An ascending order merge iterator created with `.merge()`.
 pub type MergeAscend<I, J> where I: Iterator = Merge<I, J, fn(&I::Item, &I::Item) -> Ordering>;
 
 #[macro_export]
 /// Create an iterator over the “cartesian product” of iterators.
 ///
-/// Iterator element type is like **(A, B, ..., E)** if formed
-/// from iterators **(I, J, ..., M)** with element types **I::Item = A**, **J::Item = B**, etc.
+/// Iterator element type is like `(A, B, ..., E)` if formed
+/// from iterators `(I, J, ..., M)` with element types `I::Item = A`, `J::Item = B`, etc.
 ///
 /// ```
 /// #[macro_use]
@@ -216,16 +216,16 @@ macro_rules! icompr {
     );
 }
 
-/// The trait **Itertools**: extra iterator adaptors and methods for iterators.
+/// The trait `Itertools`: extra iterator adaptors and methods for iterators.
 ///
 /// This trait defines a number of methods. They are divided into two groups:
 ///
 /// * *Adaptors* take an interator and parameter as input, and return
 /// a new iterator value. These are listed first in the trait. An example
-/// of an adaptor is [*.interleave()*](#method.interleave)
+/// of an adaptor is [`.interleave()`](#method.interleave)
 ///
 /// * *Regular methods* are those that don't return iterators and instead
-/// return a regular value of some other kind. [*.find_position()*](#method.find_position)
+/// return a regular value of some other kind. [`.find_position()`](#method.find_position)
 /// is an example and the first regular method in the list.
 pub trait Itertools : Iterator {
     // adaptors
@@ -233,7 +233,7 @@ pub trait Itertools : Iterator {
     /// Alternate elements from two iterators until both
     /// run out.
     ///
-    /// Iterator element type is **Self::Item**.
+    /// Iterator element type is `Self::Item`.
     ///
     /// This iterator is *fused*.
     ///
@@ -252,7 +252,7 @@ pub trait Itertools : Iterator {
 
     /// Alternate elements from two iterators until one of them runs out.
     ///
-    /// Iterator element type is **Self::Item**.
+    /// Iterator element type is `Self::Item`.
     ///
     /// This iterator is *fused*.
     ///
@@ -272,7 +272,7 @@ pub trait Itertools : Iterator {
     /// An iterator adaptor to insert a particular value
     /// between each element of the adapted iterator.
     ///
-    /// Iterator element type is **Self::Item**.
+    /// Iterator element type is `Self::Item`.
     ///
     /// This iterator is *fused*.
     ///
@@ -293,11 +293,11 @@ pub trait Itertools : Iterator {
     ///
     /// This iterator is *fused*.
     ///
-    /// When both iterators return **None**, all further invocations of *.next()* 
-    /// will return **None**.
+    /// When both iterators return `None`, all further invocations of `.next()` 
+    /// will return `None`.
     ///
     /// Iterator element type is 
-    /// [**EitherOrBoth\<Self::Item, J::Item\>**](enum.EitherOrBoth.html).
+    /// [`EitherOrBoth<Self::Item, J::Item>`](enum.EitherOrBoth.html).
     ///
     /// ```rust
     /// use itertools::EitherOrBoth::{Both, Right};
@@ -316,7 +316,7 @@ pub trait Itertools : Iterator {
     /// A “meta iterator adaptor”. Its closure recives a reference to the iterator
     /// and may pick off as many elements as it likes, to produce the next iterator element.
     ///
-    /// Iterator element type is **B**.
+    /// Iterator element type is `B`.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -343,9 +343,9 @@ pub trait Itertools : Iterator {
     }
 
     /// Group iterator elements. Consecutive elements that map to the same key (“runs”),
-    /// are returned as the iterator elements of **GroupBy**.
+    /// are returned as the iterator elements of `GroupBy`.
     ///
-    /// Iterator element type is **(K, Vec\<Self::Item\>)**
+    /// Iterator element type is `(K, Vec<Self::Item>)`
     ///
     /// ```
     /// use itertools::Itertools;
@@ -369,7 +369,7 @@ pub trait Itertools : Iterator {
     /// **Note:** If the iterator is clonable, prefer using that instead
     /// of using this method. It is likely to be more efficient.
     ///
-    /// Iterator element type is **Self::Item**.
+    /// Iterator element type is `Self::Item`.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -396,7 +396,7 @@ pub trait Itertools : Iterator {
     /// **Note:** slicing an iterator is not constant time, and much less efficient than
     /// slicing for example a vector.
     ///
-    /// Iterator element type is **Self::Item**.
+    /// Iterator element type is `Self::Item`.
     ///
     /// ```
     /// use std::iter::repeat;
@@ -412,16 +412,16 @@ pub trait Itertools : Iterator {
         ISlice::new(self, range)
     }
 
-    /// Return an iterator inside a **Rc\<RefCell\<_\>\>** wrapper.
+    /// Return an iterator inside a `Rc<RefCell<_>>` wrapper.
     ///
-    /// The returned **RcIter** can be cloned, and each clone will refer back to the
+    /// The returned `RcIter` can be cloned, and each clone will refer back to the
     /// same original iterator.
     ///
-    /// **RcIter** allows doing interesting things like using **.zip()** on an iterator with
+    /// `RcIter` allows doing interesting things like using `.zip()` on an iterator with
     /// itself, at the cost of runtime borrow checking.
     /// (If it is not obvious: this has a performance penalty.)
     ///
-    /// Iterator element type is **Self::Item**.
+    /// Iterator element type is `Self::Item`.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -437,7 +437,7 @@ pub trait Itertools : Iterator {
     /// ```
     ///
     /// **Panics** in iterator methods if a borrow error is encountered,
-    /// but it can only happen if the RcIter is reentered in for example **.next()**,
+    /// but it can only happen if the `RcIter` is reentered in for example `.next()`,
     /// i.e. if it somehow participates in an “iterator knot” where it is an adaptor of itself.
     fn into_rc(self) -> RcIter<Self> where
         Self: Sized,
@@ -445,13 +445,13 @@ pub trait Itertools : Iterator {
         RcIter::new(self)
     }
 
-    /// Return an iterator adaptor that steps **n** elements in the base iterator
+    /// Return an iterator adaptor that steps `n` elements in the base iterator
     /// for each iteration.
     ///
     /// The iterator steps by yielding the next element from the base iterator,
-    /// then skipping forward **n - 1** elements.
+    /// then skipping forward `n - 1` elements.
     ///
-    /// Iterator element type is **Self::Item**.
+    /// Iterator element type is `Self::Item`.
     ///
     /// **Panics** if the step is 0.
     ///
@@ -470,7 +470,7 @@ pub trait Itertools : Iterator {
     /// Return an iterator adaptor that merges the two base iterators in ascending order.
     /// If both base iterators are sorted (ascending), the result is sorted.
     ///
-    /// Iterator element type is **Self::Item**.
+    /// Iterator element type is `Self::Item`.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -492,11 +492,11 @@ pub trait Itertools : Iterator {
     }
 
     /// Return an iterator adaptor that merges the two base iterators in order.
-    /// This is much like *.merge()* but allows for a custom ordering.
+    /// This is much like `.merge()` but allows for a custom ordering.
     ///
     /// This can be especially useful for sequences of tuples.
     ///
-    /// Iterator element type is **Self::Item**.
+    /// Iterator element type is `Self::Item`.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -516,9 +516,9 @@ pub trait Itertools : Iterator {
     }
 
     /// Return an iterator adaptor that iterates over the cartesian product of
-    /// the element sets of two iterators **self** and **J**.
+    /// the element sets of two iterators `self` and `J`.
     ///
-    /// Iterator element type is **(Self::Item, J::Item)**.
+    /// Iterator element type is `(Self::Item, J::Item)`.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -536,9 +536,9 @@ pub trait Itertools : Iterator {
     }
 
     /// Return an iterator adaptor that enumerates the iterator elements,
-    /// starting from **start** and incrementing by one.
+    /// starting from `start` and incrementing by one.
     ///
-    /// Iterator element type is **(K, Self::Item)**.
+    /// Iterator element type is `(K, Self::Item)`.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -557,7 +557,7 @@ pub trait Itertools : Iterator {
 
     /// Return an iterator adapter that allows peeking multiple values.
     ///
-    /// After a call to *.next()* the peeking cursor is reset.
+    /// After a call to `.next()` the peeking cursor is reset.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -581,10 +581,10 @@ pub trait Itertools : Iterator {
     /// is passed the latest two elements, `x`, `y` and may return either `Ok(z)`
     /// to merge the two values or `Err((x, y))` to indicate they can't be merged.
     ///
-    /// *.dedup()* and *.mend_slices()* are specializations of the coalesce
+    /// `.dedup()` and `.mend_slices()` are specializations of the coalesce
     /// adaptor.
     ///
-    /// Iterator element type is **Self::Item**.
+    /// Iterator element type is `Self::Item`.
     ///
     /// This iterator is *fused*.
     ///
@@ -611,7 +611,7 @@ pub trait Itertools : Iterator {
     /// Remove duplicates from sections of consecutive identical elements.
     /// If the iterator is sorted, all elements will be unique.
     ///
-    /// Iterator element type is **Self::Item**.
+    /// Iterator element type is `Self::Item`.
     ///
     /// This iterator is *fused*.
     ///
@@ -658,7 +658,7 @@ pub trait Itertools : Iterator {
     /// already been produced once during the iteration.
     ///
     /// Duplicates are detected by comparing the key they map to
-    /// with the keying function **f** by hash and equality.
+    /// with the keying function `f` by hash and equality.
     /// The keys are stored in a hash set in the iterator.
     ///
     /// ```
@@ -701,11 +701,11 @@ pub trait Itertools : Iterator {
         Coalesce::new(self, misc::MendSlice::mend)
     }
 
-    /// Return an iterator adaptor that borrows from a **Clone**-able iterator
-    /// to only pick off elements while the predicate **f** returns **true**.
+    /// Return an iterator adaptor that borrows from a `Clone`-able iterator
+    /// to only pick off elements while the predicate `f` returns `true`.
     ///
-    /// It uses the **Clone** trait to restore the original iterator so that the last
-    /// and rejected element is still available when **TakeWhileRef** is done.
+    /// It uses the `Clone` trait to restore the original iterator so that the last
+    /// and rejected element is still available when `TakeWhileRef` is done.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -725,10 +725,10 @@ pub trait Itertools : Iterator {
         TakeWhileRef::new(self, f)
     }
 
-    /// Return an iterator adaptor that filters **Option\<A\>** iterator elements
-    /// and produces **A**. Stops on the first **None** encountered.
+    /// Return an iterator adaptor that filters `Option<A>` iterator elements
+    /// and produces `A`. Stops on the first `None` encountered.
     ///
-    /// Iterator element type is **A**, the unwrapped element.
+    /// Iterator element type is `A`, the unwrapped element.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -748,7 +748,7 @@ pub trait Itertools : Iterator {
     /// Return an iterator adaptor that iterates over the combinations of
     /// the elements from an iterator.
     ///
-    /// Iterator element type is **(Self::Item, Self::Item)**.
+    /// Iterator element type is `(Self::Item, Self::Item)`.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -763,9 +763,9 @@ pub trait Itertools : Iterator {
     }
 
     /// Return an iterator adaptor that pads the sequence to a minimum length of
-    /// **min** by filling missing elements using a closure **f**.
+    /// `min` by filling missing elements using a closure `f`.
     ///
-    /// Iterator element type is **Self::Item**.
+    /// Iterator element type is `Self::Item`.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -786,10 +786,10 @@ pub trait Itertools : Iterator {
         PadUsing::new(self, min, f)
     }
 
-    /// Like regular *.map()*, specialized to using a simple function pointer instead,
-    /// so that the resulting **Map** iterator value can be cloned.
+    /// Like regular `.map()`, specialized to using a simple function pointer instead,
+    /// so that the resulting `Map` iterator value can be cloned.
     ///
-    /// Iterator element type is **B**.
+    /// Iterator element type is `B`.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -808,7 +808,7 @@ pub trait Itertools : Iterator {
         self.map(f)
     }
 
-    /// **Deprecated:** Use *.map_fn()* instead.
+    /// **Deprecated:** Use `.map_fn()` instead.
     fn fn_map<B>(self, map: fn(Self::Item) -> B) -> FnMap<B, Self> where
         Self: Sized
     {
@@ -842,7 +842,7 @@ pub trait Itertools : Iterator {
         None
     }
 
-    /// Consume the first **n** elements of the iterator eagerly.
+    /// Consume the first `n` elements of the iterator eagerly.
     ///
     /// Return actual number of elements consumed, until done or reaching the end.
     ///
@@ -867,10 +867,10 @@ pub trait Itertools : Iterator {
         start - n
     }
 
-    /// Consume the first **n** elements from the iterator eagerly,
+    /// Consume the first `n` elements from the iterator eagerly,
     /// and return the same iterator again.
     ///
-    /// It works similarly to **.skip(n)** except it is eager and
+    /// It works similarly to *.skip(* `n` *)* except it is eager and
     /// preserves the iterator type.
     ///
     /// ```
@@ -886,10 +886,10 @@ pub trait Itertools : Iterator {
         self
     }
 
-    /// Consume the last **n** elements from the iterator eagerly,
+    /// Consume the last `n` elements from the iterator eagerly,
     /// and return the same iterator again.
     ///
-    /// This is only possible on double ended iterators. **n** may be
+    /// This is only possible on double ended iterators. `n` may be
     /// larger than the number of elements.
     ///
     /// Note: This method is eager, dropping the back elements immediately and
@@ -909,7 +909,7 @@ pub trait Itertools : Iterator {
         self
     }
 
-    /// Run the closure **f** eagerly on each element of the iterator.
+    /// Run the closure `f` eagerly on each element of the iterator.
     ///
     /// Consumes the iterator until its end.
     ///
@@ -932,7 +932,7 @@ pub trait Itertools : Iterator {
         for elt in self { f(elt) }
     }
 
-    /// **.collect_vec()** is simply a type specialization of **.collect()**,
+    /// `.collect_vec()` is simply a type specialization of `.collect()`,
     /// for convenience.
     fn collect_vec(self) -> Vec<Self::Item> where
         Self: Sized,
@@ -940,10 +940,10 @@ pub trait Itertools : Iterator {
         self.collect()
     }
 
-    /// Assign to each reference in **self** from the **from** iterator,
+    /// Assign to each reference in `self` from the `from` iterator,
     /// stopping at the shortest of the two iterators.
     ///
-    /// The **from** iterator is queried for its next element before the **self**
+    /// The `from` iterator is queried for its next element before the `self`
     /// iterator, and if either is exhausted the method is done.
     ///
     /// Return the number of elements written.
@@ -971,9 +971,9 @@ pub trait Itertools : Iterator {
         count
     }
 
-    /// Combine all iterator elements into one String, seperated by **sep**.
+    /// Combine all iterator elements into one String, seperated by `sep`.
     ///
-    /// Use the **Display** implementation of each element.
+    /// Use the `Display` implementation of each element.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -1000,16 +1000,16 @@ pub trait Itertools : Iterator {
         }
     }
 
-    /// Fold **Result** values from an iterator.
+    /// Fold `Result` values from an iterator.
     ///
-    /// Only **Ok** values are folded. If no error is encountered, the folded
-    /// value is returned inside **Ok**. Otherwise, the operation terminates
-    /// and returns the first **Err** value it encounters. No iterator elements are
+    /// Only `Ok` values are folded. If no error is encountered, the folded
+    /// value is returned inside `Ok`. Otherwise, the operation terminates
+    /// and returns the first `Err` value it encounters. No iterator elements are
     /// consumed after the first error.
     ///
-    /// The first accumulator value is the **start** parameter.
-    /// Each iteration passes the accumulator value and the next value inside **Ok**
-    /// to the fold function **f** and its return value becomes the new accumulator value.
+    /// The first accumulator value is the `start` parameter.
+    /// Each iteration passes the accumulator value and the next value inside `Ok`
+    /// to the fold function `f` and its return value becomes the new accumulator value.
     ///
     /// For example the sequence *Ok(1), Ok(2), Ok(3)* will result in a
     /// computation like this:
@@ -1021,7 +1021,7 @@ pub trait Itertools : Iterator {
     /// accum = f(accum, 3);
     /// ```
     ///
-    /// With a **start** value of 0 and an addition as folding function,
+    /// With a `start` value of 0 and an addition as folding function,
     /// this effetively results in *((0 + 1) + 2) + 3*
     ///
     /// ```
@@ -1057,9 +1057,9 @@ pub trait Itertools : Iterator {
 
     /// Accumulator of the elements in the iterator.
     ///
-    /// Like *.fold()*, without a base case. If the iterator is
-    /// empty, return **None**. With just one element, return it.
-    /// Otherwise elements are accumulated in sequence using the closure **f**.
+    /// Like `.fold()`, without a base case. If the iterator is
+    /// empty, return `None`. With just one element, return it.
+    /// Otherwise elements are accumulated in sequence using the closure `f`.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -1082,7 +1082,7 @@ pub trait Itertools : Iterator {
     }
 
     /// Tell if the iterator is empty or not according to its size hint.
-    /// Return **None** if the size hint does not tell, or return a **Some**
+    /// Return `None` if the size hint does not tell, or return a `Some`
     /// value with the emptiness if it's possible to tell.
     ///
     /// ```
@@ -1112,7 +1112,7 @@ pub trait Itertools : Iterator {
     /// Sort iterator elements.
     ///
     /// **Note:** This consumes the entire iterator, uses the
-    /// **slice::sort_by()** function and returns the sorted vector.
+    /// `slice::sort_by()` method and returns the sorted vector.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -1143,9 +1143,9 @@ pub trait Itertools : Iterator {
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }
 
-/// Return **true** if both iterators produce equal sequences
+/// Return `true` if both iterators produce equal sequences
 /// (elements pairwise equal and sequences of the same length),
-/// **false** otherwise.
+/// `false` otherwise.
 ///
 /// ```
 /// assert!(itertools::equal(vec![1, 2, 3], 1..4));
@@ -1202,8 +1202,8 @@ pub fn assert_equal<I, J>(a: I, b: J)
     }
 }
 
-/// Partition a sequence using predicate **pred** so that elements
-/// that map to **true** are placed before elements which map to **false**.
+/// Partition a sequence using predicate `pred` so that elements
+/// that map to `true` are placed before elements which map to `false`.
 ///
 /// The order within the partitions is arbitrary.
 ///

@@ -5,7 +5,7 @@ use super::size_hint;
 /// An iterator adaptor to insert a particular value
 /// between each element of the adapted iterator.
 ///
-/// Iterator element type is **I::Item**
+/// Iterator element type is `I::Item`
 ///
 /// This iterator is *fused*.
 ///

@@ -3,7 +3,7 @@ use std::iter::IntoIterator;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-/// A wrapper for **Rc\<RefCell\<I\>\>**, that implements the **Iterator** trait.
+/// A wrapper for `Rc<RefCell<I>>`, that implements the `Iterator` trait.
 ///
 /// See [*.into_rc()*](trait.Itertools.html#method.into_rc) for more information.
 pub struct RcIter<I> {
@@ -57,7 +57,7 @@ impl<I> DoubleEndedIterator for RcIter<I> where
         self.rciter.borrow_mut().next_back()
     }
 }
-/// Return an iterator from **&RcIter\<I\>** (by simply cloning it).
+/// Return an iterator from `&RcIter<I>` (by simply cloning it).
 impl<'a, I> IntoIterator for &'a RcIter<I> where
     I: Iterator,
 {
