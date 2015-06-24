@@ -1,6 +1,7 @@
 use Itertools;
-use std::mem;
+use std::cmp;
 use std::cell::{Cell, RefCell};
+use std::mem;
 use std::vec;
 
 struct GroupInner<K, I, F>
@@ -52,9 +53,12 @@ impl<K, I, F> GroupInner<K, I, F>
         } else if client < self.top ||
             (client == self.top && self.buffer.len() > self.top - self.bot)
         {
+            // if `bufidx` doesn't exist in self.buffer, it might be empty
             let bufidx = client - self.bot;
-            let elt = self.buffer[bufidx].next();
+            let elt = self.buffer.get_mut(bufidx).and_then(|queue| queue.next());
             if elt.is_none() {
+                // FIXME: Use a smarter way to reuse the vector space
+                // VecDeque is unfortunately not zero allocation when empty.
                 while self.buffer.len() > 0 && self.buffer[0].len() == 0 {
                     self.buffer.remove(0);
                     self.bot += 1;
@@ -137,6 +141,42 @@ impl<K, I, F> GroupInner<K, I, F>
             }
         }
     }
+
+    /// Request the just started groups' key.
+    ///
+    /// `client`: Index of group
+    ///
+    /// **Panics** if no group key is available.
+    fn group_key(&mut self, client: usize) -> K {
+        // This can only be called after we have just returned the first
+        // element of a group.
+        // Perform this by simply buffering one more element, grabbing the
+        // next key.
+        debug_assert!(!self.done);
+        debug_assert!(client == self.top);
+        debug_assert!(self.current_key.is_some());
+        debug_assert!(self.current_elt.is_none());
+        match self.iter.next() {
+            None => {
+                self.done = true;
+                self.current_key.take().unwrap()
+            }
+            Some(elt) => {
+                let key = (self.key)(&elt);
+                match self.current_key.take() {
+                    None => unreachable!(),
+                    Some(old_key) => {
+                        if old_key != key {
+                            self.top += 1;
+                        }
+                        self.current_key = Some(key);
+                        self.current_elt = Some(elt);
+                        old_key
+                    }
+                }
+            }
+        }
+    }
 }
 
 impl<K, I, F> GroupInner<K, I, F>
@@ -144,7 +184,9 @@ impl<K, I, F> GroupInner<K, I, F>
 {
     /// Called when a group is dropped
     fn drop_group(&mut self, client: usize) {
-        self.dropped_group = Some(client);
+        // It's only useful to track the highest index
+        self.dropped_group = Some(cmp::max(client,
+                                           self.dropped_group.unwrap_or(0)));
     }
 }
 
@@ -202,6 +244,14 @@ impl<K, I, F> GroupByLazy<K, I, F>
         self.inner.borrow_mut().step(client)
     }
 
+    /// `client`: Index of group that requests next element
+    fn group_key(&self, client: usize) -> K
+        where F: FnMut(&I::Item) -> K,
+              K: PartialEq,
+    {
+        self.inner.borrow_mut().group_key(client)
+    }
+
     /// `client`: Index of group
     fn drop_group(&self, client: usize) {
         self.inner.borrow_mut().drop_group(client)
@@ -214,7 +264,7 @@ impl<'a, K, I, F> IntoIterator for &'a GroupByLazy<K, I, F>
           F: FnMut(&I::Item) -> K,
           K: PartialEq,
 {
-    type Item = Group<'a, K, I, F>;
+    type Item = (K, Group<'a, K, I, F>);
     type IntoIter = Groups<'a, K, I, F>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -227,7 +277,8 @@ impl<'a, K, I, F> IntoIterator for &'a GroupByLazy<K, I, F>
 
 /// An iterator that yields the Group iterators.
 ///
-/// Iterator element type is `Group<'a, K, I, F>`, another iterator.
+/// Iterator element type is `(K, Group)`:
+/// the group's key `K` and the group's iterator.
 pub struct Groups<'a, K: 'a, I: 'a, F: 'a>
     where I: Iterator,
           I::Item: 'a,
@@ -241,18 +292,19 @@ impl<'a, K, I, F> Iterator for Groups<'a, K, I, F>
           F: FnMut(&I::Item) -> K,
           K: PartialEq,
 {
-    type Item = Group<'a, K, I, F>;
+    type Item = (K, Group<'a, K, I, F>);
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         let index = self.parent.index.get();
         self.parent.index.set(index + 1);
         self.parent.step(index).map(|elt| {
-            Group {
+            let key = self.parent.group_key(index);
+            (key, Group {
                 parent: self.parent,
                 index: index,
                 first: Some(elt),
-            }
+            })
         })
     }
 }

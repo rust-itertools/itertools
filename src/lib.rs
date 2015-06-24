@@ -385,7 +385,8 @@ pub trait Itertools : Iterator {
     /// value. It should stored in a local variable or temporary and
     /// iterated.
     ///
-    /// Iterator element type is `Group` (an iterator).
+    /// Iterator element type is `(K, Group)`: the group's key and the
+    /// group iterator.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -395,7 +396,7 @@ pub trait Itertools : Iterator {
     ///
     /// // Note: The `&` is significant here, `GroupByLazy` is iterable
     /// // only by reference. You can also call `.into_iter()` explicitly.
-    /// for group in &data.into_iter().group_by_lazy(|elt| *elt >= 0) {
+    /// for (key, group) in &data.into_iter().group_by_lazy(|elt| *elt >= 0) {
     ///     // Check that the sum of each group is +/- 4.
     ///     assert_eq!(4, group.fold(0_i32, |a, b| a + b).abs());
     /// }

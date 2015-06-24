@@ -78,17 +78,14 @@ fn main() {
     let mut symbolmap = HashMap::new();
 
     // using Itertools::group_by_lazy
-    for species_group in &irises.iter().group_by_lazy(|iris| &iris.name) {
-        for (index, iris) in species_group.enumerate() {
-            if index == 0 {
-                // assign a plot symbol
-                let species = &iris.name;
-                symbolmap.entry(species).or_insert_with(|| {
-                    plot_symbols.next().unwrap()
-                });
-                println!("{} (symbol={})", species, symbolmap[species]);
-            }
+    for (species, species_group) in &irises.iter().group_by_lazy(|iris| &iris.name) {
+        // assign a plot symbol
+        symbolmap.entry(species).or_insert_with(|| {
+            plot_symbols.next().unwrap()
+        });
+        println!("{} (symbol={})", species, symbolmap[species]);
 
+        for iris in species_group {
             // using Itertools::format for lazy formatting
             println!("{}",
                      iris.data.iter()

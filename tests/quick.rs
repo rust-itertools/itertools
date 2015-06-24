@@ -473,10 +473,25 @@ fn size_unique(it: Iter<i8>) -> bool {
 }
 
 #[quickcheck]
-fn fuzz_group_by_lazy(it: Iter<u8>) -> bool {
+fn fuzz_group_by_lazy_1(it: Iter<u8>) -> bool {
     let jt = it.clone();
     let groups = it.group_by_lazy(|k| *k);
-    let res = itertools::equal(jt, groups.into_iter().flat_map(|x| x));
+    let res = itertools::equal(jt, groups.into_iter().flat_map(|(_, x)| x));
+    res
+}
+
+#[quickcheck]
+fn fuzz_group_by_lazy_2(data: Vec<u8>) -> bool {
+    let groups = data.iter().group_by_lazy(|k| *k / 10);
+    let res = itertools::equal(data.iter(), groups.into_iter().flat_map(|(_, x)| x));
+    res
+}
+
+#[quickcheck]
+fn fuzz_group_by_lazy_3(data: Vec<u8>) -> bool {
+    let grouper = data.iter().group_by_lazy(|k| *k / 10);
+    let groups = grouper.into_iter().collect_vec();
+    let res = itertools::equal(data.iter(), groups.into_iter().flat_map(|(_, x)| x));
     res
 }
 
