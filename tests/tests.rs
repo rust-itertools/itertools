@@ -632,54 +632,48 @@ fn while_some() {
 
 #[test]
 fn group_by_lazy() {
-    for sub in &"AABBCCC".chars().group_by_lazy(|&x| x) {
-        for ch in sub {
-            println!("{}", ch);
+    for (ch1, sub) in &"AABBCCC".chars().group_by_lazy(|&x| x) {
+        for ch2 in sub {
+            assert_eq!(ch1, ch2);
         }
     }
 
-    println!("take two");
-
-    for (i, sub) in (&"AAABBBCCCCDDDD".chars().group_by_lazy(|&x| x)).into_iter().enumerate() {
-        for ch in sub {
-            println!("{}", ch);
-            if i % 2 == 0 {
+    for (ch1, sub) in &"AAABBBCCCCDDDD".chars().group_by_lazy(|&x| x) {
+        for ch2 in sub {
+            assert_eq!(ch1, ch2);
+            if ch1 == 'C' {
                 break;
             }
         }
     }
 
-    let groups = "AAABBBCCCCDDDD".chars().group_by_lazy(|&x| x);
-    let mut subs = Vec::new();
-    for sub in &groups {
-        subs.push(sub);
-    }
-    //subs.pop();
-    it::assert_equal(subs.pop().unwrap(), "DDDD".chars());
-    it::assert_equal(subs.pop().unwrap(), "CCCC".chars());
-    it::assert_equal(subs.pop().unwrap(), "BBB".chars());
-    it::assert_equal(subs.pop().unwrap(), "AAA".chars());
+    let toupper = |ch: &char| ch.to_uppercase().nth(0).unwrap();
 
-    let groups = "AaaBbbccCcDDDD".chars().group_by_lazy(|x| x.to_uppercase().nth(0).unwrap());
-    let mut subs = Vec::new();
-    for sub in &groups {
-        subs.push(sub);
-    }
+    // next up: iterator for permutations...
+    for indices in &[[0, 1, 2, 3],
+                     [1, 0, 3, 2],
+                     [3, 0, 2, 1],
+                     [1, 2, 3, 0]]
+    {
+        let groups = "AaaBbbccCcDDDD".chars().group_by_lazy(&toupper);
+        let mut subs = groups.into_iter().collect_vec();
 
-    for (i, sub) in subs.into_iter().enumerate() {
-        match i {
-            0 => it::assert_equal(sub, "Aaa".chars()),
-            1 => it::assert_equal(sub, "Bbb".chars()),
-            2 => it::assert_equal(sub, "ccCc".chars()),
-            _ => it::assert_equal(sub, "DDDD".chars()),
+        for &idx in indices { 
+            let (key, text) = match idx {
+                 0 => ('A', "Aaa".chars()),
+                 1 => ('B', "Bbb".chars()),
+                 2 => ('C', "ccCc".chars()),
+                 3 => ('D', "DDDD".chars()),
+                 _ => unreachable!(),
+            };
+            assert_eq!(key, subs[idx].0);
+            it::assert_equal(&mut subs[idx].1, text);
         }
     }
 
     let groups = "AAABBBCCCCDDDD".chars().group_by_lazy(|&x| x);
-    let mut subs = Vec::new();
-    for sub in &groups {
-        subs.push(sub);
-    }
+    let mut subs = groups.into_iter().map(|(_, g)| g).collect_vec();
+
     let sd = subs.pop().unwrap();
     let sc = subs.pop().unwrap();
     let sb = subs.pop().unwrap();
@@ -691,23 +685,11 @@ fn group_by_lazy() {
         assert_eq!(d, 'D');
     }
 
-    let groups = "AaaBbbccCcDDDD".chars().group_by_lazy(|x| x.to_uppercase().nth(0).unwrap());
-    let mut it = groups.into_iter();
-    let a = it.next().unwrap();
-    let b = it.next().unwrap();
-    it::assert_equal(a, "Aaa".chars());
-    it::assert_equal(b, "Bbb".chars());
-    let c = it.next().unwrap();
-    let d = it.next().unwrap();
-    it::assert_equal(d, "DDDD".chars());
-    it::assert_equal(c, "ccCc".chars());
-    assert!(it.next().is_none());
-
-    // check that the closure is called exactly n times
+    // check that the key closure is called exactly n times
     {
         let mut ntimes = 0;
         let text = "AABCCC";
-        for sub in &text.chars().group_by_lazy(|&x| { ntimes += 1; x}) {
+        for (_, sub) in &text.chars().group_by_lazy(|&x| { ntimes += 1; x}) {
             for _ in sub {
             }
         }
@@ -723,10 +705,9 @@ fn group_by_lazy() {
     }
 
     {
-        let text = "AABCCC";
+        let text = "ABCCCDEEFGHIJJKK";
         let gr = text.chars().group_by_lazy(|&x| x);
-        it::assert_equal(gr.into_iter().flat_map(|sub| sub),
-                         text.chars());
+        it::assert_equal(gr.into_iter().flat_map(|(_, sub)| sub), text.chars());
     }
 }
 
@@ -735,18 +716,18 @@ fn group_by_lazy_2() {
     let data = vec![0, 1];
     let groups = data.iter().group_by_lazy(|k| *k);
     let gs = groups.into_iter().collect_vec();
-    it::assert_equal(data.iter(), gs.into_iter().flat_map(|g| g));
+    it::assert_equal(data.iter(), gs.into_iter().flat_map(|(_k, g)| g));
 
     let data = vec![0, 1, 1, 0, 0];
     let groups = data.iter().group_by_lazy(|k| *k);
     let mut gs = groups.into_iter().collect_vec();
     gs[1..].reverse();
-    it::assert_equal(&[0, 0, 0, 1, 1], gs.into_iter().flat_map(|g| g));
+    it::assert_equal(&[0, 0, 0, 1, 1], gs.into_iter().flat_map(|(_, g)| g));
 
     let grouper = data.iter().group_by_lazy(|k| *k);
     let mut groups = Vec::new();
-    for (i, group) in grouper.into_iter().enumerate() {
-        if i == 1 {
+    for (k, group) in &grouper {
+        if *k == 1 {
             groups.push(group);
         }
     }
@@ -755,7 +736,7 @@ fn group_by_lazy_2() {
     let data = vec![0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
     let grouper = data.iter().group_by_lazy(|k| *k);
     let mut groups = Vec::new();
-    for (i, group) in grouper.into_iter().enumerate() {
+    for (i, (_, group)) in grouper.into_iter().enumerate() {
         if i < 2 {
             groups.push(group);
         } else if i < 4 {
@@ -768,4 +749,18 @@ fn group_by_lazy_2() {
     it::assert_equal(&mut groups[0], &[0, 0, 0]);
     it::assert_equal(&mut groups[1], &[1, 1]);
     it::assert_equal(&mut groups[2], &[3, 3]);
+
+    // use groups as chunks
+    let data = vec![0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
+    let mut i = 0;
+    let grouper = data.iter().group_by_lazy(move |_| { let k = i / 3; i += 1; k });
+    for (i, group) in &grouper {
+        match i {
+            0 => it::assert_equal(group, &[0, 0, 0]),
+            1 => it::assert_equal(group, &[1, 1, 0]),
+            2 => it::assert_equal(group, &[0, 2, 2]),
+            3 => it::assert_equal(group, &[3, 3]),
+            _ => unreachable!(),
+        }
+    }
 }
