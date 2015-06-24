@@ -629,3 +629,143 @@ fn while_some() {
                     .while_some();
     it::assert_equal(ns, vec![1, 2, 3, 4]);
 }
+
+#[test]
+fn group_by_lazy() {
+    for sub in &"AABBCCC".chars().group_by_lazy(|&x| x) {
+        for ch in sub {
+            println!("{}", ch);
+        }
+    }
+
+    println!("take two");
+
+    for (i, sub) in (&"AAABBBCCCCDDDD".chars().group_by_lazy(|&x| x)).into_iter().enumerate() {
+        for ch in sub {
+            println!("{}", ch);
+            if i % 2 == 0 {
+                break;
+            }
+        }
+    }
+
+    let groups = "AAABBBCCCCDDDD".chars().group_by_lazy(|&x| x);
+    let mut subs = Vec::new();
+    for sub in &groups {
+        subs.push(sub);
+    }
+    //subs.pop();
+    it::assert_equal(subs.pop().unwrap(), "DDDD".chars());
+    it::assert_equal(subs.pop().unwrap(), "CCCC".chars());
+    it::assert_equal(subs.pop().unwrap(), "BBB".chars());
+    it::assert_equal(subs.pop().unwrap(), "AAA".chars());
+
+    let groups = "AaaBbbccCcDDDD".chars().group_by_lazy(|x| x.to_uppercase().nth(0).unwrap());
+    let mut subs = Vec::new();
+    for sub in &groups {
+        subs.push(sub);
+    }
+
+    for (i, sub) in subs.into_iter().enumerate() {
+        match i {
+            0 => it::assert_equal(sub, "Aaa".chars()),
+            1 => it::assert_equal(sub, "Bbb".chars()),
+            2 => it::assert_equal(sub, "ccCc".chars()),
+            _ => it::assert_equal(sub, "DDDD".chars()),
+        }
+    }
+
+    let groups = "AAABBBCCCCDDDD".chars().group_by_lazy(|&x| x);
+    let mut subs = Vec::new();
+    for sub in &groups {
+        subs.push(sub);
+    }
+    let sd = subs.pop().unwrap();
+    let sc = subs.pop().unwrap();
+    let sb = subs.pop().unwrap();
+    let sa = subs.pop().unwrap();
+    for (a, b, c, d) in Zip::new((sa, sb, sc, sd)) {
+        assert_eq!(a, 'A');
+        assert_eq!(b, 'B');
+        assert_eq!(c, 'C');
+        assert_eq!(d, 'D');
+    }
+
+    let groups = "AaaBbbccCcDDDD".chars().group_by_lazy(|x| x.to_uppercase().nth(0).unwrap());
+    let mut it = groups.into_iter();
+    let a = it.next().unwrap();
+    let b = it.next().unwrap();
+    it::assert_equal(a, "Aaa".chars());
+    it::assert_equal(b, "Bbb".chars());
+    let c = it.next().unwrap();
+    let d = it.next().unwrap();
+    it::assert_equal(d, "DDDD".chars());
+    it::assert_equal(c, "ccCc".chars());
+    assert!(it.next().is_none());
+
+    // check that the closure is called exactly n times
+    {
+        let mut ntimes = 0;
+        let text = "AABCCC";
+        for sub in &text.chars().group_by_lazy(|&x| { ntimes += 1; x}) {
+            for _ in sub {
+            }
+        }
+        assert_eq!(ntimes, text.len());
+    }
+
+    {
+        let mut ntimes = 0;
+        let text = "AABCCC";
+        for _ in &text.chars().group_by_lazy(|&x| { ntimes += 1; x}) {
+        }
+        assert_eq!(ntimes, text.len());
+    }
+
+    {
+        let text = "AABCCC";
+        let gr = text.chars().group_by_lazy(|&x| x);
+        it::assert_equal(gr.into_iter().flat_map(|sub| sub),
+                         text.chars());
+    }
+}
+
+#[test]
+fn group_by_lazy_2() {
+    let data = vec![0, 1];
+    let groups = data.iter().group_by_lazy(|k| *k);
+    let gs = groups.into_iter().collect_vec();
+    it::assert_equal(data.iter(), gs.into_iter().flat_map(|g| g));
+
+    let data = vec![0, 1, 1, 0, 0];
+    let groups = data.iter().group_by_lazy(|k| *k);
+    let mut gs = groups.into_iter().collect_vec();
+    gs[1..].reverse();
+    it::assert_equal(&[0, 0, 0, 1, 1], gs.into_iter().flat_map(|g| g));
+
+    let grouper = data.iter().group_by_lazy(|k| *k);
+    let mut groups = Vec::new();
+    for (i, group) in grouper.into_iter().enumerate() {
+        if i == 1 {
+            groups.push(group);
+        }
+    }
+    it::assert_equal(&mut groups[0], &[1, 1]);
+
+    let data = vec![0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
+    let grouper = data.iter().group_by_lazy(|k| *k);
+    let mut groups = Vec::new();
+    for (i, group) in grouper.into_iter().enumerate() {
+        if i < 2 {
+            groups.push(group);
+        } else if i < 4 {
+            for _ in group {
+            }
+        } else {
+            groups.push(group);
+        }
+    }
+    it::assert_equal(&mut groups[0], &[0, 0, 0]);
+    it::assert_equal(&mut groups[1], &[1, 1]);
+    it::assert_equal(&mut groups[2], &[3, 3]);
+}
