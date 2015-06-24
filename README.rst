@@ -34,6 +34,12 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.3.19
+
+  - Added .group_by_lazy(), a possibly nonallocating group by
+  - Added .format(), a nonallocating formatting helper for iterators
+  - Remove uses of RandomAccessIterator since it has been deprecated in rust.
+
 - 0.3.17
 
   - Added (adopted) Unfold from rust
