@@ -55,36 +55,44 @@ impl FromStr for Iris {
 }
 
 fn main() {
-    // using itertools::Itertools::fold_results to create the result of parsing
+    // using Itertools::fold_results to create the result of parsing
     let irises = DATA.lines()
                      .map(str::parse)
                      .fold_results(Vec::new(), |mut v, iris: Iris| {
                          v.push(iris);
                          v
-                     }).unwrap();
+                     });
+    let mut irises = match irises {
+        Err(e) => {
+            println!("Error parsing: {:?}", e);
+            std::process::exit(1);
+        }
+        Ok(data) => data,
+    };
 
     // Sort them and group them
-    let mut irises = irises;
     irises.sort_by(|a, b| Ord::cmp(&a.name, &b.name));
 
     // using Iterator::cycle()
     let mut plot_symbols = "+ox".chars().cycle();
     let mut symbolmap = HashMap::new();
 
-    // using itertools::Itertools::group_by
-    for (species, species_data) in irises.iter().group_by(|iris| &iris.name) {
-        // assign a plot symbol
-        symbolmap.entry(species).or_insert_with(|| {
-            plot_symbols.next().unwrap()
-        });
-
-        println!("Species = {} has symbol {}", species, symbolmap[species]);
-
-        for column in 0..4 {
-            for &iris in &species_data {
-                print!("{:>3.1}, ", iris.data[column]);
+    // using Itertools::group_by_lazy
+    for species_group in &irises.iter().group_by_lazy(|iris| &iris.name) {
+        for (index, iris) in species_group.enumerate() {
+            if index == 0 {
+                // assign a plot symbol
+                let species = &iris.name;
+                symbolmap.entry(species).or_insert_with(|| {
+                    plot_symbols.next().unwrap()
+                });
+                println!("{} (symbol={})", species, symbolmap[species]);
             }
-            println!("");
+
+            // using Itertools::format for lazy formatting
+            println!("{}",
+                     iris.data.iter()
+                     .format(", ", |elt, f| f(&format_args!("{:>3.1}", elt))));
         }
 
     }
@@ -93,13 +101,13 @@ fn main() {
     //
     // See https://en.wikipedia.org/wiki/Iris_flower_data_set
     //
-    // using itertools::Itertools::combinations
+    // using Itertools::combinations
     for (a, b) in (0..4).combinations() {
         println!("Column {} vs {}:", a, b);
         let n = 30;
         let mut plot = vec![' '; n * n];
 
-        // using itertools::Itertools::fold1
+        // using Itertools::fold1
         let min_max = |vec: &[Iris], col| {
             vec.iter()
                .map(move |iris| iris.data[col])
@@ -124,7 +132,7 @@ fn main() {
 
         // render plot
         //
-        // using itertools::Itertools::join
+        // using Itertools::join
         for line in plot.chunks(n) {
             println!("{}", line.iter().join(" "))
         }
