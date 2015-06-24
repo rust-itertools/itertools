@@ -64,6 +64,7 @@ pub use adaptors::{
 };
 #[cfg(feature = "unstable")]
 pub use adaptors::EnumerateFrom;
+pub use format::Format;
 pub use groupbylazy::{GroupByLazy, Group, Groups};
 pub use intersperse::Intersperse;
 pub use islice::{ISlice};
@@ -85,6 +86,7 @@ pub use ziptuple::{Zip};
 #[cfg(feature = "unstable")]
 pub use ziptrusted::{ZipTrusted, TrustedIterator};
 mod adaptors;
+mod format;
 mod groupbylazy;
 mod intersperse;
 mod islice;
@@ -1040,6 +1042,43 @@ pub trait Itertools : Iterator {
                 result
             }
         }
+    }
+
+    /// Format all iterator elements lazily, separated by `sep`.
+    ///
+    /// The supplied closure `format` is called once per iterator element,
+    /// with two arguments: the element and a callback that takes a
+    /// `&Display` value, i.e. any reference to type that implements `Display`.
+    ///
+    /// Using `&format_args!(...)` is the most versatile way to apply custom
+    /// element formatting. The callback can be called multiple times if needed.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // Lazy generation is most useful if you output to a generic writer
+    /// // or to the stdout. For demonstration purposes we format to a String here.
+    /// let data = [1.1, 2.71828, -3.];
+    /// let data_formatter = data.iter().format(", ", |elt, f| f(&format_args!("{:2.2}", elt)));
+    /// assert_eq!(format!("{}", data_formatter),
+    ///            "1.10, 2.72, -3.00");
+    ///
+    /// // Lazy formatting is composable
+    /// let matrix = [[1., 2., 3.],
+    ///               [4., 5., 6.]];
+    /// let matrix_formatter = matrix.iter().format("\n", |row, f| {
+    ///                                 f(&row.iter().format(", ", |elt, f| f(&elt)))
+    ///                              });
+    /// assert_eq!(format!("{}", matrix_formatter),
+    ///            "1, 2, 3\n4, 5, 6");
+    ///
+    ///
+    /// ```
+    fn format<'a, F>(self, sep: &'a str, format: F) -> Format<'a, Self, F>
+        where Self: Sized,
+              F: FnMut(Self::Item, &mut FnMut(&fmt::Display) -> fmt::Result) -> fmt::Result,
+    {
+        format::new_format(self, sep, format)
     }
 
     /// Fold `Result` values from an iterator.
