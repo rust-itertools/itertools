@@ -1,8 +1,11 @@
 #![feature(test)]
+
+#![allow(raw_pointer_derive)]
 extern crate test;
 extern crate itertools;
 
 use itertools::Stride;
+use itertools::Itertools;
 
 #[cfg(not(feature = "unstable"))]
 use itertools::Zip;
@@ -220,6 +223,40 @@ fn zip_loop3(b: &mut test::Bencher)
             test::black_box(x);
             test::black_box(y);
             test::black_box(z);
+            }
+        }
+    })
+}
+
+#[bench]
+fn group_by_lazy_1(b: &mut test::Bencher) {
+    let mut data = vec![0; 1024];
+    for (index, elt) in data.iter_mut().enumerate() {
+        *elt = index / 10;
+    }
+
+    b.iter(|| {
+        let iter = test::black_box(data.iter());
+        for (_key, group) in &iter.group_by_lazy(|elt| **elt) {
+            for elt in group {
+                test::black_box(elt);
+            }
+        }
+    })
+}
+
+#[bench]
+fn group_by_lazy_2(b: &mut test::Bencher) {
+    let mut data = vec![0; 1024];
+    for (index, elt) in data.iter_mut().enumerate() {
+        *elt = index / 2;
+    }
+
+    b.iter(|| {
+        let iter = test::black_box(data.iter());
+        for (_key, group) in &iter.group_by_lazy(|elt| **elt) {
+            for elt in group {
+                test::black_box(elt);
             }
         }
     })

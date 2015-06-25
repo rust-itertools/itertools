@@ -27,6 +27,100 @@ impl<K, I, F> GroupInner<K, I, F>
           F: FnMut(&I::Item) -> K,
           K: PartialEq,
 {
+    /// `client`: Index of group that requests next element
+    #[inline(always)]
+    fn step(&mut self, client: usize) -> Option<I::Item> {
+        /*
+        println!("client={}, bot={}, top={}, buffers=[{}]",
+                 client, self.bot, self.top,
+                 self.buffer.iter().format(", ", |elt, f| f(&elt.len())));
+         */
+        if client < self.bot {
+            None
+        } else if client < self.top ||
+            (client == self.top && self.buffer.len() > self.top - self.bot)
+        {
+            self.lookup_buffer(client)
+        } else if self.done {
+            return None;
+        } else if self.top == client {
+            self.step_current()
+        } else {
+            self.step_buffering(client)
+        }
+    }
+
+    #[inline(never)]
+    fn lookup_buffer(&mut self, client: usize) -> Option<I::Item> {
+        // if `bufidx` doesn't exist in self.buffer, it might be empty
+        let bufidx = client - self.bot;
+        let elt = self.buffer.get_mut(bufidx).and_then(|queue| queue.next());
+        if elt.is_none() {
+            // FIXME: Use a smarter way to reuse the vector space
+            // VecDeque is unfortunately not zero allocation when empty.
+            while self.buffer.len() > 0 && self.buffer[0].len() == 0 {
+                self.buffer.remove(0);
+                self.bot += 1;
+            }
+        }
+        elt
+    }
+
+    /// Take the next element from the iterator, and set the done
+    /// flag if exhausted. Must not be called after done.
+    #[inline(always)]
+    fn next_element(&mut self) -> Option<I::Item> {
+        debug_assert!(!self.done);
+        match self.iter.next() {
+            None => { self.done = true; None }
+            otherwise => otherwise,
+        }
+    }
+
+
+    #[inline(never)]
+    fn step_buffering(&mut self, client: usize) -> Option<I::Item> {
+        // requested a later group -- walk through the current group up to
+        // the requested group index, and buffer the elements (unless
+        // the group is marked as dropped).
+        // Because the `Groups` iterator is always the first to request
+        // each group index, client is the next index efter top.
+        debug_assert!(self.top + 1 == client);
+        let mut group = Vec::new();
+
+        if let Some(elt) = self.current_elt.take() {
+            if self.dropped_group != Some(self.top) {
+                group.push(elt);
+            }
+        }
+        let mut first_elt = None; // first element of the next group
+
+        while let Some(elt) = self.next_element() {
+            let key = (self.key)(&elt);
+            match self.current_key.take() {
+                None => {}
+                Some(old_key) => if old_key != key {
+                    self.current_key = Some(key);
+                    first_elt = Some(elt);
+                    break;
+                },
+            }
+            self.current_key = Some(key);
+            if self.dropped_group != Some(self.top) {
+                group.push(elt);
+            }
+        }
+
+        if self.dropped_group != Some(self.top) {
+            self.push_next_group(group);
+        }
+        if first_elt.is_some() {
+            self.top += 1;
+            debug_assert!(self.top == client);
+        }
+        first_elt
+    }
+
     fn push_next_group(&mut self, group: Vec<I::Item>) {
         // When we add a new buffered group, fill up slots between bot and top
         while self.top - self.bot > self.buffer.len() {
@@ -40,88 +134,8 @@ impl<K, I, F> GroupInner<K, I, F>
         debug_assert!(self.top + 1 - self.bot == self.buffer.len());
     }
 
-    /// Take the next element from the iterator, and set the done
-    /// flag if exhausted. Must not be called after done.
-    fn next_element(&mut self) -> Option<I::Item> {
-        debug_assert!(!self.done);
-        match self.iter.next() {
-            None => { self.done = true; None }
-            otherwise => otherwise,
-        }
-    }
-
-    /// `client`: Index of group that requests next element
-    fn step(&mut self, client: usize) -> Option<I::Item> {
-        /*
-        println!("client={}, bot={}, top={}, buffers=[{}]",
-                 client, self.bot, self.top,
-                 self.buffer.iter().format(", ", |elt, f| f(&elt.len())));
-         */
-        if client < self.bot {
-            None
-        } else if client < self.top ||
-            (client == self.top && self.buffer.len() > self.top - self.bot)
-        {
-            // if `bufidx` doesn't exist in self.buffer, it might be empty
-            let bufidx = client - self.bot;
-            let elt = self.buffer.get_mut(bufidx).and_then(|queue| queue.next());
-            if elt.is_none() {
-                // FIXME: Use a smarter way to reuse the vector space
-                // VecDeque is unfortunately not zero allocation when empty.
-                while self.buffer.len() > 0 && self.buffer[0].len() == 0 {
-                    self.buffer.remove(0);
-                    self.bot += 1;
-                }
-            }
-            elt
-        } else if self.done {
-            return None;
-        } else if self.top == client {
-            self.step_current()
-        } else {
-            // requested a later group -- walk through the current group up to
-            // the requested group index, and buffer the elements (unless
-            // the group is marked as dropped).
-            // Because the `Groups` iterator is always the first to request
-            // each group index, client is the next index efter top.
-            debug_assert!(self.top + 1 == client);
-            let mut group = Vec::new();
-
-            if let Some(elt) = self.current_elt.take() {
-                if self.dropped_group != Some(self.top) {
-                    group.push(elt);
-                }
-            }
-            let mut first_elt = None; // first element of the next group
-
-            while let Some(elt) = self.next_element() {
-                let key = (self.key)(&elt);
-                match self.current_key.take() {
-                    None => {}
-                    Some(old_key) => if old_key != key {
-                        self.current_key = Some(key);
-                        first_elt = Some(elt);
-                        break;
-                    },
-                }
-                self.current_key = Some(key);
-                if self.dropped_group != Some(self.top) {
-                    group.push(elt);
-                }
-            }
-
-            if self.dropped_group != Some(self.top) {
-                self.push_next_group(group);
-            }
-            if first_elt.is_some() {
-                self.top += 1;
-                debug_assert!(self.top == client);
-            }
-            first_elt
-        }
-    }
-
     /// This is the immediate case, where we use no buffering
+    #[inline]
     fn step_current(&mut self) -> Option<I::Item> {
         debug_assert!(!self.done);
         if let elt @ Some(..) = self.current_elt.take() {
@@ -238,14 +252,6 @@ impl<K, I, F> GroupByLazy<K, I, F>
         self.inner.borrow_mut().step(client)
     }
 
-    /// `client`: Index of group that requests next element
-    fn group_key(&self, client: usize) -> K
-        where F: FnMut(&I::Item) -> K,
-              K: PartialEq,
-    {
-        self.inner.borrow_mut().group_key(client)
-    }
-
     /// `client`: Index of group
     fn drop_group(&self, client: usize) {
         self.inner.borrow_mut().drop_group(client)
@@ -292,8 +298,9 @@ impl<'a, K, I, F> Iterator for Groups<'a, K, I, F>
     fn next(&mut self) -> Option<Self::Item> {
         let index = self.parent.index.get();
         self.parent.index.set(index + 1);
-        self.parent.step(index).map(|elt| {
-            let key = self.parent.group_key(index);
+        let inner = &mut *self.parent.inner.borrow_mut();
+        inner.step(index).map(|elt| {
+            let key = inner.group_key(index);
             (key, Group {
                 parent: self.parent,
                 index: index,

@@ -23,5 +23,6 @@ unstable = []
 qc = ["quickcheck", "quickcheck_macros"]
 
 [profile]
+bench = { debug = true }
 # uncomment to run tests with optimizations
 # test = { opt-level = 3, debug = false, rpath = false, lto = false, debug-assertions = false }
