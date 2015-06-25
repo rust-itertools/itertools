@@ -17,6 +17,9 @@ optional = true
 [dependencies.quickcheck_macros]
 optional = true
 
+[dev-dependencies.permutohedron]
+version = "0.1"
+
 [features]
 
 unstable = []

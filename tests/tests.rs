@@ -6,6 +6,7 @@
 
 #[macro_use]
 extern crate itertools as it;
+extern crate permutohedron;
 
 use it::Itertools;
 use it::Interleave;
@@ -630,28 +631,6 @@ fn while_some() {
     it::assert_equal(ns, vec![1, 2, 3, 4]);
 }
 
-/// heap's algorithm
-fn heap<T>(xs: &mut [T], f: &mut FnMut(&mut [T]))
-{
-    heap_(xs.len(), xs, f);
-}
-
-fn heap_<T>(n: usize, xs: &mut [T], f: &mut FnMut(&mut [T]))
-{
-    if n <= 1 {
-        f(xs);
-        return;
-    }
-    for i in 0..n {
-        heap_(n - 1, xs, f);
-        if n % 2 == 0 {
-            xs.swap(i, n - 1);
-        } else {
-            xs.swap(0, n - 1);
-        }
-    }
-}
-
 #[test]
 fn group_by_lazy() {
     for (ch1, sub) in &"AABBCCC".chars().group_by_lazy(|&x| x) {
@@ -672,14 +651,11 @@ fn group_by_lazy() {
     let toupper = |ch: &char| ch.to_uppercase().nth(0).unwrap();
 
     // try all possible orderings
-    let mut permutations = Vec::new();
-    heap(&mut [0, 1, 2, 3], &mut |perm| permutations.push(perm.to_vec()));
-
-    for indices in &permutations {
+    for indices in permutohedron::Heap::new(&mut [0, 1, 2, 3]) {
         let groups = "AaaBbbccCcDDDD".chars().group_by_lazy(&toupper);
         let mut subs = groups.into_iter().collect_vec();
 
-        for &idx in indices { 
+        for &idx in &indices[..] {
             let (key, text) = match idx {
                  0 => ('A', "Aaa".chars()),
                  1 => ('B', "Bbb".chars()),
