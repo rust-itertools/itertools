@@ -1,7 +1,6 @@
 use Itertools;
 use std::cmp;
 use std::cell::{Cell, RefCell};
-use std::mem;
 use std::vec;
 
 struct GroupInner<K, I, F>
@@ -11,13 +10,12 @@ struct GroupInner<K, I, F>
     iter: I,
     current_key: Option<K>,
     current_elt: Option<I::Item>,
-    // buffering stuff
+    /// flag set if iterator is exhausted
     done: bool,
     /// Index of group we are currently buffering or visiting
     top: usize,
     /// Least index for which we still have elements buffered
     bot: usize,
-
     /// Buffered groups, from `bot` (index 0) to `top`.
     buffer: Vec<vec::IntoIter<I::Item>>,
     /// index of last group iter that was dropped
@@ -41,12 +39,23 @@ impl<K, I, F> GroupInner<K, I, F>
         self.buffer.push(group.into_iter());
         debug_assert!(self.top + 1 - self.bot == self.buffer.len());
     }
+
+    /// Take the next element from the iterator, and set the done
+    /// flag if exhausted. Must not be called after done.
+    fn next_element(&mut self) -> Option<I::Item> {
+        debug_assert!(!self.done);
+        match self.iter.next() {
+            None => { self.done = true; None }
+            otherwise => otherwise,
+        }
+    }
+
     /// `client`: Index of group that requests next element
     fn step(&mut self, client: usize) -> Option<I::Item> {
         /*
-        println!("client={}, bot={}, top={}, buffers={:?}",
+        println!("client={}, bot={}, top={}, buffers=[{}]",
                  client, self.bot, self.top,
-                 self.buffer.iter().map(|x| x.len()).collect::<Vec<_>>());
+                 self.buffer.iter().format(", ", |elt, f| f(&elt.len())));
          */
         if client < self.bot {
             None
@@ -70,9 +79,12 @@ impl<K, I, F> GroupInner<K, I, F>
         } else if self.top == client {
             self.step_current()
         } else {
-            // requested a later group -- walk through all groups up to
+            // requested a later group -- walk through the current group up to
             // the requested group index, and buffer the elements (unless
             // the group is marked as dropped).
+            // Because the `Groups` iterator is always the first to request
+            // each group index, client is the next index efter top.
+            debug_assert!(self.top + 1 == client);
             let mut group = Vec::new();
 
             if let Some(elt) = self.current_elt.take() {
@@ -80,37 +92,32 @@ impl<K, I, F> GroupInner<K, I, F>
                     group.push(elt);
                 }
             }
-            loop {
-                match self.iter.next() {
-                    None => {
-                        if self.dropped_group != Some(self.top) {
-                            self.push_next_group(group);
-                        }
-                        self.done = true;
-                        return None;
-                    }
-                    Some(elt) => {
-                        let key = (self.key)(&elt);
-                        match self.current_key.take() {
-                            None => {}
-                            Some(old_key) => if old_key != key {
-                                if self.dropped_group != Some(self.top) {
-                                    self.push_next_group(mem::replace(&mut group, Vec::new()));
-                                }
-                                self.top += 1;
-                                if self.top == client {
-                                    self.current_key = Some(key);
-                                    return Some(elt);
-                                }
-                            },
-                        }
+            let mut first_elt = None; // first element of the next group
+
+            while let Some(elt) = self.next_element() {
+                let key = (self.key)(&elt);
+                match self.current_key.take() {
+                    None => {}
+                    Some(old_key) => if old_key != key {
                         self.current_key = Some(key);
-                        if self.dropped_group != Some(self.top) {
-                            group.push(elt);
-                        }
-                    }
+                        first_elt = Some(elt);
+                        break;
+                    },
+                }
+                self.current_key = Some(key);
+                if self.dropped_group != Some(self.top) {
+                    group.push(elt);
                 }
             }
+
+            if self.dropped_group != Some(self.top) {
+                self.push_next_group(group);
+            }
+            if first_elt.is_some() {
+                self.top += 1;
+                debug_assert!(self.top == client);
+            }
+            first_elt
         }
     }
 
@@ -120,11 +127,8 @@ impl<K, I, F> GroupInner<K, I, F>
         if let elt @ Some(..) = self.current_elt.take() {
             return elt;
         }
-        match self.iter.next() {
-            None => {
-                self.done = true;
-                return None;
-            }
+        match self.next_element() {
+            None => None,
             Some(elt) => {
                 let key = (self.key)(&elt);
                 match self.current_key.take() {
@@ -156,26 +160,16 @@ impl<K, I, F> GroupInner<K, I, F>
         debug_assert!(client == self.top);
         debug_assert!(self.current_key.is_some());
         debug_assert!(self.current_elt.is_none());
-        match self.iter.next() {
-            None => {
-                self.done = true;
-                self.current_key.take().unwrap()
+        let old_key = self.current_key.take().unwrap();
+        if let Some(elt) = self.next_element() {
+            let key = (self.key)(&elt);
+            if old_key != key {
+                self.top += 1;
             }
-            Some(elt) => {
-                let key = (self.key)(&elt);
-                match self.current_key.take() {
-                    None => unreachable!(),
-                    Some(old_key) => {
-                        if old_key != key {
-                            self.top += 1;
-                        }
-                        self.current_key = Some(key);
-                        self.current_elt = Some(elt);
-                        old_key
-                    }
-                }
-            }
+            self.current_key = Some(key);
+            self.current_elt = Some(elt);
         }
+        old_key
     }
 }
 
