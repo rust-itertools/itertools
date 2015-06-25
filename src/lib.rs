@@ -755,12 +755,12 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let mut alphanumerics = "abcdef012345".chars();
+    /// let mut hexadecimals = "0123456789abcdef".chars();
     ///
-    /// let alphas = alphanumerics.take_while_ref(|c| c.is_alphabetic())
-    ///                           .collect::<String>();
-    /// assert_eq!(alphas, "abcdef");
-    /// assert_eq!(alphanumerics.next(), Some('0'));
+    /// let decimals = hexadecimals.take_while_ref(|c| c.is_numeric())
+    ///                            .collect::<String>();
+    /// assert_eq!(decimals, "0123456789");
+    /// assert_eq!(hexadecimals.next(), Some('a'));
     ///
     /// ```
     fn take_while_ref<'a, F>(&'a mut self, f: F) -> TakeWhileRef<'a, Self, F> where
@@ -870,9 +870,8 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let text = "α-0";
-    /// assert_eq!(text.chars().find_position(|ch| ch.is_numeric()), Some((2, '0')));
-    /// assert_eq!(text.chars().find_position(|ch| ch.is_uppercase()), None);
+    /// let text = "Hα";
+    /// assert_eq!(text.chars().find_position(|ch| ch.is_lowercase()), Some((1, 'α')));
     /// ```
     fn find_position<P>(&mut self, mut pred: P) -> Option<(usize, Self::Item)> where
         P: FnMut(&Self::Item) -> bool,
@@ -897,8 +896,6 @@ pub trait Itertools : Iterator {
     /// let mut iter = "αβγ".chars();
     /// iter.dropn(2);
     /// itertools::assert_equal(iter, "γ".chars());
-    ///
-    /// assert_eq!((0..10).dropn(50), 10);
     /// ```
     fn dropn(&mut self, mut n: usize) -> usize
     {
@@ -1075,7 +1072,7 @@ pub trait Itertools : Iterator {
     ///
     ///
     /// ```
-    fn format<'a, F>(self, sep: &'a str, format: F) -> Format<'a, Self, F>
+    fn format<F>(self, sep: &str, format: F) -> Format<Self, F>
         where Self: Sized,
               F: FnMut(Self::Item, &mut FnMut(&fmt::Display) -> fmt::Result) -> fmt::Result,
     {
@@ -1113,15 +1110,15 @@ pub trait Itertools : Iterator {
     /// let values = [1, 2, -2, -1, 2, 1];
     /// assert_eq!(
     ///     values.iter()
-    ///         .map(Ok::<_, ()>)
-    ///         .fold_results(0, Add::add),
+    ///           .map(Ok::<_, ()>)
+    ///           .fold_results(0, Add::add),
     ///     Ok(3)
     /// );
     /// assert!(
     ///     values.iter()
-    ///         .map(|&x| if x >= 0 { Ok(x) } else { Err("Negative number") })
-    ///         .fold_results(0, Add::add)
-    ///         .is_err()
+    ///           .map(|&x| if x >= 0 { Ok(x) } else { Err("Negative number") })
+    ///           .fold_results(0, Add::add)
+    ///           .is_err()
     /// );
     /// ```
     fn fold_results<A, E, B, F>(&mut self, mut start: B, mut f: F) -> Result<B, E> where
@@ -1204,14 +1201,12 @@ pub trait Itertools : Iterator {
     ///
     /// let oldest_people_first = people
     ///     .into_iter()
-    ///     .sort_by(|&a, &b| {
-    ///         a.1.cmp(&b.1).reverse()
-    ///     })
+    ///     .sort_by(|a, b| Ord::cmp(&b.1, &a.1))
     ///     .into_iter()
-    ///     .map(|(person, _age)| person)
-    ///     .collect::<Vec<_>>();
+    ///     .map(|(person, _age)| person);
     ///
-    /// assert_eq!(oldest_people_first, vec!["Jill", "Jack", "Jane", "John"]);
+    /// itertools::assert_equal(oldest_people_first,
+    ///                         vec!["Jill", "Jack", "Jane", "John"]);
     /// ```
     fn sort_by<F: FnMut(&Self::Item, &Self::Item) -> Ordering>(self, cmp: F) -> Vec<Self::Item> where
         Self: Sized
