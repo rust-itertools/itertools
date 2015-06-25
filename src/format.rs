@@ -23,7 +23,8 @@ impl<'a, I, F> fmt::Display for Format<'a, I, F>
 {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         let mut cb = &mut |disp: &fmt::Display| write!(fmt, "{}", disp);
-        let (ref mut iter, ref mut format)  = *self.inner.borrow_mut();
+        // the extra *&mut is a workaround for Rust 1.0
+        let (ref mut iter, ref mut format)  = *&mut *self.inner.borrow_mut();
 
         if let Some(fst) = iter.next() {
             try!(format(fst, cb));
