@@ -1,5 +1,4 @@
 use Itertools;
-use std::cmp;
 use std::cell::{Cell, RefCell};
 use std::vec;
 
@@ -16,10 +15,13 @@ struct GroupInner<K, I, F>
     top: usize,
     /// Least index for which we still have elements buffered
     bot: usize,
-    /// Buffered groups, from `bot` (index 0) to `top`.
+    /// Group index for `buffer[0]` -- the slots bufbot..bot are unused
+    /// and will be erased when that range is large enough.
+    bufbot: usize,
+    /// Buffered groups, from `bufbot` (index 0) to `top`.
     buffer: Vec<vec::IntoIter<I::Item>>,
-    /// index of last group iter that was dropped
-    dropped_group: Option<usize>,
+    /// index of last group iter that was dropped, usize::MAX == none
+    dropped_group: usize,
 }
 
 impl<K, I, F> GroupInner<K, I, F>
@@ -31,18 +33,18 @@ impl<K, I, F> GroupInner<K, I, F>
     #[inline(always)]
     fn step(&mut self, client: usize) -> Option<I::Item> {
         /*
-        println!("client={}, bot={}, top={}, buffers=[{}]",
-                 client, self.bot, self.top,
+        println!("client={}, bufbot={}, bot={}, top={}, buffers=[{}]",
+                 client, self.bufbot, self.bot, self.top,
                  self.buffer.iter().format(", ", |elt, f| f(&elt.len())));
          */
-        if client < self.bot {
+        if client < self.bufbot {
             None
         } else if client < self.top ||
-            (client == self.top && self.buffer.len() > self.top - self.bot)
+            (client == self.top && self.buffer.len() > self.top - self.bufbot)
         {
             self.lookup_buffer(client)
         } else if self.done {
-            return None;
+            None
         } else if self.top == client {
             self.step_current()
         } else {
@@ -53,14 +55,32 @@ impl<K, I, F> GroupInner<K, I, F>
     #[inline(never)]
     fn lookup_buffer(&mut self, client: usize) -> Option<I::Item> {
         // if `bufidx` doesn't exist in self.buffer, it might be empty
-        let bufidx = client - self.bot;
+        let bufidx = client - self.bufbot;
+        if client < self.bot {
+            return None
+        }
         let elt = self.buffer.get_mut(bufidx).and_then(|queue| queue.next());
-        if elt.is_none() {
-            // FIXME: Use a smarter way to reuse the vector space
-            // VecDeque is unfortunately not zero allocation when empty.
-            while self.buffer.len() > 0 && self.buffer[0].len() == 0 {
-                self.buffer.remove(0);
+        if elt.is_none() && client == self.bot {
+            // FIXME: VecDeque is unfortunately not zero allocation when empty,
+            // so we do this job manually.
+            // `bufbot..bot` is unused, and if it's large enough, erase it.
+            self.bot += 1;
+            // skip forward further empty queues too
+            while self.buffer.get(self.bot - self.bufbot)
+                             .map_or(false, |buf| buf.len() == 0)
+            {
                 self.bot += 1;
+            }
+
+            let nclear = self.bot - self.bufbot;
+            if nclear > 0 && nclear >= self.buffer.len() / 2 {
+                let mut i = 0;
+                self.buffer.retain(|buf| {
+                    i += 1;
+                    debug_assert!(buf.len() == 0 || i > nclear);
+                    i > nclear
+                });
+                self.bufbot = self.bot;
             }
         }
         elt
@@ -89,7 +109,7 @@ impl<K, I, F> GroupInner<K, I, F>
         let mut group = Vec::new();
 
         if let Some(elt) = self.current_elt.take() {
-            if self.dropped_group != Some(self.top) {
+            if self.top != self.dropped_group {
                 group.push(elt);
             }
         }
@@ -106,12 +126,12 @@ impl<K, I, F> GroupInner<K, I, F>
                 },
             }
             self.current_key = Some(key);
-            if self.dropped_group != Some(self.top) {
+            if self.top != self.dropped_group {
                 group.push(elt);
             }
         }
 
-        if self.dropped_group != Some(self.top) {
+        if self.top != self.dropped_group {
             self.push_next_group(group);
         }
         if first_elt.is_some() {
@@ -123,15 +143,16 @@ impl<K, I, F> GroupInner<K, I, F>
 
     fn push_next_group(&mut self, group: Vec<I::Item>) {
         // When we add a new buffered group, fill up slots between bot and top
-        while self.top - self.bot > self.buffer.len() {
+        while self.top - self.bufbot > self.buffer.len() {
             if self.buffer.is_empty() {
+                self.bufbot += 1;
                 self.bot += 1;
             } else {
                 self.buffer.push(Vec::new().into_iter());
             }
         }
         self.buffer.push(group.into_iter());
-        debug_assert!(self.top + 1 - self.bot == self.buffer.len());
+        debug_assert!(self.top + 1 - self.bufbot == self.buffer.len());
     }
 
     /// This is the immediate case, where we use no buffering
@@ -192,9 +213,10 @@ impl<K, I, F> GroupInner<K, I, F>
 {
     /// Called when a group is dropped
     fn drop_group(&mut self, client: usize) {
-        // It's only useful to track the highest index
-        self.dropped_group = Some(cmp::max(client,
-                                           self.dropped_group.unwrap_or(0)));
+        // It's only useful to track the maximal index
+        if self.dropped_group == !0 || client > self.dropped_group {
+            self.dropped_group = client;
+        }
     }
 }
 
@@ -234,8 +256,9 @@ pub fn new<K, J, F>(iter: J, f: F) -> GroupByLazy<K, J::IntoIter, F>
             done: false,
             top: 0,
             bot: 0,
+            bufbot: 0,
             buffer: Vec::new(),
-            dropped_group: None,
+            dropped_group: !0,
         }),
         index: Cell::new(0),
     }
