@@ -1,5 +1,4 @@
 use Itertools;
-use std::cmp;
 use std::cell::{Cell, RefCell};
 use std::vec;
 
@@ -18,8 +17,8 @@ struct GroupInner<K, I, F>
     bot: usize,
     /// Buffered groups, from `bot` (index 0) to `top`.
     buffer: Vec<vec::IntoIter<I::Item>>,
-    /// index of last group iter that was dropped
-    dropped_group: Option<usize>,
+    /// index of last group iter that was dropped, usize::MAX == none
+    dropped_group: usize,
 }
 
 impl<K, I, F> GroupInner<K, I, F>
@@ -42,7 +41,7 @@ impl<K, I, F> GroupInner<K, I, F>
         {
             self.lookup_buffer(client)
         } else if self.done {
-            return None;
+            None
         } else if self.top == client {
             self.step_current()
         } else {
@@ -89,7 +88,7 @@ impl<K, I, F> GroupInner<K, I, F>
         let mut group = Vec::new();
 
         if let Some(elt) = self.current_elt.take() {
-            if self.dropped_group != Some(self.top) {
+            if self.top != self.dropped_group {
                 group.push(elt);
             }
         }
@@ -106,12 +105,12 @@ impl<K, I, F> GroupInner<K, I, F>
                 },
             }
             self.current_key = Some(key);
-            if self.dropped_group != Some(self.top) {
+            if self.top != self.dropped_group {
                 group.push(elt);
             }
         }
 
-        if self.dropped_group != Some(self.top) {
+        if self.top != self.dropped_group {
             self.push_next_group(group);
         }
         if first_elt.is_some() {
@@ -192,9 +191,10 @@ impl<K, I, F> GroupInner<K, I, F>
 {
     /// Called when a group is dropped
     fn drop_group(&mut self, client: usize) {
-        // It's only useful to track the highest index
-        self.dropped_group = Some(cmp::max(client,
-                                           self.dropped_group.unwrap_or(0)));
+        // It's only useful to track the maximal index
+        if self.dropped_group == !0 || client > self.dropped_group {
+            self.dropped_group = client;
+        }
     }
 }
 
@@ -235,7 +235,7 @@ pub fn new<K, J, F>(iter: J, f: F) -> GroupByLazy<K, J::IntoIter, F>
             top: 0,
             bot: 0,
             buffer: Vec::new(),
-            dropped_group: None,
+            dropped_group: !0,
         }),
         index: Cell::new(0),
     }
