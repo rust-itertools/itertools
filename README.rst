@@ -36,7 +36,7 @@ Recent Changes
 
 - 0.3.20
 
-  - Optimizate .group_by_lazy()
+  - Optimize .group_by_lazy()
 
 - 0.3.19
 
