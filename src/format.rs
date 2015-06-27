@@ -39,6 +39,7 @@ impl<'a, I, F> fmt::Display for Format<'a, I, F>
     }
 }
 
+/*
 impl<'a, I, F> fmt::Debug for Format<'a, I, F>
     where I: Iterator,
           F: FnMut(I::Item, &mut FnMut(&fmt::Display) -> fmt::Result) -> fmt::Result,
@@ -48,3 +49,4 @@ impl<'a, I, F> fmt::Debug for Format<'a, I, F>
     }
 }
 
+*/
