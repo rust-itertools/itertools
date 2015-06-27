@@ -1,4 +1,4 @@
-#![cfg_attr(feature = "qc", feature(plugin, custom_attribute))]
+#![cfg_attr(feature = "qc", feature(plugin, custom_attribute, drain))]
 #![cfg_attr(feature="qc", plugin(quickcheck_macros))]
 #![allow(dead_code)]
 
@@ -493,6 +493,38 @@ fn fuzz_group_by_lazy_3(data: Vec<u8>) -> bool {
     let groups = grouper.into_iter().collect_vec();
     let res = itertools::equal(data.iter(), groups.into_iter().flat_map(|(_, x)| x));
     res
+}
+
+#[quickcheck]
+fn fuzz_group_by_lazy_duo(data: Vec<u8>, order: Vec<(bool, bool)>) -> bool {
+    let grouper = data.iter().group_by_lazy(|k| *k / 3);
+    let mut groups1 = grouper.into_iter();
+    let mut groups2 = grouper.into_iter();
+    let mut elts = Vec::<&u8>::new();
+    let mut old_groups = Vec::new();
+
+    let tup1 = |(_, b)| b;
+    for &(ord, consume_now) in &order {
+        let iter = &mut [&mut groups1, &mut groups2][ord as usize];
+        match iter.next() {
+            Some((_, gr)) => if consume_now {
+                for og in old_groups.drain(..) {
+                    elts.extend(og);
+                }
+                elts.extend(gr);
+            } else {
+                old_groups.push(gr);
+            },
+            None => break,
+        }
+    }
+    for og in old_groups.drain(..) {
+        elts.extend(og);
+    }
+    for gr in groups1.map(&tup1) { elts.extend(gr); }
+    for gr in groups2.map(&tup1) { elts.extend(gr); }
+    itertools::assert_equal(&data, elts);
+    true
 }
 
 }

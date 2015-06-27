@@ -761,3 +761,19 @@ fn group_by_lazy_2() {
         }
     }
 }
+
+#[test]
+fn group_by_lazy_3() {
+    // test consuming each group on the lap after it was produced
+    let data = vec![0, 0, 0, 1, 1, 0, 0, 1, 1, 2, 2];
+    let grouper = data.iter().group_by_lazy(|elt| *elt);
+    let mut last = None;
+    for (key, group) in &grouper {
+        if let Some(gr) = last.take() {
+            for elt in gr {
+                assert!(elt != key && i32::abs(elt - key) == 1);
+            }
+        }
+        last = Some(group);
+    }
+}
