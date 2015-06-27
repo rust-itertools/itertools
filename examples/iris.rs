@@ -9,9 +9,10 @@
 extern crate itertools;
 
 use itertools::Itertools;
-use std::str::FromStr;
 use std::collections::HashMap;
+use std::iter::repeat;
 use std::num::ParseFloatError;
+use std::str::FromStr;
 
 static DATA: &'static str = include_str!("iris.data");
 
@@ -98,33 +99,39 @@ fn main() {
     //
     // See https://en.wikipedia.org/wiki/Iris_flower_data_set
     //
+    let n = 30; // plot size
+    let mut plot = vec![' '; n * n];
+
     // using Itertools::combinations
     for (a, b) in (0..4).combinations() {
         println!("Column {} vs {}:", a, b);
-        let n = 30;
-        let mut plot = vec![' '; n * n];
+
+        // Clear plot
+        //
+        // using std::iter::repeat;
+        // using Itertools::set_from
+        plot.iter_mut().set_from(repeat(' '));
 
         // using Itertools::fold1
-        let min_max = |vec: &[Iris], col| {
-            vec.iter()
-               .map(move |iris| iris.data[col])
-               .map(|x| (x, x))
-               .fold1(|(min, max), (elt, _)|
-                   (f32::min(min, elt), f32::max(max, elt))
-               ).expect("Can't find min/max of empty iterator")
+        let min_max = |data: &[Iris], col| {
+            data.iter()
+                .map(|iris| iris.data[col])
+                .map(|x| (x, x))
+                .fold1(|(min, max), (elt, _)|
+                    (f32::min(min, elt), f32::max(max, elt))
+                ).expect("Can't find min/max of empty iterator")
         };
         let (min_x, max_x) = min_max(&irises, a);
         let (min_y, max_y) = min_max(&irises, b);
 
-        for (symbol, x, y) in irises.iter()
-            .map(|ir| (symbolmap[&ir.name], ir.data[a], ir.data[b]))
-        {
-            // round to the grid
-            let ix = ((x - min_x) / (max_x - min_x) * ((n - 1) as f32)) as usize;
-            let iy = ((y - min_y) / (max_y - min_y) * ((n - 1) as f32)) as usize;
-            let iy = n - 1 - iy; // reverse y axis' direction
+        // Plot the data points
+        let round_to_grid = |x, min, max| ((x - min) / (max - min) * ((n - 1) as f32)) as usize;
+        let flip = |ix| n - 1 - ix; // reverse axis direction
 
-            plot[n * iy + ix] = symbol;
+        for iris in &irises {
+            let ix = round_to_grid(iris.data[a], min_x, max_x);
+            let iy = flip(round_to_grid(iris.data[b], min_y, max_y));
+            plot[n * iy + ix] = symbolmap[&iris.name];
         }
 
         // render plot
