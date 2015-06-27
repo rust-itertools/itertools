@@ -6,8 +6,6 @@ matrix:
     - rust: stable
     - rust: beta
     - rust: nightly
-    - rust: nightly
-      env:
        - FEATURES='unstable qc'
        - BENCH=1
 branches:
@@ -15,7 +13,8 @@ branches:
     - master
 script:
   - |
-      cargo build --verbose --features "$FEATURES"
-      cargo test --verbose --features "$FEATURES"
+      cargo build --verbose &&
+      cargo test --verbose &&
+      ([ -z "$FEATURES" ] || cargo build --verbose --features "$FEATURES") &&
+      ([ -z "$FEATURES" ] || cargo test --verbose --features "$FEATURES")
       [ "$BENCH" != 1 ] || cargo bench --verbose --features "$FEATURES"
-      cargo doc --verbose --features "$FEATURES"
