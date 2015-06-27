@@ -1065,7 +1065,7 @@ pub trait Itertools : Iterator {
     /// let matrix = [[1., 2., 3.],
     ///               [4., 5., 6.]];
     /// let matrix_formatter = matrix.iter().format("\n", |row, f| {
-    ///                                 f(&row.iter().format(", ", |elt, f| f(&elt)))
+    ///                                 f(&row.iter().format(", ", |elt, g| g(&elt)))
     ///                              });
     /// assert_eq!(format!("{}", matrix_formatter),
     ///            "1, 2, 3\n4, 5, 6");
