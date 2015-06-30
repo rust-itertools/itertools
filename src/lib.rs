@@ -382,7 +382,7 @@ pub trait Itertools : Iterator {
     ///
     /// This type implements `IntoIterator` (it is **not** an iterator
     /// itself), because the group iterators need to borrow from this
-    /// value. It should stored in a local variable or temporary and
+    /// value. It should be stored in a local variable or temporary and
     /// iterated.
     ///
     /// Iterator element type is `(K, Group)`: the group's key and the

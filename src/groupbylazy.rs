@@ -229,7 +229,7 @@ impl<K, I, F> GroupInner<K, I, F>
 ///
 /// This type implements `IntoIterator` (it is **not** an iterator
 /// itself), because the group iterators need to borrow from this
-/// value. It should stored in a local variable or temporary and
+/// value. It should be stored in a local variable or temporary and
 /// iterated.
 ///
 /// See [`.group_by_lazy()`](trait.Itertools.html#method.group_by_lazy) for more information.
