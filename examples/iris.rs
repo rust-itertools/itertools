@@ -44,7 +44,7 @@ impl FromStr for Iris {
 
         // using Iterator::by_ref()
         for (index, part) in parts.by_ref().take(4).enumerate() {
-            iris.data[index] = try!(part.parse::<f32>());
+            iris.data[index] = try!(part.parse::<f32>().map_err(ParseError::from));
         }
         if let Some(name) = parts.next() {
             iris.name = name.into();
