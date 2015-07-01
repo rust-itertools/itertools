@@ -44,7 +44,11 @@ impl FromStr for Iris {
 
         // using Iterator::by_ref()
         for (index, part) in parts.by_ref().take(4).enumerate() {
-            iris.data[index] = try!(part.parse::<f32>().map_err(ParseError::from));
+            // We should use try!() here, but this is a workaround for Rust 1.0
+            iris.data[index] = match part.parse::<f32>() {
+                Ok(x) => x,
+                Err(e) => return Err(ParseError::Numeric(e)),
+            };
         }
         if let Some(name) = parts.next() {
             iris.name = name.into();
