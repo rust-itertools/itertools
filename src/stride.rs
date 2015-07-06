@@ -9,6 +9,8 @@ use std::marker;
 use std::mem;
 use std::ops::{Index, IndexMut};
 
+use misc::Slice;
+
 /// An iterator similar to the slice iterator, but with a certain number of steps
 /// (the stride) skipped per iteration.
 ///
@@ -242,6 +244,16 @@ macro_rules! stride_impl {
                     try!(write!(f, "{:?}", (*self)[i]));
                 }
                 write!(f, "]")
+            }
+        }
+
+        impl<'a, A> Slice for $name<'a, A> {
+            type Item = $elem;
+            fn len(&self) -> usize { $name::len(self) }
+            unsafe fn get_unchecked(&mut self, i: usize) -> $elem {
+                // use transmute to work with both &T and &mut T
+                let ptr = self.begin.offset(self.offset + self.stride * (i as isize));
+                mem::transmute(ptr)
             }
         }
     }

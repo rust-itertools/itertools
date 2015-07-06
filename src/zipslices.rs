@@ -13,8 +13,7 @@ use misc::Slice;
 ///
 /// `ZipSlices` acts like a double-ended `.zip()` iterator, but more efficiently.
 ///
-/// Note that elements past the end shortest of the shortest of the two slices
-/// are ignored.
+/// Note that elements past the end of the shortest of the two slices are ignored.
 ///
 /// Iterator element type for `ZipSlices<T, U>` is `(T::Item, U::Item)`. For example,
 /// for a `ZipSlices<&'a [A], &'b mut [B]>`, the element type is `(&'a A, &'b mut B)`.
@@ -37,15 +36,12 @@ impl<T: Copy, U: Copy> Clone for ZipSlices<T, U> {
     }
 }
 
-impl<'a, 'b, A, B> ZipSlices<&'a [A], &'b [B]>
-{
+impl<'a, 'b, A, B> ZipSlices<&'a [A], &'b [B]> {
     /// Create a new `ZipSlices` from slices `a` and `b`.
     ///
     /// Act like a double-ended `.zip()` iterator, but more efficiently.
     ///
-    /// Note that elements past the end shortest of the shortest of the two slices
-    /// are ignored.
-    ///
+    /// Note that elements past the end of the shortest of the two slices are ignored.
     #[inline(always)]
     pub fn new(a: &'a [A], b: &'b [B]) -> Self {
         let minl = cmp::min(a.len(), b.len());
@@ -65,7 +61,7 @@ impl<T, U> ZipSlices<T, U>
     ///
     /// Act like a double-ended `.zip()` iterator, but more efficiently.
     ///
-    /// Note that elements past the shortest of `a` or `b` are ignored.
+    /// Note that elements past the end of the shortest of the two slices are ignored.
     #[inline(always)]
     pub fn from_slices(a: T, b: U) -> Self {
         let minl = cmp::min(a.len(), b.len());
