@@ -777,3 +777,18 @@ fn group_by_lazy_3() {
         last = Some(group);
     }
 }
+
+#[test]
+fn chunks_lazy() {
+    let data = vec![0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
+    let grouper = data.iter().chunks_lazy(3);
+    for (i, chunk) in grouper.into_iter().enumerate() {
+        match i {
+            0 => it::assert_equal(chunk, &[0, 0, 0]),
+            1 => it::assert_equal(chunk, &[1, 1, 0]),
+            2 => it::assert_equal(chunk, &[0, 2, 2]),
+            3 => it::assert_equal(chunk, &[3, 3]),
+            _ => unreachable!(),
+        }
+    }
+}

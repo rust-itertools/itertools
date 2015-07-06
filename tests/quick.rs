@@ -441,7 +441,7 @@ fn size_combinations(it: Iter<i16>) -> bool {
 }
 
 #[quickcheck]
-fn equal_combinations(mut it: Iter<i16>) -> bool {
+fn equal_combinations(it: Iter<i16>) -> bool {
     let values = it.clone().collect_vec();
     let mut cmb = it.combinations();
     for i in 0..values.len() {
@@ -524,6 +524,21 @@ fn fuzz_group_by_lazy_duo(data: Vec<u8>, order: Vec<(bool, bool)>) -> bool {
     for gr in groups1.map(&tup1) { elts.extend(gr); }
     for gr in groups2.map(&tup1) { elts.extend(gr); }
     itertools::assert_equal(&data, elts);
+    true
+}
+
+#[quickcheck]
+fn equal_chunks_lazy(a: Vec<u8>, mut size: u8) -> bool {
+    if size == 0 {
+        size += 1;
+    }
+    let chunks = a.iter().chunks_lazy(size as usize);
+    let it = a.chunks(size as usize);
+    for (a, b) in chunks.into_iter().zip(it) {
+        if !itertools::equal(a, b) {
+            return false;
+        }
+    }
     true
 }
 
