@@ -1236,10 +1236,12 @@ pub fn equal<I, J>(a: I, b: J) -> bool where
     let mut ia = a.into_iter();
     let mut ib = b.into_iter();
     loop {
-        match (ia.next(), ib.next()) {
-            (Some(ref x), Some(ref y)) if x == y => { }
-            (None, None) => return true,
-            _ => return false,
+        match ia.next() {
+            Some(ref x) => match ib.next() {
+                Some(ref y) => if x != y { return false; },
+                None => return false,
+            },
+            None => return ib.next().is_none()
         }
     }
 }
