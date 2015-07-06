@@ -1,6 +1,15 @@
 use std::cmp;
 
-#[derive(Clone, Debug)]
+// Note: There are different ways to implement ZipSlices.
+// This version performed the best in benchmarks.
+//
+// I also implemented a version with three pointes (tptr, tend, uptr),
+// that mimiced slice::Iter and only checked bounds by using tptr == tend,
+// but that was inferior to this solution.
+
+/// `ZipSlices`
+///
+/// Iterator element type is `(&'a T, &'a U)`.
 pub struct ZipSlices<'a, T: 'a, U :'a>
 {
     t: &'a [T],
@@ -9,13 +18,29 @@ pub struct ZipSlices<'a, T: 'a, U :'a>
     index: usize,
 }
 
-impl<'a, T, U> ZipSlices<'a, T, U> {
-    #[inline(always)]
-    pub fn new(t: &'a [T], u: &'a [U]) -> Self {
-        let minl = cmp::min(t.len(), u.len());
+impl<'a, T, U> Clone for ZipSlices<'a, T, U> {
+    fn clone(&self) -> Self {
         ZipSlices {
-            t: t,
-            u: u,
+            t: self.t,
+            u: self.u,
+            len: self.len,
+            index: self.index,
+        }
+    }
+}
+
+impl<'a, T, U> ZipSlices<'a, T, U> {
+    /// Create a new `ZipSlices` from slices `a` and `b`.
+    ///
+    /// Act like a double-ended `.zip()` iterator, but more efficiently.
+    ///
+    /// Note that elements past the shortest of `a` or `b` are ignored.
+    #[inline(always)]
+    pub fn new(a: &'a [T], b: &'a [U]) -> Self {
+        let minl = cmp::min(a.len(), b.len());
+        ZipSlices {
+            t: a,
+            u: b,
             len: minl,
             index: 0,
         }
@@ -42,7 +67,7 @@ impl<'a, T, U> Iterator for ZipSlices<'a, T, U> {
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let mut len = self.len - self.index;
+        let len = self.len - self.index;
         (len, Some(len))
     }
 }

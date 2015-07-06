@@ -7,11 +7,10 @@ use test::{black_box};
 use itertools::Stride;
 use itertools::Itertools;
 
-#[cfg(not(feature = "unstable"))]
-use itertools::Zip;
-
 #[cfg(feature = "unstable")]
-use itertools::{Zip, ZipTrusted, ZipSlices};
+use itertools::{ZipTrusted};
+
+use itertools::ZipSlices;
 
 use std::iter::repeat;
 use std::cmp;
@@ -105,7 +104,6 @@ fn zip_slices_ziptuple(b: &mut test::Bencher)
 }
 */
 
-#[cfg(feature = "unstable")]
 #[bench]
 fn zip_slices(b: &mut test::Bencher)
 {
@@ -122,7 +120,6 @@ fn zip_slices(b: &mut test::Bencher)
     })
 }
 
-#[cfg(feature = "unstable")]
 #[bench]
 fn ziptrusted(b: &mut test::Bencher)
 {
