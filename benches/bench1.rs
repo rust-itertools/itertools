@@ -1,6 +1,5 @@
 #![feature(test)]
 
-#![allow(raw_pointer_derive)]
 extern crate test;
 extern crate itertools;
 
@@ -15,9 +14,7 @@ use itertools::Zip;
 use itertools::{Zip, ZipTrusted};
 
 use std::iter::repeat;
-use std::marker::PhantomData;
 use std::cmp;
-use std::mem;
 
 #[bench]
 fn slice_iter(b: &mut test::Bencher)
@@ -216,6 +213,28 @@ fn ziptrusted3(b: &mut test::Bencher)
             test::black_box(x);
             test::black_box(y);
             test::black_box(z);
+        }
+    })
+}
+
+#[bench]
+fn zip_checked_counted_loop(b: &mut test::Bencher)
+{
+    let xs = vec![0; 1024];
+    let ys = vec![0; 768];
+    let xs = black_box(xs);
+    let ys = black_box(ys);
+
+    b.iter(|| {
+        let xs = &xs[..];
+        let ys = &ys[..];
+        let len = cmp::min(xs.len(), ys.len());
+
+        for i in 0..len {
+            let x = xs[i];
+            let y = ys[i];
+            test::black_box(x);
+            test::black_box(y);
         }
     })
 }
