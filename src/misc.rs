@@ -193,3 +193,36 @@ impl<'a> MendSlice for &'a str
         }
     }
 }
+
+/// A helper trait to let `ZipSlices` accept both `&[T]` and `&mut [T]`.
+pub trait Slice {
+    /// The type of a reference to the slice's elements
+    type Item;
+    #[doc(hidden)]
+    fn len(&self) -> usize;
+    #[doc(hidden)]
+    unsafe fn get_unchecked(&mut self, i: usize) -> Self::Item;
+}
+
+impl<'a, T> Slice for &'a [T] {
+    type Item = &'a T;
+    #[inline(always)]
+    fn len(&self) -> usize { (**self).len() }
+    #[inline(always)]
+    unsafe fn get_unchecked(&mut self, i: usize) -> &'a T {
+        debug_assert!(i < self.len());
+        (**self).get_unchecked(i)
+    }
+}
+
+impl<'a, T> Slice for &'a mut [T] {
+    type Item = &'a mut T;
+    #[inline(always)]
+    fn len(&self) -> usize { (**self).len() }
+    #[inline(always)]
+    unsafe fn get_unchecked(&mut self, i: usize) -> &'a mut T {
+        debug_assert!(i < self.len());
+        // override the lifetime constraints of &mut &'a mut [T]
+        (*(*self as *mut [T])).get_unchecked_mut(i)
+    }
+}

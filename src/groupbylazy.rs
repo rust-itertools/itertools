@@ -37,7 +37,7 @@ impl<K, I, F> GroupInner<K, I, F>
                  client, self.bufbot, self.bot, self.top,
                  self.buffer.iter().format(", ", |elt, f| f(&elt.len())));
          */
-        if client < self.bufbot {
+        if client < self.bot {
             None
         } else if client < self.top ||
             (client == self.top && self.buffer.len() > self.top - self.bufbot)

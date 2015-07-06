@@ -338,7 +338,7 @@ fn size_linspace(a: f32, b: f32, n: usize) -> bool {
 }
 
 #[quickcheck]
-fn equal_repeatn(n: usize, x: i32) -> bool {
+fn exact_repeatn(n: usize, x: i32) -> bool {
     let it = itertools::RepeatN::new(x, n);
     exact_size(it)
 }
@@ -525,6 +525,51 @@ fn fuzz_group_by_lazy_duo(data: Vec<u8>, order: Vec<(bool, bool)>) -> bool {
     for gr in groups2.map(&tup1) { elts.extend(gr); }
     itertools::assert_equal(&data, elts);
     true
+}
+
+#[quickcheck]
+fn equal_zipslices(a: Vec<u8>, b: Vec<u8>) -> bool {
+    use itertools::ZipSlices;
+    itertools::equal(ZipSlices::new(&a, &b), a.iter().zip(&b))
+}
+
+#[quickcheck]
+fn equal_zipslices_rev(a: Vec<u8>, b: Vec<u8>) -> bool {
+    use itertools::ZipSlices;
+    itertools::equal(ZipSlices::new(&a, &b).rev(), a.iter().zip(&b).rev())
+}
+
+#[quickcheck]
+fn exact_size_zipslices(a: Vec<u8>, b: Vec<u8>) -> bool {
+    use itertools::ZipSlices;
+    exact_size(ZipSlices::new(&a, &b))
+}
+
+#[quickcheck]
+fn exact_size_zipslices_rev(a: Vec<u8>, b: Vec<u8>) -> bool {
+    use itertools::ZipSlices;
+    exact_size(ZipSlices::new(&a, &b).rev())
+}
+
+#[quickcheck]
+fn equal_zipslices_stride(a: Vec<u8>, b: Vec<u8>, mut s1: i8, mut s2: i8) -> bool {
+    use itertools::ZipSlices;
+    use itertools::Stride;
+    if s1 == 0 { s1 += 1; }
+    if s2 == 0 { s2 += 1; }
+    let a = Stride::from_slice(&a, s1 as isize);
+    let b = Stride::from_slice(&b, s2 as isize);
+    itertools::equal(ZipSlices::from_slices(a, b), a.zip(b))
+}
+
+#[quickcheck]
+fn exact_size_zipslices_stride(a: Vec<u8>, b: Vec<u8>, mut s1: i8, mut s2: i8) -> bool {
+    use itertools::ZipSlices;
+    use itertools::Stride;
+    if s1 == 0 { s1 += 1; }
+    if s2 == 0 { s2 += 1; }
+    exact_size(ZipSlices::from_slices(Stride::from_slice(&a, s1 as isize),
+                                      Stride::from_slice(&b, s2 as isize)))
 }
 
 }

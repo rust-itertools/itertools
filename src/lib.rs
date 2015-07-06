@@ -85,6 +85,7 @@ pub use zip_longest::{ZipLongest, EitherOrBoth};
 pub use ziptuple::{Zip};
 #[cfg(feature = "unstable")]
 pub use ziptrusted::{ZipTrusted, TrustedIterator};
+pub use zipslices::ZipSlices;
 mod adaptors;
 mod format;
 mod groupbylazy;
@@ -104,6 +105,7 @@ mod zip_longest;
 mod ziptuple;
 #[cfg(feature = "unstable")]
 mod ziptrusted;
+mod zipslices;
 
 /// The function pointer map iterator created with `.map_fn()`.
 pub type MapFn<I, B> where I: Iterator = iter::Map<I, fn(I::Item) -> B>;
@@ -1236,10 +1238,12 @@ pub fn equal<I, J>(a: I, b: J) -> bool where
     let mut ia = a.into_iter();
     let mut ib = b.into_iter();
     loop {
-        match (ia.next(), ib.next()) {
-            (Some(ref x), Some(ref y)) if x == y => { }
-            (None, None) => return true,
-            _ => return false,
+        match ia.next() {
+            Some(ref x) => match ib.next() {
+                Some(ref y) => if x != y { return false; },
+                None => return false,
+            },
+            None => return ib.next().is_none()
         }
     }
 }

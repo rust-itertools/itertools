@@ -66,32 +66,33 @@ impl<A, F> DoubleEndedIterator for RepeatCall<F> where
 /// implementation, and is useful for one-off iterators.
 ///
 /// ```
-/// // an example of iterator that yields sequential Fibonacci numbers, and stops
-/// // on overflow.
+/// // an iterator that yields sequential Fibonacci numbers,
+/// // and stops at the maximum representable value.
+///
 /// use itertools::Unfold;
 ///
-/// // This iterator will yield up to the last Fibonacci number before the max
-/// // value of `u32`. You can simply change `u32` to `u64` in this line if
-/// // you want higher values than that.
-/// let mut fibonacci = Unfold::new((Some(0u32), Some(1u32)),
-///                                 |&mut (ref mut x2, ref mut x1)| {
+/// let mut fibonacci = Unfold::new((1_u32, 1_u32), |state| {
+///     let (ref mut x1, ref mut x2) = *state;
+///
 ///     // Attempt to get the next Fibonacci number
-///     // `x1` will be `None` if previously overflowed.
-///     let next = match (*x2, *x1) {
-///         (Some(x2), Some(x1)) => x2.checked_add(x1),
-///         _ => None,
-///     };
+///     let next = x1.saturating_add(*x2);
 ///
-///     // Shift left: ret <- x2 <- x1 <- next
-///     let ret = *x2;
-///     *x2 = *x1;
-///     *x1 = next;
+///     // Shift left: ret <- x1 <- x2 <- next
+///     let ret = *x1;
+///     *x1 = *x2;
+///     *x2 = next;
 ///
-///     ret
+///     // If addition has saturated at the maximum, we are finished
+///     if ret == *x1 && ret > 1 {
+///         return None;
+///     }
+///
+///     Some(ret)
 /// });
 ///
-/// itertools::assert_equal(fibonacci.take(8),
-///                         vec![0, 1, 1, 2, 3, 5, 8, 13]);
+/// itertools::assert_equal(fibonacci.by_ref().take(8),
+///                         vec![1, 1, 2, 3, 5, 8, 13, 21]);
+/// assert_eq!(fibonacci.last(), Some(2_971_215_073))
 /// ```
 #[derive(Clone)]
 pub struct Unfold<St, F> {
