@@ -34,6 +34,10 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.3.22
+
+  - Added ZipSlices, a fast zip for slices
+
 - 0.3.21
 
   - Remove `Debug` impl for `Format`, it will have different use later
