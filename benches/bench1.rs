@@ -119,11 +119,11 @@ fn zip_default_zip(b: &mut test::Bencher)
 {
     let xs = vec![0; 1024];
     let ys = vec![0; 768];
+    let xs = black_box(xs);
+    let ys = black_box(ys);
 
     b.iter(|| {
-        let xs = black_box(&xs);
-        let ys = black_box(&ys);
-        for (&x, &y) in xs.iter().zip(ys) {
+        for (&x, &y) in xs.iter().zip(&ys) {
             test::black_box(x);
             test::black_box(y);
         }
@@ -136,12 +136,12 @@ fn zip_default_zip3(b: &mut test::Bencher)
     let xs = vec![0; 1024];
     let ys = vec![0; 768];
     let zs = vec![0; 766];
+    let xs = black_box(xs);
+    let ys = black_box(ys);
+    let zs = black_box(zs);
 
     b.iter(|| {
-        let xs = black_box(&xs);
-        let ys = black_box(&ys);
-        let zs = black_box(&zs);
-        for ((&x, &y), &z) in xs.iter().zip(ys).zip(zs) {
+        for ((&x, &y), &z) in xs.iter().zip(&ys).zip(&zs) {
             test::black_box(x);
             test::black_box(y);
             test::black_box(z);
@@ -172,11 +172,11 @@ fn zip_slices(b: &mut test::Bencher)
 {
     let xs = vec![0; 1024];
     let ys = vec![0; 768];
+    let xs = black_box(xs);
+    let ys = black_box(ys);
 
     b.iter(|| {
-        let xs = black_box(&xs);
-        let ys = black_box(&ys);
-        for (&x, &y) in ZipSlices::new(xs, ys) {
+        for (&x, &y) in ZipSlices::new(&xs, &ys) {
             test::black_box(x);
             test::black_box(y);
         }
@@ -189,10 +189,10 @@ fn ziptrusted(b: &mut test::Bencher)
 {
     let xs = vec![0; 1024];
     let ys = vec![0; 768];
+    let xs = black_box(xs);
+    let ys = black_box(ys);
 
     b.iter(|| {
-        let xs = black_box(&xs);
-        let ys = black_box(&ys);
         for (&x, &y) in ZipTrusted::new((xs.iter(), ys.iter())) {
             test::black_box(x);
             test::black_box(y);
@@ -207,11 +207,11 @@ fn ziptrusted3(b: &mut test::Bencher)
     let xs = vec![0; 1024];
     let ys = vec![0; 768];
     let zs = vec![0; 766];
+    let xs = black_box(xs);
+    let ys = black_box(ys);
+    let zs = black_box(zs);
 
     b.iter(|| {
-        let xs = black_box(&xs);
-        let ys = black_box(&ys);
-        let zs = black_box(&zs);
         for (&x, &y, &z) in ZipTrusted::new((xs.iter(), ys.iter(), zs.iter())) {
             test::black_box(x);
             test::black_box(y);
@@ -225,10 +225,10 @@ fn zip_unchecked_counted_loop(b: &mut test::Bencher)
 {
     let xs = vec![0; 1024];
     let ys = vec![0; 768];
+    let xs = black_box(xs);
+    let ys = black_box(ys);
 
     b.iter(|| {
-        let xs = black_box(&xs);
-        let ys = black_box(&ys);
         let len = cmp::min(xs.len(), ys.len());
         for i in 0..len {
             unsafe {
@@ -247,11 +247,11 @@ fn zip_unchecked_counted_loop3(b: &mut test::Bencher)
     let xs = vec![0; 1024];
     let ys = vec![0; 768];
     let zs = vec![0; 766];
+    let xs = black_box(xs);
+    let ys = black_box(ys);
+    let zs = black_box(zs);
 
     b.iter(|| {
-        let xs = black_box(&xs);
-        let ys = black_box(&ys);
-        let zs = black_box(&zs);
         let len = cmp::min(xs.len(), cmp::min(ys.len(), zs.len()));
         for i in 0..len {
             unsafe {
