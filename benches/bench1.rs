@@ -11,7 +11,7 @@ use itertools::Itertools;
 use itertools::Zip;
 
 #[cfg(feature = "unstable")]
-use itertools::{Zip, ZipTrusted};
+use itertools::{Zip, ZipTrusted, ZipSlices};
 
 use std::iter::repeat;
 use std::cmp;
@@ -50,65 +50,6 @@ fn stride_iter_rev(b: &mut test::Bencher)
     b.iter(|| for elt in Stride::from_slice(&xs, 1).rev() {
         test::black_box(elt);
     })
-}
-
-#[derive(Copy, Clone)]
-struct ZipSlices<'a, T: 'a, U :'a>
-{
-    t_ptr: *const T,
-    t_end: *const T,
-    u_ptr: *const U,
-    mark: PhantomData<&'a (T, U)>,
-}
-
-impl<'a, T, U> ZipSlices<'a, T, U>
-{
-    pub fn new(t: &'a [T], u: &'a [U]) -> Self
-    {
-        assert!(mem::size_of::<T>() != 0);
-        assert!(mem::size_of::<U>() != 0);
-        let minl = cmp::min(t.len(), u.len());
-        let tptr = t.as_ptr();
-        let uptr = u.as_ptr();
-        let end_ptr = unsafe {
-            tptr.offset(minl as isize)
-        };
-        ZipSlices {
-            t_ptr: tptr,
-            t_end: end_ptr,
-            u_ptr: uptr,
-            mark: PhantomData,
-        }
-    }
-}
-
-impl<'a, T, U> Iterator for ZipSlices<'a, T, U>
-{
-    type Item = (&'a T, &'a U);
-
-    #[inline]
-    fn next(&mut self) -> Option<(&'a T, &'a U)>
-    {
-        if self.t_ptr == self.t_end {
-            return None
-        }
-        let t_elt: &T;
-        let u_elt: &U;
-        unsafe {
-            t_elt = &*self.t_ptr;
-            self.t_ptr = self.t_ptr.offset(1);
-            u_elt = &*self.u_ptr;
-            self.u_ptr = self.u_ptr.offset(1);
-        }
-        Some((t_elt, u_elt))
-    }
-
-    #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>)
-    {
-        let len = self.t_end as usize - self.t_ptr as usize;
-        (len, Some(len))
-    }
 }
 
 #[bench]
@@ -164,6 +105,7 @@ fn zip_slices_ziptuple(b: &mut test::Bencher)
 }
 */
 
+#[cfg(feature = "unstable")]
 #[bench]
 fn zip_slices(b: &mut test::Bencher)
 {

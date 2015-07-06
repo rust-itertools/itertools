@@ -527,4 +527,16 @@ fn fuzz_group_by_lazy_duo(data: Vec<u8>, order: Vec<(bool, bool)>) -> bool {
     true
 }
 
+#[quickcheck]
+fn equal_zipslices(a: Vec<u8>, b: Vec<u8>) -> bool {
+    use itertools::ZipSlices;
+    itertools::equal(ZipSlices::new(&a, &b), a.iter().zip(&b))
+}
+
+#[quickcheck]
+fn exact_size_zipslices(a: Vec<u8>, b: Vec<u8>) -> bool {
+    use itertools::ZipSlices;
+    exact_size(ZipSlices::new(&a, &b))
+}
+
 }
