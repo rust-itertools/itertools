@@ -121,6 +121,23 @@ fn zip_slices(b: &mut test::Bencher)
 }
 
 #[bench]
+fn zip_slices_mut(b: &mut test::Bencher)
+{
+    let xs = vec![0; 1024];
+    let ys = vec![0; 768];
+    let xs = black_box(xs);
+    let mut ys = black_box(ys);
+
+    b.iter(|| {
+        for (&x, &mut y) in ZipSlices::from_slices(&xs[..], &mut ys[..]) {
+            test::black_box(x);
+            test::black_box(y);
+        }
+    })
+}
+
+#[cfg(feature = "unstable")]
+#[bench]
 fn ziptrusted(b: &mut test::Bencher)
 {
     let xs = vec![0; 1024];

@@ -1,5 +1,7 @@
 use std::cmp;
 
+use misc::Slice;
+
 // Note: There are different ways to implement ZipSlices.
 // This version performed the best in benchmarks.
 //
@@ -7,18 +9,24 @@ use std::cmp;
 // that mimiced slice::Iter and only checked bounds by using tptr == tend,
 // but that was inferior to this solution.
 
-/// `ZipSlices`
+/// An iterator which iterates two slices simultaneously.
 ///
-/// Iterator element type is `(&'a T, &'a U)`.
-pub struct ZipSlices<'a, T: 'a, U :'a>
-{
-    t: &'a [T],
-    u: &'a [U],
+/// `ZipSlices` acts like a double-ended `.zip()` iterator, but more efficiently.
+///
+/// Note that elements past the end shortest of the shortest of the two slices
+/// are ignored.
+///
+/// Iterator element type for `ZipSlices<T, U>` is `(T::Item, U::Item)`. For example,
+/// for a `ZipSlices<&'a [A], &'b mut [B]>`, the element type is `(&'a A, &'b mut B)`.
+pub struct ZipSlices<T, U> {
+    t: T,
+    u: U,
     len: usize,
     index: usize,
 }
 
-impl<'a, T, U> Clone for ZipSlices<'a, T, U> {
+/// `ZipSlices` is only clonable if both slices are shared references (`&[_]`).
+impl<T: Copy, U: Copy> Clone for ZipSlices<T, U> {
     fn clone(&self) -> Self {
         ZipSlices {
             t: self.t,
@@ -29,14 +37,31 @@ impl<'a, T, U> Clone for ZipSlices<'a, T, U> {
     }
 }
 
-impl<'a, T, U> ZipSlices<'a, T, U> {
+impl<'a, 'b, A, B> ZipSlices<&'a [A], &'b [B]>
+{
+    /// Create a new `ZipSlices` from slices `a` and `b`.
+    ///
+    /// Act like a double-ended `.zip()` iterator, but more efficiently.
+    ///
+    /// Note that elements past the end shortest of the shortest of the two slices
+    /// are ignored.
+    ///
+    #[inline(always)]
+    pub fn new(a: &'a [A], b: &'b [B]) -> Self {
+        Self::from_slices(a, b)
+    }
+}
+
+impl<T, U> ZipSlices<T, U>
+    where T: Slice, U: Slice
+{
     /// Create a new `ZipSlices` from slices `a` and `b`.
     ///
     /// Act like a double-ended `.zip()` iterator, but more efficiently.
     ///
     /// Note that elements past the shortest of `a` or `b` are ignored.
     #[inline(always)]
-    pub fn new(a: &'a [T], b: &'a [U]) -> Self {
+    pub fn from_slices(a: T, b: U) -> Self {
         let minl = cmp::min(a.len(), b.len());
         ZipSlices {
             t: a,
@@ -47,11 +72,13 @@ impl<'a, T, U> ZipSlices<'a, T, U> {
     }
 }
 
-impl<'a, T, U> Iterator for ZipSlices<'a, T, U> {
-    type Item = (&'a T, &'a U);
+impl<T, U> Iterator for ZipSlices<T, U>
+    where T: Slice, U: Slice
+{
+    type Item = (T::Item, U::Item);
 
     #[inline(always)]
-    fn next(&mut self) -> Option<(&'a T, &'a U)> {
+    fn next(&mut self) -> Option<Self::Item> {
         unsafe {
             if self.index >= self.len {
                 None
@@ -72,11 +99,13 @@ impl<'a, T, U> Iterator for ZipSlices<'a, T, U> {
     }
 }
 
-impl<'a, T, U> DoubleEndedIterator for ZipSlices<'a, T, U> {
+impl<T, U> DoubleEndedIterator for ZipSlices<T, U>
+    where T: Slice, U: Slice
+{
     #[inline(always)]
-    fn next_back(&mut self) -> Option<(&'a T, &'a U)> {
+    fn next_back(&mut self) -> Option<Self::Item> {
         unsafe {
-            if self.index == self.len {
+            if self.index >= self.len {
                 None
             } else {
                 self.len -= 1;
@@ -89,5 +118,5 @@ impl<'a, T, U> DoubleEndedIterator for ZipSlices<'a, T, U> {
     }
 }
 
-impl<'a, T, U> ExactSizeIterator for ZipSlices<'a, T, U> { }
+impl<T, U> ExactSizeIterator for ZipSlices<T, U> where T: Slice, U: Slice { }
 
