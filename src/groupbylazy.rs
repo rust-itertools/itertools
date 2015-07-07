@@ -349,6 +349,8 @@ impl<'a, K, I, F> IntoIterator for &'a GroupByLazy<K, I, F>
 ///
 /// Iterator element type is `(K, Group)`:
 /// the group's key `K` and the group's iterator.
+///
+/// See [`.group_by_lazy()`](trait.Itertools.html#method.group_by_lazy) for more information.
 pub struct Groups<'a, K: 'a, I: 'a, F: 'a>
     where I: Iterator,
           I::Item: 'a,
@@ -443,10 +445,15 @@ pub fn new_chunks<J>(iter: J, size: usize) -> ChunksLazy<J::IntoIter>
 
 /// `ChunkLazy` is the storage for a lazy chunking operation.
 ///
+/// `ChunksLazy` behaves just like `GroupByLazy`: it is iterable, and
+/// it only buffers if several chunk iterators are alive at the same time.
+///
 /// This type implements `IntoIterator` (it is **not** an iterator
 /// itself), because the chunk iterators need to borrow from this
 /// value. It should be stored in a local variable or temporary and
 /// iterated.
+///
+/// Iterator element type is `Chunk`, each chunk's iterator.
 ///
 /// See [`.chunks_lazy()`](trait.Itertools.html#method.chunks_lazy) for more information.
 pub struct ChunksLazy<I>
@@ -491,6 +498,8 @@ impl<'a, I> IntoIterator for &'a ChunksLazy<I>
 /// An iterator that yields the Chunk iterators.
 ///
 /// Iterator element type is `Chunk`.
+///
+/// See [`.chunks_lazy()`](trait.Itertools.html#method.chunks_lazy) for more information.
 pub struct Chunks<'a, I: 'a>
     where I: Iterator,
           I::Item: 'a,
