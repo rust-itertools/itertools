@@ -182,9 +182,10 @@ fn zip_checked_counted_loop(b: &mut test::Bencher)
     let ys = black_box(ys);
 
     b.iter(|| {
-        let xs = &xs[..];
-        let ys = &ys[..];
+        // Must slice to equal lengths, and then bounds checks are eliminated!
         let len = cmp::min(xs.len(), ys.len());
+        let xs = &xs[..len];
+        let ys = &ys[..len];
 
         for i in 0..len {
             let x = xs[i];
