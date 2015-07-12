@@ -2,6 +2,53 @@ use Itertools;
 use std::cell::{Cell, RefCell};
 use std::vec;
 
+/// A trait to unify FnMut for GroupByLazy with the chunk key in ChunksLazy
+trait KeyFunction<A> {
+    type Key;
+    fn call_mut(&mut self, arg: A) -> Self::Key;
+}
+
+impl<'a, A, K, F: ?Sized> KeyFunction<A> for F where F: FnMut(A) -> K {
+    type Key = K;
+    #[inline]
+    fn call_mut(&mut self, arg: A) -> Self::Key {
+        (*self)(arg)
+    }
+}
+
+
+/// ChunkIndex acts like the grouping key function for ChunksLazy
+struct ChunkIndex {
+    size: usize,
+    index: usize,
+    key: usize,
+}
+
+impl ChunkIndex {
+    #[inline(always)]
+    fn new(size: usize) -> Self {
+        ChunkIndex {
+            size: size,
+            index: 0,
+            key: 0,
+        }
+    }
+}
+
+impl<'a, A> KeyFunction<A> for ChunkIndex {
+    type Key = usize;
+    #[inline(always)]
+    fn call_mut(&mut self, _arg: A) -> Self::Key {
+        if self.index == self.size {
+            self.key += 1;
+            self.index = 0;
+        }
+        self.index += 1;
+        self.key
+    }
+}
+
+
 struct GroupInner<K, I, F>
     where I: Iterator,
 {
@@ -26,7 +73,7 @@ struct GroupInner<K, I, F>
 
 impl<K, I, F> GroupInner<K, I, F>
     where I: Iterator,
-          F: FnMut(&I::Item) -> K,
+          F: for<'a> KeyFunction<&'a I::Item, Key=K>,
           K: PartialEq,
 {
     /// `client`: Index of group that requests next element
@@ -116,7 +163,7 @@ impl<K, I, F> GroupInner<K, I, F>
         let mut first_elt = None; // first element of the next group
 
         while let Some(elt) = self.next_element() {
-            let key = (self.key)(&elt);
+            let key = self.key.call_mut(&elt);
             match self.current_key.take() {
                 None => {}
                 Some(old_key) => if old_key != key {
@@ -165,7 +212,7 @@ impl<K, I, F> GroupInner<K, I, F>
         match self.next_element() {
             None => None,
             Some(elt) => {
-                let key = (self.key)(&elt);
+                let key = self.key.call_mut(&elt);
                 match self.current_key.take() {
                     None => {}
                     Some(old_key) => if old_key != key {
@@ -197,7 +244,7 @@ impl<K, I, F> GroupInner<K, I, F>
         debug_assert!(self.current_elt.is_none());
         let old_key = self.current_key.take().unwrap();
         if let Some(elt) = self.next_element() {
-            let key = (self.key)(&elt);
+            let key = self.key.call_mut(&elt);
             if old_key != key {
                 self.top += 1;
             }
@@ -302,6 +349,8 @@ impl<'a, K, I, F> IntoIterator for &'a GroupByLazy<K, I, F>
 ///
 /// Iterator element type is `(K, Group)`:
 /// the group's key `K` and the group's iterator.
+///
+/// See [`.group_by_lazy()`](trait.Itertools.html#method.group_by_lazy) for more information.
 pub struct Groups<'a, K: 'a, I: 'a, F: 'a>
     where I: Iterator,
           I::Item: 'a,
@@ -359,6 +408,150 @@ impl<'a, K, I, F> Iterator for Group<'a, K, I, F>
           I::Item: 'a,
           F: FnMut(&I::Item) -> K,
           K: PartialEq,
+{
+    type Item = I::Item;
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        if let elt @ Some(..) = self.first.take() {
+            return elt;
+        }
+        self.parent.step(self.index)
+    }
+}
+
+///// ChunksLazy /////
+
+/// Create a new
+pub fn new_chunks<J>(iter: J, size: usize) -> ChunksLazy<J::IntoIter>
+    where J: IntoIterator,
+{
+    ChunksLazy {
+        inner: RefCell::new(GroupInner {
+            key: ChunkIndex::new(size),
+            iter: iter.into_iter(),
+            current_key: None,
+            current_elt: None,
+            done: false,
+            top: 0,
+            bot: 0,
+            bufbot: 0,
+            buffer: Vec::new(),
+            dropped_group: !0,
+        }),
+        index: Cell::new(0),
+    }
+}
+
+
+/// `ChunkLazy` is the storage for a lazy chunking operation.
+///
+/// `ChunksLazy` behaves just like `GroupByLazy`: it is iterable, and
+/// it only buffers if several chunk iterators are alive at the same time.
+///
+/// This type implements `IntoIterator` (it is **not** an iterator
+/// itself), because the chunk iterators need to borrow from this
+/// value. It should be stored in a local variable or temporary and
+/// iterated.
+///
+/// Iterator element type is `Chunk`, each chunk's iterator.
+///
+/// See [`.chunks_lazy()`](trait.Itertools.html#method.chunks_lazy) for more information.
+pub struct ChunksLazy<I>
+    where I: Iterator,
+{
+    inner: RefCell<GroupInner<usize, I, ChunkIndex>>,
+    // the chunk iterator's current index. Keep this in the main value
+    // so that simultaneous iterators all use the same state.
+    index: Cell<usize>,
+}
+
+
+impl<I> ChunksLazy<I>
+    where I: Iterator,
+{
+    /// `client`: Index of chunk that requests next element
+    fn step(&self, client: usize) -> Option<I::Item> {
+        self.inner.borrow_mut().step(client)
+    }
+
+    /// `client`: Index of chunk
+    fn drop_group(&self, client: usize) {
+        self.inner.borrow_mut().drop_group(client)
+    }
+}
+
+impl<'a, I> IntoIterator for &'a ChunksLazy<I>
+    where I: Iterator,
+          I::Item: 'a,
+{
+    type Item = Chunk<'a, I>;
+    type IntoIter = Chunks<'a, I>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        Chunks {
+            parent: self,
+        }
+    }
+}
+
+
+/// An iterator that yields the Chunk iterators.
+///
+/// Iterator element type is `Chunk`.
+///
+/// See [`.chunks_lazy()`](trait.Itertools.html#method.chunks_lazy) for more information.
+pub struct Chunks<'a, I: 'a>
+    where I: Iterator,
+          I::Item: 'a,
+{
+    parent: &'a ChunksLazy<I>,
+}
+
+impl<'a, I> Iterator for Chunks<'a, I>
+    where I: Iterator,
+          I::Item: 'a,
+{
+    type Item = Chunk<'a, I>;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        let index = self.parent.index.get();
+        self.parent.index.set(index + 1);
+        let inner = &mut *self.parent.inner.borrow_mut();
+        inner.step(index).map(|elt| {
+            Chunk {
+                parent: self.parent,
+                index: index,
+                first: Some(elt),
+            }
+        })
+    }
+}
+
+/// An iterator for the elements in a single chunk.
+///
+/// Iterator element type is `I::Item`.
+pub struct Chunk<'a, I: 'a>
+    where I: Iterator,
+          I::Item: 'a,
+{
+    parent: &'a ChunksLazy<I>,
+    index: usize,
+    first: Option<I::Item>,
+}
+
+impl<'a, I> Drop for Chunk<'a, I>
+    where I: Iterator,
+          I::Item: 'a,
+{
+    fn drop(&mut self) {
+        self.parent.drop_group(self.index);
+    }
+}
+
+impl<'a, I> Iterator for Chunk<'a, I>
+    where I: Iterator,
+          I::Item: 'a,
 {
     type Item = I::Item;
     #[inline]

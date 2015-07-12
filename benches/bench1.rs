@@ -279,6 +279,38 @@ fn group_by_lazy_2(b: &mut test::Bencher) {
 }
 
 #[bench]
+fn slice_chunks(b: &mut test::Bencher) {
+    let data = vec![0; 1024];
+
+    let data = test::black_box(data);
+    let sz = test::black_box(10);
+
+    b.iter(|| {
+        for group in data.chunks(sz) {
+            for elt in group {
+                test::black_box(elt);
+            }
+        }
+    })
+}
+
+#[bench]
+fn chunks_lazy_1(b: &mut test::Bencher) {
+    let data = vec![0; 1024];
+
+    let data = test::black_box(data);
+    let sz = test::black_box(10);
+
+    b.iter(|| {
+        for group in &data.iter().chunks_lazy(sz) {
+            for elt in group {
+                test::black_box(elt);
+            }
+        }
+    })
+}
+
+#[bench]
 fn equal(b: &mut test::Bencher) {
     let data = vec![7; 1024];
     let l = data.len();
