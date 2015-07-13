@@ -34,6 +34,11 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.3.23
+
+  - Added .chunks_lazy(), similar to (and based on) .group_by_lazy().
+  - Tweak linspace to match numpy.linspace and make it double ended.
+
 - 0.3.22
 
   - Added ZipSlices, a fast zip for slices
