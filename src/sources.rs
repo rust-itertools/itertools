@@ -9,16 +9,16 @@
 /// ```
 /// use itertools::RepeatCall;
 ///
-/// assert!(itertools::equal(
+/// itertools::assert_equal(
 ///     RepeatCall::new(|| "A".to_string()).take(5),
 ///     vec!["A", "A", "A", "A", "A"]
-/// ));
+/// );
 ///
 /// let mut x = 1;
-/// assert!(itertools::equal(
+/// itertools::assert_equal(
 ///     RepeatCall::new(|| { x = -x; x }).take(5),
 ///     vec![-1, 1, -1, 1, -1]
-/// ));
+/// );
 /// ```
 pub struct RepeatCall<F> {
     f: F,

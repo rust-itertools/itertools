@@ -1080,7 +1080,7 @@ pub trait Itertools : Iterator {
         }
     }
 
-    /// Format all iterator elements lazily, separated by `sep`.
+    /// Format all iterator elements, separated by `sep`.
     ///
     /// The supplied closure `format` is called once per iterator element,
     /// with two arguments: the element and a callback that takes a
@@ -1092,14 +1092,12 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// // Lazy generation is most useful if you output to a generic writer
-    /// // or to the stdout. For demonstration purposes we format to a String here.
     /// let data = [1.1, 2.71828, -3.];
     /// let data_formatter = data.iter().format(", ", |elt, f| f(&format_args!("{:2.2}", elt)));
     /// assert_eq!(format!("{}", data_formatter),
     ///            "1.10, 2.72, -3.00");
     ///
-    /// // Lazy formatting is composable
+    /// // .format() is recursively composable
     /// let matrix = [[1., 2., 3.],
     ///               [4., 5., 6.]];
     /// let matrix_formatter = matrix.iter().format("\n", |row, f| {
