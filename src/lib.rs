@@ -415,11 +415,13 @@ pub trait Itertools : Iterator {
 
     /// Return an iterable that can chunk the iterator.
     ///
-    /// Yield subiterators (chunks) that each yield a fixed number elements, determined
-    /// by `size`. The last chunk will be shorter if there aren't enough elements.
+    /// Yield subiterators (chunks) that each yield a fixed number elements,
+    /// determined by `size`. The last chunk will be shorter if there aren't
+    /// enough elements.
     ///
-    /// `ChunksLazy` behaves just like `GroupByLazy`: it is iterable, and
-    /// it only buffers if several chunk iterators are alive at the same time.
+    /// `ChunksLazy` is based on `GroupByLazy`: it is iterable (implements
+    /// `IntoIterator`, **not** `Iterator`), and it only buffers if several
+    /// chunk iterators are alive at the same time.
     ///
     /// Iterator element type is `Chunk`, each chunk's iterator.
     ///
