@@ -195,7 +195,11 @@ impl<'a> MendSlice for &'a str
 }
 
 /// A helper trait to let `ZipSlices` accept both `&[T]` and `&mut [T]`.
-pub trait Slice {
+///
+/// Unsafe trait because:
+///
+/// - Implementors must guarantee that `get_unchecked` is valid for all indices `0..len()`.
+pub unsafe trait Slice {
     /// The type of a reference to the slice's elements
     type Item;
     #[doc(hidden)]
@@ -204,7 +208,7 @@ pub trait Slice {
     unsafe fn get_unchecked(&mut self, i: usize) -> Self::Item;
 }
 
-impl<'a, T> Slice for &'a [T] {
+unsafe impl<'a, T> Slice for &'a [T] {
     type Item = &'a T;
     #[inline(always)]
     fn len(&self) -> usize { (**self).len() }
@@ -215,7 +219,7 @@ impl<'a, T> Slice for &'a [T] {
     }
 }
 
-impl<'a, T> Slice for &'a mut [T] {
+unsafe impl<'a, T> Slice for &'a mut [T] {
     type Item = &'a mut T;
     #[inline(always)]
     fn len(&self) -> usize { (**self).len() }
