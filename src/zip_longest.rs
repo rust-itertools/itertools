@@ -77,7 +77,7 @@ impl<T, U> ExactSizeIterator for ZipLongest<T, U> where
 {}
 
 
-/// A value yielded by `ZipLongest`.
+/// A value yielded by `ZipLongest`, `merge_join` and `hash_join` outer iterators.
 /// Contains one or two values, depending on which of the input iterators are exhausted.
 ///
 /// See [*.zip_longest()*](trait.Itertools.html#method.zip_longest) for more information.
@@ -85,10 +85,8 @@ impl<T, U> ExactSizeIterator for ZipLongest<T, U> where
 pub enum EitherOrBoth<A, B> {
     /// Neither input iterator is exhausted yet, yielding two values.
     Both(A, B),
-    /// The parameter iterator of `.zip_longest()` is exhausted,
-    /// only yielding a value from the `self` iterator.
+    /// The parameter iterator is exhausted, only yielding a value from the `self` iterator.
     Left(A),
-    /// The `self` iterator of `.zip_longest()` is exhausted,
-    /// only yielding a value from the parameter iterator.
+    /// The `self` iterator is exhausted, only yielding a value from the parameter iterator.
     Right(B),
 }
