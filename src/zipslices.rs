@@ -17,23 +17,12 @@ use misc::Slice;
 ///
 /// Iterator element type for `ZipSlices<T, U>` is `(T::Item, U::Item)`. For example,
 /// for a `ZipSlices<&'a [A], &'b mut [B]>`, the element type is `(&'a A, &'b mut B)`.
+#[derive(Clone)]
 pub struct ZipSlices<T, U> {
     t: T,
     u: U,
     len: usize,
     index: usize,
-}
-
-/// `ZipSlices` is only clonable if both slices are shared references (`&[_]`).
-impl<T: Copy, U: Copy> Clone for ZipSlices<T, U> {
-    fn clone(&self) -> Self {
-        ZipSlices {
-            t: self.t,
-            u: self.u,
-            len: self.len,
-            index: self.index,
-        }
-    }
 }
 
 impl<'a, 'b, A, B> ZipSlices<&'a [A], &'b [B]> {

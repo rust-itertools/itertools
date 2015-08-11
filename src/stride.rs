@@ -29,7 +29,7 @@ pub struct Stride<'a, A: 'a> {
 }
 
 impl<'a, A> Copy for Stride<'a, A> {}
-unsafe impl<'a, A> Send for Stride<'a, A> where A: Send {}
+unsafe impl<'a, A> Send for Stride<'a, A> where A: Sync {}
 unsafe impl<'a, A> Sync for Stride<'a, A> where A: Sync {}
 
 /// The mutable equivalent of Stride.
@@ -247,7 +247,7 @@ macro_rules! stride_impl {
             }
         }
 
-        impl<'a, A> Slice for $name<'a, A> {
+        unsafe impl<'a, A> Slice for $name<'a, A> {
             type Item = $elem;
             fn len(&self) -> usize { $name::len(self) }
             unsafe fn get_unchecked(&mut self, i: usize) -> $elem {

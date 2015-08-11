@@ -14,6 +14,7 @@ use itertools::ZipSlices;
 
 use std::iter::repeat;
 use std::cmp;
+use std::cmp::Ordering;
 
 #[bench]
 fn slice_iter(b: &mut test::Bencher)
@@ -314,9 +315,87 @@ fn chunks_lazy_1(b: &mut test::Bencher) {
 fn equal(b: &mut test::Bencher) {
     let data = vec![7; 1024];
     let l = data.len();
+    let alpha = test::black_box(&data[1..]);
+    let beta = test::black_box(&data[..l - 1]);
     b.iter(|| {
-        let a = test::black_box(&data[1..]);
-        let b = test::black_box(&data[..l - 1]);
-        itertools::equal(a, b)
+        itertools::equal(alpha, beta)
+    })
+}
+
+#[bench]
+fn merge_default(b: &mut test::Bencher) {
+    let mut data1 = vec![0; 1024];
+    let mut data2 = vec![0; 800];
+    let mut x = 0;
+    for (_, elt) in data1.iter_mut().enumerate() {
+        *elt = x;
+        x += 1;
+    }
+
+    let mut y = 0;
+    for (i, elt) in data2.iter_mut().enumerate() {
+        *elt += y;
+        if i % 3 == 0 {
+            y += 3;
+        } else {
+            y += 0;
+        }
+    }
+    let data1 = test::black_box(data1);
+    let data2 = test::black_box(data2);
+    b.iter(|| {
+        data1.iter().merge(&data2).count()
+    })
+}
+
+#[bench]
+fn merge_by_cmp(b: &mut test::Bencher) {
+    let mut data1 = vec![0; 1024];
+    let mut data2 = vec![0; 800];
+    let mut x = 0;
+    for (_, elt) in data1.iter_mut().enumerate() {
+        *elt = x;
+        x += 1;
+    }
+
+    let mut y = 0;
+    for (i, elt) in data2.iter_mut().enumerate() {
+        *elt += y;
+        if i % 3 == 0 {
+            y += 3;
+        } else {
+            y += 0;
+        }
+    }
+    let data1 = test::black_box(data1);
+    let data2 = test::black_box(data2);
+    b.iter(|| {
+        data1.iter().merge_by(&data2, Ord::cmp).count()
+    })
+}
+
+#[bench]
+fn merge_by_lt(b: &mut test::Bencher) {
+    let mut data1 = vec![0; 1024];
+    let mut data2 = vec![0; 800];
+    let mut x = 0;
+    for (_, elt) in data1.iter_mut().enumerate() {
+        *elt = x;
+        x += 1;
+    }
+
+    let mut y = 0;
+    for (i, elt) in data2.iter_mut().enumerate() {
+        *elt += y;
+        if i % 3 == 0 {
+            y += 3;
+        } else {
+            y += 0;
+        }
+    }
+    let data1 = test::black_box(data1);
+    let data2 = test::black_box(data2);
+    b.iter(|| {
+        data1.iter().merge_by(&data2, |a, b| if a <= b { Ordering::Less } else { Ordering::Greater }).count()
     })
 }

@@ -570,10 +570,7 @@ pub trait Itertools : Iterator {
         Self::Item: PartialOrd,
         J: IntoIterator<Item=Self::Item>,
     {
-        fn wrapper<A: PartialOrd>(a: &A, b: &A) -> Ordering {
-            a.partial_cmp(b).unwrap_or(Ordering::Less)
-        };
-        self.merge_by(other, wrapper)
+        self.merge_by(other, adaptors::merge_default_ordering)
     }
 
     /// Return an iterator adaptor that merges the two base iterators in order.

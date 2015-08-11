@@ -573,6 +573,17 @@ pub struct Merge<I, J, F> where
     fused: Option<bool>,
 }
 
+// default ordering function for .merge()
+// Note: To be replaced by unit struct
+#[inline]
+pub fn merge_default_ordering<A: PartialOrd>(a: &A, b: &A) -> Ordering {
+    if a > b {
+        Ordering::Greater
+    } else {
+        Ordering::Less
+    }
+}
+
 impl<I, J, F> Merge<I, J, F> where
     I: Iterator,
     J: Iterator<Item=I::Item>,
