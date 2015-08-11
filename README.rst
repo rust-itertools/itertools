@@ -34,6 +34,10 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.3.24
+
+  - Improve performance of .merge()'s ordering function slightly
+
 - 0.3.23
 
   - Added .chunks_lazy(), similar to (and based on) .group_by_lazy().
