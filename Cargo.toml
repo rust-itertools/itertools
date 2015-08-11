@@ -13,8 +13,10 @@ description = "Extra iterator adaptors, iterator methods and macros."
 keywords = ["iterator", "data-structure", "zip", "product", "group-by"]
 
 [dependencies.quickcheck]
+version = "0.2.21"
 optional = true
 [dependencies.quickcheck_macros]
+version = "0.2.21"
 optional = true
 
 [dev-dependencies.permutohedron]
