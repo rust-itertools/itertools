@@ -1223,7 +1223,7 @@ pub trait Itertools : Iterator {
         }
     }
 
-    /// Sort iterator elements.
+    /// Collect all iterator elements into a sorted vector.
     ///
     /// **Note:** This consumes the entire iterator, uses the
     /// `slice::sort_by()` method and returns the sorted vector.
@@ -1236,20 +1236,29 @@ pub trait Itertools : Iterator {
     ///
     /// let oldest_people_first = people
     ///     .into_iter()
-    ///     .sort_by(|a, b| Ord::cmp(&b.1, &a.1))
+    ///     .sorted_by(|a, b| Ord::cmp(&b.1, &a.1))
     ///     .into_iter()
     ///     .map(|(person, _age)| person);
     ///
     /// itertools::assert_equal(oldest_people_first,
     ///                         vec!["Jill", "Jack", "Jane", "John"]);
     /// ```
-    fn sort_by<F: FnMut(&Self::Item, &Self::Item) -> Ordering>(self, cmp: F) -> Vec<Self::Item> where
-        Self: Sized
+    fn sorted_by<F>(self, cmp: F) -> Vec<Self::Item>
+        where Self: Sized,
+              F: FnMut(&Self::Item, &Self::Item) -> Ordering,
     {
         let mut v: Vec<Self::Item> = self.collect();
 
         v.sort_by(cmp);
         v
+    }
+
+    /// **Deprecated:** renamed to `.sorted_by()`
+    fn sort_by<F>(self, cmp: F) -> Vec<Self::Item>
+        where Self: Sized,
+              F: FnMut(&Self::Item, &Self::Item) -> Ordering,
+    {
+        self.sorted_by(cmp)
     }
 }
 
