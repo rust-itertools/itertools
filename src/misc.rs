@@ -148,7 +148,7 @@ pub trait MendSlice
 {
     #[doc(hidden)]
     /// If the slices are contiguous, return them joined into one.
-    fn mend(Self, Self) -> Result<Self, (Self, Self)>;
+    fn mend(Self, Self) -> Result<Self, (Self, Self)> where Self: Sized;
 }
 
 impl<'a, T> MendSlice for &'a [T]
