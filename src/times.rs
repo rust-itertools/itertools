@@ -1,4 +1,6 @@
 
+/// **Deprecated:** Use a regular range instead.
+///
 /// Return an iterator with `n` elements, for simple repetition
 /// a particular number of times. The iterator yields a counter.
 ///
@@ -9,6 +11,8 @@ pub fn times(n: usize) -> Times
     Times{i: 0, n: n}
 }
 
+/// **Deprecated:** Use a regular range instead.
+///
 /// A simple iterator to repeat a given number of times
 ///
 /// Created with the `times()` function.
