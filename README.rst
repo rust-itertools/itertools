@@ -34,6 +34,11 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.3.25
+
+  - Rename .sort_by() to .sorted_by(). Old name is deprecated.
+  - Fix well-formedness warnings from RFC 1214, no user visible impact
+
 - 0.3.24
 
   - Improve performance of .merge()'s ordering function slightly
