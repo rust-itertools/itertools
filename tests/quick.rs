@@ -7,8 +7,7 @@
 //!
 //! In particular we test the tedious size_hint and exact size correctness.
 
-#[macro_use]
-extern crate itertools;
+#[macro_use] extern crate itertools;
 
 #[cfg(feature = "qc")]
 extern crate quickcheck;

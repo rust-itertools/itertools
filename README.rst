@@ -25,8 +25,7 @@ How to use in your crate:
 
 .. code:: rust
 
-    #[macro_use]
-    extern crate itertools;
+    #[macro_use] extern crate itertools;
 
     use itertools::Itertools;
 
