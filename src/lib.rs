@@ -36,6 +36,9 @@
 //!
 //!
 
+extern crate rand;
+use rand::distributions::{IndependentSample, Range};
+
 use std::iter::{self, IntoIterator};
 use std::fmt::Write;
 use std::cmp::Ordering;
@@ -1259,6 +1262,23 @@ pub trait Itertools : Iterator {
               F: FnMut(&Self::Item, &Self::Item) -> Ordering,
     {
         self.sorted_by(cmp)
+    }
+
+    fn sample(mut self, sample_size: usize) -> Vec<Self::Item>
+        where Self: Sized
+    {
+        let rng = &mut rand::thread_rng();
+
+        let mut reservoir: Vec<_> = self.by_ref().take(sample_size).collect();
+        for (i, item) in self.enumerate() {
+            let range = Range::new(0, i + sample_size + 1);
+            let replacement_index = range.ind_sample(rng);
+
+            if let Some(spot) = reservoir.get_mut(replacement_index) {
+                *spot = item;
+            }
+        }
+        reservoir
     }
 }
 
