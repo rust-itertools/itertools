@@ -10,7 +10,6 @@ use std::mem;
 use std::num::One;
 #[cfg(feature = "unstable")]
 use std::ops::Add;
-use std::cmp::Ordering;
 use std::iter::{Fuse, Peekable};
 use std::collections::HashSet;
 use std::hash::Hash;
@@ -504,80 +503,39 @@ impl<I> ExactSizeIterator for Step<I> where
     I: ExactSizeIterator,
 { }
 
-/// An iterator adaptor that merges the two base iterators in ascending order.
-/// If both base iterators are sorted (ascending), the result is sorted.
-///
-/// Iterator element type is `I::Item`.
-///
-/// See [*.merge_by()*](trait.Itertools.html#method.merge_by) for more information.
-pub struct Merge<I, J, F> where
-    I: Iterator,
-    J: Iterator<Item=I::Item>,
+
+struct MergeCore<I, J>
+    where I: Iterator,
+          J: Iterator<Item=I::Item>,
 {
     a: Peekable<I>,
     b: Peekable<J>,
-    cmp: F,
     fused: Option<bool>,
 }
 
-// default ordering function for .merge()
-// Note: To be replaced by unit struct
-#[inline]
-pub fn merge_default_ordering<A: PartialOrd>(a: &A, b: &A) -> Ordering {
-    if a > b {
-        Ordering::Greater
-    } else {
-        Ordering::Less
-    }
-}
 
-impl<I, J, F> Merge<I, J, F> where
-    I: Iterator,
-    J: Iterator<Item=I::Item>,
-    F: FnMut(&I::Item, &I::Item) -> Ordering
-{
-    /// Create a `Merge` iterator.
-    pub fn new(a: I, b: J, cmp: F) -> Self
-    {
-        Merge {
-            a: a.peekable(),
-            b: b.peekable(),
-            cmp: cmp,
-            fused: None,
-        }
-    }
-}
-
-impl<I, J, F> Clone for Merge<I, J, F> where
+impl<I, J> Clone for MergeCore<I, J> where
     I: Iterator,
     J: Iterator<Item=I::Item>,
     Peekable<I>: Clone,
     Peekable<J>: Clone,
-    F: Clone,
 {
     fn clone(&self) -> Self {
-        clone_fields!(Merge, self, a, b, cmp, fused)
+        clone_fields!(MergeCore, self, a, b, fused)
     }
 }
 
-impl<I, J, F> Iterator for Merge<I, J, F> where
-    I: Iterator,
-    J: Iterator<Item=I::Item>,
-    F: FnMut(&I::Item, &I::Item) -> Ordering
+impl<I, J> MergeCore<I, J>
+    where I: Iterator,
+          J: Iterator<Item=I::Item>,
 {
-    type Item = I::Item;
-
-    fn next(&mut self) -> Option<I::Item> {
+    fn next_with<F>(&mut self, mut less_than: F) -> Option<I::Item>
+        where F: FnMut(&I::Item, &I::Item) -> bool
+    {
         let less_than = match self.fused {
             Some(lt) => lt,
             None => match (self.a.peek(), self.b.peek()) {
-                (Some(a), Some(b)) => {
-                    match (self.cmp)(a, b) {
-                        Ordering::Less => true,
-                        Ordering::Equal => true,
-                        Ordering::Greater => false,
-                    }
-                }
+                (Some(a), Some(b)) => less_than(a, b),
                 (Some(_), None) => {
                     self.fused = Some(true);
                     true
@@ -600,6 +558,117 @@ impl<I, J, F> Iterator for Merge<I, J, F> where
     fn size_hint(&self) -> (usize, Option<usize>) {
         // Not ExactSizeIterator because size may be larger than usize
         size_hint::add(self.a.size_hint(), self.b.size_hint())
+    }
+}
+
+/// An iterator adaptor that merges the two base iterators in ascending order.
+/// If both base iterators are sorted (ascending), the result is sorted.
+///
+/// Iterator element type is `I::Item`.
+///
+/// See [*.merge()*](trait.Itertools.html#method.merge_by) for more information.
+pub struct Merge<I, J> where
+    I: Iterator,
+    J: Iterator<Item=I::Item>,
+{
+    merge: MergeCore<I, J>,
+}
+
+impl<I, J> Clone for Merge<I, J> where
+    I: Iterator,
+    J: Iterator<Item=I::Item>,
+    Peekable<I>: Clone,
+    Peekable<J>: Clone,
+{
+    fn clone(&self) -> Self {
+        clone_fields!(Merge, self, merge)
+    }
+}
+
+/// Create a `Merge` iterator.
+pub fn merge_new<I, J>(a: I, b: J) -> Merge<I, J>
+    where I: Iterator,
+          J: Iterator<Item=I::Item>,
+{
+    Merge {
+        merge: MergeCore {
+            a: a.peekable(),
+            b: b.peekable(),
+            fused: None,
+        }
+    }
+}
+
+impl<I, J> Iterator for Merge<I, J>
+    where I: Iterator,
+          J: Iterator<Item=I::Item>,
+          I::Item: PartialOrd,
+{
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<I::Item> {
+        self.merge.next_with(|a, b| a <= b)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.merge.size_hint()
+    }
+}
+
+/// An iterator adaptor that merges the two base iterators in ascending order.
+/// If both base iterators are sorted (ascending), the result is sorted.
+///
+/// Iterator element type is `I::Item`.
+///
+/// See [*.merge_by()*](trait.Itertools.html#method.merge_by) for more information.
+pub struct MergeBy<I, J, F> where
+    I: Iterator,
+    J: Iterator<Item=I::Item>,
+{
+    merge: MergeCore<I, J>,
+    cmp: F,
+}
+
+/// Create a `MergeBy` iterator.
+pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I, J, F>
+    where I: Iterator,
+          J: Iterator<Item=I::Item>,
+{
+    MergeBy {
+        merge: MergeCore {
+            a: a.peekable(),
+            b: b.peekable(),
+            fused: None,
+        },
+        cmp: cmp,
+    }
+}
+
+impl<I, J, F> Clone for MergeBy<I, J, F> where
+    I: Iterator,
+    J: Iterator<Item=I::Item>,
+    Peekable<I>: Clone,
+    Peekable<J>: Clone,
+    F: Clone,
+{
+    fn clone(&self) -> Self {
+        clone_fields!(MergeBy, self, merge, cmp)
+    }
+}
+
+impl<I, J, F> Iterator for MergeBy<I, J, F> where
+    I: Iterator,
+    J: Iterator<Item=I::Item>,
+    F: FnMut(&I::Item, &I::Item) -> bool
+{
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<I::Item> {
+        self.merge.next_with(&mut self.cmp)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.merge.size_hint()
     }
 }
 
@@ -786,8 +855,6 @@ impl<I, F> Iterator for Coalesce<I, F> where
         ((low > 0) as usize, hi)
     }
 }
-
-
 
 /// An iterator adaptor that borrows from a `Clone`-able iterator
 /// to only pick off elements while the predicate returns `true`.

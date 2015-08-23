@@ -51,6 +51,7 @@ pub use adaptors::{
     GroupBy,
     Step,
     Merge,
+    MergeBy,
     MultiPeek,
     TakeWhileRef,
     WhileSome,
@@ -104,9 +105,6 @@ mod zipslices;
 
 /// The function pointer map iterator created with `.map_fn()`.
 pub type MapFn<I, B> where I: Iterator = iter::Map<I, fn(I::Item) -> B>;
-
-/// An ascending order merge iterator created with `.merge()`.
-pub type MergeAscend<I, J> where I: Iterator = Merge<I, J, fn(&I::Item, &I::Item) -> Ordering>;
 
 #[macro_export]
 /// Create an iterator over the “cartesian product” of iterators.
@@ -521,12 +519,12 @@ pub trait Itertools : Iterator {
     /// let it = a.merge(b);
     /// itertools::assert_equal(it, vec![0, 0, 3, 5, 6, 9, 10]);
     /// ```
-    fn merge<J>(self, other: J) -> MergeAscend<Self, J::IntoIter> where
+    fn merge<J>(self, other: J) -> Merge<Self, J::IntoIter> where
         Self: Sized,
         Self::Item: PartialOrd,
         J: IntoIterator<Item=Self::Item>,
     {
-        self.merge_by(other, adaptors::merge_default_ordering)
+        adaptors::merge_new(self, other.into_iter())
     }
 
     /// Return an iterator adaptor that merges the two base iterators in order.
@@ -541,16 +539,16 @@ pub trait Itertools : Iterator {
     ///
     /// let a = (0..).zip("bc".chars());
     /// let b = (0..).zip("ad".chars());
-    /// let it = a.merge_by(b, |x, y| Ord::cmp(&x.1, &y.1));
+    /// let it = a.merge_by(b, |x, y| x.1 <= y.1);
     /// itertools::assert_equal(it, vec![(0, 'a'), (0, 'b'), (1, 'c'), (1, 'd')]);
     /// ```
 
-    fn merge_by<J, F>(self, other: J, cmp: F) -> Merge<Self, J::IntoIter, F> where
+    fn merge_by<J, F>(self, other: J, is_first: F) -> MergeBy<Self, J::IntoIter, F> where
         Self: Sized,
         J: IntoIterator<Item=Self::Item>,
-        F: FnMut(&Self::Item, &Self::Item) -> Ordering
+        F: FnMut(&Self::Item, &Self::Item) -> bool
     {
-        Merge::new(self, other.into_iter(), cmp)
+        adaptors::merge_by_new(self, other.into_iter(), is_first)
     }
 
     /// Return an iterator adaptor that iterates over the cartesian product of

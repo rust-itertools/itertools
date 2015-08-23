@@ -14,7 +14,6 @@ use itertools::ZipSlices;
 
 use std::iter::repeat;
 use std::cmp;
-use std::cmp::Ordering;
 
 #[bench]
 fn slice_iter(b: &mut test::Bencher)
@@ -609,7 +608,7 @@ fn merge_by_cmp(b: &mut test::Bencher) {
     let data1 = test::black_box(data1);
     let data2 = test::black_box(data2);
     b.iter(|| {
-        data1.iter().merge_by(&data2, Ord::cmp).count()
+        data1.iter().merge_by(&data2, PartialOrd::le).count()
     })
 }
 
@@ -635,6 +634,6 @@ fn merge_by_lt(b: &mut test::Bencher) {
     let data1 = test::black_box(data1);
     let data2 = test::black_box(data2);
     b.iter(|| {
-        data1.iter().merge_by(&data2, |a, b| if a <= b { Ordering::Less } else { Ordering::Greater }).count()
+        data1.iter().merge_by(&data2, |a, b| a <= b).count()
     })
 }
