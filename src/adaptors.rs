@@ -153,62 +153,6 @@ impl<I, J> Iterator for InterleaveShortest<I, J> where
     }
 }
 
-/// **Deprecated:** Use *.map_fn()* instead.
-pub struct FnMap<B, I> where
-    I: Iterator,
-{
-    map: fn(I::Item) -> B,
-    iter: I,
-}
-
-impl<B, I> FnMap<B, I> where
-    I: Iterator
-{
-    /// **Deprecated:** Use *.map_fn()* instead.
-    pub fn new(iter: I, map: fn(I::Item) -> B) -> Self
-    {
-        FnMap{iter: iter, map: map}
-    }
-}
-
-impl<B, I> Iterator for FnMap<B, I> where
-    I: Iterator,
-{
-    type Item = B;
-    #[inline]
-    fn next(&mut self) -> Option<B>
-    {
-        self.iter.next().map(|a| (self.map)(a))
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.iter.size_hint()
-    }
-}
-
-impl<B, I> DoubleEndedIterator for FnMap<B, I> where
-    I: DoubleEndedIterator
-{
-    #[inline]
-    fn next_back(&mut self) -> Option<B> {
-        self.iter.next_back().map(|a| (self.map)(a))
-    }
-}
-
-// same size
-impl<B, I> ExactSizeIterator for FnMap<B, I> where
-    I: ExactSizeIterator,
-{ }
-
-impl<B, I> Clone for FnMap<B, I> where
-    I: Clone + Iterator,
-{
-    fn clone(&self) -> Self
-    {
-        FnMap::new(self.iter.clone(), self.map)
-    }
-}
-
 #[derive(Clone)]
 /// An iterator adaptor that allows putting back a single
 /// item to the front of the iterator.

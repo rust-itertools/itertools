@@ -574,16 +574,6 @@ fn mend_slices_mut() {
 }
 
 #[test]
-fn fn_map() {
-    // make sure it can be cloned
-    fn mapper<T: ToString>(x: T) -> String { x.to_string() }
-    let it = (0..4).fn_map(mapper);
-    let jt = it.clone();
-    it::assert_equal((0..4).map(|x| x.to_string()), it);
-    it::assert_equal((0..4).map(mapper), jt);
-}
-
-#[test]
 fn map_fn() {
     // make sure it can be cloned
     fn mapper<T: ToString>(x: T) -> String { x.to_string() }
