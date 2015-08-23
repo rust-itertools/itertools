@@ -792,43 +792,19 @@ impl<I> ExactSizeIterator for MultiPeek<I> where
     I: ExactSizeIterator,
 { }
 
-/// An iterator adaptor that may join together adjacent elements.
-///
-/// See [*.coalesce()*](trait.Itertools.html#method.coalesce) for more information.
 #[derive(Clone)]
-pub struct Coalesce<I, F> where
-    I: Iterator,
+pub struct CoalesceCore<I>
+    where I: Iterator,
 {
     iter: I,
     last: Option<I::Item>,
-    f: F,
 }
 
-/// An iterator adaptor that may join together adjacent elements.
-pub type CoalesceFn<I> where I: Iterator =
-    Coalesce<I, fn(I::Item, I::Item) -> Result<I::Item, (I::Item, I::Item)>>;
-
-impl<I, F> Coalesce<I, F> where
-    I: Iterator,
+impl<I> CoalesceCore<I>
+    where I: Iterator,
 {
-    /// Create a new `Coalesce`.
-    pub fn new(mut iter: I, f: F) -> Self
-    {
-        Coalesce {
-            last: iter.next(),
-            iter: iter,
-            f: f,
-        }
-    }
-}
-
-impl<I, F> Iterator for Coalesce<I, F> where
-    I: Iterator,
-    F: FnMut(I::Item, I::Item) -> Result<I::Item, (I::Item, I::Item)>
-{
-    type Item = I::Item;
-
-    fn next(&mut self) -> Option<I::Item>
+    fn next_with<F>(&mut self, mut f: F) -> Option<I::Item>
+        where F: FnMut(I::Item, I::Item) -> Result<I::Item, (I::Item, I::Item)>
     {
         // this fuses the iterator
         let mut last = match self.last.take() {
@@ -836,7 +812,7 @@ impl<I, F> Iterator for Coalesce<I, F> where
             Some(x) => x,
         };
         for next in &mut self.iter {
-            match (self.f)(last, next) {
+            match f(last, next) {
                 Ok(joined) => last = joined,
                 Err((last_, next_)) => {
                     self.last = Some(next_);
@@ -853,6 +829,106 @@ impl<I, F> Iterator for Coalesce<I, F> where
         let (low, hi) = size_hint::add_scalar(self.iter.size_hint(),
                                               self.last.is_some() as usize);
         ((low > 0) as usize, hi)
+    }
+}
+
+/// An iterator adaptor that may join together adjacent elements.
+///
+/// See [*.coalesce()*](trait.Itertools.html#method.coalesce) for more information.
+pub struct Coalesce<I, F>
+    where I: Iterator,
+{
+    iter: CoalesceCore<I>,
+    f: F,
+}
+
+impl<I: Clone, F: Clone> Clone for Coalesce<I, F>
+    where I: Iterator, I::Item: Clone
+{
+    fn clone(&self) -> Self {
+        clone_fields!(Coalesce, self, iter, f)
+    }
+}
+
+/// An iterator adaptor that may join together adjacent elements.
+pub type CoalesceFn<I> where I: Iterator =
+    Coalesce<I, fn(I::Item, I::Item) -> Result<I::Item, (I::Item, I::Item)>>;
+
+impl<I, F> Coalesce<I, F> where
+    I: Iterator,
+{
+    /// Create a new `Coalesce`.
+    pub fn new(mut iter: I, f: F) -> Self {
+        Coalesce {
+            iter: CoalesceCore {
+                last: iter.next(),
+                iter: iter,
+            },
+            f: f,
+        }
+    }
+}
+
+impl<I, F> Iterator for Coalesce<I, F>
+    where I: Iterator,
+          F: FnMut(I::Item, I::Item) -> Result<I::Item, (I::Item, I::Item)>
+{
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<I::Item> {
+        self.iter.next_with(&mut self.f)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+}
+
+/// An iterator adaptor that removes repeated duplicates.
+///
+/// See [*.dedup()*](trait.Itertools.html#method.dedup) for more information.
+pub struct Dedup<I>
+    where I: Iterator,
+{
+    iter: CoalesceCore<I>,
+}
+
+impl<I: Clone> Clone for Dedup<I>
+    where I: Iterator, I::Item: Clone
+{
+    fn clone(&self) -> Self {
+        clone_fields!(Dedup, self, iter)
+    }
+}
+
+impl<I> Dedup<I> where
+    I: Iterator,
+{
+    /// Create a new `Dedup`.
+    pub fn new(mut iter: I) -> Self {
+        Dedup {
+            iter: CoalesceCore {
+                last: iter.next(),
+                iter: iter,
+            },
+        }
+    }
+}
+
+impl<I> Iterator for Dedup<I>
+    where I: Iterator,
+          I::Item: PartialEq,
+{
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<I::Item> {
+        self.iter.next_with(|x, y| {
+            if x == y { Ok(x) } else { Err((x, y)) }
+        })
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
     }
 }
 

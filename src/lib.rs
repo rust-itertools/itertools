@@ -42,6 +42,7 @@ use std::fmt;
 use std::hash::Hash;
 
 pub use adaptors::{
+    Dedup,
     Interleave,
     InterleaveShortest,
     Product,
@@ -656,15 +657,11 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(data.into_iter().dedup(),
     ///                         vec![1., 2., 3., 2.]);
     /// ```
-    fn dedup(self) -> CoalesceFn<Self> where
-        Self: Sized,
-        Self::Item: PartialEq,
+    fn dedup(self) -> Dedup<Self>
+        where Self: Sized,
+              Self::Item: PartialEq,
     {
-        fn eq<T: PartialEq>(x: T, y: T) -> Result<T, (T, T)>
-        {
-            if x == y { Ok(x) } else { Err((x, y)) }
-        }
-        Coalesce::new(self, eq)
+        Dedup::new(self)
     }
 
     /// Return an iterator adaptor that filters out elements that have
