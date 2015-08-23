@@ -214,8 +214,6 @@ pub trait Itertools : Iterator {
     ///
     /// Iterator element type is `Self::Item`.
     ///
-    /// This iterator is *fused*.
-    ///
     /// ```
     /// use itertools::Itertools;
     ///

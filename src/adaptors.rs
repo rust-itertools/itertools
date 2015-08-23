@@ -84,8 +84,8 @@ pub struct InterleaveShortest<I, J> where
     I: Iterator,
     J: Iterator<Item=I::Item>,
 {
-    it0: Fuse<I>,
-    it1: Fuse<J>,
+    it0: I,
+    it1: J,
     phase: bool, // false ==> it0, true ==> it1
 }
 
@@ -96,8 +96,8 @@ impl<I, J> InterleaveShortest<I, J> where
     /// Create a new `InterleaveShortest` iterator.
     pub fn new(a: I, b: J) -> InterleaveShortest<I, J> {
         InterleaveShortest {
-            it0: a.fuse(),
-            it1: b.fuse(),
+            it0: a,
+            it1: b,
             phase: false,
         }
     }
