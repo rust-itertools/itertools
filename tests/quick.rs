@@ -7,8 +7,7 @@
 //!
 //! In particular we test the tedious size_hint and exact size correctness.
 
-#[macro_use]
-extern crate itertools;
+#[macro_use] extern crate itertools;
 
 #[cfg(feature = "qc")]
 extern crate quickcheck;
@@ -290,6 +289,11 @@ fn size_islice(a: Iter<i16>, x: usize, y: usize) -> bool {
 #[quickcheck]
 fn size_interleave(a: Iter<i16>, b: Iter<i16>) -> bool {
     correct_size_hint(a.interleave(b))
+}
+
+#[quickcheck]
+fn size_interleave_shortest(a: Iter<i16>, b: Iter<i16>) -> bool {
+    correct_size_hint(a.interleave_shortest(b))
 }
 
 #[quickcheck]

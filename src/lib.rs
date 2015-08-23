@@ -21,8 +21,7 @@
 //! To enable the macros in this crate, use the `#[macro_use]` attribute:
 //!
 //! ```ignore
-//! #[macro_use]
-//! extern crate itertools;
+//! #[macro_use] extern crate itertools;
 //! ```
 //!
 //! ## License
@@ -120,8 +119,7 @@ pub type MergeAscend<I, J> where I: Iterator = Merge<I, J, fn(&I::Item, &I::Item
 /// from iterators `(I, J, ..., M)` with element types `I::Item = A`, `J::Item = B`, etc.
 ///
 /// ```
-/// #[macro_use]
-/// extern crate itertools;
+/// #[macro_use] extern crate itertools;
 /// # fn main() {
 /// // Iterate over the coordinates of a 4 x 4 x 4 grid
 /// // from (0, 0, 0), (0, 0, 1), .., (0, 1, 0), (0, 1, 1), .. etc until (3, 3, 3)
@@ -159,8 +157,7 @@ macro_rules! iproduct {
 /// `J: Iterator<B>`, ..., `M: Iterator<E>`
 ///
 /// ```
-/// #[macro_use]
-/// extern crate itertools;
+/// #[macro_use] extern crate itertools;
 /// # fn main() {
 ///
 /// // Iterate over three sequences side-by-side

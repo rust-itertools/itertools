@@ -4,8 +4,7 @@
 //! option. This file may not be copied, modified, or distributed
 //! except according to those terms.
 
-#[macro_use]
-extern crate itertools as it;
+#[macro_use] extern crate itertools as it;
 extern crate permutohedron;
 
 use it::Itertools;

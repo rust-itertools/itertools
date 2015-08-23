@@ -348,6 +348,45 @@ fn zipdot_f32_checked_counted_loop(b: &mut test::Bencher)
 }
 
 #[bench]
+fn zipdot_f32_checked_counted_unrolled_loop(b: &mut test::Bencher)
+{
+    let xs = vec![2f32; 1024];
+    let ys = vec![2f32; 768];
+    let xs = black_box(xs);
+    let ys = black_box(ys);
+
+    b.iter(|| {
+        // Must slice to equal lengths, and then bounds checks are eliminated!
+        let len = cmp::min(xs.len(), ys.len());
+        let mut xs = &xs[..len];
+        let mut ys = &ys[..len];
+
+        let mut s = 0.;
+
+        // how to unroll and have bounds checks eliminated by cristicbz
+        while xs.len() >= 8 {
+            let a = xs[0] * ys[0];
+            let b = xs[1] * ys[1];
+            let c = xs[2] * ys[2];
+            let d = xs[3] * ys[3];
+            let e = xs[4] * ys[4];
+            let f = xs[5] * ys[5];
+            let g = xs[6] * ys[6];
+            let h = xs[7] * ys[7];
+            s += a + b + c + d + e + f + g + h;
+
+            xs = &xs[8..];
+            ys = &ys[8..];
+        }
+
+        for i in 0..xs.len() {
+            s += xs[i] * ys[i];
+        }
+        s
+    })
+}
+
+#[bench]
 fn zip_unchecked_counted_loop(b: &mut test::Bencher)
 {
     let xs = vec![0; 1024];
