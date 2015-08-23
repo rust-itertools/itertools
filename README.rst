@@ -33,6 +33,21 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- For next major release:
+
+  - .merge() and .merge_by()
+    - Return types of .merge() and .merge_by() renamed and changed
+    - method Merge::new removed.
+    - .merge() now performs better.
+    - .merge_by() now takes a closure that returns bool.
+  - Return type of .dedup() changed
+  - Removed function times(), struct Times: use a range instead
+  - Removed deprecated macro icompr!()
+  - Removed deprecated FnMap and method .fn_map(): use .map_fn()
+  - .interleave_shortest() is no longer guaranteed to act like fused
+
+---
+
 - 0.3.25
 
   - Rename .sort_by() to .sorted_by(). Old name is deprecated.
