@@ -4,6 +4,7 @@
 //! option. This file may not be copied, modified, or distributed
 //! except according to those terms.
 
+use std::cmp;
 use std::mem;
 #[cfg(feature = "unstable")]
 use std::num::One;
@@ -131,20 +132,22 @@ impl<I, J> Iterator for InterleaveShortest<I, J> where
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        fn bound(a: usize, b: usize) -> Option<usize> {
+        let bound = |a: usize, b: usize| -> Option<usize> {
             use std::cmp::min;
             2usize.checked_mul(min(a, b))
-                .and_then(|lhs| lhs.checked_add(if a > b { 1 } else { 0 }))
-        }
+                .and_then(|lhs| lhs.checked_add(if !self.phase && a > b { 1 } else { 0 }))
+        };
 
         let (l0, u0) = self.it0.size_hint();
         let (l1, u1) = self.it1.size_hint();
         let lb = bound(l0, l1).unwrap_or(usize::max_value());
         let ub = match (u0, u1) {
             (None, None) => None,
-            (Some(u0), None) => 2usize.checked_mul(u0),
-            (None, Some(u1)) => 2usize.checked_mul(u1).and_then(|l| l.checked_add(1)),
-            (Some(u0), Some(u1)) => bound(u0, u1)
+            (Some(u0), None) => Some(u0 * 2 + self.phase as usize),
+            (None, Some(u1)) => Some(u1 * 2 + !self.phase as usize),
+            (Some(u0), Some(u1)) => Some(cmp::min(u0, u1) * 2 +
+                                         (u0 > u1 && !self.phase ||
+                                          (u0 < u1 && self.phase)) as usize),
         };
         (lb, ub)
     }

@@ -292,6 +292,11 @@ fn size_interleave(a: Iter<i16>, b: Iter<i16>) -> bool {
 }
 
 #[quickcheck]
+fn size_interleave_shortest(a: Iter<i16>, b: Iter<i16>) -> bool {
+    correct_size_hint(a.interleave_shortest(b))
+}
+
+#[quickcheck]
 fn size_intersperse(a: Iter<i16>, x: i16) -> bool {
     correct_size_hint(a.intersperse(x))
 }
