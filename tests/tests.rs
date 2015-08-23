@@ -122,12 +122,6 @@ fn interleave_shortest() {
 }
 
 #[test]
-fn times() {
-    assert!(it::times(0).count() == 0);
-    assert!(it::times(5).count() == 5);
-}
-
-#[test]
 fn foreach() {
     let xs = [1i32, 2, 3];
     let mut sum = 0;

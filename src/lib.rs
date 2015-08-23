@@ -73,8 +73,6 @@ pub use rciter::RcIter;
 pub use stride::Stride;
 pub use stride::StrideMut;
 pub use tee::Tee;
-pub use times::Times;
-pub use times::times;
 pub use linspace::{linspace, Linspace};
 pub use sources::{
     RepeatCall,
@@ -99,7 +97,6 @@ mod sources;
 pub mod size_hint;
 mod stride;
 mod tee;
-mod times;
 mod zip_longest;
 mod ziptuple;
 #[cfg(feature = "unstable")]
