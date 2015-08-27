@@ -362,22 +362,28 @@ fn zipdot_f32_checked_counted_unrolled_loop(b: &mut test::Bencher)
         let mut ys = &ys[..len];
 
         let mut s = 0.;
+        let (mut p0, mut p1, mut p2, mut p3, mut p4, mut p5, mut p6, mut p7) =
+            (0., 0., 0., 0., 0., 0., 0., 0.);
 
-        // how to unroll and have bounds checks eliminated by cristicbz
+        // how to unroll and have bounds checks eliminated (by cristicbz)
+        // split sum into eight parts to enable vectorization (by bluss)
         while xs.len() >= 8 {
-            let a = xs[0] * ys[0];
-            let b = xs[1] * ys[1];
-            let c = xs[2] * ys[2];
-            let d = xs[3] * ys[3];
-            let e = xs[4] * ys[4];
-            let f = xs[5] * ys[5];
-            let g = xs[6] * ys[6];
-            let h = xs[7] * ys[7];
-            s += a + b + c + d + e + f + g + h;
+            p0 += xs[0] * ys[0];
+            p1 += xs[1] * ys[1];
+            p2 += xs[2] * ys[2];
+            p3 += xs[3] * ys[3];
+            p4 += xs[4] * ys[4];
+            p5 += xs[5] * ys[5];
+            p6 += xs[6] * ys[6];
+            p7 += xs[7] * ys[7];
 
             xs = &xs[8..];
             ys = &ys[8..];
         }
+        s += p0 + p4;
+        s += p1 + p5;
+        s += p2 + p6;
+        s += p3 + p7;
 
         for i in 0..xs.len() {
             s += xs[i] * ys[i];
