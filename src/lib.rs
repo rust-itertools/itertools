@@ -682,7 +682,7 @@ pub trait Itertools : Iterator {
         Self: Sized,
         Self::Item: Clone + Eq + Hash,
     {
-        self.unique_by(Clone::clone)
+        adaptors::unique(self)
     }
 
     /// Return an iterator adaptor that filters out elements that have
