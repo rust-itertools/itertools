@@ -42,21 +42,22 @@ use std::fmt;
 use std::hash::Hash;
 
 pub use adaptors::{
+    Dedup,
     Interleave,
     InterleaveShortest,
     Product,
     PutBack,
     PutBackN,
-    FnMap,
     Batching,
     GroupBy,
     Step,
     Merge,
+    MergeBy,
     MultiPeek,
     TakeWhileRef,
     WhileSome,
     Coalesce,
-    CoalesceFn,
+    MendSlices,
     Combinations,
     Unique,
     UniqueBy,
@@ -73,8 +74,6 @@ pub use rciter::RcIter;
 pub use stride::Stride;
 pub use stride::StrideMut;
 pub use tee::Tee;
-pub use times::Times;
-pub use times::times;
 pub use linspace::{linspace, Linspace};
 pub use sources::{
     RepeatCall,
@@ -99,7 +98,6 @@ mod sources;
 pub mod size_hint;
 mod stride;
 mod tee;
-mod times;
 mod zip_longest;
 mod ziptuple;
 #[cfg(feature = "unstable")]
@@ -108,9 +106,6 @@ mod zipslices;
 
 /// The function pointer map iterator created with `.map_fn()`.
 pub type MapFn<I, B> where I: Iterator = iter::Map<I, fn(I::Item) -> B>;
-
-/// An ascending order merge iterator created with `.merge()`.
-pub type MergeAscend<I, J> where I: Iterator = Merge<I, J, fn(&I::Item, &I::Item) -> Ordering>;
 
 #[macro_export]
 /// Create an iterator over the “cartesian product” of iterators.
@@ -182,43 +177,6 @@ macro_rules! izip {
     );
 }
 
-/// **Deprecated:** Will hopefully be replaced by a dedicated
-/// syntax extension that can offer real convenient python-like syntax.
-///
-/// **Note:** A Python like syntax of `<expression> for <pattern> in <iterator>` is
-/// **not possible** with the stable macro rules since Rust 1.0.0-alpha.
-///
-/// `icompr` as in “iterator comprehension” allows creating a
-/// mapped iterator with simple syntax, similar to set builder notation,
-/// and directly inspired by Python. Supports an optional filter clause.
-///
-/// Syntax:
-///
-///  `icompr!(<expression>, <pattern>, <iterator>)`
-///
-/// or
-///
-///  `icompr!(<expression>, <pattern>, <iterator>, <expression>)`
-///
-/// Each element from the `<iterator>` expression is pattern matched
-/// with the `<pattern>`, and the bound names are used to express the
-/// mapped-to value.
-///
-/// Iterator element type is the type of `<expression>`
-///
-/// ```ignore
-/// let mut squares = icompr!(x * x, x, 1..100);
-/// ```
-#[macro_export]
-macro_rules! icompr {
-    ($r:expr, $x:pat, $J:expr, $pred:expr) => (
-        ($J).filter_map(|$x| if $pred { Some($r) } else { None })
-    );
-    ($r:expr, $x:pat, $J:expr) => (
-        ($J).filter_map(|$x| Some($r))
-    );
-}
-
 /// The trait `Itertools`: extra iterator adaptors and methods for iterators.
 ///
 /// This trait defines a number of methods. They are divided into two groups:
@@ -256,8 +214,6 @@ pub trait Itertools : Iterator {
     /// Alternate elements from two iterators until one of them runs out.
     ///
     /// Iterator element type is `Self::Item`.
-    ///
-    /// This iterator is *fused*.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -562,12 +518,12 @@ pub trait Itertools : Iterator {
     /// let it = a.merge(b);
     /// itertools::assert_equal(it, vec![0, 0, 3, 5, 6, 9, 10]);
     /// ```
-    fn merge<J>(self, other: J) -> MergeAscend<Self, J::IntoIter> where
+    fn merge<J>(self, other: J) -> Merge<Self, J::IntoIter> where
         Self: Sized,
         Self::Item: PartialOrd,
         J: IntoIterator<Item=Self::Item>,
     {
-        self.merge_by(other, adaptors::merge_default_ordering)
+        adaptors::merge_new(self, other.into_iter())
     }
 
     /// Return an iterator adaptor that merges the two base iterators in order.
@@ -582,16 +538,16 @@ pub trait Itertools : Iterator {
     ///
     /// let a = (0..).zip("bc".chars());
     /// let b = (0..).zip("ad".chars());
-    /// let it = a.merge_by(b, |x, y| Ord::cmp(&x.1, &y.1));
+    /// let it = a.merge_by(b, |x, y| x.1 <= y.1);
     /// itertools::assert_equal(it, vec![(0, 'a'), (0, 'b'), (1, 'c'), (1, 'd')]);
     /// ```
 
-    fn merge_by<J, F>(self, other: J, cmp: F) -> Merge<Self, J::IntoIter, F> where
+    fn merge_by<J, F>(self, other: J, is_first: F) -> MergeBy<Self, J::IntoIter, F> where
         Self: Sized,
         J: IntoIterator<Item=Self::Item>,
-        F: FnMut(&Self::Item, &Self::Item) -> Ordering
+        F: FnMut(&Self::Item, &Self::Item) -> bool
     {
-        Merge::new(self, other.into_iter(), cmp)
+        adaptors::merge_by_new(self, other.into_iter(), is_first)
     }
 
     /// Return an iterator adaptor that iterates over the cartesian product of
@@ -701,15 +657,11 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(data.into_iter().dedup(),
     ///                         vec![1., 2., 3., 2.]);
     /// ```
-    fn dedup(self) -> CoalesceFn<Self> where
-        Self: Sized,
-        Self::Item: PartialEq,
+    fn dedup(self) -> Dedup<Self>
+        where Self: Sized,
+              Self::Item: PartialEq,
     {
-        fn eq<T: PartialEq>(x: T, y: T) -> Result<T, (T, T)>
-        {
-            if x == y { Ok(x) } else { Err((x, y)) }
-        }
-        Coalesce::new(self, eq)
+        Dedup::new(self)
     }
 
     /// Return an iterator adaptor that filters out elements that have
@@ -730,7 +682,7 @@ pub trait Itertools : Iterator {
         Self: Sized,
         Self::Item: Clone + Eq + Hash,
     {
-        self.unique_by(Clone::clone)
+        adaptors::unique(self)
     }
 
     /// Return an iterator adaptor that filters out elements that have
@@ -773,11 +725,11 @@ pub trait Itertools : Iterator {
     ///
     /// itertools::assert_equal(words, vec!["Warning:", "γ-radiation", "(ionizing)"]);
     /// ```
-    fn mend_slices(self) -> CoalesceFn<Self> where
+    fn mend_slices(self) -> MendSlices<Self> where
         Self: Sized,
         Self::Item: misc::MendSlice
     {
-        Coalesce::new(self, misc::MendSlice::mend)
+        MendSlices::new(self)
     }
 
     /// Return an iterator adaptor that borrows from a `Clone`-able iterator
@@ -886,14 +838,6 @@ pub trait Itertools : Iterator {
     {
         self.map(f)
     }
-
-    /// **Deprecated:** Use `.map_fn()` instead.
-    fn fn_map<B>(self, map: fn(Self::Item) -> B) -> FnMap<B, Self> where
-        Self: Sized
-    {
-        FnMap::new(self, map)
-    }
-
 
     // non-adaptor methods
 
