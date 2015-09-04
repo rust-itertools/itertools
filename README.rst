@@ -41,6 +41,8 @@ Recent Changes
     - .merge() now performs better.
     - .merge_by() now takes a closure that returns bool.
   - Return type of .dedup() changed
+  - Return type of .mend_slices() changed
+  - Return type of .unique() changed
   - Removed function times(), struct Times: use a range instead
   - Removed deprecated macro icompr!()
   - Removed deprecated FnMap and method .fn_map(): use .map_fn()
