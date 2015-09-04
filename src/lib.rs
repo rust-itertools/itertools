@@ -57,7 +57,7 @@ pub use adaptors::{
     TakeWhileRef,
     WhileSome,
     Coalesce,
-    CoalesceFn,
+    MendSlices,
     Combinations,
     Unique,
     UniqueBy,
@@ -725,11 +725,11 @@ pub trait Itertools : Iterator {
     ///
     /// itertools::assert_equal(words, vec!["Warning:", "γ-radiation", "(ionizing)"]);
     /// ```
-    fn mend_slices(self) -> CoalesceFn<Self> where
+    fn mend_slices(self) -> MendSlices<Self> where
         Self: Sized,
         Self::Item: misc::MendSlice
     {
-        Coalesce::new(self, misc::MendSlice::mend)
+        MendSlices::new(self)
     }
 
     /// Return an iterator adaptor that borrows from a `Clone`-able iterator
