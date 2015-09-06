@@ -35,18 +35,22 @@ Recent Changes
 
 - For next major release:
 
-  - .merge() and .merge_by()
+  - Breaking changes:
+
     - Return types of .merge() and .merge_by() renamed and changed
-    - method Merge::new removed.
-    - .merge() now performs better.
+    - Method Merge::new removed
     - .merge_by() now takes a closure that returns bool.
-  - Return type of .dedup() changed
-  - Return type of .mend_slices() changed
-  - Return type of .unique() changed
-  - Removed function times(), struct Times: use a range instead
-  - Removed deprecated macro icompr!()
-  - Removed deprecated FnMap and method .fn_map(): use .map_fn()
-  - .interleave_shortest() is no longer guaranteed to act like fused
+    - Return type of .dedup() changed
+    - Return type of .mend_slices() changed
+    - Return type of .unique() changed
+    - Removed function times(), struct Times: use a range instead
+    - Removed deprecated macro icompr!()
+    - Removed deprecated FnMap and method .fn_map(): use .map_fn()
+    - .interleave_shortest() is no longer guaranteed to act like fused
+
+  - .merge(), .unique() and .dedup() now perform better due to not using
+    function pointers
+  - Add free functions enumerate() and rev()
 
 ---
 
