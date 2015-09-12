@@ -54,6 +54,8 @@ pub use adaptors::{
     Merge,
     MultiPeek,
     TakeWhileRef,
+    TakeWhilePutBack,
+    TakeWhileMapPutBack,
     WhileSome,
     Coalesce,
     CoalesceFn,
@@ -296,10 +298,10 @@ pub trait Itertools : Iterator {
     ///
     /// This iterator is *fused*.
     ///
-    /// When both iterators return `None`, all further invocations of `.next()` 
+    /// When both iterators return `None`, all further invocations of `.next()`
     /// will return `None`.
     ///
-    /// Iterator element type is 
+    /// Iterator element type is
     /// [`EitherOrBoth<Self::Item, J::Item>`](enum.EitherOrBoth.html).
     ///
     /// ```rust
@@ -802,6 +804,62 @@ pub trait Itertools : Iterator {
         F: FnMut(&Self::Item) -> bool,
     {
         TakeWhileRef::new(self, f)
+    }
+
+    /// Return an iterator adaptor that that only pick off elements while the predicate returns
+	/// `true`. The rejected element and the rest of the tail can be accessed via
+	/// the "remaining" method.
+	///
+    /// It uses the `put_back` function to restore the original iterator so that the last
+    /// and rejected element is still available when `TakeWhile` is done.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut hexadecimals = "0123456789abcdef".chars()
+    ///     .take_while_put_back(|c| c.is_numeric());
+    ///
+    /// let decimals = hexadecimals.by_ref()
+    ///                            .collect::<String>();
+    /// assert_eq!(decimals, "0123456789");
+    /// assert_eq!(hexadecimals.remaining().next(), Some('a'));
+    ///
+    /// ```
+    #[inline]
+    fn take_while_put_back<F>(self, f: F) -> TakeWhilePutBack<Self, F> where
+        Self: Sized,
+        F: FnMut(&Self::Item) -> bool,
+    {
+        TakeWhilePutBack::new(self, f)
+    }
+
+    /// Return an iterator adaptor that only pick off elements while the predicate returns
+	/// Ok(_). The rejected elements and the rest of the tail can be accessed via
+	/// the "remaining" method.
+	///
+    /// It uses the `put_back` function to restore the original iterator so that the last
+    /// and rejected element is still available when `TakeWhileMap` is done.
+    ///
+	/// Predicates should only return Err(_) with the unmodified input value.
+	///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut hexadecimals = "0123456789abcdef".chars()
+    ///     .take_while_map_put_back(|c| if c.is_numeric() { Ok('X') } else { Err(c) });
+    ///
+    /// let decimals = hexadecimals.by_ref()
+    ///                            .collect::<String>();
+    /// assert_eq!(decimals, "XXXXXXXXXX");
+    /// assert_eq!(hexadecimals.remaining().next(), Some('a'));
+    ///
+    /// ```
+    #[inline]
+    fn take_while_map_put_back<F, B>(self, f: F) -> TakeWhileMapPutBack<Self, F> where
+        Self: Sized,
+        F: FnMut(Self::Item) -> Result<B, Self::Item>,
+    {
+        TakeWhileMapPutBack::new(self, f)
     }
 
     /// Return an iterator adaptor that filters `Option<A>` iterator elements
