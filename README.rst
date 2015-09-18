@@ -33,8 +33,11 @@ How to use in your crate:
 Recent Changes
 --------------
 
-- For next major release:
+- 0.4.0
 
+  - .merge(), .unique() and .dedup() now perform better due to not using
+    function pointers
+  - Add free functions enumerate() and rev()
   - Breaking changes:
 
     - Return types of .merge() and .merge_by() renamed and changed
@@ -47,12 +50,6 @@ Recent Changes
     - Removed deprecated macro icompr!()
     - Removed deprecated FnMap and method .fn_map(): use .map_fn()
     - .interleave_shortest() is no longer guaranteed to act like fused
-
-  - .merge(), .unique() and .dedup() now perform better due to not using
-    function pointers
-  - Add free functions enumerate() and rev()
-
----
 
 - 0.3.25
 
