@@ -575,15 +575,15 @@ pub trait Itertools : Iterator {
     /// assert_eq!(it.next(), Some(((1, 'B'), (1, 'X'))));
     /// assert_eq!(it.next(), None);
     /// ```
-    fn merge_join_inner_by<J, F, R>(self, other: J, cmp: F) -> MergeJoinInner<Self, J::IntoIter, F> 
+    fn merge_join_inner_by<J, F>(self, other: J, cmp: F) -> MergeJoinInner<Self, J::IntoIter, F> 
         where Self: Sized,
-              J: IntoIterator<Item=R>,
+              J: IntoIterator,
               F: FnMut(&Self::Item, &J::Item) -> Ordering
     {
         MergeJoinInner::new(self, other.into_iter(), cmp)
     }
 
-    /// Returns an iterator adaptor that *left exclusive joins* the two base iterators in
+    /// Return an iterator adaptor that *left exclusive joins* the two base iterators in
     /// ascending order. The resulting iterator contains only those records from the left input
     /// iterator, which do not match the right input iterator. There is no direct equivalent in
     /// SQL.
@@ -604,16 +604,16 @@ pub trait Itertools : Iterator {
     /// assert_eq!(it.next(), Some((0, 'A')));
     /// assert_eq!(it.next(), None);
     /// ```
-    fn merge_join_left_excl_by<J, F, R>(self, other: J, cmp: F) 
+    fn merge_join_left_excl_by<J, F>(self, other: J, cmp: F) 
                                         -> MergeJoinLeftExcl<Self, J::IntoIter, F> 
         where Self: Sized,
-              J: IntoIterator<Item=R>,
+              J: IntoIterator,
               F: FnMut(&Self::Item, &J::Item) -> Ordering
     {
         MergeJoinLeftExcl::new(self, other.into_iter(), cmp)
     }
 
-    /// Returns an iterator adaptor that [left outer
+    /// Return an iterator adaptor that [left outer
     /// joins](https://en.wikipedia.org/wiki/Join_%28SQL%29#Left_outer_join) the two base iterators
     /// in ascending order. The resulting iterator contains all the records from the left input
     /// iterator, even if they do not match the right input iterator.
@@ -636,16 +636,16 @@ pub trait Itertools : Iterator {
     /// assert_eq!(it.next(), Some(Both((1, 'B'), (1, 'X'))));
     /// assert_eq!(it.next(), None);
     /// ```
-    fn merge_join_left_outer_by<J, F, R>(self, other: J, cmp: F) 
+    fn merge_join_left_outer_by<J, F>(self, other: J, cmp: F) 
                                          -> MergeJoinLeftOuter<Self, J::IntoIter, F> 
         where Self: Sized,
-              J: IntoIterator<Item=R>,
+              J: IntoIterator,
               F: FnMut(&Self::Item, &J::Item) -> Ordering
     {
         MergeJoinLeftOuter::new(self, other.into_iter(), cmp)
     }
 
-    /// Returns an iterator adaptor that [full outer
+    /// Return an iterator adaptor that [full outer
     /// joins](https://en.wikipedia.org/wiki/Join_%28SQL%29#Full_outer_join) the two base iterators
     /// in ascending order. The resulting iterator contains all the records from the both input
     /// iterators.
@@ -669,10 +669,10 @@ pub trait Itertools : Iterator {
     /// assert_eq!(it.next(), Some(Right((2, 'Y'))));
     /// assert_eq!(it.next(), None);
     /// ```
-    fn merge_join_full_outer_by<J, F, R>(self, other: J, cmp: F) 
+    fn merge_join_full_outer_by<J, F>(self, other: J, cmp: F) 
                                          -> MergeJoinFullOuter<Self, J::IntoIter, F> 
         where Self: Sized,
-              J: IntoIterator<Item=R>,
+              J: IntoIterator,
               F: FnMut(&Self::Item, &J::Item) -> Ordering
     {
         MergeJoinFullOuter::new(self, other.into_iter(), cmp)
@@ -683,21 +683,27 @@ pub trait Itertools : Iterator {
     /// ascending order. The resulting iterator is the intersection of the two base iterators.
     ///
     /// The base iterators do *not* need to be sorted. The right base iterator is loaded into
-    /// HashMap and thus must be unique on the join key (e.g. by
+    /// `HashMap` and thus must be unique on the join key (e.g. by
     /// [grouping](trait.Itertools.html#method.group_by), if necessary) to produce the correct
     /// results. The left base iterator do not need to be unique on the key.
     ///
     /// The left base iterator element type must be `(K, LV)`, where `K: Hash + Eq`. 
-    /// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq`.
+    /// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq` and `RV:
+    /// Clone`.
     ///
-    /// Iterator element type is `(LV, std::rc::Rc<RV>)`.
+    /// When the join adaptor is created, the right iterator is **consumed** into `HashMap`.
+    ///
+    /// Iterator element type is `(LV, RV)`. 
+    /// The `RV` is cloned from `HashMap` for each joined value. It is expected a single `RV` will
+    /// be joined (and cloned) multiple times to `LV`. To increase performance, consider wrapping
+    /// `RV` into `std::rc::Rc` pointer to avoid unnecessary allocations.
     ///
     /// ```
     /// use std::rc::Rc;
     /// use itertools::Itertools;
     ///
     /// let a = (0..).zip("AB".chars());
-    /// let b = (1..).zip("XY".chars());
+    /// let b = (1..).zip("XY".chars().map(|c| Rc::new(c)));
     /// let mut it = a.hash_join_inner(b);
     /// assert_eq!(it.next(), Some(('B', Rc::new('X'))));
     /// assert_eq!(it.next(), None);
@@ -705,22 +711,25 @@ pub trait Itertools : Iterator {
     fn hash_join_inner<K, RI, RV>(self, other: RI) -> HashJoinInner<Self, K, RV> 
         where Self: Sized,
               K: Hash + Eq,
+              RV: Clone,
               RI: IntoIterator<Item=(K, RV)>
     {
         HashJoinInner::new(self, other)
     }
 
-    /// An iterator adaptor that *left exclusive joins* the two base iterators. The resulting
-    /// iterator contains only those records from the left input iterator, which do not match the
-    /// right input iterator. There is no direct equivalent in SQL.
+    /// Return an iterator adaptor that *left exclusive joins* the two base iterators. The
+    /// resulting iterator contains only those records from the left input iterator, which do not
+    /// match the right input iterator. There is no direct equivalent in SQL.
     ///
     /// The base iterators do *not* need to be sorted. The right base iterator is loaded into
-    /// HashMap and thus must be unique on the join key (e.g. by
+    /// `HashMap` and thus must be unique on the join key (e.g. by
     /// [grouping](trait.Itertools.html#method.group_by), if necessary) to produce the correct
     /// results. The left base iterator do not need to be unique on the key.
     ///
     /// The left base iterator element type must be `(K, LV)`, where `K: Hash + Eq`. 
     /// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq`.
+    ///
+    /// When the join adaptor is created, the right iterator is **consumed** into `HashMap`.
     ///
     /// Iterator element type is `LV`.
     ///
@@ -741,20 +750,26 @@ pub trait Itertools : Iterator {
         HashJoinLeftExcl::new(self, other)
     }
 
-    /// An iterator adaptor that [left outer
+    /// Return an iterator adaptor that [left outer
     /// joins](https://en.wikipedia.org/wiki/Join_%28SQL%29#Left_outer_join) the two base
     /// iterators.  The resulting iterator contains all the records from the left input iterator,
     /// even if they do not match the right input iterator.
     ///
     /// The base iterators do *not* need to be sorted. The right base iterator is loaded into
-    /// HashMap and thus must be unique on the join key (e.g. by
+    /// `HashMap` and thus must be unique on the join key (e.g. by
     /// [grouping](trait.Itertools.html#method.group_by), if necessary) to produce the correct
     /// results. The left base iterator do not need to be unique on the key.
     ///
     /// The left base iterator element type must be `(K, LV)`, where `K: Hash + Eq`. 
-    /// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq`.
+    /// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq` and `RV:
+    /// Clone`.
     ///
-    /// Iterator element type is [`EitherOrBoth<LV, std::rc::Rc<RV>>`](enum.EitherOrBoth.html).
+    /// When the join adaptor is created, the right iterator is **consumed** into `HashMap`.
+    ///
+    /// Iterator element type is [`EitherOrBoth<LV, RV>`](enum.EitherOrBoth.html).
+    /// The `RV` is cloned from `HashMap` for each joined value. It is expected a single `RV` will
+    /// be joined (and cloned) multiple times to `LV`. To increase performance, consider wrapping
+    /// `RV` into `std::rc::Rc` pointer to avoid unnecessary allocations.
     ///
     /// ```
     /// use std::rc::Rc;
@@ -762,7 +777,7 @@ pub trait Itertools : Iterator {
     /// use itertools::EitherOrBoth::{Left, Both, Right};
     ///
     /// let a = (0..).zip("AB".chars());
-    /// let b = (1..).zip("XY".chars());
+    /// let b = (1..).zip("XY".chars().map(|c| Rc::new(c)));
     /// let mut it = a.hash_join_left_outer(b);
     /// assert_eq!(it.next(), Some(Left('A')));
     /// assert_eq!(it.next(), Some(Both('B', Rc::new('X'))));
@@ -771,33 +786,35 @@ pub trait Itertools : Iterator {
     fn hash_join_left_outer<K, RI, RV>(self, other: RI) -> HashJoinLeftOuter<Self, K, RV> 
         where Self: Sized,
               K: Hash + Eq,
+              RV: Clone,
               RI: IntoIterator<Item=(K, RV)>
     {
         HashJoinLeftOuter::new(self, other)
     }
 
-    /// An iterator adaptor that *right exclusive joins* the two base iterators. The resulting
+    /// Return an iterator adaptor that *right exclusive joins* the two base iterators. The resulting
     /// iterator contains only those records from the right input iterator, which do not match the
     /// left input iterator. There is no direct equivalent in SQL.
     ///
     /// The base iterators do *not* need to be sorted. The right base iterator is loaded into
-    /// HashMap and thus must be unique on the join key (e.g. by
+    /// `HashMap` and thus must be unique on the join key (e.g. by
     /// [grouping](trait.Itertools.html#method.group_by), if necessary) to produce the correct
     /// results. The left base iterator do not need to be unique on the key.
     ///
     /// The left base iterator element type must be `(K, LV)`, where `K: Hash + Eq`. 
     /// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq`.
     ///
-    /// Iterator element type is `std::rc::Rc<RV>`.
+    /// When the join adaptor is created, the right iterator is **consumed** into `HashMap`.
+    ///
+    /// Iterator element type is `RV`.
     ///
     /// ```
-    /// use std::rc::Rc;
     /// use itertools::Itertools;
     ///
     /// let a = (0..).zip("AB".chars());
     /// let b = (1..).zip("XY".chars());
     /// let mut it = a.hash_join_right_excl(b);
-    /// assert_eq!(it.next(), Some(Rc::new('Y')));
+    /// assert_eq!(it.next(), Some('Y'));
     /// assert_eq!(it.next(), None);
     /// ```
     fn hash_join_right_excl<K, RI, RV>(self, other: RI) -> HashJoinRightExcl<Self, K, RV> 
@@ -808,20 +825,26 @@ pub trait Itertools : Iterator {
         HashJoinRightExcl::new(self, other)
     }
 
-    /// An iterator adaptor that [right outer
+    /// Return an iterator adaptor that [right outer
     /// joins](https://en.wikipedia.org/wiki/Join_%28SQL%29#Right_outer_join) the two base
     /// iterators.  The resulting iterator contains all the records from the right input iterator,
     /// even if they do not match the left input iterator.
     ///
     /// The base iterators do *not* need to be sorted. The right base iterator is loaded into
-    /// HashMap and thus must be unique on the join key (e.g. by
+    /// `HashMap` and thus must be unique on the join key (e.g. by
     /// [grouping](trait.Itertools.html#method.group_by), if necessary) to produce the correct
     /// results. The left base iterator do not need to be unique on the key.
     ///
     /// The left base iterator element type must be `(K, LV)`, where `K: Hash + Eq`. 
-    /// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq`.
+    /// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq` and `RV:
+    /// Clone`.
     ///
-    /// Iterator element type is [`EitherOrBoth<LV, std::rc::Rc<RV>>`](enum.EitherOrBoth.html).
+    /// When the join adaptor is created, the right iterator is **consumed** into `HashMap`.
+    ///
+    /// Iterator element type is [`EitherOrBoth<LV, RV>`](enum.EitherOrBoth.html).
+    /// The `RV` is cloned from `HashMap` for each joined value. It is expected a single `RV` will
+    /// be joined (and cloned) multiple times to `LV`. To increase performance, consider wrapping
+    /// `RV` into `std::rc::Rc` pointer to avoid unnecessary allocations.
     ///
     /// ```
     /// use std::rc::Rc;
@@ -829,7 +852,7 @@ pub trait Itertools : Iterator {
     /// use itertools::EitherOrBoth::{Left, Both, Right};
     ///
     /// let a = (0..).zip("AB".chars());
-    /// let b = (1..).zip("XY".chars());
+    /// let b = (1..).zip("XY".chars().map(|c| Rc::new(c)));
     /// let mut it = a.hash_join_right_outer(b);
     /// assert_eq!(it.next(), Some(Both('B', Rc::new('X'))));
     /// assert_eq!(it.next(), Some(Right(Rc::new('Y'))));
@@ -838,24 +861,31 @@ pub trait Itertools : Iterator {
     fn hash_join_right_outer<K, RI, RV>(self, other: RI) -> HashJoinRightOuter<Self, K, RV> 
         where Self: Sized,
               K: Hash + Eq,
+              RV: Clone,
               RI: IntoIterator<Item=(K, RV)>
     {
         HashJoinRightOuter::new(self, other)
     }
 
-    /// An iterator adaptor that [full outer
+    /// Return an iterator adaptor that [full outer
     /// joins](https://en.wikipedia.org/wiki/Join_%28SQL%29#Full_outer_join) the two base
     /// iterators.  The resulting iterator contains all the records from the both input iterators.
     ///
     /// The base iterators do *not* need to be sorted. The right base iterator is loaded into
-    /// HashMap and thus must be unique on the join key (e.g. by
+    /// `HashMap` and thus must be unique on the join key (e.g. by
     /// [grouping](trait.Itertools.html#method.group_by), if necessary) to produce the correct
     /// results. The left base iterator do not need to be unique on the key.
     ///
     /// The left base iterator element type must be `(K, LV)`, where `K: Hash + Eq`. 
-    /// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq`.
+    /// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq` and `RV:
+    /// Clone`.
     ///
-    /// Iterator element type is [`EitherOrBoth<LV, std::rc::Rc<RV>>`](enum.EitherOrBoth.html).
+    /// When the join adaptor is created, the right iterator is **consumed** into `HashMap`.
+    ///
+    /// Iterator element type is [`EitherOrBoth<LV, RV>`](enum.EitherOrBoth.html).
+    /// The `RV` is cloned from `HashMap` for each joined value. It is expected a single `RV` will
+    /// be joined (and cloned) multiple times to `LV`. To increase performance, consider wrapping
+    /// `RV` into `std::rc::Rc` pointer to avoid unnecessary allocations.
     ///
     /// ```
     /// use std::rc::Rc;
@@ -863,7 +893,7 @@ pub trait Itertools : Iterator {
     /// use itertools::EitherOrBoth::{Left, Both, Right};
     ///
     /// let a = (0..).zip("AB".chars());
-    /// let b = (1..).zip("XY".chars());
+    /// let b = (1..).zip("XY".chars().map(|c| Rc::new(c)));
     /// let mut it = a.hash_join_full_outer(b);
     /// assert_eq!(it.next(), Some(Left('A')));
     /// assert_eq!(it.next(), Some(Both('B', Rc::new('X'))));
@@ -873,6 +903,7 @@ pub trait Itertools : Iterator {
     fn hash_join_full_outer<K, RI, RV>(self, other: RI) -> HashJoinFullOuter<Self, K, RV> 
         where Self: Sized,
               K: Hash + Eq,
+              RV: Clone,
               RI: IntoIterator<Item=(K, RV)>
     {
         HashJoinFullOuter::new(self, other)

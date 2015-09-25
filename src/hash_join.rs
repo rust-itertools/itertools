@@ -25,27 +25,32 @@
 
 use std::collections::hash_map::{HashMap, IntoIter,};
 use std::mem;
-use std::rc::Rc;
 use std::hash::Hash;
 use super::EitherOrBoth::{self, Right, Left, Both};
 
-/// An iterator adaptor that [inner
-/// joins](https://en.wikipedia.org/wiki/Join_%28SQL%29#Inner_join) the two base iterators. The
-/// resulting iterator is the intersection of the two base iterators.
+/// An iterator adaptor that [inner joins](https://en.wikipedia.org/wiki/Join_%28SQL%29#Inner_join)
+/// the two base iterators in ascending order. The resulting iterator is the intersection of the
+/// two base iterators.
 ///
-/// The base iterators do *not* need to be sorted. The right base iterator is loaded into HashMap
-/// and thus must be unique on the join key (e.g. by
+/// The base iterators do *not* need to be sorted. The right base iterator is loaded into
+/// `HashMap` and thus must be unique on the join key (e.g. by
 /// [grouping](trait.Itertools.html#method.group_by), if necessary) to produce the correct
 /// results. The left base iterator do not need to be unique on the key.
 ///
 /// The left base iterator element type must be `(K, LV)`, where `K: Hash + Eq`. 
-/// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq`.
+/// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq` and `RV:
+/// Clone`.
 ///
-/// Iterator element type is `(LV, std::rc::Rc<RV>)`.
+/// When the join adaptor is created, the right iterator is **consumed** into `HashMap`.
+///
+/// Iterator element type is `(LV, RV)`. 
+/// The `RV` is cloned from `HashMap` for each joined value. It is expected a single `RV` will
+/// be joined (and cloned) multiple times to `LV`. To increase performance, consider wrapping
+/// `RV` into `std::rc::Rc` pointer to avoid unnecessary allocations.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct HashJoinInner<L, K, RV> {
     left: L,
-    map: HashMap<K, Rc<RV>>,
+    map: HashMap<K, RV>,
 }
 
 impl<L, K, RV> HashJoinInner<L, K, RV> 
@@ -57,9 +62,9 @@ impl<L, K, RV> HashJoinInner<L, K, RV>
               LI: IntoIterator<IntoIter=L>,
               RI: IntoIterator<Item=(K, RV)>
     {
-        let mut map: HashMap<K, Rc<RV>> = HashMap::new();
+        let mut map: HashMap<K, RV> = HashMap::new();
         for (k, v) in right.into_iter() {
-            map.insert(k, Rc::new(v));
+            map.insert(k, v);
         }
         HashJoinInner {
             left: left.into_iter(),
@@ -71,8 +76,9 @@ impl<L, K, RV> HashJoinInner<L, K, RV>
 impl<L, K, LV, RV> Iterator for HashJoinInner<L, K, RV> 
     where L: Iterator<Item=(K, LV)>,
           K: Hash + Eq,
+          RV: Clone,
 {
-    type Item = (LV, Rc<RV>);
+    type Item = (LV, RV);
     
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -91,19 +97,21 @@ impl<L, K, LV, RV> Iterator for HashJoinInner<L, K, RV>
 /// contains only those records from the left input iterator, which do not match the right input
 /// iterator. There is no direct equivalent in SQL.
 ///
-/// The base iterators do *not* need to be sorted. The right base iterator is loaded into HashMap
-/// and thus must be unique on the join key (e.g. by
+/// The base iterators do *not* need to be sorted. The right base iterator is loaded into
+/// `HashMap` and thus must be unique on the join key (e.g. by
 /// [grouping](trait.Itertools.html#method.group_by), if necessary) to produce the correct
 /// results. The left base iterator do not need to be unique on the key.
 ///
 /// The left base iterator element type must be `(K, LV)`, where `K: Hash + Eq`. 
 /// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq`.
 ///
+/// When the join adaptor is created, the right iterator is **consumed** into `HashMap`.
+///
 /// Iterator element type is `LV`.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct HashJoinLeftExcl<L, K, RV> {
     left: L,
-    map: HashMap<K, Rc<RV>>,
+    map: HashMap<K, RV>,
 }
 
 impl<L, K, RV> HashJoinLeftExcl<L, K, RV> 
@@ -115,9 +123,9 @@ impl<L, K, RV> HashJoinLeftExcl<L, K, RV>
               LI: IntoIterator<IntoIter=L>,
               RI: IntoIterator<Item=(K, RV)>
     {
-        let mut map: HashMap<K, Rc<RV>> = HashMap::new();
+        let mut map: HashMap<K, RV> = HashMap::new();
         for (k, v) in right.into_iter() {
-            map.insert(k, Rc::new(v));
+            map.insert(k, v);
         }
         HashJoinLeftExcl {
             left: left.into_iter(),
@@ -150,19 +158,25 @@ impl<L, K, LV, RV> Iterator for HashJoinLeftExcl<L, K, RV>
 /// The resulting iterator contains all the records from the left input iterator, even if they do
 /// not match the right input iterator.
 ///
-/// The base iterators do *not* need to be sorted. The right base iterator is loaded into HashMap
-/// and thus must be unique on the join key (e.g. by
+/// The base iterators do *not* need to be sorted. The right base iterator is loaded into
+/// `HashMap` and thus must be unique on the join key (e.g. by
 /// [grouping](trait.Itertools.html#method.group_by), if necessary) to produce the correct
 /// results. The left base iterator do not need to be unique on the key.
 ///
 /// The left base iterator element type must be `(K, LV)`, where `K: Hash + Eq`. 
-/// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq`.
+/// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq` and `RV:
+/// Clone`.
 ///
-/// Iterator element type is [`EitherOrBoth<LV, std::rc::Rc<RV>>`](enum.EitherOrBoth.html).
+/// When the join adaptor is created, the right iterator is **consumed** into `HashMap`.
+///
+/// Iterator element type is [`EitherOrBoth<LV, RV>`](enum.EitherOrBoth.html).
+/// The `RV` is cloned from `HashMap` for each joined value. It is expected a single `RV` will
+/// be joined (and cloned) multiple times to `LV`. To increase performance, consider wrapping
+/// `RV` into `std::rc::Rc` pointer to avoid unnecessary allocations.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct HashJoinLeftOuter<L, K, RV> {
     left: L,
-    map: HashMap<K, Rc<RV>>,
+    map: HashMap<K, RV>,
 }
 
 impl<L, K, RV> HashJoinLeftOuter<L, K, RV> 
@@ -174,9 +188,9 @@ impl<L, K, RV> HashJoinLeftOuter<L, K, RV>
               LI: IntoIterator<IntoIter=L>,
               RI: IntoIterator<Item=(K, RV)>
     {
-        let mut map: HashMap<K, Rc<RV>> = HashMap::new();
+        let mut map: HashMap<K, RV> = HashMap::new();
         for (k, v) in right.into_iter() {
-            map.insert(k, Rc::new(v));
+            map.insert(k, v);
         }
         HashJoinLeftOuter {
             left: left.into_iter(),
@@ -188,8 +202,9 @@ impl<L, K, RV> HashJoinLeftOuter<L, K, RV>
 impl<L, K, LV, RV> Iterator for HashJoinLeftOuter<L, K, RV> 
     where L: Iterator<Item=(K, LV)>,
           K: Hash + Eq,
+          RV: Clone,
 {
-    type Item = EitherOrBoth<LV, Rc<RV>>;
+    type Item = EitherOrBoth<LV, RV>;
     
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -208,22 +223,24 @@ impl<L, K, LV, RV> Iterator for HashJoinLeftOuter<L, K, RV>
 /// contains only those records from the right input iterator, which do not match the left input
 /// iterator. There is no direct equivalent in SQL.
 ///
-/// The base iterators do *not* need to be sorted. The right base iterator is loaded into HashMap
-/// and thus must be unique on the join key (e.g. by
+/// The base iterators do *not* need to be sorted. The right base iterator is loaded into
+/// `HashMap` and thus must be unique on the join key (e.g. by
 /// [grouping](trait.Itertools.html#method.group_by), if necessary) to produce the correct
 /// results. The left base iterator do not need to be unique on the key.
 ///
 /// The left base iterator element type must be `(K, LV)`, where `K: Hash + Eq`. 
 /// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq`.
 ///
-/// Iterator element type is `std::rc::Rc<RV>`.
+/// When the join adaptor is created, the right iterator is **consumed** into `HashMap`.
+///
+/// Iterator element type is `RV`.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct HashJoinRightExcl<L, K, RV> {
     left: L,
-    map: HashMap<K, (Rc<RV>, bool)>,
+    map: HashMap<K, (RV, bool)>,
     /// exclusion iterator - yields the unmatched values from the map. It is created once the left
     /// iterator is exhausted
-    excl_iter: Option<IntoIter<K, (Rc<RV>, bool)>>,
+    excl_iter: Option<IntoIter<K, (RV, bool)>>,
 }
 
 impl<L, K, RV> HashJoinRightExcl<L, K, RV> 
@@ -235,9 +252,9 @@ impl<L, K, RV> HashJoinRightExcl<L, K, RV>
               LI: IntoIterator<IntoIter=L>,
               RI: IntoIterator<Item=(K, RV)>
     {
-        let mut map: HashMap<K, (Rc<RV>, bool)> = HashMap::new();
+        let mut map: HashMap<K, (RV, bool)> = HashMap::new();
         for (k, v) in right.into_iter() {
-            map.insert(k, (Rc::new(v), false));
+            map.insert(k, (v, false));
         }
         HashJoinRightExcl {
             left: left.into_iter(),
@@ -251,7 +268,7 @@ impl<L, K, RV> HashJoinRightExcl<L, K, RV>
     /// Once the left iterator is exhausted, the info about which keys were matched is complete.
     /// To be able to iterate over map's values we need to move it into its `IntoIter`.
     fn set_excl_iter(&mut self) {
-        let map = mem::replace(&mut self.map, HashMap::<K, (Rc<RV>, bool)>::new());
+        let map = mem::replace(&mut self.map, HashMap::<K, (RV, bool)>::new());
         self.excl_iter = Some(map.into_iter());
     }
 }
@@ -260,7 +277,7 @@ impl<L, K, LV, RV> Iterator for HashJoinRightExcl<L, K, RV>
     where L: Iterator<Item=(K, LV)>,
           K: Hash + Eq,
 {
-    type Item = Rc<RV>;
+    type Item = RV;
     
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -280,7 +297,7 @@ impl<L, K, LV, RV> Iterator for HashJoinRightExcl<L, K, RV>
                 Some(ref mut r) => match r.next() {
                     Some((_, (rv, matched))) => {
                         if !matched {
-                            return Some(rv.clone());
+                            return Some(rv);
                         } else {
                             continue;
                         }
@@ -297,22 +314,28 @@ impl<L, K, LV, RV> Iterator for HashJoinRightExcl<L, K, RV>
 /// The resulting iterator contains all the records from the right input iterator, even if they do
 /// not match the left input iterator.
 ///
-/// The base iterators do *not* need to be sorted. The right base iterator is loaded into HashMap
-/// and thus must be unique on the join key (e.g. by
+/// The base iterators do *not* need to be sorted. The right base iterator is loaded into
+/// `HashMap` and thus must be unique on the join key (e.g. by
 /// [grouping](trait.Itertools.html#method.group_by), if necessary) to produce the correct
 /// results. The left base iterator do not need to be unique on the key.
 ///
 /// The left base iterator element type must be `(K, LV)`, where `K: Hash + Eq`. 
-/// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq`.
+/// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq` and `RV:
+/// Clone`.
 ///
-/// Iterator element type is [`EitherOrBoth<LV, std::rc::Rc<RV>>`](enum.EitherOrBoth.html).
+/// When the join adaptor is created, the right iterator is **consumed** into `HashMap`.
+///
+/// Iterator element type is [`EitherOrBoth<LV, RV>`](enum.EitherOrBoth.html).
+/// The `RV` is cloned from `HashMap` for each joined value. It is expected a single `RV` will
+/// be joined (and cloned) multiple times to `LV`. To increase performance, consider wrapping
+/// `RV` into `std::rc::Rc` pointer to avoid unnecessary allocations.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct HashJoinRightOuter<L, K, RV> {
     left: L,
-    map: HashMap<K, (Rc<RV>, bool)>,
+    map: HashMap<K, (RV, bool)>,
     /// exclusion iterator - yields the unmatched values from the map. It is created once the left
     /// iterator is exhausted
-    excl_iter: Option<IntoIter<K, (Rc<RV>, bool)>>,
+    excl_iter: Option<IntoIter<K, (RV, bool)>>,
 }
 
 impl<L, K, RV> HashJoinRightOuter<L, K, RV> 
@@ -324,9 +347,9 @@ impl<L, K, RV> HashJoinRightOuter<L, K, RV>
               LI: IntoIterator<IntoIter=L>,
               RI: IntoIterator<Item=(K, RV)>
     {
-        let mut map: HashMap<K, (Rc<RV>, bool)> = HashMap::new();
+        let mut map: HashMap<K, (RV, bool)> = HashMap::new();
         for (k, v) in right.into_iter() {
-            map.insert(k, (Rc::new(v), false));
+            map.insert(k, (v, false));
         }
         HashJoinRightOuter {
             left: left.into_iter(),
@@ -340,7 +363,7 @@ impl<L, K, RV> HashJoinRightOuter<L, K, RV>
     /// Once the left iterator is exhausted, the info about which keys were matched is complete.
     /// To be able to iterate over map's values we need to move it into its `IntoIter`.
     fn set_excl_iter(&mut self) {
-        let map = mem::replace(&mut self.map, HashMap::<K, (Rc<RV>, bool)>::new());
+        let map = mem::replace(&mut self.map, HashMap::<K, (RV, bool)>::new());
         self.excl_iter = Some(map.into_iter());
     }
 }
@@ -350,7 +373,7 @@ impl<L, K, LV, RV> Iterator for HashJoinRightOuter<L, K, RV>
           K: Hash + Eq,
           RV: Clone,
 {
-    type Item = EitherOrBoth<LV, Rc<RV>>;
+    type Item = EitherOrBoth<LV, RV>;
     
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -387,22 +410,28 @@ impl<L, K, LV, RV> Iterator for HashJoinRightOuter<L, K, RV>
 /// joins](https://en.wikipedia.org/wiki/Join_%28SQL%29#Full_outer_join) the two base iterators.
 /// The resulting iterator contains all the records from the both input iterators.
 ///
-/// The base iterators do *not* need to be sorted. The right base iterator is loaded into HashMap
-/// and thus must be unique on the join key (e.g. by
+/// The base iterators do *not* need to be sorted. The right base iterator is loaded into
+/// `HashMap` and thus must be unique on the join key (e.g. by
 /// [grouping](trait.Itertools.html#method.group_by), if necessary) to produce the correct
 /// results. The left base iterator do not need to be unique on the key.
 ///
 /// The left base iterator element type must be `(K, LV)`, where `K: Hash + Eq`. 
-/// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq`.
+/// The right base iterator element type must be `(K, RV)`, where `K: Hash + Eq` and `RV:
+/// Clone`.
 ///
-/// Iterator element type is [`EitherOrBoth<LV, std::rc::Rc<RV>>`](enum.EitherOrBoth.html).
+/// When the join adaptor is created, the right iterator is **consumed** into `HashMap`.
+///
+/// Iterator element type is [`EitherOrBoth<LV, RV>`](enum.EitherOrBoth.html).
+/// The `RV` is cloned from `HashMap` for each joined value. It is expected a single `RV` will
+/// be joined (and cloned) multiple times to `LV`. To increase performance, consider wrapping
+/// `RV` into `std::rc::Rc` pointer to avoid unnecessary allocations.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct HashJoinFullOuter<L, K, RV> {
     left: L,
-    map: HashMap<K, (Rc<RV>, bool)>,
+    map: HashMap<K, (RV, bool)>,
     /// exclusion iterator - yields the unmatched values from the map. It is created once the left
     /// iterator is exhausted
-    excl_iter: Option<IntoIter<K, (Rc<RV>, bool)>>,
+    excl_iter: Option<IntoIter<K, (RV, bool)>>,
 }
 
 impl<L, K, RV> HashJoinFullOuter<L, K, RV> 
@@ -414,9 +443,9 @@ impl<L, K, RV> HashJoinFullOuter<L, K, RV>
               LI: IntoIterator<IntoIter=L>,
               RI: IntoIterator<Item=(K, RV)>
     {
-        let mut map: HashMap<K, (Rc<RV>, bool)> = HashMap::new();
+        let mut map: HashMap<K, (RV, bool)> = HashMap::new();
         for (k, v) in right.into_iter() {
-            map.insert(k, (Rc::new(v), false));
+            map.insert(k, (v, false));
         }
         HashJoinFullOuter {
             left: left.into_iter(),
@@ -430,7 +459,7 @@ impl<L, K, RV> HashJoinFullOuter<L, K, RV>
     /// Once the left iterator is exhausted, the info about which keys were matched is complete.
     /// To be able to iterate over map's values we need to move it into its `IntoIter`.
     fn set_excl_iter(&mut self) {
-        let map = mem::replace(&mut self.map, HashMap::<K, (Rc<RV>, bool)>::new());
+        let map = mem::replace(&mut self.map, HashMap::<K, (RV, bool)>::new());
         self.excl_iter = Some(map.into_iter());
     }
 }
@@ -440,7 +469,7 @@ impl<L, K, LV, RV> Iterator for HashJoinFullOuter<L, K, RV>
           K: Hash + Eq,
           RV: Clone,
 {
-    type Item = EitherOrBoth<LV, Rc<RV>>;
+    type Item = EitherOrBoth<LV, RV>;
     
     fn next(&mut self) -> Option<Self::Item> {
         loop {
