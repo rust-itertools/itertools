@@ -145,7 +145,7 @@ fn dropn() {
 fn dropping() {
     let xs = [1, 2, 3];
     let mut it = xs.iter().dropping(2);
-    assert!(it.next().is_some());
+    assert_eq!(it.next(), Some(&3));
     assert!(it.next().is_none());
     let mut it = xs.iter().dropping(5);
     assert!(it.next().is_none());
