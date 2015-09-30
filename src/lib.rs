@@ -877,6 +877,7 @@ pub trait Itertools : Iterator {
     /// ```
     fn dropn(&mut self, mut n: usize) -> usize
     {
+        // FIXME: Can we use .nth() somehow?
         let start = n;
         while n > 0 {
             match self.next() {
@@ -902,7 +903,9 @@ pub trait Itertools : Iterator {
     fn dropping(mut self, n: usize) -> Self where
         Self: Sized,
     {
-        self.dropn(n);
+        if n > 0 {
+            self.nth(n - 1);
+        }
         self
     }
 
