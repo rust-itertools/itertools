@@ -33,6 +33,10 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.4.1
+
+  - Update .dropping() to take advantage of .nth()
+
 - 0.4.0
 
   - .merge(), .unique() and .dedup() now perform better due to not using
