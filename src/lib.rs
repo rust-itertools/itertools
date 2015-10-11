@@ -1113,6 +1113,38 @@ pub trait Itertools : Iterator {
         Ok(start)
     }
 
+    /// Fold `Option` values from an iterator.
+    ///
+    /// Only `Some` values are folded. If no `None` is encountered, the folded
+    /// value is returned inside `Some`. Otherwise, the operation terminates
+    /// and returns `None`. No iterator elements are consumed after the `None`.
+    ///
+    /// This is the `Option` equivalent to `fold_results`.
+    ///
+    /// ```
+    /// use std::ops::Add;
+    /// use itertools::Itertools;
+    ///
+    /// let mut values = vec![Some(1), Some(2), Some(-2)].into_iter();
+    /// assert_eq!(values.fold_options(5, Add::add), Some(5 + 1 + 2 - 2));
+    ///
+    /// let mut more_values = vec![Some(2), None, Some(0)].into_iter();
+    /// assert!(more_values.fold_options(0, Add::add).is_none());
+    /// assert_eq!(more_values.next().unwrap(), Some(0));
+    /// ```
+    fn fold_options<A, B, F>(&mut self, mut start: B, mut f: F) -> Option<B> where
+        Self: Iterator<Item=Option<A>>,
+        F: FnMut(B, A) -> B,
+    {
+        for elt in self {
+            match elt {
+                Some(v) => start = f(start, v),
+                None => return None,
+            }
+        }
+        Some(start)
+    }
+
     /// Accumulator of the elements in the iterator.
     ///
     /// Like `.fold()`, without a base case. If the iterator is
