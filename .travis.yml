@@ -2,7 +2,7 @@ language: rust
 sudo: false
 matrix:
   include:
-    - rust: 1.0.0
+    - rust: 1.1.0
     - rust: 1.2.0
     - rust: stable
     - rust: beta
