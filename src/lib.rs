@@ -252,10 +252,10 @@ pub trait Itertools : Iterator {
     ///
     /// This iterator is *fused*.
     ///
-    /// When both iterators return `None`, all further invocations of `.next()` 
+    /// When both iterators return `None`, all further invocations of `.next()`
     /// will return `None`.
     ///
-    /// Iterator element type is 
+    /// Iterator element type is
     /// [`EitherOrBoth<Self::Item, J::Item>`](enum.EitherOrBoth.html).
     ///
     /// ```rust
@@ -1212,29 +1212,43 @@ pub trait Itertools : Iterator {
     ///
     /// let oldest_people_first = people
     ///     .into_iter()
-    ///     .sorted_by(|a, b| Ord::cmp(&b.1, &a.1))
+    ///     .sorted_by(|a, b| b.1 < a.1)
     ///     .into_iter()
     ///     .map(|(person, _age)| person);
     ///
     /// itertools::assert_equal(oldest_people_first,
     ///                         vec!["Jill", "Jack", "Jane", "John"]);
     /// ```
-    fn sorted_by<F>(self, cmp: F) -> Vec<Self::Item>
+    fn sorted_by<F>(self, is_ordered_before: F) -> Vec<Self::Item>
         where Self: Sized,
-              F: FnMut(&Self::Item, &Self::Item) -> Ordering,
+              F: FnMut(&Self::Item, &Self::Item) -> bool,
     {
         let mut v: Vec<Self::Item> = self.collect();
-
-        v.sort_by(cmp);
+        let mut f = is_ordered_before;
+        v.sort_by(|a, b| if f(a, b) { Ordering::Less } else { Ordering::Greater });
         v
     }
 
-    /// **Deprecated:** renamed to `.sorted_by()`
-    fn sort_by<F>(self, cmp: F) -> Vec<Self::Item>
+    /// Collect all iterator elements into a sorted vector in ascending order.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // sort chars in ascending order
+    /// let chars = vec!['b', 'd', 'a', 'c', 'f', 'e'];
+    ///
+    /// let sorted_chars = chars
+    ///     .into_iter()
+    ///     .sorted();
+    ///
+    /// itertools::assert_equal(sorted_chars,
+    ///                         vec!['a', 'b', 'c', 'd', 'e', 'f']);
+    /// ```
+    fn sorted(self) -> Vec<Self::Item>
         where Self: Sized,
-              F: FnMut(&Self::Item, &Self::Item) -> Ordering,
+              Self::Item: PartialOrd,
     {
-        self.sorted_by(cmp)
+        self.sorted_by(|a, b| a < b)
     }
 }
 
