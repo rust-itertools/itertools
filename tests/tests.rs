@@ -167,7 +167,7 @@ fn intersperse() {
 fn linspace() {
     let iter = it::linspace::<f32>(0., 2., 3);
     it::assert_equal(iter, vec![0., 1., 2.]);
-    
+
     let iter = it::linspace::<f32>(0., 1.0, 11);
     for (a, b) in iter.zip(vec![ 0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]) {
         assert!((a - b).abs() < 1.0e-6);
@@ -242,7 +242,7 @@ fn group_by() {
     let xs = [0, 1, 1, 1, 2, 1, 3, 3];
     let ans = vec![(0, vec![0]), (1, vec![1, 1, 1]),
                    (2, vec![2]), (1, vec![1]), (3, vec![3, 3])];
-    
+
     let gb = xs.iter().cloned().group_by(|elt| *elt);
     it::assert_equal(gb, ans.into_iter());
 }
@@ -404,11 +404,11 @@ fn join() {
 #[test]
 fn sorted_by() {
     let sc = [3, 4, 1, 2].iter().cloned().sorted_by(|&a, &b| {
-        a.cmp(&b)
+        a < b
     });
     assert_eq!(sc, vec![1, 2, 3, 4]);
 
-    let v = (0..5).sorted_by(|&a, &b| a.cmp(&b).reverse());
+    let v = (0..5).sorted_by(|&a, &b| a > b);
     assert_eq!(v, vec![4, 3, 2, 1, 0]);
 }
 
