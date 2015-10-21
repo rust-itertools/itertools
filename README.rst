@@ -33,6 +33,11 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.4.2
+
+  - Add .fold_options()
+  - Require Rust 1.1 or later
+
 - 0.4.1
 
   - Update .dropping() to take advantage of .nth()
