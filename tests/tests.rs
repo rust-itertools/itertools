@@ -41,6 +41,18 @@ fn product3() {
 }
 
 #[test]
+fn product_temporary() {
+    for (_x, _y, _z) in iproduct!(
+        [0, 1, 2].iter().cloned(),
+        [0, 1, 2].iter().cloned(),
+        [0, 1, 2].iter().cloned())
+    {
+        // ok
+    }
+}
+
+
+#[test]
 fn izip_macro() {
     let mut zip = izip!(0..3, 0..2, 0..2i8);
     for i in 0..2 {

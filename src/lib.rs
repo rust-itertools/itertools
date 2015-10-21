@@ -124,6 +124,12 @@ pub type MapFn<I, B> where I: Iterator = iter::Map<I, fn(I::Item) -> B>;
 /// # }
 /// ```
 macro_rules! iproduct {
+    (@flatten $I:expr,) => (
+        $I
+    );
+    (@flatten $I:expr, $J:expr, $($K:expr,)*) => (
+        iproduct!(@flatten $crate::misc::FlatTuples::new(iproduct!($I, $J)), $($K,)*)
+    );
     ($I:expr) => (
         (::std::iter::IntoIterator::into_iter($I))
     );
@@ -131,13 +137,7 @@ macro_rules! iproduct {
         $crate::Product::new(iproduct!($I), iproduct!($J))
     );
     ($I:expr, $J:expr, $($K:expr),+) => (
-        {
-            let it = iproduct!($I, $J);
-            $(
-                let it = $crate::misc::FlatTuples::new(iproduct!(it, $K));
-            )*
-            it
-        }
+        iproduct!(@flatten iproduct!($I, $J), $($K,)+)
     );
 }
 
