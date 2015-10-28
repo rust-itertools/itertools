@@ -33,6 +33,11 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.4.3
+
+  - Write iproduct!() as a single expression; this allows temporary values
+    in its arguments.
+
 - 0.4.2
 
   - Add .fold_options()
