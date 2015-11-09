@@ -1240,10 +1240,9 @@ pub trait Itertools : Iterator {
         self.sorted_by(cmp)
     }
 
-    fn sliding_windows(self, storage: &mut SlidingWindowStorage<<Self as Iterator>::Item>)
+    fn sliding_windows(self, storage: &mut SlidingWindowStorage<Self::Item>)
         -> SlidingWindowAdapter<Self>
-        where
-            Self: Iterator + Sized
+        where Self: Sized
     {
         SlidingWindowAdapter::new(self, storage)
     }

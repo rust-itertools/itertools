@@ -1,15 +1,17 @@
+use std::cell::{Cell, UnsafeCell};
 use std::mem;
-use std::ops::{
-    Deref, DerefMut};
+use std::ops::{Deref, DerefMut};
+
+use std::marker::PhantomData;
+use std::fmt;
 
 // This stores the current window
-#[allow(raw_pointer_derive)]
-#[derive(Debug)]
 pub struct SlidingWindowStorage<T> {
     window_size: usize,
-    uniquely_owned: bool,
-    data: Vec<T>,
-    _no_send_sync_marker: *const u8 //TODO remove in favour of negative send and sync impls once they are stable
+    /// acts as a refcount
+    uniquely_owned: Cell<bool>,
+    data: UnsafeCell<Vec<T>>,
+    _no_send_sync_marker: PhantomData<*const ()>,
 }
 
 /* FIXME: uncomment this once it gets stable
@@ -17,129 +19,121 @@ impl !Send for SlidingWindowStorage {}
 impl !Sync for SlidingWindowStorage {}
 */
 
-impl<T> Drop for SlidingWindowStorage<T> {
-    fn drop(&mut self) {
-        // assert that no Window exists when this is dropped
-        assert!(self.uniquely_owned, "SlidingWindowStorage dropped before Window went out of scope")
-    }
-}
-
 impl<T> SlidingWindowStorage<T> {
     pub fn new(window_size: usize) -> SlidingWindowStorage<T> {
         SlidingWindowStorage {
             window_size: window_size,
-            uniquely_owned: true,
-            data: Vec::with_capacity(window_size),
-            _no_send_sync_marker: 0usize as *const u8
+            uniquely_owned: Cell::new(true),
+            data: UnsafeCell::new(Vec::with_capacity(window_size)),
+            _no_send_sync_marker: PhantomData,
         }
     }
 
-    pub fn from_slice(mut s: Vec<T>, window_size: usize) -> SlidingWindowStorage<T> {
-        if s.capacity() < window_size {
-            let cap = s.capacity();
-            s.reserve_exact(window_size - cap);
-        }
-        s.clear();
-
-        SlidingWindowStorage {
-            window_size: window_size,
-            uniquely_owned: true,
-            data: s,
-            _no_send_sync_marker: 0usize as *const u8
-        }
-    }
-
-    fn new_window(&mut self) -> Window<T> {
+    fn new_window<'a>(&'a self) -> Window<'a, T> {
         // assert that the last window went out of scope
-        assert!(self.uniquely_owned, "next() called before previous Window went out of scope");
+        assert!(self.uniquely_owned.get(), "next() called before previous Window went out of scope");
 
-        self.uniquely_owned = false;
+        self.uniquely_owned.set(false);
 
-        unsafe {
-            // this creates a second vec managing the SAME memory as self.data.
-            // if the destructor of this vec ever runs it will result in a double free!!
-            let illegal_vec_copy = Vec::from_raw_parts(self.data.as_mut_ptr(), self.data.len(), self.data.capacity());
-            Window { drop_flag: &mut self.uniquely_owned as *mut bool, data: Some(illegal_vec_copy) }
+        Window { drop_flag: &self.uniquely_owned, data: &self.data }
+    }
+
+    fn push(&self, elt: T) -> bool {
+        assert!(self.uniquely_owned.get(), "next() called before previous Window went out of scope");
+        let data = unsafe { &mut *self.data.get() };
+        if data.len() != self.window_size {
+            data.push(elt);
+        } else {
+            data.remove(0);
+            data.push(elt);
         }
+        data.len() == self.window_size
     }
 }
 
-#[allow(raw_pointer_derive)]
-#[derive(Debug)]
-pub struct Window<T> {
-    drop_flag: *mut bool,
-    data: Option<Vec<T>> // option needed for destructor, will never be None
+pub struct Window<'a, T: 'a> {
+    drop_flag: &'a Cell<bool>,
+    data: &'a UnsafeCell<Vec<T>>,
 }
 
-impl<T> Drop for Window<T> {
+impl<'a, T> fmt::Debug for Window<'a, T> where T: fmt::Debug
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self[..].fmt(f)
+    }
+}
+
+impl<'a, T> Drop for Window<'a, T> {
     fn drop(&mut self) {
         // set flag to indicate this window was dropped
-        unsafe {
-            *self.drop_flag = true;
-        }
-
-        // don't deallocate the Vec as it exists in SlidingWindowStorage too
-        // Option::take replaces self with None and returns the Some(x)
-        let illegal_vec = self.data.take().unwrap();
-        mem::forget(illegal_vec);
+        self.drop_flag.set(true);
     }
 }
 
 // convenience impl &Window<T> => &[T]
-impl<T> Deref for Window<T> {
+impl<'a, T> Deref for Window<'a, T> {
     type Target = [T];
 
     fn deref(&self) -> &[T] {
-        self.data.as_ref().unwrap()
+        debug_assert!(!self.drop_flag.get());
+        unsafe {
+            &**self.data.get()
+        }
     }
 }
 
 // convenience impl &mut Window<T> => &mut [T]
-impl<T> DerefMut for Window<T> {
+impl<'a, T> DerefMut for Window<'a, T> {
     fn deref_mut(&mut self) -> &mut [T] {
-        self.data.as_mut().unwrap()
+        debug_assert!(!self.drop_flag.get());
+        unsafe {
+            &mut **self.data.get()
+        }
     }
 }
 
-#[derive(Debug)]
+impl<'a, 'b, T> PartialEq<&'b [T]> for Window<'a, T> where T: PartialEq
+{
+    fn eq(&self, other: &&'b [T]) -> bool {
+        self[..] == **other
+    }
+}
+
 pub struct SlidingWindowAdapter<'a, I: Iterator> where <I as Iterator>::Item: 'a {
     iter: I,
-    storage: &'a mut SlidingWindowStorage<I::Item>,
+    done: bool,
+    storage: &'a SlidingWindowStorage<I::Item>,
 }
 
 impl<'a, I: Iterator> SlidingWindowAdapter<'a, I> {
-    pub fn new(iter: I, storage: &'a mut SlidingWindowStorage<I::Item>) -> SlidingWindowAdapter<'a, I> {
+    pub fn new(iter: I, storage: &'a SlidingWindowStorage<I::Item>) -> SlidingWindowAdapter<'a, I> {
         SlidingWindowAdapter {
             iter: iter,
+            done: false,
             storage: storage,
         }
     }
 }
 
 impl<'a, I: Iterator> Iterator for SlidingWindowAdapter<'a, I> {
-    type Item = Window<I::Item>;
+    type Item = Window<'a, I::Item>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.storage.data.len() != self.storage.window_size {
-            // fill window
-            while self.storage.data.len() < self.storage.window_size {
-                match self.iter.next() {
-                    Some(x) => self.storage.data.push(x),
-                    None    => break
-                }
-            }
-        } else {
-            // remove first element and push next one
-            match self.iter.next() {
-                Some(x) => {
-                    self.storage.data.remove(0);
-                    self.storage.data.push(x);
-                },
-                None => return None
+        if self.done {
+            return None
+        }
+        self.done = true;
+        for elt in &mut self.iter {
+            if self.storage.push(elt) {
+                self.done = false;
+                break;
             }
         }
-
-        // return new window
-        Some(self.storage.new_window())
+        if !self.done {
+            // return new window
+            Some(self.storage.new_window())
+        } else {
+            None
+        }
     }
 }
