@@ -84,6 +84,8 @@ pub use ziptuple::{Zip};
 #[cfg(feature = "unstable")]
 pub use ziptrusted::{ZipTrusted, TrustedIterator};
 pub use zipslices::ZipSlices;
+pub use sliding_windows::{
+    SlidingWindowAdapter, SlidingWindowStorage};
 mod adaptors;
 mod format;
 mod groupbylazy;
@@ -103,6 +105,7 @@ mod ziptuple;
 #[cfg(feature = "unstable")]
 mod ziptrusted;
 mod zipslices;
+mod sliding_windows;
 
 /// The function pointer map iterator created with `.map_fn()`.
 pub type MapFn<I, B> where I: Iterator = iter::Map<I, fn(I::Item) -> B>;
@@ -1235,6 +1238,13 @@ pub trait Itertools : Iterator {
               F: FnMut(&Self::Item, &Self::Item) -> Ordering,
     {
         self.sorted_by(cmp)
+    }
+
+    fn sliding_windows(self, storage: &mut SlidingWindowStorage<Self::Item>)
+        -> SlidingWindowAdapter<Self>
+        where Self: Sized
+    {
+        SlidingWindowAdapter::new(self, storage)
     }
 }
 
