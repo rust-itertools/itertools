@@ -1,7 +1,5 @@
 use std::cell::{Cell, UnsafeCell};
-use std::mem;
 use std::ops::{Deref, DerefMut};
-
 use std::fmt;
 
 // This stores the current window
