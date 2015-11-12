@@ -2,7 +2,9 @@ use std::cell::{Cell, UnsafeCell};
 use std::ops::{Deref, DerefMut};
 use std::fmt;
 
-// This stores the current window
+/// This holds the backing allocation for the `Window` of a `SlidingWindowAdapter`.
+/// 
+/// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information.
 pub struct SlidingWindowStorage<T> {
     window_size: usize,
     /// acts as a refcount
@@ -16,6 +18,10 @@ impl !Sync for SlidingWindowStorage {}
 */
 
 impl<T> SlidingWindowStorage<T> {
+    /// Create a new `SlidingWindowStorage` with a given window size.
+    /// This will allocate as much memory as is needed to store the Window automatically.
+    ///
+    /// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information.
     pub fn new(window_size: usize) -> SlidingWindowStorage<T> {
         SlidingWindowStorage {
             window_size: window_size,
@@ -46,6 +52,33 @@ impl<T> SlidingWindowStorage<T> {
     }
 }
 
+/// This is the `Item` type of the `SlidingWindowAdapter` iterator.
+///
+/// # Usage:
+///
+/// `Window<'a, T>` dereferences to `&'a [T]` or `&'a mut [T]`.
+///
+/// ```
+/// use itertools::Itertools;
+/// use itertools::SlidingWindowStorage;
+///
+/// let mut storage: SlidingWindowStorage<u32> = SlidingWindowStorage::new(3);
+/// let mut windowed_iter = (0..5).sliding_windows(&mut storage);
+///
+/// for mut window in windowed_iter {
+///     // extra scope, so that later mutable borrow is possible
+///     {
+///         let slice: &[u32] = &window;
+///         // work with slice
+///     }
+///
+///     // mutable
+///     let mut_slice: &mut [u32] = &mut window;
+///     // work with data mutably
+/// }
+/// ```
+///
+/// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information.
 pub struct Window<'a, T: 'a> {
     drop_flag: &'a Cell<bool>,
     data: &'a UnsafeCell<Vec<T>>,
@@ -94,6 +127,7 @@ impl<'a, 'b, T> PartialEq<&'b [T]> for Window<'a, T> where T: PartialEq
     }
 }
 
+/// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information.
 pub struct SlidingWindowAdapter<'a, I: Iterator> where <I as Iterator>::Item: 'a {
     iter: I,
     done: bool,
@@ -101,6 +135,10 @@ pub struct SlidingWindowAdapter<'a, I: Iterator> where <I as Iterator>::Item: 'a
 }
 
 impl<'a, I: Iterator> SlidingWindowAdapter<'a, I> {
+    /// This creates a new SlidingWindowAdapter. Usually you should be using
+    /// [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) instead.
+    ///
+    /// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information on the adapter.
     pub fn new(iter: I, storage: &'a SlidingWindowStorage<I::Item>) -> SlidingWindowAdapter<'a, I> {
         SlidingWindowAdapter {
             iter: iter,

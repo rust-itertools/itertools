@@ -800,7 +800,7 @@ fn chunks_lazy() {
 fn sliding_windows_1() {
     fn test_window_correctness_with_storage(mut storage: SlidingWindowStorage<u32>) {
         let it = 0..5;
-        let mut windowed_iter = SlidingWindowAdapter::new(it, &mut storage);
+        let windowed_iter = SlidingWindowAdapter::new(it, &mut storage);
         let expected: &[&[u32]] = &[&[0,1,2], &[1,2,3], &[2,3,4]];
 
         it::assert_equal(windowed_iter, expected.iter().cloned());

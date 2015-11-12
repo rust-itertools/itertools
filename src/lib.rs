@@ -1240,6 +1240,58 @@ pub trait Itertools : Iterator {
         self.sorted_by(cmp)
     }
 
+    /// Return an iterator adaptor that yields sliding windows into the elements of the wrapped Iterator.
+    ///
+    /// Note that this adapter does **NOT** clone the whole window on every call to `next()`.
+    ///
+    /// Iterator element type is `Window<'a, Self::Item>`.
+    ///
+    /// Note: `Window<'a, Self::Item>` dereferences to `&'a [Self::Item]` or `&'a mut [Self::Item]`
+    ///
+    /// This iterator is *fused*.
+    ///
+    /// # Example:
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::SlidingWindowStorage;
+    ///
+    /// let mut storage: SlidingWindowStorage<u32> = SlidingWindowStorage::new(3);
+    /// let windowed_iter = (0..5).sliding_windows(&mut storage);
+    /// let expected: &[&[u32]] = &[&[0,1,2], &[1,2,3], &[2,3,4]];
+    ///
+    /// itertools::assert_equal(windowed_iter, expected.iter().cloned());
+    /// ```
+    ///
+    /// ### Panics:
+    ///
+    /// As this iterator reuses the allocation for the yielded `Window`, no two instances of `Window`
+    /// belonging to the same iterator may exist simultaniously. This is checked at runtime.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::SlidingWindowStorage;
+    ///
+    /// let mut storage: SlidingWindowStorage<u32> = SlidingWindowStorage::new(3);
+    /// let mut windowed_iter = (0..5).sliding_windows(&mut storage);
+    ///
+    /// // extra scope so that a doesn't live until the for loop
+    /// {
+    ///     let a = windowed_iter.next();
+    ///     //let b = windowed_iter.next(); => this would PANIC
+    /// }
+    /// 
+    /// // looping for example is fine though
+    /// for _ in windowed_iter {
+    ///     // blah
+    /// }
+    /// ```
+    /// 
+    /// # Mutable Window:
+    /// Window does not only dereference to an immutable slice of `Self::Item`, it also dereferences
+    /// to a mutable slice of `Self::Item`. Items of the mutable slice may be mutated freely.
+    /// 
+    /// However be aware that changes made to the items in the Window are persistent through calls to `next()`.
     fn sliding_windows(self, storage: &mut SlidingWindowStorage<Self::Item>)
         -> SlidingWindowAdapter<Self>
         where Self: Sized
@@ -1249,7 +1301,6 @@ pub trait Itertools : Iterator {
 }
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }
-
 /// Return `true` if both iterators produce equal sequences
 /// (elements pairwise equal and sequences of the same length),
 /// `false` otherwise.
