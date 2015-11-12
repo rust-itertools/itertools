@@ -11,7 +11,7 @@ use it::Itertools;
 use it::Interleave;
 use it::Zip;
 use it::{
-    SlidingWindowAdapter, SlidingWindowStorage};
+    SlidingWindowAdaptor, SlidingWindowStorage};
 
 #[test]
 fn product2() {
@@ -800,7 +800,7 @@ fn chunks_lazy() {
 fn sliding_windows_1() {
     fn test_window_correctness_with_storage(mut storage: SlidingWindowStorage<u32>) {
         let it = 0..5;
-        let windowed_iter = SlidingWindowAdapter::new(it, &mut storage);
+        let windowed_iter = SlidingWindowAdaptor::new(it, &mut storage);
         let expected: &[&[u32]] = &[&[0,1,2], &[1,2,3], &[2,3,4]];
 
         it::assert_equal(windowed_iter, expected.iter().cloned());
@@ -825,7 +825,7 @@ fn sliding_windows_1() {
 fn sliding_windows_2() {
     let it = 0..5;
     let mut storage: SlidingWindowStorage<u32> = SlidingWindowStorage::new(3);
-    let windowed_iter = SlidingWindowAdapter::new(it, &mut storage);
+    let windowed_iter = SlidingWindowAdaptor::new(it, &mut storage);
 
     for mut x in windowed_iter {
         x[1] = 0u32;
@@ -838,7 +838,7 @@ fn sliding_windows_2() {
 fn sliding_windows_3() {
     let it = 0..5;
     let mut storage: SlidingWindowStorage<u32> = SlidingWindowStorage::new(3);
-    let mut windowed_iter = SlidingWindowAdapter::new(it, &mut storage);
+    let mut windowed_iter = SlidingWindowAdaptor::new(it, &mut storage);
 
     let _a = windowed_iter.next();
     let _b = windowed_iter.next();

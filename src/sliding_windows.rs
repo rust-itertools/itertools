@@ -2,7 +2,7 @@ use std::cell::{Cell, UnsafeCell};
 use std::ops::{Deref, DerefMut};
 use std::fmt;
 
-/// This holds the backing allocation for the `Window` of a `SlidingWindowAdapter`.
+/// This holds the backing allocation for the `Window` of a `SlidingWindowAdaptor`.
 /// 
 /// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information.
 pub struct SlidingWindowStorage<T> {
@@ -60,7 +60,7 @@ impl<T> SlidingWindowStorage<T> {
     }
 }
 
-/// This is the `Item` type of the `SlidingWindowAdapter` iterator.
+/// This is the `Item` type of the `SlidingWindowAdaptor` iterator.
 ///
 /// # Usage:
 ///
@@ -136,22 +136,22 @@ impl<'a, 'b, T> PartialEq<&'b [T]> for Window<'a, T> where T: PartialEq
 }
 
 /// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information.
-pub struct SlidingWindowAdapter<'a, I: Iterator> where <I as Iterator>::Item: 'a {
+pub struct SlidingWindowAdaptor<'a, I: Iterator> where <I as Iterator>::Item: 'a {
     iter: I,
     done: bool,
     storage: &'a SlidingWindowStorage<I::Item>,
 }
 
-impl<'a, I: Iterator> SlidingWindowAdapter<'a, I> {
-    /// This creates a new SlidingWindowAdapter. Usually you should be using
+impl<'a, I: Iterator> SlidingWindowAdaptor<'a, I> {
+    /// This creates a new SlidingWindowAdaptor. Usually you should be using
     /// [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) instead.
     ///
-    /// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information on the adapter.
-    pub fn new(iter: I, storage: &'a SlidingWindowStorage<I::Item>) -> SlidingWindowAdapter<'a, I> {
+    /// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information on the adaptor.
+    pub fn new(iter: I, storage: &'a SlidingWindowStorage<I::Item>) -> SlidingWindowAdaptor<'a, I> {
         // in case the storage was reused
         storage.clear();
 
-        SlidingWindowAdapter {
+        SlidingWindowAdaptor {
             iter: iter,
             done: false,
             storage: storage,
@@ -159,7 +159,7 @@ impl<'a, I: Iterator> SlidingWindowAdapter<'a, I> {
     }
 }
 
-impl<'a, I: Iterator> Iterator for SlidingWindowAdapter<'a, I> {
+impl<'a, I: Iterator> Iterator for SlidingWindowAdaptor<'a, I> {
     type Item = Window<'a, I::Item>;
 
     fn next(&mut self) -> Option<Self::Item> {

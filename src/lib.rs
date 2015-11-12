@@ -85,7 +85,7 @@ pub use ziptuple::{Zip};
 pub use ziptrusted::{ZipTrusted, TrustedIterator};
 pub use zipslices::ZipSlices;
 pub use sliding_windows::{
-    SlidingWindowAdapter, SlidingWindowStorage};
+    SlidingWindowAdaptor, SlidingWindowStorage, Window};
 mod adaptors;
 mod format;
 mod groupbylazy;
@@ -593,7 +593,7 @@ pub trait Itertools : Iterator {
         EnumerateFrom::new(self, start)
     }
 
-    /// Return an iterator adapter that allows peeking multiple values.
+    /// Return an iterator adaptor that allows peeking multiple values.
     ///
     /// After a call to `.next()` the peeking cursor is reset.
     ///
@@ -1242,7 +1242,7 @@ pub trait Itertools : Iterator {
 
     /// Return an iterator adaptor that yields sliding windows into the elements of the wrapped Iterator.
     ///
-    /// Note that this adapter does **NOT** clone the whole window on every call to `next()`.
+    /// Note that this adaptor does **NOT** clone the whole window on every call to `next()`.
     ///
     /// Iterator element type is `Window<'a, Self::Item>`.
     ///
@@ -1266,7 +1266,7 @@ pub trait Itertools : Iterator {
     /// ### Panics:
     ///
     /// As this iterator reuses the allocation for the yielded `Window`, no two instances of `Window`
-    /// belonging to the same iterator may exist simultaniously. This is checked at runtime.
+    /// belonging to the same iterator may exist simultaneously. This is checked at runtime.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -1293,10 +1293,10 @@ pub trait Itertools : Iterator {
     /// 
     /// However be aware that changes made to the items in the Window are persistent through calls to `next()`.
     fn sliding_windows(self, storage: &mut SlidingWindowStorage<Self::Item>)
-        -> SlidingWindowAdapter<Self>
+        -> SlidingWindowAdaptor<Self>
         where Self: Sized
     {
-        SlidingWindowAdapter::new(self, storage)
+        SlidingWindowAdaptor::new(self, storage)
     }
 }
 
