@@ -39,6 +39,7 @@ impl<T> SlidingWindowStorage<T> {
         Window { drop_flag: &self.uniquely_owned, data: &self.data }
     }
 
+    // push value onto self
     fn push(&self, elt: T) -> bool {
         assert!(self.uniquely_owned.get(), "next() called before previous Window went out of scope");
         let data = unsafe { &mut *self.data.get() };
@@ -49,6 +50,13 @@ impl<T> SlidingWindowStorage<T> {
             data.push(elt);
         }
         data.len() == self.window_size
+    }
+
+    // clear backing storage
+    fn clear(&self) {
+        assert!(self.uniquely_owned.get(), "next() called before previous Window went out of scope");
+        let data = unsafe { &mut *self.data.get() };
+        data.clear();
     }
 }
 
@@ -140,6 +148,9 @@ impl<'a, I: Iterator> SlidingWindowAdapter<'a, I> {
     ///
     /// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information on the adapter.
     pub fn new(iter: I, storage: &'a SlidingWindowStorage<I::Item>) -> SlidingWindowAdapter<'a, I> {
+        // in case the storage was reused
+        storage.clear();
+
         SlidingWindowAdapter {
             iter: iter,
             done: false,
