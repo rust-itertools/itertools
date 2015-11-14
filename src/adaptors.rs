@@ -1119,7 +1119,7 @@ impl<I> Iterator for Combinations<I> where I: Iterator + Clone, I::Item: Clone{
     }
 }
 
-/// An iterator adapter to filter out duplicate elements.
+/// An iterator adaptor to filter out duplicate elements.
 ///
 /// See [*.unique_by()*](trait.Itertools.html#method.unique) for more information.
 #[derive(Clone)]
@@ -1199,7 +1199,7 @@ impl<I> Iterator for Unique<I> where
     }
 }
 
-/// An iterator adapter to filter out duplicate elements.
+/// An iterator adaptor to filter out duplicate elements.
 ///
 /// See [*.unique()*](trait.Itertools.html#method.unique) for more information.
 #[derive(Clone)]
