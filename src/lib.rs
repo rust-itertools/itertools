@@ -1263,6 +1263,29 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(windowed_iter, expected.iter().cloned());
     /// ```
     ///
+    /// It's also possible to reuse an allocation for `SlidingWindowStorage` via the `Into` trait.
+    ///
+    /// # Example:
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::SlidingWindowStorage;
+    ///
+    /// let previous_alloca = vec![0u32; 3]; // length doesn't have to be equal to window_size
+    /// let mut storage: SlidingWindowStorage<u32> = SlidingWindowStorage::from_vec(previous_alloca, 3);
+    /// let expected: &[&[u32]] = &[&[0,1,2], &[1,2,3], &[2,3,4]];
+    ///
+    /// // extra scope so that windowed_iter doesn't outlive storage.into() call
+    /// {
+    ///     let windowed_iter = (0..5).sliding_windows(&mut storage);
+    ///     itertools::assert_equal(windowed_iter, expected.iter().cloned());
+    /// }
+    ///
+    /// let reusing_alloca: Vec<u32> = storage.into();
+    /// // keep using allocation of storage
+    /// 
+    /// ```
+    ///
     /// ### Panics:
     ///
     /// As this iterator reuses the allocation for the yielded `Window`, no two instances of `Window`

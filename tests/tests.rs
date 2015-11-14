@@ -799,26 +799,26 @@ fn chunks_lazy() {
 #[test]
 fn sliding_windows_1() {
     fn test_window_correctness_with_storage(mut storage: SlidingWindowStorage<u32>) {
-        let it = 0..5;
-        let windowed_iter = SlidingWindowAdaptor::new(it, &mut storage);
         let expected: &[&[u32]] = &[&[0,1,2], &[1,2,3], &[2,3,4]];
 
-        it::assert_equal(windowed_iter, expected.iter().cloned());
+        {
+            let windowed_iter = SlidingWindowAdaptor::new(0..5, &mut storage);
+            it::assert_equal(windowed_iter, expected.iter().cloned());
+        }
+
+        let storage_vec: Vec<u32> = storage.into();
+        it::assert_equal(expected.last().unwrap().iter(), storage_vec.iter());
     }
 
     let auto_alloc:  SlidingWindowStorage<u32> = SlidingWindowStorage::new(3);
-    /*
-    let small_alloc: SlidingWindowStorage<u32> = SlidingWindowStorage::from_slice(vec![1u32;   1], 3);
-    let exact_alloc: SlidingWindowStorage<u32> = SlidingWindowStorage::from_slice(vec![1u32;   3], 3);
-    let big_alloc:   SlidingWindowStorage<u32> = SlidingWindowStorage::from_slice(vec![1u32, 100], 3);
-    */
+    let small_alloc: SlidingWindowStorage<u32> = SlidingWindowStorage::from_vec(vec![1u32;   1], 3);
+    let exact_alloc: SlidingWindowStorage<u32> = SlidingWindowStorage::from_vec(vec![1u32;   3], 3);
+    let big_alloc:   SlidingWindowStorage<u32> = SlidingWindowStorage::from_vec(vec![1u32, 100], 3);
 
     test_window_correctness_with_storage(auto_alloc);
-    /*
     test_window_correctness_with_storage(small_alloc);
     test_window_correctness_with_storage(exact_alloc);
     test_window_correctness_with_storage(big_alloc);
-    */
 }
 
 #[test]

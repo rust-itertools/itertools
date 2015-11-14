@@ -23,10 +23,19 @@ impl<T> SlidingWindowStorage<T> {
     ///
     /// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information.
     pub fn new(window_size: usize) -> SlidingWindowStorage<T> {
+        SlidingWindowStorage::from_vec(Vec::with_capacity(window_size), window_size)
+    }
+
+    /// Create a new `SlidingWindowStorage` with a given window size from a given `Vec`.
+    /// The contents of the Vec will be removed.
+    /// This will reuse the allocation of the Vec instead of allocating new memory.
+    ///
+    /// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information.
+    pub fn from_vec(vec: Vec<T>, window_size: usize) -> SlidingWindowStorage<T> {
         SlidingWindowStorage {
             window_size: window_size,
             uniquely_owned: Cell::new(true),
-            data: UnsafeCell::new(Vec::with_capacity(window_size))
+            data: UnsafeCell::new(vec)
         }
     }
 
@@ -57,6 +66,15 @@ impl<T> SlidingWindowStorage<T> {
         assert!(self.uniquely_owned.get(), "next() called before previous Window went out of scope");
         let data = unsafe { &mut *self.data.get() };
         data.clear();
+    }
+}
+
+impl<T> Into<Vec<T>> for SlidingWindowStorage<T> {
+    fn into(self) -> Vec<T> {
+        assert!(self.uniquely_owned.get(), "Storage dereferenced before previous Window went out of scope");
+        unsafe {
+            self.data.into_inner()
+        }
     }
 }
 
