@@ -751,20 +751,27 @@ impl<I: Iterator> MultiPeek<I> {
     /// advance itself. *.peek()* can be called multiple times, to peek
     /// further ahead.
     pub fn peek(&mut self) -> Option<&I::Item> {
-        let ret = if self.index < self.buf.len() {
-            Some(&self.buf[self.index])
-        } else {
+        let index = self.index;
+        self.index += 1;
+        let ret = self.peek_n(index);
+        ret
+    }
+
+    /// Peeks at the *n*th value in the iterator.
+    pub fn peek_n(&mut self, index: usize) -> Option<&I::Item> {
+        while index >= self.buf.len() {
             match self.iter.next() {
-                Some(x) => {
-                    self.buf.push(x);
-                    Some(&self.buf[self.index])
-                }
+                Some(x) => self.buf.push(x),
                 None => return None
             }
-        };
+        }
 
-        self.index += 1;
-        ret
+        Some(&self.buf[index])
+    }
+
+    /// Subsequent *.peek()* calls will start from the initial next value.
+    pub fn reset(&mut self) {
+        self.index = 0;
     }
 }
 
