@@ -1219,3 +1219,45 @@ pub fn unique<I>(iter: I) -> Unique<I>
         }
     }
 }
+
+/// An iterator adapter that yields the run length of an element and its value
+///
+/// Iterator element type is `(usize, I::Item)`.
+///
+/// See [*.run_length()*](trait.Itertools.html#method.run_length) for more information.
+pub struct RunLength<I>
+    where I: Iterator
+{
+    iter: Peekable<I>
+}
+
+impl<I> RunLength<I>
+    where I: Iterator
+{
+    /// Create a new `RunLength` iterator.
+    pub fn new(i: I) -> RunLength<I> {
+        RunLength { iter: i.peekable() }
+    }
+}
+
+impl<I, T> Iterator for RunLength<I>
+    where I: Iterator<Item=T>, T: Eq
+{
+    type Item = (usize, I::Item);
+
+    fn next(&mut self) -> Option<(usize, I::Item)> {
+        let current = match self.iter.next() {
+            Some(current) => current,
+            None => return None,
+        };
+
+        let mut length = 1;
+
+        while self.iter.peek() == Some(&current) {
+            length += 1;
+            self.iter.next();
+        }
+
+        Some((length, current))
+    }
+}
