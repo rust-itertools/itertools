@@ -1,3 +1,4 @@
+#![cfg(feature = "qc")]
 #![cfg_attr(feature = "qc", feature(plugin, custom_attribute, drain))]
 #![cfg_attr(feature="qc", plugin(quickcheck_macros))]
 #![allow(dead_code)]

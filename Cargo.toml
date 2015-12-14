@@ -15,9 +15,6 @@ keywords = ["iterator", "data-structure", "zip", "product", "group-by"]
 [dependencies.quickcheck]
 version = "0.2.21"
 optional = true
-[dependencies.quickcheck_macros]
-version = "0.2.21"
-optional = true
 
 [dev-dependencies.permutohedron]
 version = "0.1"
@@ -26,7 +23,7 @@ version = "0.1"
 
 # Unstable features, nightly channel
 unstable = []
-qc = ["quickcheck", "quickcheck_macros"]
+qc = ["quickcheck"]
 
 [profile]
 bench = { debug = true }
