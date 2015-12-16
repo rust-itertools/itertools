@@ -1236,6 +1236,58 @@ pub trait Itertools : Iterator {
     {
         self.sorted_by(cmp)
     }
+
+    /// Return the minimum and maximum element of an iterator.
+    ///
+    /// For the minimum, the first minimal element is returned.  For the maximum,
+    /// the last maximal element wins.  This matches the behavior of the standard
+    /// `Iterator::min()` and `Iterator::max()` methods.
+    ///
+    /// This requires `clone()`-able elements since the returned minimum and
+    /// maximum might actually be the same item.
+    fn minmax(mut self) -> Option<(Self::Item, Self::Item)>
+        where Self: Sized, Self::Item: Ord, Self::Item: Clone
+    {
+        self.next().map(|first| {
+            self.fold((first.clone(), first), |minmax, el| {
+                match (el < minmax.0, el >= minmax.1) {
+                    (true, false) => (el, minmax.1),
+                    (false, true) => (minmax.0, el),
+                    (true, true)  => (el.clone(), el),
+                    _ => minmax,
+                }
+            })
+        })
+    }
+
+    /// Return the minimum and maximum element of an iterator, as determined by
+    /// the specified function.
+    ///
+    /// For the minimum, the first minimal element is returned.  For the maximum,
+    /// the last maximal element wins.  This matches the behavior of the standard
+    /// `Iterator::min()` and `Iterator::max()` methods.
+    ///
+    /// This requires `clone()`-able elements (and results of `f`) since the
+    /// returned minimum and maximum might actually be the same item.
+    fn minmax_by_key<B: Ord + Clone, F>(mut self, mut f: F) -> Option<(Self::Item, Self::Item)>
+        where Self: Sized, Self::Item: Clone, F: FnMut(&Self::Item) -> B
+    {
+        self.next().map(|first| {
+            let first_key = f(&first);
+            let (min, max, _, _) = self.fold(
+                (first.clone(), first, first_key.clone(), first_key),
+                |minmax, el| {
+                    let el_key = f(&el);
+                    match (el_key < minmax.2, el_key >= minmax.3) {
+                        (true, false) => (el, minmax.1, el_key, minmax.3),
+                        (false, true) => (minmax.0, el, minmax.2, el_key),
+                        (true, true)  => (el.clone(), el, el_key.clone(), el_key),
+                        _ => minmax,
+                    }
+                });
+            (min, max)
+        })
+    }
 }
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }

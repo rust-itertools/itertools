@@ -793,3 +793,39 @@ fn chunks_lazy() {
         }
     }
 }
+
+#[test]
+fn minmax() {
+    use std::cmp::Ordering;
+
+    // A peculiar type: Equality compares both tuple items, but ordering only the
+    // first item.  This is so we can check the stability property easily.
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    struct Val(u32, u32);
+
+    impl PartialOrd<Val> for Val {
+        fn partial_cmp(&self, other: &Val) -> Option<Ordering> {
+            self.0.partial_cmp(&other.0)
+        }
+    }
+
+    impl Ord for Val {
+        fn cmp(&self, other: &Val) -> Ordering {
+            self.0.cmp(&other.0)
+        }
+    }
+
+    assert_eq!(None::<Option<u32>>.iter().minmax(), None);
+
+    let data = vec![Val(0, 1), Val(2, 0), Val(0, 2), Val(1, 0), Val(2, 1)];
+
+    let (min, max) = data.iter().minmax()
+                                .expect("No minmax for nonempty iter?");
+    assert_eq!(min, &Val(0, 1));
+    assert_eq!(max, &Val(2, 1));
+
+    let (min, max) = data.iter().minmax_by_key(|v| v.1)
+                                .expect("No minmax for nonempty iter?");
+    assert_eq!(min, &Val(2, 0));
+    assert_eq!(max, &Val(0, 2));
+}
