@@ -111,3 +111,15 @@ impl<T, U> DoubleEndedIterator for ZipSlices<T, U>
 
 impl<T, U> ExactSizeIterator for ZipSlices<T, U> where T: Slice, U: Slice { }
 
+unsafe impl<T, U> Slice for ZipSlices<T, U>
+    where T: Slice, U: Slice
+{
+    type Item = (T::Item, U::Item);
+
+    fn len(&self) -> usize { self.len - self.index }
+
+    unsafe fn get_unchecked(&mut self, i: usize) -> Self::Item {
+        (self.t.get_unchecked(i),
+         self.u.get_unchecked(i))
+    }
+}
