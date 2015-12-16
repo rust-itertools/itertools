@@ -33,6 +33,10 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.4.4
+
+  - Allow composing ZipSlices with itself
+
 - 0.4.3
 
   - Write iproduct!() as a single expression; this allows temporary values
