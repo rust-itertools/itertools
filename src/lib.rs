@@ -61,6 +61,7 @@ pub use adaptors::{
     Combinations,
     Unique,
     UniqueBy,
+    RunLength,
 };
 #[cfg(feature = "unstable")]
 pub use adaptors::EnumerateFrom;
@@ -1235,6 +1236,22 @@ pub trait Itertools : Iterator {
               F: FnMut(&Self::Item, &Self::Item) -> Ordering,
     {
         self.sorted_by(cmp)
+    }
+
+    /// Return an iterator adaptor that yields the run length of an element and its value
+    ///
+    /// Iterator element type is `(usize, Self::Item)`
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let it = "abbcccd".chars().run_length();
+    /// itertools::assert_equal(it, vec![(1, 'a'), (2, 'b'), (3, 'c'), (1, 'd')]);
+    /// ```
+    fn run_length(self) -> RunLength<Self>
+        where Self: Sized, Self::Item: Eq
+    {
+        RunLength::new(self)
     }
 }
 

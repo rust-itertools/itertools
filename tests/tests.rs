@@ -793,3 +793,10 @@ fn chunks_lazy() {
         }
     }
 }
+
+#[test]
+fn run_length() {
+    let it = "abbcccd".chars().run_length();
+    it::assert_equal(it, vec![(1, 'a'), (2, 'b'), (3, 'c'), (1, 'd')]);
+    assert_eq!(None, "".chars().run_length().next());
+}
