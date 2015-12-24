@@ -811,9 +811,13 @@ fn flatten_rev() {
 
 #[test]
 fn flatten_clone() {
-    let data = Some(Some(123));
-    let flattened1 = data.into_iter().flatten();
+    let data = &[
+        &[1,2,3],
+        &[4,5,6]
+    ];
+    let flattened1 = data.into_iter().cloned().flatten();
     let flattened2 = flattened1.clone();
-    it::assert_equal(flattened1, Some(123));
-    it::assert_equal(flattened2, Some(123));
+
+    it::assert_equal(flattened1, &[1,2,3,4,5,6]);
+    it::assert_equal(flattened2, &[1,2,3,4,5,6]);
 }
