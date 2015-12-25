@@ -793,3 +793,31 @@ fn chunks_lazy() {
         }
     }
 }
+
+#[test]
+fn flatten_iter() {
+    let data = vec![vec![1,2,3], vec![4,5,6]];
+    let flattened = data.into_iter().flatten();
+
+    it::assert_equal(flattened, vec![1,2,3,4,5,6]);
+}
+
+#[test]
+fn flatten_rev() {
+    let data = vec![vec![1,2,3].into_iter(), vec![4,5,6].into_iter()];
+    let flattened = data.into_iter().flatten().rev();
+    it::assert_equal(flattened, vec![6,5,4,3,2,1]);
+}
+
+#[test]
+fn flatten_clone() {
+    let data = &[
+        &[1,2,3],
+        &[4,5,6]
+    ];
+    let flattened1 = data.into_iter().cloned().flatten();
+    let flattened2 = flattened1.clone();
+
+    it::assert_equal(flattened1, &[1,2,3,4,5,6]);
+    it::assert_equal(flattened2, &[1,2,3,4,5,6]);
+}

@@ -61,6 +61,7 @@ pub use adaptors::{
     Combinations,
     Unique,
     UniqueBy,
+    Flatten,
 };
 #[cfg(feature = "unstable")]
 pub use adaptors::EnumerateFrom;
@@ -1235,6 +1236,25 @@ pub trait Itertools : Iterator {
               F: FnMut(&Self::Item, &Self::Item) -> Ordering,
     {
         self.sorted_by(cmp)
+    }
+
+    /// Flatten a structure.
+    ///
+    /// This is a shortcut for `it.flat_map(|x| x)`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![vec![1,2,3], vec![4,5,6]];
+    /// let flattened = data.into_iter().flatten();
+    ///
+    /// itertools::assert_equal(flattened, vec![1,2,3,4,5,6]);
+    /// ```
+    fn flatten(self) -> Flatten<Self> where
+        Self: Sized,
+        Self::Item: IntoIterator,
+    {
+        Flatten::new(self)
     }
 }
 

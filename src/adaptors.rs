@@ -10,7 +10,7 @@ use std::mem;
 use std::num::One;
 #[cfg(feature = "unstable")]
 use std::ops::Add;
-use std::iter::{Fuse, Peekable};
+use std::iter::{Fuse, Peekable, FlatMap};
 use std::collections::HashSet;
 use std::hash::Hash;
 use Itertools;
@@ -1216,6 +1216,60 @@ pub fn unique<I>(iter: I) -> Unique<I>
             iter: iter,
             used: HashSet::new(),
             f: (),
+        }
+    }
+}
+
+/// An iterator adapter to simply flatten a structure.
+///
+/// See [*.flatten()*](trait.Itertools.html#method.flatten) for more information.
+pub struct Flatten<I>
+    where I: Iterator,
+          I::Item: IntoIterator,
+{
+    iter: FlatMap<I, I::Item, fn(I::Item) -> I::Item>
+}
+
+impl<I> Flatten<I> where
+    I: Iterator,
+    I::Item: IntoIterator
+{
+    /// Create a new `Flatten` iterator.
+    pub fn new(iter: I) -> Flatten<I> {
+        fn identity<T>(t: T) -> T { t }
+        Flatten {
+            iter: iter.flat_map(identity)
+        }
+    }
+}
+
+impl<I> Iterator for Flatten<I> where
+    I: Iterator,
+    I::Item: IntoIterator
+{
+    type Item = <I::Item as IntoIterator>::Item;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+impl<I> DoubleEndedIterator for Flatten<I>
+    where I: DoubleEndedIterator,
+          I::Item: DoubleEndedIterator,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back()
+    }
+}
+
+impl<I> Clone for Flatten<I> where
+    I: Iterator + Clone,
+    I::Item: IntoIterator + Clone,
+    <<I as Iterator>::Item as IntoIterator>::IntoIter: Clone
+{
+    fn clone(&self) -> Self {
+        Flatten {
+            iter: self.iter.clone()
         }
     }
 }
