@@ -818,6 +818,25 @@ pub trait Itertools : Iterator {
         PadUsing::new(self, min, f)
     }
 
+    /// Unravel a nested iterator.
+    ///
+    /// This is a shortcut for `it.flat_map(|x| x)`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![vec![1, 2, 3], vec![4, 5, 6]];
+    /// let flattened = data.into_iter().flatten();
+    ///
+    /// itertools::assert_equal(flattened, vec![1, 2, 3, 4, 5, 6]);
+    /// ```
+    fn flatten(self) -> Flatten<Self> where
+        Self: Sized,
+        Self::Item: IntoIterator,
+    {
+        Flatten::new(self)
+    }
+
     /// Like regular `.map()`, specialized to using a simple function pointer instead,
     /// so that the resulting `Map` iterator value can be cloned.
     ///
@@ -1236,25 +1255,6 @@ pub trait Itertools : Iterator {
               F: FnMut(&Self::Item, &Self::Item) -> Ordering,
     {
         self.sorted_by(cmp)
-    }
-
-    /// Flatten a structure.
-    ///
-    /// This is a shortcut for `it.flat_map(|x| x)`.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// let data = vec![vec![1,2,3], vec![4,5,6]];
-    /// let flattened = data.into_iter().flatten();
-    ///
-    /// itertools::assert_equal(flattened, vec![1,2,3,4,5,6]);
-    /// ```
-    fn flatten(self) -> Flatten<Self> where
-        Self: Sized,
-        Self::Item: IntoIterator,
-    {
-        Flatten::new(self)
     }
 }
 
