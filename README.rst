@@ -33,6 +33,10 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.4.5
+
+  - Add .flatten()
+
 - 0.4.4
 
   - Allow composing ZipSlices with itself
