@@ -59,6 +59,7 @@ pub use adaptors::{
     Coalesce,
     MendSlices,
     Combinations,
+    CombinationsN,
     Unique,
     UniqueBy,
     Flatten,
@@ -792,6 +793,28 @@ pub trait Itertools : Iterator {
         Self: Sized + Clone, Self::Item: Clone
     {
         Combinations::new(self)
+    }
+
+    /// Return an iterator adaptor that iterates over the `n`-length combinations of
+    /// the elements from an iterator.
+    ///
+    /// Iterator element type is `Vec<Self::Item, Self::Item>`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let it = (1..5).combinations_n(3);
+    /// itertools::assert_equal(it, vec![
+    ///     vec![1, 2, 3],
+    ///     vec![1, 2, 4],
+    ///     vec![1, 3, 4],
+    ///     vec![2, 3, 4],
+    ///     ]);
+    /// ```
+    fn combinations_n(self, n: usize) -> CombinationsN<Self> where
+        Self: Sized + Clone, Self::Item: Clone
+    {
+        CombinationsN::new(self, n)
     }
 
     /// Return an iterator adaptor that pads the sequence to a minimum length of
