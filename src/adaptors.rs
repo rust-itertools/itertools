@@ -183,6 +183,7 @@ impl<I> PutBack<I> where
     {
         self.top = Some(x)
     }
+
 }
 
 impl<I> Iterator for PutBack<I> where
@@ -202,6 +203,142 @@ impl<I> Iterator for PutBack<I> where
         size_hint::add_scalar(self.iter.size_hint(), self.top.is_some() as usize)
     }
 }
+
+/// An iterator adaptor that only pick off elements while the predicate returns
+/// `true`. The rejected elements and the rest of the tail can be accessed via
+/// the "remaining" method.
+///
+/// See [*.take_while_put_back()*](trait.Itertools.html#method.take_while_map_put_back)
+/// for more information.
+/// Iterator element type is `I::Item`.
+#[derive(Clone)]
+pub struct TakeWhilePutBack<I, F> where
+    I: Iterator,
+{
+    top: Option<I::Item>,
+    iter: I,
+    f: F,
+}
+
+impl<I, F> TakeWhilePutBack<I, F> where
+    I: Iterator,
+{
+    /// Create a new `TakeWhilePutBack` from an iterator.
+    pub fn new(iter: I, f: F) -> Self
+    {
+        TakeWhilePutBack{
+            top: None,
+            iter: iter,
+            f: f,
+        }
+    }
+
+    /// Get the unconsumed contents of I, including the rejected element.
+    #[inline]
+    pub fn remaining(self) -> PutBack<I>
+    {
+        PutBack{
+            top: self.top,
+            iter: self.iter,
+        }
+    }
+}
+
+
+impl<I, F> Iterator for TakeWhilePutBack<I, F> where
+    I: Iterator,
+    F: FnMut(&I::Item) -> bool,
+{
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<I::Item>
+    {
+        if self.top.is_some() { return None; }
+        if let Some(elt) = self.iter.next() {
+            if (self.f)(&elt) {
+                Some(elt)
+            } else {
+                self.top = Some(elt);
+                None
+            }
+        } else { None }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>)
+    {
+        let (_, hi) = self.iter.size_hint();
+        (0, hi)
+    }
+}
+
+/// An iterator adaptor that only pick off elements while the predicate returns
+/// Ok(_). The rejected elements and the rest of the tail can be accessed via
+/// the "remaining" method.
+///
+/// See [*.take_while_map_put_back()*](trait.Itertools.html#method.take_while_map_put_back)
+/// for more information.
+/// Iterator element type is `B`.
+#[derive(Clone)]
+pub struct TakeWhileMapPutBack<I, F> where
+    I: Iterator,
+{
+    top: Option<I::Item>,
+    iter: I,
+    f: F,
+}
+
+impl<I, F> TakeWhileMapPutBack<I, F> where
+    I: Iterator,
+{
+    /// Create a new `TakeWhileMapPutBack` from an iterator.
+    pub fn new(iter: I, f: F) -> Self
+    {
+        TakeWhileMapPutBack{
+            top: None,
+            iter: iter,
+            f: f,
+        }
+    }
+
+    /// Get an iterator with the unconsumed contents of I, including the rejected element.
+    #[inline]
+    pub fn remaining(self) -> PutBack<I>
+    {
+        PutBack{
+            top: self.top,
+            iter: self.iter,
+        }
+    }
+}
+
+
+impl<I, F, B> Iterator for TakeWhileMapPutBack<I, F> where
+    I: Iterator,
+    F: FnMut(I::Item) -> Result<B, I::Item>,
+{
+    type Item = B;
+
+    fn next(&mut self) -> Option<B>
+    {
+        if self.top.is_some() { return None; }
+        if let Some(elt) = self.iter.next() {
+            match (self.f)(elt) {
+                Ok(b) => Some(b),
+                Err(elt) => {
+                    self.top = Some(elt);
+                    None
+                }
+            }
+        } else { None }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>)
+    {
+        let (_, hi) = self.iter.size_hint();
+        (0, hi)
+    }
+}
+
 
 /// An iterator adaptor that allows putting multiple
 /// items in front of the iterator.
@@ -1072,9 +1209,9 @@ pub struct Combinations<I: Iterator> {
 impl<I> Combinations<I> where I: Iterator + Clone {
     /// Create a new `Combinations` from a clonable iterator.
     pub fn new(iter: I) -> Combinations<I> {
-        Combinations { 
-            next_iter: iter.clone(), 
-            iter: iter, 
+        Combinations {
+            next_iter: iter.clone(),
+            iter: iter,
             val: None,
         }
     }
