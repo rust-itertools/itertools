@@ -3,7 +3,13 @@
 //! The benefit of free functions is that they accept any `IntoIterator` as
 //! argument, so the resulting code may be easier to read.
 
+use std::fmt::Display;
 use std::iter::{self, Zip};
+use {
+    Itertools,
+    Merge,
+    Interleave,
+};
 
 /// Iterate `iterable` with a running index.
 ///
@@ -155,4 +161,57 @@ pub fn min<I>(iterable: I) -> Option<I::Item>
           I::Item: Ord,
 {
     iterable.into_iter().min()
+}
+
+/// Create an iterator that interleaves elements in `i` and `j`.
+///
+/// `IntoIterator` enabled version of `i.interleave(j)`.
+///
+/// ```
+/// use itertools::free::interleave;
+///
+/// for elt in interleave(&[1, 2, 3], &[2, 3, 4]) {
+///     /* loop body */
+/// }
+/// ```
+pub fn interleave<I, J>(i: I, j: J) -> Interleave<I::IntoIter, J::IntoIter>
+    where I: IntoIterator,
+          J: IntoIterator<Item=I::Item>,
+{
+    i.into_iter().interleave(j)
+}
+
+/// Create an iterator that merges elements in `i` and `j`.
+///
+/// `IntoIterator` enabled version of `i.merge(j)`.
+///
+/// ```
+/// use itertools::free::merge;
+///
+/// for elt in merge(&[1, 2, 3], &[2, 3, 4]) {
+///     /* loop body */
+/// }
+/// ```
+pub fn merge<I, J>(i: I, j: J) -> Merge<I::IntoIter, J::IntoIter>
+    where I: IntoIterator,
+          J: IntoIterator<Item=I::Item>,
+          I::Item: PartialOrd,
+{
+    i.into_iter().merge(j)
+}
+
+/// Combine all iterator elements into one String, seperated by `sep`.
+///
+/// `IntoIterator` enabled version of `i.join(sep)`.
+///
+/// ```
+/// use itertools::free::join;
+///
+/// assert_eq!(join(&[1, 2, 3], ", "), "1, 2, 3");
+/// ```
+pub fn join<I>(iterable: I, sep: &str) -> String
+    where I: IntoIterator,
+          I::Item: Display,
+{
+    iterable.into_iter().join(sep)
 }
