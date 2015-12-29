@@ -33,6 +33,10 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- UNRELEASED
+
+  - Add func() for repeatedly calling a function.
+
 - 0.4.5
 
   - Add .flatten()
