@@ -66,6 +66,7 @@ pub use adaptors::{
 #[cfg(feature = "unstable")]
 pub use adaptors::EnumerateFrom;
 pub use format::Format;
+pub use fn_iter::{FnIter, func};
 pub use groupbylazy::{ChunksLazy, Chunk, Chunks, GroupByLazy, Group, Groups};
 pub use intersperse::Intersperse;
 pub use islice::{ISlice};
@@ -87,6 +88,7 @@ pub use ziptrusted::{ZipTrusted, TrustedIterator};
 pub use zipslices::ZipSlices;
 mod adaptors;
 mod format;
+mod fn_iter;
 mod groupbylazy;
 mod intersperse;
 mod islice;
