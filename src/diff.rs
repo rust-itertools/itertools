@@ -34,7 +34,7 @@ pub enum IterDiff<E, I> {
 /// requiring `b` to be `Clone` in order to compare it to the collection before determining if the
 /// collection needs to be updated. The returned function returns as soon as a difference is found,
 /// producing an `IterDiff` that provides the data necessary to update the collection without ever
-/// requiring `B` to be `Clone`. This allows for efficintly caching iterators like `Map` or
+/// requiring `B` to be `Clone`. This allows for efficiently caching iterators like `Map` or
 /// `Filter` that do not implement `Clone`.
 ///
 /// If the number of elements yielded by `b` is less than the number of elements yielded by `a`,
