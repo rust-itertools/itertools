@@ -176,6 +176,13 @@ impl<I> PutBack<I> where
         PutBack{top: None, iter: it}
     }
 
+    /// Create a `PutBack` along with the `value` to put back.
+    #[inline]
+    pub fn value(value: I::Item, it: I) -> Self
+    {
+        PutBack{top: Some(value), iter: it}
+    }
+
     /// Put back a single value to the front of the iterator.
     ///
     /// If a value is already in the put back slot, it is overwritten.
