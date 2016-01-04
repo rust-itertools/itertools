@@ -8,8 +8,9 @@
 //! iterators `a` and `b`, borrowing the source of `a` if they are the same or creating a new owned
 //! collection with `b`'s elements if they are different.
 
+use adaptors::PutBack;
 use std::borrow::{Cow, ToOwned};
-use std::iter;
+use std::iter::FromIterator;
 
 /// A type returned by the [`diff`](./fn.diff.html) function.
 ///
@@ -22,9 +23,9 @@ pub enum Diff<I>
 {
     /// The index of the first non-matching element along with the iterator's remaining elements
     /// starting with the first mis-matched element.
-    FirstMismatch(usize, iter::Chain<iter::Once<I::Item>, I>),
+    FirstMismatch(usize, PutBack<I>),
     /// The remaining elements of the iterator.
-    Longer(iter::Chain<iter::Once<I::Item>, I>),
+    Longer(PutBack<I>),
     /// The total number of elements that were in the iterator.
     Shorter(usize),
 }
@@ -59,11 +60,11 @@ pub fn diff<'a, I, J>(i: I, j: J) -> Option<Diff<J::IntoIter>>
         match j.next() {
             None => return Some(Diff::Shorter(idx)),
             Some(j_elem) => if *i_elem != j_elem {
-                return Some(Diff::FirstMismatch(idx, iter::once(j_elem).chain(j)));
+                return Some(Diff::FirstMismatch(idx, PutBack::value(j_elem, j)));
             },
         }
     }
-    j.next().map(|elem| Diff::Longer(iter::once(elem).chain(j)))
+    j.next().map(|elem| Diff::Longer(PutBack::value(elem, j)))
 }
 
 /// Returns `Cow::Borrowed` `collection` if `collection` contains the same elements as yielded by
@@ -107,7 +108,7 @@ pub fn copy_on_diff<'a, C, U, T: 'a>(collection: &'a C, update: U) -> Cow<'a, C>
     where &'a C: IntoIterator<Item=&'a T>,
           <&'a C as IntoIterator>::IntoIter: Clone,
           C: ToOwned,
-          <C as ToOwned>::Owned: iter::FromIterator<T>,
+          <C as ToOwned>::Owned: FromIterator<T>,
           U: IntoIterator<Item=T>,
           T: Clone + PartialEq,
 {
