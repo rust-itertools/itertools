@@ -253,10 +253,10 @@ pub trait Itertools : Iterator {
     ///
     /// This iterator is *fused*.
     ///
-    /// When both iterators return `None`, all further invocations of `.next()` 
+    /// When both iterators return `None`, all further invocations of `.next()`
     /// will return `None`.
     ///
-    /// Iterator element type is 
+    /// Iterator element type is
     /// [`EitherOrBoth<Self::Item, J::Item>`](enum.EitherOrBoth.html).
     ///
     /// ```rust
@@ -1247,6 +1247,28 @@ pub trait Itertools : Iterator {
 
         v.sort_by(cmp);
         v
+    }
+
+    /// Collect all iterator elements into a sorted vector in ascending order.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // sort chars in ascending order
+    /// let chars = vec!['b', 'd', 'a', 'c', 'f', 'e'];
+    ///
+    /// let sorted_chars = chars
+    ///     .into_iter()
+    ///     .sorted();
+    ///
+    /// itertools::assert_equal(sorted_chars,
+    ///                         vec!['a', 'b', 'c', 'd', 'e', 'f']);
+    /// ```
+    fn sorted(self) -> Vec<Self::Item>
+        where Self: Sized,
+              Self::Item: Ord
+    {
+        self.sorted_by(Ord::cmp)
     }
 
     /// **Deprecated:** renamed to `.sorted_by()`
