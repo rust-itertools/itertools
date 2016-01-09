@@ -798,7 +798,8 @@ pub trait Itertools : Iterator {
     /// Return an iterator adaptor that iterates over the `n`-length combinations of
     /// the elements from an iterator.
     ///
-    /// Iterator element type is `Vec<Self::Item, Self::Item>`.
+    /// Iterator element type is `Vec<Self::Item>`. The iterator produces a new Vec per iteration,
+    /// and clones the iterator elements.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -812,7 +813,7 @@ pub trait Itertools : Iterator {
     ///     ]);
     /// ```
     fn combinations_n(self, n: usize) -> CombinationsN<Self> where
-        Self: Sized + Clone, Self::Item: Clone
+        Self: Sized, Self::Item: Clone
     {
         CombinationsN::new(self, n)
     }

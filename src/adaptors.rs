@@ -1126,14 +1126,16 @@ struct LazyBuffer<I: Iterator> {
     buffer: Vec<I::Item>,
 }
 
-impl<I> LazyBuffer<I> where I: Iterator + Clone {
+impl<I> LazyBuffer<I> where I: Iterator {
     pub fn new(it: I) -> LazyBuffer<I> {
-        let mut it = it.clone();
-        let first = it.next();
-        let done = first.is_none();
+        let mut it = it;
         let mut buffer = Vec::new();
-        if !done {
-            buffer.push(first.unwrap());
+        let done;
+        if let Some(first) = it.next() {
+            buffer.push(first);
+            done = false;
+        } else {
+            done = true;
         }
         LazyBuffer {
             it: it,
@@ -1176,7 +1178,7 @@ impl<I> Index<usize> for LazyBuffer<I> where I: Iterator, I::Item: Sized {
     }
 }
 
-/// An iterator to iterate through all the `n`-length combinations in a `Clone`-able iterator.
+/// An iterator to iterate through all the `n`-length combinations in an iterator.
 ///
 /// See [*.combinations_n()*](trait.Itertools.html#method.combinations_n) for more information.
 pub struct CombinationsN<I: Iterator> {
@@ -1185,7 +1187,7 @@ pub struct CombinationsN<I: Iterator> {
     pool: LazyBuffer<I>,
     first: bool,
 }
-impl<I> CombinationsN<I> where I: Iterator + Clone {
+impl<I> CombinationsN<I> where I: Iterator {
     /// Create a new `CombinationsN` from a clonable iterator.
     pub fn new(iter: I, n: usize) -> CombinationsN<I> {
         let mut indices: Vec<usize> = Vec::with_capacity(n);
@@ -1209,7 +1211,7 @@ impl<I> CombinationsN<I> where I: Iterator + Clone {
     }
 }
 
-impl<I> Iterator for CombinationsN<I> where I: Iterator + Clone, I::Item: Clone {
+impl<I> Iterator for CombinationsN<I> where I: Iterator, I::Item: Clone {
     type Item = Vec<I::Item>;
     fn next(&mut self) -> Option<Self::Item> {
         let mut pool_len = self.pool.len();
