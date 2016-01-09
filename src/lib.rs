@@ -1221,6 +1221,26 @@ pub trait Itertools : Iterator {
         }
     }
 
+    /// Collect all iterator elements into a sorted vector in ascending order.
+    ///
+    /// **Note:** This consumes the entire iterator, uses the
+    /// `slice::sort_by()` method and returns the sorted vector.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // sort the letters of the text in ascending order
+    /// let text = "bdacfe";
+    /// itertools::assert_equal(text.chars().sorted(),
+    ///                         "abcdef".chars());
+    /// ```
+    fn sorted(self) -> Vec<Self::Item>
+        where Self: Sized,
+              Self::Item: Ord
+    {
+        self.sorted_by(Ord::cmp)
+    }
+
     /// Collect all iterator elements into a sorted vector.
     ///
     /// **Note:** This consumes the entire iterator, uses the
@@ -1249,28 +1269,6 @@ pub trait Itertools : Iterator {
 
         v.sort_by(cmp);
         v
-    }
-
-    /// Collect all iterator elements into a sorted vector in ascending order.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// // sort chars in ascending order
-    /// let chars = vec!['b', 'd', 'a', 'c', 'f', 'e'];
-    ///
-    /// let sorted_chars = chars
-    ///     .into_iter()
-    ///     .sorted();
-    ///
-    /// itertools::assert_equal(sorted_chars,
-    ///                         vec!['a', 'b', 'c', 'd', 'e', 'f']);
-    /// ```
-    fn sorted(self) -> Vec<Self::Item>
-        where Self: Sized,
-              Self::Item: Ord
-    {
-        self.sorted_by(Ord::cmp)
     }
 
     /// **Deprecated:** renamed to `.sorted_by()`

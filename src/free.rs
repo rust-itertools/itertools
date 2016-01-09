@@ -202,7 +202,7 @@ pub fn merge<I, J>(i: I, j: J) -> Merge<I::IntoIter, J::IntoIter>
 
 /// Combine all iterator elements into one String, seperated by `sep`.
 ///
-/// `IntoIterator` enabled version of `i.join(sep)`.
+/// `IntoIterator` enabled version of `iterable.join(sep)`.
 ///
 /// ```
 /// use itertools::free::join;
@@ -214,4 +214,21 @@ pub fn join<I>(iterable: I, sep: &str) -> String
           I::Item: Display,
 {
     iterable.into_iter().join(sep)
+}
+
+/// Collect all the iterable's elements into a sorted vector in ascending order.
+///
+/// `IntoIterator` enabled version of `iterable.sorted()`.
+///
+/// ```
+/// use itertools::free::sorted;
+/// use itertools::assert_equal;
+///
+/// assert_equal(sorted("rust".chars()), "rstu".chars());
+/// ```
+pub fn sorted<I>(iterable: I) -> Vec<I::Item>
+    where I: IntoIterator,
+          I::Item: Ord,
+{
+    iterable.into_iter().sorted()
 }
