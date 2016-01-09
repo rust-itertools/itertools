@@ -136,10 +136,12 @@ pub trait ToFloat<F> : Copy {
 }
 
 impl ToFloat<f32> for usize {
+    #[inline(always)]
     fn to_float(self) -> f32 { self as f32 }
 }
 
 impl ToFloat<f64> for usize {
+    #[inline(always)]
     fn to_float(self) -> f64 { self as f64 }
 }
 
