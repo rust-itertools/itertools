@@ -33,6 +33,13 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.4.6
+
+  - Add method .sorted()
+  - Add module ``itertools::free`` with free function variants of common
+    iterator adaptors and methods.
+    For example ``enumerate(iterable)``, ``rev(iterable)``, and so on.
+
 - 0.4.5
 
   - Add .flatten()
