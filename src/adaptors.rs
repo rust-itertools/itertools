@@ -1245,7 +1245,7 @@ impl<I> Iterator for CombinationsN<I> where I: Iterator, I::Item: Clone {
 
             // Increment index, and reset the ones to its right
             self.indices[i] += 1;
-            let mut j: usize = i + 1;
+            let mut j = i + 1;
             while j < self.n {
                 self.indices[j] = self.indices[j-1] + 1;
                 j += 1;
@@ -1253,7 +1253,7 @@ impl<I> Iterator for CombinationsN<I> where I: Iterator, I::Item: Clone {
         }
 
         // Create result vector based on the indices
-        let mut result: Self::Item = Vec::with_capacity(self.n);
+        let mut result = Vec::with_capacity(self.n);
         for i in self.indices.iter() {
             result.push(self.pool[*i].clone());
         }
