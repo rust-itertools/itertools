@@ -840,4 +840,13 @@ fn combinations_n() {
         vec![2, 4],
         vec![3, 4],
         ]);
+
+    it::assert_equal((0..0).combinations(), <Vec<_>>::new());
+    it::assert_equal((0..1).combinations(), <Vec<_>>::new());
+    it::assert_equal((0..2).combinations(), vec![(0, 1)]);
+
+    it::assert_equal((0..0).combinations_n(2), <Vec<Vec<_>>>::new());
+    it::assert_equal((0..1).combinations_n(1), vec![vec![0]]);
+    it::assert_equal((0..2).combinations_n(1), vec![vec![0], vec![1]]);
+    it::assert_equal((0..2).combinations_n(2), vec![vec![0, 1]]);
 }
