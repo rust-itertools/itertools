@@ -10,6 +10,7 @@ use std::mem;
 use std::num::One;
 #[cfg(feature = "unstable")]
 use std::ops::Add;
+use std::ops::Index;
 use std::iter::{Fuse, Peekable, FlatMap};
 use std::collections::HashSet;
 use std::hash::Hash;
@@ -1080,7 +1081,7 @@ impl<I> Combinations<I> where I: Iterator + Clone {
     }
 }
 
-impl<I> Iterator for Combinations<I> where I: Iterator + Clone, I::Item: Clone{
+impl<I> Iterator for Combinations<I> where I: Iterator + Clone, I::Item: Clone {
     type Item = (I::Item, I::Item);
     fn next(&mut self) -> Option<Self::Item> {
         // not having a value means we iterate once more through the first iterator
@@ -1116,6 +1117,147 @@ impl<I> Iterator for Combinations<I> where I: Iterator + Clone, I::Item: Clone{
         }
         // won't truncate because x * (x - 1) is guarenteed to be even
         size_hint::add((lo / 2, hi.map(|hi| hi / 2)), extra)
+    }
+}
+
+struct LazyBuffer<I: Iterator> {
+    it: I,
+    done: bool,
+    buffer: Vec<I::Item>,
+}
+
+impl<I> LazyBuffer<I> where I: Iterator {
+    pub fn new(it: I) -> LazyBuffer<I> {
+        let mut it = it;
+        let mut buffer = Vec::new();
+        let done;
+        if let Some(first) = it.next() {
+            buffer.push(first);
+            done = false;
+        } else {
+            done = true;
+        }
+        LazyBuffer {
+            it: it,
+            done: done,
+            buffer: buffer,
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.buffer.len()
+    }
+
+    pub fn is_done(&self) -> bool {
+        self.done
+    }
+
+    pub fn get_next(&mut self) -> bool {
+        if self.done {
+            return false;
+        }
+        let next_item = self.it.next();
+        match next_item {
+            Some(x) => {
+                self.buffer.push(x);
+                true
+            },
+            None => {
+                self.done = true;
+                false
+            },
+        }
+    }
+}
+
+impl<I> Index<usize> for LazyBuffer<I> where I: Iterator, I::Item: Sized {
+    type Output = I::Item;
+
+    fn index<'b>(&'b self, _index: usize) -> &'b I::Item {
+        self.buffer.index(_index)
+    }
+}
+
+/// An iterator to iterate through all the `n`-length combinations in an iterator.
+///
+/// See [*.combinations_n()*](trait.Itertools.html#method.combinations_n) for more information.
+pub struct CombinationsN<I: Iterator> {
+    n: usize,
+    indices: Vec<usize>,
+    pool: LazyBuffer<I>,
+    first: bool,
+}
+impl<I> CombinationsN<I> where I: Iterator {
+    /// Create a new `CombinationsN` from a clonable iterator.
+    pub fn new(iter: I, n: usize) -> CombinationsN<I> {
+        let mut indices: Vec<usize> = Vec::with_capacity(n);
+        for i in 0..n {
+            indices.push(i);
+        }
+        let mut pool: LazyBuffer<I> = LazyBuffer::new(iter);
+
+        for _ in 0..n {
+            if !pool.get_next() {
+                break;
+            }
+        }
+
+        CombinationsN {
+            n: n,
+            indices: indices,
+            pool: pool,
+            first: true,
+        }
+    }
+}
+
+impl<I> Iterator for CombinationsN<I> where I: Iterator, I::Item: Clone {
+    type Item = Vec<I::Item>;
+    fn next(&mut self) -> Option<Self::Item> {
+        let mut pool_len = self.pool.len();
+        if self.pool.is_done() {
+            if pool_len == 0 || self.n > pool_len {
+                return None;
+            }
+        }
+
+        if self.first {
+            self.first = false;
+        } else {
+            // Scan from the end, looking for an index to increment
+            let mut i: usize = self.n - 1;
+
+            // Check if we need to consume more from the iterator
+            if self.indices[i] == pool_len - 1 && !self.pool.is_done() {
+                if self.pool.get_next() {
+                    pool_len += 1;
+                }
+            }
+
+            while self.indices[i] == i + pool_len - self.n {
+                if i > 0 {
+                    i -= 1;
+                } else {
+                    // Reached the last combination
+                    return None;
+                }
+            }
+
+            // Increment index, and reset the ones to its right
+            self.indices[i] += 1;
+            let mut j: usize = i + 1;
+            while j < self.n {
+                self.indices[j] = self.indices[j-1] + 1;
+                j += 1;
+            }
+        }
+
+        // Create result vector based on the indices
+        let mut result: Self::Item = Vec::with_capacity(self.n);
+        for i in self.indices.iter() {
+            result.push(self.pool[*i].clone());
+        }
+        Some(result)
     }
 }
 

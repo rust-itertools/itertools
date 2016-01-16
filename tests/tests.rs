@@ -821,3 +821,23 @@ fn flatten_clone() {
     it::assert_equal(flattened1, &[1,2,3,4,5,6]);
     it::assert_equal(flattened2, &[1,2,3,4,5,6]);
 }
+
+#[test]
+fn combinations_n() {
+    assert!((1..3).combinations_n(5).next().is_none());
+
+    let it = (1..3).combinations_n(2);
+    it::assert_equal(it, vec![
+        vec![1, 2],
+        ]);
+
+    let it = (1..5).combinations_n(2);
+    it::assert_equal(it, vec![
+        vec![1, 2],
+        vec![1, 3],
+        vec![1, 4],
+        vec![2, 3],
+        vec![2, 4],
+        vec![3, 4],
+        ]);
+}
