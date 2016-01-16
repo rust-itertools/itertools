@@ -605,8 +605,12 @@ pub trait Itertools : Iterator {
     /// let mut peekable = nums.into_iter().multipeek();
     /// assert_eq!(peekable.peek(), Some(&1));
     /// assert_eq!(peekable.peek(), Some(&2));
+    /// assert_eq!(peekable.peek_n(0), Some(&1));
+    /// assert_eq!(peekable.peek_n(100), None);
     /// assert_eq!(peekable.peek(), Some(&3));
     /// assert_eq!(peekable.next(), Some(1));
+    /// assert_eq!(peekable.peek(), Some(&2));
+    /// peekable.reset();
     /// assert_eq!(peekable.peek(), Some(&2));
     /// ```
     fn multipeek(self) -> MultiPeek<Self> where
