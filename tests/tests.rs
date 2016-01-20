@@ -850,3 +850,44 @@ fn combinations_n() {
     it::assert_equal((0..2).combinations_n(1), vec![vec![0], vec![1]]);
     it::assert_equal((0..2).combinations_n(2), vec![vec![0, 1]]);
 }
+
+#[test]
+fn iter_diff_mismatch() {
+    let a = vec![1, 2, 3, 4];
+    let b = vec![1.0, 5.0, 3.0, 4.0];
+    let b_map = b.into_iter().map(|f| f as i32);
+    let diff = it::iter_diff(a.iter(), b_map);
+
+    assert!(match diff {
+        Some(it::IterDiff::FirstMismatch(1, from_diff)) =>
+            from_diff.collect::<Vec<_>>() == vec![5, 3, 4],
+        _ => false,
+    });
+}
+
+#[test]
+fn iter_diff_longer() {
+    let a = vec![1, 2, 3, 4];
+    let b = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+    let b_map = b.into_iter().map(|f| f as i32);
+    let diff = it::iter_diff(a.iter(), b_map);
+
+    assert!(match diff {
+        Some(it::IterDiff::Longer(remaining)) =>
+            remaining.collect::<Vec<_>>() == vec![5, 6],
+        _ => false,
+    });
+}
+
+#[test]
+fn iter_diff_shorter() {
+    let a = vec![1, 2, 3, 4];
+    let b = vec![1.0, 2.0];
+    let b_map = b.into_iter().map(|f| f as i32);
+    let diff = it::iter_diff(a.iter(), b_map);
+
+    assert!(match diff {
+        Some(it::IterDiff::Shorter(len)) => len == 2,
+        _ => false,
+    });
+}
