@@ -1,9 +1,10 @@
 //! "Diff"ing iterators for caching elements to sequential collections without requiring the new
 //! elements' iterator to be `Clone`.
 //!
-//! - [**Diff**](./enum.Diff.html) (produced by the [**diff**](./fn.diff.html) function) describes
-//! the difference between two non-`Clone` iterators `a` and `b` after breaking ASAP from a
-//! comparison with enough data to update `a`'s collection.
+//! - [**Diff**](./enum.Diff.html) (produced by the [**diff**](./fn.diff.html) and
+//! [**diff_by_ref**](./fn.diff_by_ref.html) functions) describes the difference between two
+//! non-`Clone` iterators `a` and `b` after breaking ASAP from a comparison with enough data to
+//! update `a`'s collection.
 //! - [**copy_on_diff**](./fn.copy_on_diff.html) is an application of [**diff**] that compares two
 //! iterators `a` and `b`, borrowing the source of `a` if they are the same or creating a new owned
 //! collection with `b`'s elements if they are different.
@@ -20,12 +21,12 @@ pub enum Diff<I, J>
     where I: Iterator,
           J: Iterator,
 {
-    /// The index of the first non-matching element along with the iterator's remaining elements
-    /// starting with the first mis-matched element.
+    /// The index of the first non-matching element along with both iterator's remaining elements
+    /// starting with the first mis-match.
     FirstMismatch(usize, PutBack<I>, PutBack<J>),
-    /// The total number of elements that were in the iterator.
+    /// The total number of elements that were in `J` along with the remaining elements of `I`.
     Shorter(usize, PutBack<I>),
-    /// The remaining elements of the iterator.
+    /// The total number of elements that were in `I` along with the remaining elements of `J`.
     Longer(usize, PutBack<J>),
 }
 
@@ -49,7 +50,7 @@ pub fn diff<I, J>(i: I, j: J) -> Option<Diff<I::IntoIter, J::IntoIter>>
     diff_internal(i, j, |ie, je| ie != je)
 }
 
-/// Similar to [`diff`](./fn.diff), however expects `i` to yield references to its elements.
+/// Similar to [`diff`](./fn.diff.html), however expects `i` to yield references to its elements.
 ///
 /// This function is useful for caching some iterator `j` in some sequential collection without
 /// requiring `j` to be `Clone` in order to compare it to the collection before determining if the
