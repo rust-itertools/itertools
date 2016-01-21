@@ -36,7 +36,7 @@ pub enum Diff<I, J>
 ///
 /// If `i` becomes exhausted before `j` becomes exhausted, the number of elements in `i` along with
 /// the remaining `j` elements will be returned as `Diff::Longer`.
-pub fn diff_with<I, J, F>(i: I, j: J, is_diff: F) -> Option<Diff<I::IntoIter, J::IntoIter>>
+pub fn diff_with<I, J, F>(i: I, j: J, is_equal: F) -> Option<Diff<I::IntoIter, J::IntoIter>>
     where I: IntoIterator,
           J: IntoIterator,
           F: Fn(&I::Item, &J::Item) -> bool,
@@ -47,7 +47,7 @@ pub fn diff_with<I, J, F>(i: I, j: J, is_diff: F) -> Option<Diff<I::IntoIter, J:
     while let Some(i_elem) = i.next() {
         match j.next() {
             None => return Some(Diff::Shorter(idx, PutBack::with_value(i_elem, i))),
-            Some(j_elem) => if is_diff(&i_elem, &j_elem) {
+            Some(j_elem) => if !is_equal(&i_elem, &j_elem) {
                 let remaining_i = PutBack::with_value(i_elem, i);
                 let remaining_j = PutBack::with_value(j_elem, j);
                 return Some(Diff::FirstMismatch(idx, remaining_i, remaining_j));
