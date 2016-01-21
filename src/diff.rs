@@ -28,8 +28,8 @@ pub enum Diff<I, J>
     Longer(usize, PutBack<J>),
 }
 
-/// Compares every element yielded by both `i` and `j` in lock-step and returns a `Diff` which
-/// describes how `j` differs from `i`.
+/// Compares every element yielded by both `i` and `j` with the given function in lock-step and
+/// returns a `Diff` which describes how `j` differs from `i`.
 ///
 /// If the number of elements yielded by `j` is less than the number of elements yielded by `i`,
 /// the number of `j` elements yielded will be returned along with `i`'s remaining elements as
@@ -40,37 +40,7 @@ pub enum Diff<I, J>
 ///
 /// If `i` becomes exhausted before `j` becomes exhausted, the number of elements in `i` along with
 /// the remaining `j` elements will be returned as `Diff::Longer`.
-pub fn diff<I, J>(i: I, j: J) -> Option<Diff<I::IntoIter, J::IntoIter>>
-    where I: IntoIterator,
-          J: IntoIterator,
-          I::Item: PartialEq<J::Item>,
-{
-    diff_internal(i, j, |ie, je| ie != je)
-}
-
-/// Similar to [`diff`](./fn.diff.html), however expects `i` to yield references to its elements.
-///
-/// This function is useful for caching some iterator `j` in some sequential collection without
-/// requiring `j` to be `Clone` in order to compare it to the collection before determining if the
-/// collection needs to be updated. The function returns as soon as a difference is found,
-/// producing a `Diff` that provides the data necessary to update the collection without ever
-/// requiring `J` to be `Clone`. This allows for efficiently caching iterators like `Map` or
-/// `Filter` that do not implement `Clone`.
-///
-/// See [`copy_on_diff`](./fn.copy_on_diff.html) for an application of `diff`.
-pub fn diff_by_ref<'a, I, J>(i: I, j: J) -> Option<Diff<I::IntoIter, J::IntoIter>>
-    where I: IntoIterator<Item=&'a J::Item>,
-          J: IntoIterator,
-          J::Item: PartialEq + 'a,
-{
-    diff_internal(i, j, |ie, je| *ie != je)
-}
-
-// Compares every element yielded by both `i` and `j`  with the given `is_diff` function in
-// lock-step.
-//
-// Returns a `Diff` which describes how `j` differs from `i`.
-fn diff_internal<I, J, F>(i: I, j: J, is_diff: F) -> Option<Diff<I::IntoIter, J::IntoIter>>
+pub fn diff_with<I, J, F>(i: I, j: J, is_diff: F) -> Option<Diff<I::IntoIter, J::IntoIter>>
     where I: IntoIterator,
           J: IntoIterator,
           F: Fn(&I::Item, &J::Item) -> bool,
