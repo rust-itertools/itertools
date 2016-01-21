@@ -66,7 +66,7 @@ pub use adaptors::{
 };
 #[cfg(feature = "unstable")]
 pub use adaptors::EnumerateFrom;
-pub use diff::{copy_on_diff, diff, diff_by_ref, Diff};
+pub use diff::{diff, diff_by_ref, Diff};
 pub use free::{enumerate, rev};
 pub use format::Format;
 pub use groupbylazy::{ChunksLazy, Chunk, Chunks, GroupByLazy, Group, Groups};

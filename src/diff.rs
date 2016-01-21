@@ -10,8 +10,6 @@
 //! collection with `b`'s elements if they are different.
 
 use adaptors::PutBack;
-use std::borrow::{Cow, ToOwned};
-use std::iter::FromIterator;
 
 /// A type returned by the [`diff`](./fn.diff.html) function.
 ///
@@ -92,63 +90,4 @@ fn diff_internal<I, J, F>(i: I, j: J, is_diff: F) -> Option<Diff<I::IntoIter, J:
         idx += 1;
     }
     j.next().map(|j_elem| Diff::Longer(idx, PutBack::with_value(j_elem, j)))
-}
-
-/// Returns `Cow::Borrowed` `collection` if `collection` contains the same elements as yielded by
-/// `update`'s iterator.
-///
-/// Collects into a new `C::Owned` and returns `Cow::Owned` if either the number of elements or the
-/// elements themselves differ.
-///
-/// # Examples
-///
-/// ```
-/// use itertools::copy_on_diff;
-/// use std::borrow::Cow;
-///
-/// let a = vec![0, 1, 2];
-/// let b = vec![0.0, 1.0, 2.0];
-/// let b_map = b.into_iter().map(|f| f as i32);
-/// let cow = copy_on_diff(&a, b_map);
-///
-/// assert!(match cow {
-///     Cow::Borrowed(slice) => slice == &a,
-///     _ => false,
-/// });
-/// ```
-///
-/// ```
-/// use itertools::copy_on_diff;
-/// use std::borrow::Cow;
-///
-/// let a = vec![0, 1, 2, 3];
-/// let b = vec![0.0, 1.0, 2.0];
-/// let b_map = b.into_iter().map(|f| f as i32);
-/// let cow = copy_on_diff(&a, b_map);
-///
-/// assert!(match cow {
-///     Cow::Owned(vec) => vec == vec![0, 1, 2],
-///     _ => false,
-/// });
-/// ```
-pub fn copy_on_diff<'a, C, U, T: 'a>(collection: &'a C, update: U) -> Cow<'a, C>
-    where &'a C: IntoIterator<Item=&'a T>,
-          <&'a C as IntoIterator>::IntoIter: Clone,
-          C: ToOwned,
-          <C as ToOwned>::Owned: FromIterator<T>,
-          U: IntoIterator<Item=T>,
-          T: Clone + PartialEq,
-{
-    let c_iter = collection.into_iter();
-    match diff_by_ref(c_iter.clone(), update.into_iter()) {
-        Some(diff) => match diff {
-            Diff::FirstMismatch(idx, _, mismatch) =>
-                Cow::Owned(c_iter.take(idx).cloned().chain(mismatch).collect()),
-            Diff::Longer(_, remaining) =>
-                Cow::Owned(c_iter.cloned().chain(remaining).collect()),
-            Diff::Shorter(num_update, _) =>
-                Cow::Owned(c_iter.cloned().take(num_update).collect()),
-        },
-        None => Cow::Borrowed(collection),
-    }
 }
