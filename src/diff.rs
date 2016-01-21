@@ -82,16 +82,16 @@ fn diff_internal<I, J, F>(i: I, j: J, is_diff: F) -> Option<Diff<I::IntoIter, J:
     let mut idx = 0;
     while let Some(i_elem) = i.next() {
         match j.next() {
-            None => return Some(Diff::Shorter(idx, PutBack::value(i_elem, i))),
+            None => return Some(Diff::Shorter(idx, PutBack::with_value(i_elem, i))),
             Some(j_elem) => if is_diff(&i_elem, &j_elem) {
-                let remaining_i = PutBack::value(i_elem, i);
-                let remaining_j = PutBack::value(j_elem, j);
+                let remaining_i = PutBack::with_value(i_elem, i);
+                let remaining_j = PutBack::with_value(j_elem, j);
                 return Some(Diff::FirstMismatch(idx, remaining_i, remaining_j));
             },
         }
         idx += 1;
     }
-    j.next().map(|j_elem| Diff::Longer(idx, PutBack::value(j_elem, j)))
+    j.next().map(|j_elem| Diff::Longer(idx, PutBack::with_value(j_elem, j)))
 }
 
 /// Returns `Cow::Borrowed` `collection` if `collection` contains the same elements as yielded by
