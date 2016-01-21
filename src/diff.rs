@@ -1,17 +1,13 @@
 //! "Diff"ing iterators for caching elements to sequential collections without requiring the new
 //! elements' iterator to be `Clone`.
 //!
-//! - [**Diff**](./enum.Diff.html) (produced by the [**diff**](./fn.diff.html) and
-//! [**diff_by_ref**](./fn.diff_by_ref.html) functions) describes the difference between two
-//! non-`Clone` iterators `a` and `b` after breaking ASAP from a comparison with enough data to
-//! update `a`'s collection.
-//! - [**copy_on_diff**](./fn.copy_on_diff.html) is an application of [**diff**] that compares two
-//! iterators `a` and `b`, borrowing the source of `a` if they are the same or creating a new owned
-//! collection with `b`'s elements if they are different.
+//! - [**Diff**](./enum.Diff.html) (produced by the [**diff_with**](./fn.diff_with.html) function)
+//! describes the difference between two non-`Clone` iterators `I` and `J` after breaking ASAP from
+//! a lock-step comparison.
 
 use adaptors::PutBack;
 
-/// A type returned by the [`diff`](./fn.diff.html) function.
+/// A type returned by the [`diff_with`](./fn.diff_with.html) function.
 ///
 /// `Diff` represents the way in which the elements yielded by the iterator `I` differ to some
 /// iterator `J`.
