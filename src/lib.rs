@@ -66,6 +66,7 @@ pub use adaptors::{
 };
 #[cfg(feature = "unstable")]
 pub use adaptors::EnumerateFrom;
+pub use diff::{diff_with, Diff};
 pub use free::{enumerate, rev};
 pub use format::Format;
 pub use groupbylazy::{ChunksLazy, Chunk, Chunks, GroupByLazy, Group, Groups};
@@ -93,6 +94,7 @@ mod format;
 mod groupbylazy;
 mod intersperse;
 mod islice;
+mod diff;
 mod linspace;
 pub mod misc;
 mod pad_tail;
