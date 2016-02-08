@@ -1312,6 +1312,9 @@ impl<T: ?Sized> Itertools for T where T: Iterator { }
 /// (elements pairwise equal and sequences of the same length),
 /// `false` otherwise.
 ///
+/// **Note:** the standard library method `Iterator::eq` now provides
+/// the same functionality.
+///
 /// ```
 /// assert!(itertools::equal(vec![1, 2, 3], 1..4));
 /// assert!(!itertools::equal(&[0, 0], &[0, 0, 0]));
