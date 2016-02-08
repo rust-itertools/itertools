@@ -33,10 +33,15 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.4.8
+
+  - Implement Clone, Debug for Linspace
+
 - 0.4.7
 
   - Add function diff_with() that compares two iterators
   - Add .combinations_n(), an n-ary combinations iterator
+  - Add methods PutBack::with_value and PutBack::into_parts.
 
 - 0.4.6
 
