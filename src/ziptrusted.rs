@@ -62,7 +62,7 @@ pub struct ZipTrusted<T> {
     t: T
 }
 
-trait SetLength {
+pub trait SetLength {
     fn set_length(&mut self);
 }
 
