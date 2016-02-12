@@ -691,6 +691,12 @@ impl<I, J, F> Iterator for MergeBy<I, J, F> where
 }
 
 /// A non-empty sequence
+///
+/// `PartialEq`, `Eq`, `PartialOrd` and `Ord` are implemented by comparing sequences based on
+/// first items (which are guaranteed to exist).
+///
+/// The meanings of `PartialOrd` and `Ord` are reversed so as to turn the `BinaryHeap` used in
+/// `KMerge` into a min-heap.
 pub struct NonEmpty<I> where
     I: Iterator
 {
