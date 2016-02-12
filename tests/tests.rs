@@ -403,6 +403,31 @@ fn merge_by_btree() {
 }
 
 #[test]
+fn kmerge() {
+    let its = (0..4).map(|s| (s..10).step(4));
+
+    it::assert_equal(its.kmerge(), (0..10));
+}
+
+#[test]
+fn kmerge_empty() {
+    let its = (0..4).map(|_| (0..0));
+    assert_eq!(its.kmerge().next(), None);
+}
+
+#[test]
+fn kmerge_size_hint() {
+    let its = (0..5).map(|_| (0..10));
+    assert_eq!(its.kmerge().size_hint(), (50, Some(50)));
+}
+
+#[test]
+fn kmerge_empty_size_hint() {
+    let its = (0..5).map(|_| (0..0));
+    assert_eq!(its.kmerge().size_hint(), (0, Some(0)));
+}
+
+#[test]
 fn join() {
     let many = [1, 2, 3];
     let one  = [1];
