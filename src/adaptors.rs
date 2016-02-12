@@ -755,6 +755,22 @@ impl<I> PartialOrd for NonEmpty<I> where
     fn partial_cmp(&self, other: &NonEmpty<I>) -> Option<Ordering> {
         other.head.partial_cmp(&self.head)
     }
+
+    fn lt(&self, other: &NonEmpty<I>) -> bool {
+        other.head.lt(&self.head)
+    }
+
+    fn le(&self, other: &NonEmpty<I>) -> bool {
+        other.head.le(&self.head)
+    }
+
+    fn gt(&self, other: &NonEmpty<I>) -> bool {
+        other.head.gt(&self.head)
+    }
+
+    fn ge(&self, other: &NonEmpty<I>) -> bool {
+        other.head.ge(&self.head)
+    }
 }
 
 impl<I> Ord for NonEmpty<I> where
