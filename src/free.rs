@@ -8,6 +8,7 @@ use std::iter::{self, Zip};
 use {
     Itertools,
     Merge,
+    KMerge,
     Interleave,
 };
 
@@ -198,6 +199,25 @@ pub fn merge<I, J>(i: I, j: J) -> Merge<I::IntoIter, J::IntoIter>
           I::Item: PartialOrd,
 {
     i.into_iter().merge(j)
+}
+
+/// Create an iterator that merges elements of the contained iterators.
+///
+/// Equivalent to `i.into_iter().kmerge()`.
+///
+/// ```
+/// use itertools::free::kmerge;
+///
+/// for elt in kmerge(vec![vec![0, 2, 4], vec![1, 3, 5], vec![6, 7]]) {
+///     /* loop body */
+/// }
+/// ```
+pub fn kmerge<I>(i: I) -> KMerge<<<I as IntoIterator>::Item as IntoIterator>::IntoIter>
+    where I: IntoIterator,
+          I::Item: IntoIterator,
+          <<I as IntoIterator>::Item as IntoIterator>::Item: Ord,
+{
+    i.into_iter().kmerge()
 }
 
 /// Combine all iterator elements into one String, seperated by `sep`.
