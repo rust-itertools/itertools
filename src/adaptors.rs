@@ -747,7 +747,7 @@ impl<I> PartialOrd for NonEmpty<I> where
     I::Item: PartialOrd
 {
     fn partial_cmp(&self, other: &NonEmpty<I>) -> Option<Ordering> {
-        self.head.partial_cmp(&other.head).map(Ordering::reverse)
+        other.head.partial_cmp(&self.head)
     }
 }
 
@@ -756,7 +756,7 @@ impl<I> Ord for NonEmpty<I> where
     I::Item: Ord
 {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.head.cmp(&other.head).reverse()
+        other.head.cmp(&self.head)
     }
 }
 
