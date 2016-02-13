@@ -697,7 +697,7 @@ impl<I, J, F> Iterator for MergeBy<I, J, F> where
 ///
 /// The meanings of `PartialOrd` and `Ord` are reversed so as to turn the `BinaryHeap` used in
 /// `KMerge` into a min-heap.
-pub struct NonEmpty<I> where
+struct NonEmpty<I> where
     I: Iterator
 {
     head: I::Item,
