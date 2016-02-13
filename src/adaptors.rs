@@ -806,8 +806,8 @@ pub fn kmerge_new<I>(it: I) -> KMerge<<I::Item as IntoIterator>::IntoIter>
 }
 
 impl<I> Clone for KMerge<I> where
-    I: Iterator,
-    BinaryHeap<NonEmpty<I>>: Clone
+    I: Iterator + Clone,
+    I::Item: Clone
 {
     fn clone(&self) -> KMerge<I> {
         clone_fields!(KMerge, self, heap)
