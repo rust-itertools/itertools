@@ -10,7 +10,7 @@ authors = ["bluss"]
 
 description = "Extra iterator adaptors, iterator methods and macros."
 
-keywords = ["iterator", "data-structure", "zip", "product", "group-by"]
+keywords = ["iterator", "data-structure", "zip", "product", "group-by", "join"]
 
 [dependencies.quickcheck]
 version = "0.2.21"
