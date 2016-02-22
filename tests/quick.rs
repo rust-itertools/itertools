@@ -303,7 +303,7 @@ quickcheck! {
 
 quickcheck! {
     size_kmerge(3),
-    fn prop(a: Vec<i16>, b: Vec<i16>, c: Vec<i16>) -> bool {
+    fn prop(a: Iter<i16>, b: Iter<i16>, c: Iter<i16>) -> bool {
         use itertools::free::kmerge;
         correct_size_hint(kmerge(vec![a, b, c]))
     }
