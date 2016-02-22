@@ -234,6 +234,27 @@ fn size_merge(a: Iter<u16>, b: Iter<u16>) -> bool {
 }
 
 #[quickcheck]
+fn equal_kmerge(a: Vec<i16>, b: Vec<i16>, c: Vec<i16>) -> bool {
+    use itertools::free::kmerge;
+    let mut sa = a.clone();
+    let mut sb = b.clone();
+    let mut sc = c.clone();
+    sa.sort();
+    sb.sort();
+    sc.sort();
+    let mut merged = sa.clone();
+    merged.extend(sb.iter().cloned());
+    merged.extend(sc.iter().cloned());
+    merged.sort();
+    itertools::equal(merged.into_iter(), kmerge(vec![sa, sb, sc]))
+}
+#[quickcheck]
+fn size_kmerge(a: Vec<i16>, b: Vec<i16>, c: Vec<i16>) -> bool {
+    use itertools::free::kmerge;
+    correct_size_hint(kmerge(vec![a, b, c]))
+}
+
+#[quickcheck]
 fn size_zip(a: Iter<i16>, b: Iter<i16>, c: Iter<i16>) -> bool {
     let filt = a.clone().dedup();
     correct_size_hint(Zip::new((filt, b.clone(), c.clone()))) &&

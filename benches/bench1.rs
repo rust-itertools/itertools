@@ -637,3 +637,69 @@ fn merge_by_lt(b: &mut test::Bencher) {
         data1.iter().merge_by(&data2, |a, b| a <= b).count()
     })
 }
+
+#[bench]
+fn kmerge_default(b: &mut test::Bencher) {
+    let mut data1 = vec![0; 1024];
+    let mut data2 = vec![0; 800];
+    let mut x = 0;
+    for (_, elt) in data1.iter_mut().enumerate() {
+        *elt = x;
+        x += 1;
+    }
+
+    let mut y = 0;
+    for (i, elt) in data2.iter_mut().enumerate() {
+        *elt += y;
+        if i % 3 == 0 {
+            y += 3;
+        } else {
+            y += 0;
+        }
+    }
+    let data1 = test::black_box(data1);
+    let data2 = test::black_box(data2);
+    let its = &[data1.iter(), data2.iter()];
+    b.iter(|| {
+        its.iter().cloned().kmerge().count()
+    })
+}
+
+#[bench]
+fn kmerge_threeway(b: &mut test::Bencher) {
+    let mut data1 = vec![0; 1024];
+    let mut data2 = vec![0; 800];
+    let mut data3 = vec![0; 1024];
+    let mut x = 0;
+    for (_, elt) in data1.iter_mut().enumerate() {
+        *elt = x;
+        x += 1;
+    }
+
+    let mut y = 0;
+    for (i, elt) in data2.iter_mut().enumerate() {
+        *elt += y;
+        if i % 3 == 0 {
+            y += 3;
+        } else {
+            y += 0;
+        }
+    }
+
+    let mut z = 0;
+    for (i, elt) in data3.iter_mut().enumerate() {
+        *elt += z;
+        if i % 10 == 0 {
+            z += 10;
+        } else {
+            z += 0;
+        }
+    }
+    let data1 = test::black_box(data1);
+    let data2 = test::black_box(data2);
+    let data3 = test::black_box(data3);
+    let its = &[data1.iter(), data2.iter(), data3.iter()];
+    b.iter(|| {
+        its.iter().cloned().kmerge().count()
+    })
+}
