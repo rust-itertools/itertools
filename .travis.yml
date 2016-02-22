@@ -6,10 +6,12 @@ matrix:
     - rust: 1.2.0
     - rust: 1.4.0
     - rust: stable
+      env:
+       - FEATURES='quickcheck'
     - rust: beta
     - rust: nightly
       env:
-       - FEATURES='unstable'
+       - FEATURES='unstable quickcheck'
        - BENCH=1
 branches:
   only:
