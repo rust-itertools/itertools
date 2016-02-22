@@ -24,38 +24,37 @@ pub struct RepeatCall<F> {
     f: F,
 }
 
-impl<F> RepeatCall<F>
-{
+impl<F> RepeatCall<F> {
     /// Create a new `RepeatCall` from a closure.
-    pub fn new<A>(func: F) -> Self where
-        F: FnMut() -> A,
+    pub fn new<A>(func: F) -> Self
+        where F: FnMut() -> A
     {
         RepeatCall { f: func }
     }
 }
 
-impl<A, F> Iterator for RepeatCall<F> where
-    F: FnMut() -> A,
+impl<A, F> Iterator for RepeatCall<F>
+    where F: FnMut() -> A
 {
     type Item = A;
 
     #[inline]
-    fn next(&mut self) -> Option<A>
-    {
+    fn next(&mut self) -> Option<A> {
         Some((self.f)())
     }
 
-    fn size_hint(&self) -> (usize, Option<usize>)
-    {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         (usize::max_value(), None)
     }
 }
 
-impl<A, F> DoubleEndedIterator for RepeatCall<F> where
-    F: FnMut() -> A,
+impl<A, F> DoubleEndedIterator for RepeatCall<F>
+    where F: FnMut() -> A
 {
     #[inline]
-    fn next_back(&mut self) -> Option<A> { self.next() }
+    fn next_back(&mut self) -> Option<A> {
+        self.next()
+    }
 }
 
 
@@ -110,7 +109,7 @@ impl<A, St, F> Unfold<St, F>
     pub fn new(initial_state: St, f: F) -> Unfold<St, F> {
         Unfold {
             f: f,
-            state: initial_state
+            state: initial_state,
         }
     }
 }
@@ -131,4 +130,3 @@ impl<A, St, F> Iterator for Unfold<St, F>
         (0, None)
     }
 }
-

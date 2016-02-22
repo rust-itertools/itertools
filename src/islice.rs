@@ -27,8 +27,7 @@ impl<I> ISlice<I>
     where I: Iterator
 {
     /// Create a new **ISlice**.
-    pub fn new<R: GenericRange>(iter: I, range: R) -> Self
-    {
+    pub fn new<R: GenericRange>(iter: I, range: R) -> Self {
         let mut start = range.start().unwrap_or(0);
         let end = range.end().unwrap_or(::std::usize::MAX);
         if start > end {
@@ -55,7 +54,7 @@ impl<I> Iterator for ISlice<I>
             self.end -= n;
             if n != st {
                 // iterator is already done.
-                return None
+                return None;
             }
         }
         if self.end != 0 {
@@ -66,8 +65,7 @@ impl<I> Iterator for ISlice<I>
         }
     }
 
-    fn size_hint(&self) -> (usize, Option<usize>)
-    {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         let len = self.end - self.start;
         let sh = self.iter.size_hint();
         size_hint::min(size_hint::sub_scalar(sh, self.start), (len, Some(len)))
@@ -76,4 +74,4 @@ impl<I> Iterator for ISlice<I>
 
 impl<I> ExactSizeIterator for ISlice<I>
     where I: ExactSizeIterator
-{ }
+{}

@@ -18,20 +18,22 @@ pub struct ZipLongest<T, U> {
     b: Fuse<U>,
 }
 
-impl<T, U> ZipLongest<T, U> where
-    T: Iterator,
-    U: Iterator,
+impl<T, U> ZipLongest<T, U>
+    where T: Iterator,
+          U: Iterator
 {
     /// Create a new `ZipLongest` iterator.
-    pub fn new(a: T, b: U) -> ZipLongest<T, U>
-    {
-        ZipLongest{a: a.fuse(), b: b.fuse()}
+    pub fn new(a: T, b: U) -> ZipLongest<T, U> {
+        ZipLongest {
+            a: a.fuse(),
+            b: b.fuse(),
+        }
     }
 }
 
-impl<T, U> Iterator for ZipLongest<T, U> where
-    T: Iterator,
-    U: Iterator,
+impl<T, U> Iterator for ZipLongest<T, U>
+    where T: Iterator,
+          U: Iterator
 {
     type Item = EitherOrBoth<T::Item, U::Item>;
 
@@ -51,9 +53,9 @@ impl<T, U> Iterator for ZipLongest<T, U> where
     }
 }
 
-impl<T, U> DoubleEndedIterator for ZipLongest<T, U> where
-    T: DoubleEndedIterator + ExactSizeIterator,
-    U: DoubleEndedIterator + ExactSizeIterator,
+impl<T, U> DoubleEndedIterator for ZipLongest<T, U>
+    where T: DoubleEndedIterator + ExactSizeIterator,
+          U: DoubleEndedIterator + ExactSizeIterator
 {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
@@ -71,9 +73,9 @@ impl<T, U> DoubleEndedIterator for ZipLongest<T, U> where
     }
 }
 
-impl<T, U> ExactSizeIterator for ZipLongest<T, U> where
-    T: ExactSizeIterator,
-    U: ExactSizeIterator,
+impl<T, U> ExactSizeIterator for ZipLongest<T, U>
+    where T: ExactSizeIterator,
+          U: ExactSizeIterator
 {}
 
 

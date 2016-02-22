@@ -12,23 +12,23 @@ pub unsafe trait TrustedIterator : ExactSizeIterator
     /* no methods */
 }
 
-unsafe impl TrustedIterator for ::std::ops::Range<usize> { }
-unsafe impl TrustedIterator for ::std::ops::Range<u32> { }
-unsafe impl TrustedIterator for ::std::ops::Range<i32> { }
-unsafe impl TrustedIterator for ::std::ops::Range<u16> { }
-unsafe impl TrustedIterator for ::std::ops::Range<i16> { }
-unsafe impl TrustedIterator for ::std::ops::Range<u8> { }
-unsafe impl TrustedIterator for ::std::ops::Range<i8> { }
-unsafe impl<'a, T> TrustedIterator for slice::Iter<'a, T> { }
-unsafe impl<'a, T> TrustedIterator for slice::IterMut<'a, T> { }
-unsafe impl<T> TrustedIterator for vec::IntoIter<T> { }
+unsafe impl TrustedIterator for ::std::ops::Range<usize> {}
+unsafe impl TrustedIterator for ::std::ops::Range<u32> {}
+unsafe impl TrustedIterator for ::std::ops::Range<i32> {}
+unsafe impl TrustedIterator for ::std::ops::Range<u16> {}
+unsafe impl TrustedIterator for ::std::ops::Range<i16> {}
+unsafe impl TrustedIterator for ::std::ops::Range<u8> {}
+unsafe impl TrustedIterator for ::std::ops::Range<i8> {}
+unsafe impl<'a, T> TrustedIterator for slice::Iter<'a, T> {}
+unsafe impl<'a, T> TrustedIterator for slice::IterMut<'a, T> {}
+unsafe impl<T> TrustedIterator for vec::IntoIter<T> {}
 
-unsafe impl<I> TrustedIterator for iter::Rev<I> where
-    I: DoubleEndedIterator + TrustedIterator,
-{ }
-unsafe impl<I> TrustedIterator for iter::Take<I> where
-    I: TrustedIterator,
-{ }
+unsafe impl<I> TrustedIterator for iter::Rev<I>
+    where I: DoubleEndedIterator + TrustedIterator
+{}
+unsafe impl<I> TrustedIterator for iter::Take<I>
+    where I: TrustedIterator
+{}
 
 
 #[derive(Clone)]
@@ -59,23 +59,20 @@ unsafe impl<I> TrustedIterator for iter::Take<I> where
 /// ```
 pub struct ZipTrusted<T> {
     length: usize,
-    t: T
+    t: T,
 }
 
 pub trait SetLength {
     fn set_length(&mut self);
 }
 
-impl<T> ZipTrusted<T> where ZipTrusted<T>: SetLength
+impl<T> ZipTrusted<T>
+    where ZipTrusted<T>: SetLength
 {
     /// Create a new **ZipTrusted** from a tuple of iterators.
     #[inline]
-    pub fn new(t: T) -> ZipTrusted<T>
-    {
-        let mut iter = ZipTrusted {
-            length: 0,
-            t: t,
-        };
+    pub fn new(t: T) -> ZipTrusted<T> {
+        let mut iter = ZipTrusted { length: 0, t: t };
         iter.set_length();
         iter
     }
@@ -163,4 +160,3 @@ impl_zip_trusted!(A, B, C, D, E, F);
 impl_zip_trusted!(A, B, C, D, E, F, G);
 impl_zip_trusted!(A, B, C, D, E, F, G, H);
 impl_zip_trusted!(A, B, C, D, E, F, G, H, I);
-

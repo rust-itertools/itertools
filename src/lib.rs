@@ -72,7 +72,7 @@ pub use free::{enumerate, rev};
 pub use format::Format;
 pub use groupbylazy::{ChunksLazy, Chunk, Chunks, GroupByLazy, Group, Groups};
 pub use intersperse::Intersperse;
-pub use islice::{ISlice};
+pub use islice::ISlice;
 pub use pad_tail::PadUsing;
 pub use repeatn::RepeatN;
 pub use rciter::RcIter;
@@ -80,12 +80,9 @@ pub use stride::Stride;
 pub use stride::StrideMut;
 pub use tee::Tee;
 pub use linspace::{linspace, Linspace};
-pub use sources::{
-    RepeatCall,
-    Unfold,
-};
+pub use sources::{RepeatCall, Unfold};
 pub use zip_longest::{ZipLongest, EitherOrBoth};
-pub use ziptuple::{Zip};
+pub use ziptuple::Zip;
 #[cfg(feature = "unstable")]
 pub use ziptrusted::{ZipTrusted, TrustedIterator};
 pub use zipslices::ZipSlices;
@@ -211,9 +208,9 @@ pub trait Itertools : Iterator {
     /// let it = (0..3).interleave(vec![7, 8]);
     /// itertools::assert_equal(it, vec![0, 7, 1, 8, 2]);
     /// ```
-    fn interleave<J>(self, other: J) -> Interleave<Self, J::IntoIter> where
-        J: IntoIterator<Item=Self::Item>,
-        Self: Sized
+    fn interleave<J>(self, other: J) -> Interleave<Self, J::IntoIter>
+        where J: IntoIterator<Item = Self::Item>,
+              Self: Sized
     {
         Interleave::new(self, other.into_iter())
     }
@@ -228,9 +225,9 @@ pub trait Itertools : Iterator {
     /// let it = (0..5).interleave_shortest(vec![7, 8]);
     /// itertools::assert_equal(it, vec![0, 7, 1, 8, 2]);
     /// ```
-    fn interleave_shortest<J>(self, other: J) -> InterleaveShortest<Self, J::IntoIter> where
-        J: IntoIterator<Item=Self::Item>,
-        Self: Sized
+    fn interleave_shortest<J>(self, other: J) -> InterleaveShortest<Self, J::IntoIter>
+        where J: IntoIterator<Item = Self::Item>,
+              Self: Sized
     {
         InterleaveShortest::new(self, other.into_iter())
     }
@@ -247,9 +244,9 @@ pub trait Itertools : Iterator {
     ///
     /// itertools::assert_equal((0..3).intersperse(8), vec![0, 8, 1, 8, 2]);
     /// ```
-    fn intersperse(self, element: Self::Item) -> Intersperse<Self> where
-        Self: Sized,
-        Self::Item: Clone
+    fn intersperse(self, element: Self::Item) -> Intersperse<Self>
+        where Self: Sized,
+              Self::Item: Clone
     {
         Intersperse::new(self, element)
     }
@@ -272,9 +269,9 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(it, vec![Both(0, 1), Right(2)]);
     /// ```
     #[inline]
-    fn zip_longest<J>(self, other: J) -> ZipLongest<Self, J::IntoIter> where
-        J: IntoIterator,
-        Self: Sized,
+    fn zip_longest<J>(self, other: J) -> ZipLongest<Self, J::IntoIter>
+        where J: IntoIterator,
+              Self: Sized
     {
         ZipLongest::new(self, other.into_iter())
     }
@@ -301,9 +298,9 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(pit, vec![(0, 1), (2, 3)]);
     /// ```
     ///
-    fn batching<B, F>(self, f: F) -> Batching<Self, F> where
-        F: FnMut(&mut Self) -> Option<B>,
-        Self: Sized,
+    fn batching<B, F>(self, f: F) -> Batching<Self, F>
+        where F: FnMut(&mut Self) -> Option<B>,
+              Self: Sized
     {
         Batching::new(self, f)
     }
@@ -429,9 +426,9 @@ pub trait Itertools : Iterator {
     /// assert_eq!(t1.next(), None);
     /// assert_eq!(t2.next(), Some(1));
     /// ```
-    fn tee(self) -> (Tee<Self>, Tee<Self>) where
-        Self: Sized,
-        Self::Item: Clone
+    fn tee(self) -> (Tee<Self>, Tee<Self>)
+        where Self: Sized,
+              Self::Item: Clone
     {
         tee::new(self)
     }
@@ -450,9 +447,9 @@ pub trait Itertools : Iterator {
     /// let it = repeat('a').slice(..3);
     /// assert_eq!(it.count(), 3);
     /// ```
-    fn slice<R>(self, range: R) -> ISlice<Self> where
-        R: misc::GenericRange,
-        Self: Sized,
+    fn slice<R>(self, range: R) -> ISlice<Self>
+        where R: misc::GenericRange,
+              Self: Sized
     {
         ISlice::new(self, range)
     }
@@ -484,8 +481,8 @@ pub trait Itertools : Iterator {
     /// **Panics** in iterator methods if a borrow error is encountered,
     /// but it can only happen if the `RcIter` is reentered in for example `.next()`,
     /// i.e. if it somehow participates in an “iterator knot” where it is an adaptor of itself.
-    fn into_rc(self) -> RcIter<Self> where
-        Self: Sized,
+    fn into_rc(self) -> RcIter<Self>
+        where Self: Sized
     {
         RcIter::new(self)
     }
@@ -506,8 +503,8 @@ pub trait Itertools : Iterator {
     /// let it = (0..8).step(3);
     /// itertools::assert_equal(it, vec![0, 3, 6]);
     /// ```
-    fn step(self, n: usize) -> Step<Self> where
-        Self: Sized,
+    fn step(self, n: usize) -> Step<Self>
+        where Self: Sized
     {
         Step::new(self, n)
     }
@@ -525,10 +522,10 @@ pub trait Itertools : Iterator {
     /// let it = a.merge(b);
     /// itertools::assert_equal(it, vec![0, 0, 3, 5, 6, 9, 10]);
     /// ```
-    fn merge<J>(self, other: J) -> Merge<Self, J::IntoIter> where
-        Self: Sized,
-        Self::Item: PartialOrd,
-        J: IntoIterator<Item=Self::Item>,
+    fn merge<J>(self, other: J) -> Merge<Self, J::IntoIter>
+        where Self: Sized,
+              Self::Item: PartialOrd,
+              J: IntoIterator<Item = Self::Item>
     {
         adaptors::merge_new(self, other.into_iter())
     }
@@ -549,10 +546,10 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(it, vec![(0, 'a'), (0, 'b'), (1, 'c'), (1, 'd')]);
     /// ```
 
-    fn merge_by<J, F>(self, other: J, is_first: F) -> MergeBy<Self, J::IntoIter, F> where
-        Self: Sized,
-        J: IntoIterator<Item=Self::Item>,
-        F: FnMut(&Self::Item, &Self::Item) -> bool
+    fn merge_by<J, F>(self, other: J, is_first: F) -> MergeBy<Self, J::IntoIter, F>
+        where Self: Sized,
+              J: IntoIterator<Item = Self::Item>,
+              F: FnMut(&Self::Item, &Self::Item) -> bool
     {
         adaptors::merge_by_new(self, other.into_iter(), is_first)
     }
@@ -592,11 +589,11 @@ pub trait Itertools : Iterator {
     /// let it = (0..2).cartesian_product("αβ".chars());
     /// itertools::assert_equal(it, vec![(0, 'α'), (0, 'β'), (1, 'α'), (1, 'β')]);
     /// ```
-    fn cartesian_product<J>(self, other: J) -> Product<Self, J::IntoIter> where
-        Self: Sized,
-        Self::Item: Clone,
-        J: IntoIterator,
-        J::IntoIter: Clone,
+    fn cartesian_product<J>(self, other: J) -> Product<Self, J::IntoIter>
+        where Self: Sized,
+              Self::Item: Clone,
+              J: IntoIterator,
+              J::IntoIter: Clone
     {
         Product::new(self, other.into_iter())
     }
@@ -615,8 +612,8 @@ pub trait Itertools : Iterator {
     /// );
     /// ```
     #[cfg(feature = "unstable")]
-    fn enumerate_from<K>(self, start: K) -> EnumerateFrom<Self, K> where
-        Self: Sized,
+    fn enumerate_from<K>(self, start: K) -> EnumerateFrom<Self, K>
+        where Self: Sized
     {
         EnumerateFrom::new(self, start)
     }
@@ -636,8 +633,8 @@ pub trait Itertools : Iterator {
     /// assert_eq!(peekable.next(), Some(1));
     /// assert_eq!(peekable.peek(), Some(&2));
     /// ```
-    fn multipeek(self) -> MultiPeek<Self> where
-        Self: Sized
+    fn multipeek(self) -> MultiPeek<Self>
+        where Self: Sized
     {
         MultiPeek::new(self)
     }
@@ -667,9 +664,10 @@ pub trait Itertools : Iterator {
     ///         }),
     ///         vec![-6., 4., -1.]);
     /// ```
-    fn coalesce<F>(self, f: F) -> Coalesce<Self, F> where
-        Self: Sized,
-        F: FnMut(Self::Item, Self::Item) -> Result<Self::Item, (Self::Item, Self::Item)>
+    fn coalesce<F>(self, f: F) -> Coalesce<Self, F>
+        where Self: Sized,
+              F: FnMut(Self::Item, Self::Item)
+                       -> Result<Self::Item, (Self::Item, Self::Item)>
     {
         Coalesce::new(self, f)
     }
@@ -709,9 +707,9 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(data.into_iter().unique(),
     ///                         vec![10, 20, 30, 40, 50]);
     /// ```
-    fn unique(self) -> Unique<Self> where
-        Self: Sized,
-        Self::Item: Clone + Eq + Hash,
+    fn unique(self) -> Unique<Self>
+        where Self: Sized,
+              Self::Item: Clone + Eq + Hash
     {
         adaptors::unique(self)
     }
@@ -730,10 +728,10 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(data.into_iter().unique_by(|s| s.len()),
     ///                         vec!["a", "bb", "ccc"]);
     /// ```
-    fn unique_by<V, F>(self, f: F) -> UniqueBy<Self, V, F> where
-        Self: Sized,
-        V: Eq + Hash,
-        F: FnMut(&Self::Item) -> V
+    fn unique_by<V, F>(self, f: F) -> UniqueBy<Self, V, F>
+        where Self: Sized,
+              V: Eq + Hash,
+              F: FnMut(&Self::Item) -> V
     {
         UniqueBy::new(self, f)
     }
@@ -756,9 +754,9 @@ pub trait Itertools : Iterator {
     ///
     /// itertools::assert_equal(words, vec!["Warning:", "γ-radiation", "(ionizing)"]);
     /// ```
-    fn mend_slices(self) -> MendSlices<Self> where
-        Self: Sized,
-        Self::Item: misc::MendSlice
+    fn mend_slices(self) -> MendSlices<Self>
+        where Self: Sized,
+              Self::Item: misc::MendSlice
     {
         MendSlices::new(self)
     }
@@ -780,9 +778,9 @@ pub trait Itertools : Iterator {
     /// assert_eq!(hexadecimals.next(), Some('a'));
     ///
     /// ```
-    fn take_while_ref<'a, F>(&'a mut self, f: F) -> TakeWhileRef<'a, Self, F> where
-        Self: Clone,
-        F: FnMut(&Self::Item) -> bool,
+    fn take_while_ref<'a, F>(&'a mut self, f: F) -> TakeWhileRef<'a, Self, F>
+        where Self: Clone,
+              F: FnMut(&Self::Item) -> bool
     {
         TakeWhileRef::new(self, f)
     }
@@ -801,8 +799,8 @@ pub trait Itertools : Iterator {
     ///     "0123456789abcdef".chars());
     ///
     /// ```
-    fn while_some<A>(self) -> WhileSome<Self> where
-        Self: Sized + Iterator<Item=Option<A>>,
+    fn while_some<A>(self) -> WhileSome<Self>
+        where Self: Sized + Iterator<Item = Option<A>>
     {
         WhileSome::new(self)
     }
@@ -818,8 +816,9 @@ pub trait Itertools : Iterator {
     /// let it = (1..5).combinations();
     /// itertools::assert_equal(it, vec![(1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)]);
     /// ```
-    fn combinations(self) -> Combinations<Self> where
-        Self: Sized + Clone, Self::Item: Clone
+    fn combinations(self) -> Combinations<Self>
+        where Self: Sized + Clone,
+              Self::Item: Clone
     {
         Combinations::new(self)
     }
@@ -841,8 +840,9 @@ pub trait Itertools : Iterator {
     ///     vec![2, 3, 4],
     ///     ]);
     /// ```
-    fn combinations_n(self, n: usize) -> CombinationsN<Self> where
-        Self: Sized, Self::Item: Clone
+    fn combinations_n(self, n: usize) -> CombinationsN<Self>
+        where Self: Sized,
+              Self::Item: Clone
     {
         CombinationsN::new(self, n)
     }
@@ -864,9 +864,9 @@ pub trait Itertools : Iterator {
     /// let it = (0..5).pad_using(10, |i| 2*i).rev();
     /// itertools::assert_equal(it, vec![18, 16, 14, 12, 10, 4, 3, 2, 1, 0]);
     /// ```
-    fn pad_using<F>(self, min: usize, f: F) -> PadUsing<Self, F> where
-        Self: Sized,
-        F: FnMut(usize) -> Self::Item,
+    fn pad_using<F>(self, min: usize, f: F) -> PadUsing<Self, F>
+        where Self: Sized,
+              F: FnMut(usize) -> Self::Item
     {
         PadUsing::new(self, min, f)
     }
@@ -883,9 +883,9 @@ pub trait Itertools : Iterator {
     ///
     /// itertools::assert_equal(flattened, vec![1, 2, 3, 4, 5, 6]);
     /// ```
-    fn flatten(self) -> Flatten<Self> where
-        Self: Sized,
-        Self::Item: IntoIterator,
+    fn flatten(self) -> Flatten<Self>
+        where Self: Sized,
+              Self::Item: IntoIterator
     {
         Flatten::new(self)
     }
@@ -906,8 +906,8 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(iter, vec![Some(1), Some(0), None]);
     /// itertools::assert_equal(iter_copy, vec![Some(1), Some(0), None]);
     /// ```
-    fn map_fn<B>(self, f: fn(Self::Item) -> B) -> MapFn<Self, B> where
-        Self: Sized
+    fn map_fn<B>(self, f: fn(Self::Item) -> B) -> MapFn<Self, B>
+        where Self: Sized
     {
         self.map(f)
     }
@@ -924,13 +924,13 @@ pub trait Itertools : Iterator {
     /// let text = "Hα";
     /// assert_eq!(text.chars().find_position(|ch| ch.is_lowercase()), Some((1, 'α')));
     /// ```
-    fn find_position<P>(&mut self, mut pred: P) -> Option<(usize, Self::Item)> where
-        P: FnMut(&Self::Item) -> bool,
+    fn find_position<P>(&mut self, mut pred: P) -> Option<(usize, Self::Item)>
+        where P: FnMut(&Self::Item) -> bool
     {
         let mut index = 0usize;
         for elt in self {
             if pred(&elt) {
-                return Some((index, elt))
+                return Some((index, elt));
             }
             index += 1;
         }
@@ -948,14 +948,13 @@ pub trait Itertools : Iterator {
     /// iter.dropn(2);
     /// itertools::assert_equal(iter, "γ".chars());
     /// ```
-    fn dropn(&mut self, mut n: usize) -> usize
-    {
+    fn dropn(&mut self, mut n: usize) -> usize {
         // FIXME: Can we use .nth() somehow?
         let start = n;
         while n > 0 {
             match self.next() {
                 Some(..) => n -= 1,
-                None => break
+                None => break,
             }
         }
         start - n
@@ -973,8 +972,8 @@ pub trait Itertools : Iterator {
     /// let mut iter = "αβγ".chars().dropping(2);
     /// itertools::assert_equal(iter, "γ".chars());
     /// ```
-    fn dropping(mut self, n: usize) -> Self where
-        Self: Sized,
+    fn dropping(mut self, n: usize) -> Self
+        where Self: Sized
     {
         if n > 0 {
             self.nth(n - 1);
@@ -997,9 +996,9 @@ pub trait Itertools : Iterator {
     /// let init = vec![0, 3, 6, 9].into_iter().dropping_back(1);
     /// itertools::assert_equal(init, vec![0, 3, 6]);
     /// ```
-    fn dropping_back(mut self, n: usize) -> Self where
-        Self: Sized,
-        Self: DoubleEndedIterator,
+    fn dropping_back(mut self, n: usize) -> Self
+        where Self: Sized,
+              Self: DoubleEndedIterator
     {
         self.by_ref().rev().dropn(n);
         self
@@ -1022,16 +1021,18 @@ pub trait Itertools : Iterator {
     ///
     /// itertools::assert_equal(rx.iter(), vec![1, 3, 5, 7, 9]);
     /// ```
-    fn foreach<F>(&mut self, mut f: F) where
-        F: FnMut(Self::Item),
+    fn foreach<F>(&mut self, mut f: F)
+        where F: FnMut(Self::Item)
     {
-        for elt in self { f(elt) }
+        for elt in self {
+            f(elt)
+        }
     }
 
     /// `.collect_vec()` is simply a type specialization of `.collect()`,
     /// for convenience.
-    fn collect_vec(self) -> Vec<Self::Item> where
-        Self: Sized,
+    fn collect_vec(self) -> Vec<Self::Item>
+        where Self: Sized
     {
         self.collect()
     }
@@ -1052,15 +1053,15 @@ pub trait Itertools : Iterator {
     /// assert_eq!(xs, [1, 2, 3, 4]);
     /// ```
     #[inline]
-    fn set_from<'a, A: 'a, J>(&mut self, from: J) -> usize where
-        Self: Iterator<Item=&'a mut A>,
-        J: IntoIterator<Item=A>,
+    fn set_from<'a, A: 'a, J>(&mut self, from: J) -> usize
+        where Self: Iterator<Item = &'a mut A>,
+              J: IntoIterator<Item = A>
     {
         let mut count = 0;
         for elt in from {
             match self.next() {
                 None => break,
-                Some(ptr) => *ptr = elt
+                Some(ptr) => *ptr = elt,
             }
             count += 1;
         }
@@ -1077,8 +1078,8 @@ pub trait Itertools : Iterator {
     /// assert_eq!(["a", "b", "c"].iter().join(", "), "a, b, c");
     /// assert_eq!([1, 2, 3].iter().join(", "), "1, 2, 3");
     /// ```
-    fn join(&mut self, sep: &str) -> String where
-        Self::Item: std::fmt::Display,
+    fn join(&mut self, sep: &str) -> String
+        where Self::Item: std::fmt::Display
     {
         match self.next() {
             None => String::new(),
@@ -1173,9 +1174,9 @@ pub trait Itertools : Iterator {
     ///           .is_err()
     /// );
     /// ```
-    fn fold_results<A, E, B, F>(&mut self, mut start: B, mut f: F) -> Result<B, E> where
-        Self: Iterator<Item=Result<A, E>>,
-        F: FnMut(B, A) -> B,
+    fn fold_results<A, E, B, F>(&mut self, mut start: B, mut f: F) -> Result<B, E>
+        where Self: Iterator<Item = Result<A, E>>,
+              F: FnMut(B, A) -> B
     {
         for elt in self {
             match elt {
@@ -1205,9 +1206,9 @@ pub trait Itertools : Iterator {
     /// assert!(more_values.fold_options(0, Add::add).is_none());
     /// assert_eq!(more_values.next().unwrap(), Some(0));
     /// ```
-    fn fold_options<A, B, F>(&mut self, mut start: B, mut f: F) -> Option<B> where
-        Self: Iterator<Item=Option<A>>,
-        F: FnMut(B, A) -> B,
+    fn fold_options<A, B, F>(&mut self, mut start: B, mut f: F) -> Option<B>
+        where Self: Iterator<Item = Option<A>>,
+              F: FnMut(B, A) -> B
     {
         for elt in self {
             match elt {
@@ -1230,8 +1231,8 @@ pub trait Itertools : Iterator {
     /// assert_eq!((0..10).fold1(|x, y| x + y).unwrap_or(0), 45);
     /// assert_eq!((0..0).fold1(|x, y| x * y), None);
     /// ```
-    fn fold1<F>(&mut self, mut f: F) -> Option<Self::Item> where
-        F: FnMut(Self::Item, Self::Item) -> Self::Item,
+    fn fold1<F>(&mut self, mut f: F) -> Option<Self::Item>
+        where F: FnMut(Self::Item, Self::Item) -> Self::Item
     {
         match self.next() {
             None => None,
@@ -1255,8 +1256,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!([1, 2, 3].iter().is_empty_hint(), Some(false));
     /// assert_eq!((0..10).filter(|&x| x > 0).is_empty_hint(), None);
     /// ```
-    fn is_empty_hint(&self) -> Option<bool>
-    {
+    fn is_empty_hint(&self) -> Option<bool> {
         let (low, opt_hi) = self.size_hint();
         // check for erronous hint
         if let Some(hi) = opt_hi {
@@ -1344,10 +1344,10 @@ impl<T: ?Sized> Itertools for T where T: Iterator { }
 /// assert!(itertools::equal(vec![1, 2, 3], 1..4));
 /// assert!(!itertools::equal(&[0, 0], &[0, 0, 0]));
 /// ```
-pub fn equal<I, J>(a: I, b: J) -> bool where
-    I: IntoIterator,
-    J: IntoIterator,
-    I::Item: PartialEq<J::Item>,
+pub fn equal<I, J>(a: I, b: J) -> bool
+    where I: IntoIterator,
+          J: IntoIterator,
+          I::Item: PartialEq<J::Item>
 {
     let mut ia = a.into_iter();
     let mut ib = b.into_iter();
@@ -1414,10 +1414,10 @@ pub fn assert_equal<I, J>(a: I, b: J)
 /// assert_eq!(data, [7, 7, 7, 1, 1, 1, 1]);
 /// assert_eq!(split_index, 3);
 /// ```
-pub fn partition<'a, A: 'a, I, F>(iter: I, mut pred: F) -> usize where
-    I: IntoIterator<Item=&'a mut A>,
-    I::IntoIter: DoubleEndedIterator,
-    F: FnMut(&A) -> bool,
+pub fn partition<'a, A: 'a, I, F>(iter: I, mut pred: F) -> usize
+    where I: IntoIterator<Item = &'a mut A>,
+          I::IntoIter: DoubleEndedIterator,
+          F: FnMut(&A) -> bool
 {
     let mut split_index = 0;
     let mut iter = iter.into_iter();
@@ -1437,4 +1437,3 @@ pub fn partition<'a, A: 'a, I, F>(iter: I, mut pred: F) -> usize where
     }
     split_index
 }
-

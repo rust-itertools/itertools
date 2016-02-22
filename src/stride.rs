@@ -48,8 +48,7 @@ pub struct StrideMut<'a, A: 'a> {
 unsafe impl<'a, A> Send for StrideMut<'a, A> where A: Send {}
 unsafe impl<'a, A> Sync for StrideMut<'a, A> where A: Sync {}
 
-impl<'a, A> Stride<'a, A>
-{
+impl<'a, A> Stride<'a, A> {
     /// Create a Stride iterator from a raw pointer.
     pub unsafe fn from_ptr_len(begin: *const A, nelem: usize, stride: isize) -> Stride<'a, A>
     {
@@ -78,8 +77,7 @@ impl<'a, A> StrideMut<'a, A>
     }
 }
 
-fn div_rem(x: usize, d: usize) -> (usize, usize)
-{
+fn div_rem(x: usize, d: usize) -> (usize, usize) {
     (x / d, x % d)
 }
 
@@ -262,21 +260,17 @@ macro_rules! stride_impl {
 stride_impl!{struct Stride -> &'a [A], as_ptr, *const A, &'a A}
 stride_impl!{struct StrideMut -> &'a mut [A], as_mut_ptr, *mut A, &'a mut A}
 
-impl<'a, A> Clone for Stride<'a, A>
-{
-    fn clone(&self) -> Stride<'a, A>
-    {
+impl<'a, A> Clone for Stride<'a, A> {
+    fn clone(&self) -> Stride<'a, A> {
         *self
     }
 }
 
-impl<'a, A> IndexMut<usize> for StrideMut<'a, A>
-{
+impl<'a, A> IndexMut<usize> for StrideMut<'a, A> {
     /// Return a mutable reference to the element at a given index.
     ///
     /// **Panics** if the index is out of bounds.
-    fn index_mut<'b>(&'b mut self, i: usize) -> &'b mut A
-    {
+    fn index_mut<'b>(&'b mut self, i: usize) -> &'b mut A {
         assert!(i < self.len());
         unsafe {
             let ptr = self.begin.offset(self.offset + self.stride * (i as isize));

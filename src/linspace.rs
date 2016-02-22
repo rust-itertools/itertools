@@ -54,7 +54,9 @@ impl<F> DoubleEndedIterator for Linspace<F>
     }
 }
 
-impl<F> ExactSizeIterator for Linspace<F> where Linspace<F>: Iterator { }
+impl<F> ExactSizeIterator for Linspace<F>
+    where Linspace<F>: Iterator
+{}
 
 /// Return an iterator of evenly spaced floats.
 ///
@@ -71,13 +73,13 @@ impl<F> ExactSizeIterator for Linspace<F> where Linspace<F>: Iterator { }
 ///                         vec![0., 0.25, 0.5, 0.75, 1.0]);
 /// ```
 #[inline]
-pub fn linspace<F>(a: F, b: F, n: usize) -> Linspace<F> where
-    F: Copy + Sub<Output=F> + Div<Output=F> + Mul<Output=F>,
-    usize: ToFloat<F>,
+pub fn linspace<F>(a: F, b: F, n: usize) -> Linspace<F>
+    where F: Copy + Sub<Output = F> + Div<Output = F> + Mul<Output = F>,
+          usize: ToFloat<F>
 {
     let step = if n > 1 {
         let nf: F = n.to_float();
-        (b - a)/(nf - 1.to_float())
+        (b - a) / (nf - 1.to_float())
     } else {
         0.to_float()
     };

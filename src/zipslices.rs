@@ -44,7 +44,8 @@ impl<'a, 'b, A, B> ZipSlices<&'a [A], &'b [B]> {
 }
 
 impl<T, U> ZipSlices<T, U>
-    where T: Slice, U: Slice
+    where T: Slice,
+          U: Slice
 {
     /// Create a new `ZipSlices` from slices `a` and `b`.
     ///
@@ -64,7 +65,8 @@ impl<T, U> ZipSlices<T, U>
 }
 
 impl<T, U> Iterator for ZipSlices<T, U>
-    where T: Slice, U: Slice
+    where T: Slice,
+          U: Slice
 {
     type Item = (T::Item, U::Item);
 
@@ -91,7 +93,8 @@ impl<T, U> Iterator for ZipSlices<T, U>
 }
 
 impl<T, U> DoubleEndedIterator for ZipSlices<T, U>
-    where T: Slice, U: Slice
+    where T: Slice,
+          U: Slice
 {
     #[inline(always)]
     fn next_back(&mut self) -> Option<Self::Item> {
@@ -109,14 +112,20 @@ impl<T, U> DoubleEndedIterator for ZipSlices<T, U>
     }
 }
 
-impl<T, U> ExactSizeIterator for ZipSlices<T, U> where T: Slice, U: Slice { }
+impl<T, U> ExactSizeIterator for ZipSlices<T, U>
+    where T: Slice,
+          U: Slice
+{}
 
 unsafe impl<T, U> Slice for ZipSlices<T, U>
-    where T: Slice, U: Slice
+    where T: Slice,
+          U: Slice
 {
     type Item = (T::Item, U::Item);
 
-    fn len(&self) -> usize { self.len - self.index }
+    fn len(&self) -> usize {
+        self.len - self.index
+    }
 
     unsafe fn get_unchecked(&mut self, i: usize) -> Self::Item {
         (self.t.get_unchecked(i),

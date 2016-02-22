@@ -43,19 +43,23 @@ pub struct Interleave<I, J> {
     flag: bool,
 }
 
-impl<I, J> Interleave<I, J> where
-    I: Iterator,
-    J: Iterator,
+impl<I, J> Interleave<I, J>
+    where I: Iterator,
+          J: Iterator
 {
     /// Creat a new `Interleave` iterator.
     pub fn new(a: I, b: J) -> Interleave<I, J> {
-        Interleave{a: a.fuse(), b: b.fuse(), flag: false}
+        Interleave {
+            a: a.fuse(),
+            b: b.fuse(),
+            flag: false,
+        }
     }
 }
 
-impl<I, J> Iterator for Interleave<I, J> where
-    I: Iterator,
-    J: Iterator<Item=I::Item>,
+impl<I, J> Iterator for Interleave<I, J>
+    where I: Iterator,
+          J: Iterator<Item = I::Item>
 {
     type Item = I::Item;
     #[inline]
@@ -83,18 +87,18 @@ impl<I, J> Iterator for Interleave<I, J> where
 /// See [*.interleave_shortest()*](trait.Itertools.html#method.interleave_shortest)
 /// for more information.
 #[derive(Clone)]
-pub struct InterleaveShortest<I, J> where
-    I: Iterator,
-    J: Iterator<Item=I::Item>,
+pub struct InterleaveShortest<I, J>
+    where I: Iterator,
+          J: Iterator<Item = I::Item>
 {
     it0: I,
     it1: J,
     phase: bool, // false ==> it0, true ==> it1
 }
 
-impl<I, J> InterleaveShortest<I, J> where
-    I: Iterator,
-    J: Iterator<Item=I::Item>,
+impl<I, J> InterleaveShortest<I, J>
+    where I: Iterator,
+          J: Iterator<Item = I::Item>
 {
     /// Create a new `InterleaveShortest` iterator.
     pub fn new(a: I, b: J) -> InterleaveShortest<I, J> {
@@ -106,9 +110,9 @@ impl<I, J> InterleaveShortest<I, J> where
     }
 }
 
-impl<I, J> Iterator for InterleaveShortest<I, J> where
-    I: Iterator,
-    J: Iterator<Item=I::Item>,
+impl<I, J> Iterator for InterleaveShortest<I, J>
+    where I: Iterator,
+          J: Iterator<Item = I::Item>
 {
     type Item = I::Item;
 
@@ -160,34 +164,37 @@ impl<I, J> Iterator for InterleaveShortest<I, J> where
 /// item to the front of the iterator.
 ///
 /// Iterator element type is `I::Item`.
-pub struct PutBack<I> where
-    I: Iterator,
+pub struct PutBack<I>
+    where I: Iterator
 {
     top: Option<I::Item>,
     iter: I,
 }
 
-impl<I> PutBack<I> where
-    I: Iterator,
+impl<I> PutBack<I>
+    where I: Iterator
 {
     /// Iterator element type is `A`
     #[inline]
-    pub fn new(it: I) -> Self
-    {
-        PutBack{top: None, iter: it}
+    pub fn new(it: I) -> Self {
+        PutBack {
+            top: None,
+            iter: it,
+        }
     }
 
     /// Create a `PutBack` along with the `value` to put back.
     #[inline]
-    pub fn with_value(value: I::Item, it: I) -> Self
-    {
-        PutBack{top: Some(value), iter: it}
+    pub fn with_value(value: I::Item, it: I) -> Self {
+        PutBack {
+            top: Some(value),
+            iter: it,
+        }
     }
 
     /// Split the `PutBack` into its parts.
     #[inline]
-    pub fn into_parts(self) -> (Option<I::Item>, I)
-    {
+    pub fn into_parts(self) -> (Option<I::Item>, I) {
         let PutBack{top, iter} = self;
         (top, iter)
     }
@@ -196,14 +203,13 @@ impl<I> PutBack<I> where
     ///
     /// If a value is already in the put back slot, it is overwritten.
     #[inline]
-    pub fn put_back(&mut self, x: I::Item)
-    {
+    pub fn put_back(&mut self, x: I::Item) {
         self.top = Some(x)
     }
 }
 
-impl<I> Iterator for PutBack<I> where
-    I: Iterator,
+impl<I> Iterator for PutBack<I>
+    where I: Iterator
 {
     type Item = I::Item;
     #[inline]
@@ -224,19 +230,19 @@ impl<I> Iterator for PutBack<I> where
 /// items in front of the iterator.
 ///
 /// Iterator element type is `I::Item`.
-pub struct PutBackN<I: Iterator>
-{
+pub struct PutBackN<I: Iterator> {
     top: Vec<I::Item>,
-    iter: I
+    iter: I,
 }
 
-impl<I: Iterator> PutBackN<I>
-{
+impl<I: Iterator> PutBackN<I> {
     /// Iterator element type is `A`
     #[inline]
-    pub fn new(it: I) -> Self
-    {
-        PutBackN{top: vec![], iter: it}
+    pub fn new(it: I) -> Self {
+        PutBackN {
+            top: vec![],
+            iter: it,
+        }
     }
 
     /// Puts x in front of the iterator.
@@ -253,14 +259,12 @@ impl<I: Iterator> PutBackN<I>
     /// assert!(itertools::equal(it, 0..5));
     /// ```
     #[inline]
-    pub fn put_back(&mut self, x: I::Item)
-    {
+    pub fn put_back(&mut self, x: I::Item) {
         self.top.push(x);
     }
 }
 
-impl<I: Iterator> Iterator for PutBackN<I>
-{
+impl<I: Iterator> Iterator for PutBackN<I> {
     type Item = I::Item;
     #[inline]
     fn next(&mut self) -> Option<I::Item> {
@@ -277,12 +281,11 @@ impl<I: Iterator> Iterator for PutBackN<I>
     }
 }
 
-impl<I: Iterator> Clone for PutBackN<I> where
-    I: Clone,
-    I::Item: Clone
+impl<I: Iterator> Clone for PutBackN<I>
+    where I: Clone,
+          I::Item: Clone
 {
-    fn clone(&self) -> Self
-    {
+    fn clone(&self) -> Self {
         clone_fields!(PutBackN, self, top, iter)
     }
 }
@@ -294,8 +297,8 @@ impl<I: Iterator> Clone for PutBackN<I> where
 /// Iterator element type is `(I::Item, J::Item)`.
 ///
 /// See [*.cartesian_product()*](trait.Itertools.html#method.cartesian_product) for more information.
-pub struct Product<I, J> where
-    I: Iterator,
+pub struct Product<I, J>
+    where I: Iterator
 {
     a: I,
     a_cur: Option<I::Item>,
@@ -303,30 +306,33 @@ pub struct Product<I, J> where
     b_orig: J,
 }
 
-impl<I, J> Product<I, J> where
-    I: Iterator,
-    J: Clone + Iterator,
-    I::Item: Clone,
+impl<I, J> Product<I, J>
+    where I: Iterator,
+          J: Clone + Iterator,
+          I::Item: Clone
 {
     /// Create a new cartesian product iterator
     ///
     /// Iterator element type is `(I::Item, J::Item)`.
-    pub fn new(i: I, j: J) -> Self
-    {
+    pub fn new(i: I, j: J) -> Self {
         let mut i = i;
-        Product{a_cur: i.next(), a: i, b: j.clone(), b_orig: j}
+        Product {
+            a_cur: i.next(),
+            a: i,
+            b: j.clone(),
+            b_orig: j,
+        }
     }
 }
 
 
-impl<I, J> Iterator for Product<I, J> where
-    I: Iterator,
-    J: Clone + Iterator,
-    I::Item: Clone,
+impl<I, J> Iterator for Product<I, J>
+    where I: Iterator,
+          J: Clone + Iterator,
+          I::Item: Clone
 {
     type Item = (I::Item, J::Item);
-    fn next(&mut self) -> Option<(I::Item, J::Item)>
-    {
+    fn next(&mut self) -> Option<(I::Item, J::Item)> {
         let elt_b = match self.b.next() {
             None => {
                 self.b = self.b_orig.clone();
@@ -348,8 +354,7 @@ impl<I, J> Iterator for Product<I, J> where
         }
     }
 
-    fn size_hint(&self) -> (usize, Option<usize>)
-    {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         let has_cur = self.a_cur.is_some() as usize;
         // Not ExactSizeIterator because size may be larger than usize
         let (b, _) = self.b.size_hint();
@@ -375,26 +380,23 @@ pub struct Batching<I, F> {
 
 impl<F, I> Batching<I, F> {
     /// Create a new Batching iterator.
-    pub fn new(iter: I, f: F) -> Batching<I, F>
-    {
-        Batching{f: f, iter: iter}
+    pub fn new(iter: I, f: F) -> Batching<I, F> {
+        Batching { f: f, iter: iter }
     }
 }
 
-impl<B, F, I> Iterator for Batching<I, F> where
-    I: Iterator,
-    F: FnMut(&mut I) -> Option<B>,
+impl<B, F, I> Iterator for Batching<I, F>
+    where I: Iterator,
+          F: FnMut(&mut I) -> Option<B>
 {
     type Item = B;
     #[inline]
-    fn next(&mut self) -> Option<B>
-    {
+    fn next(&mut self) -> Option<B> {
         (self.f)(&mut self.iter)
     }
 
     #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>)
-    {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         // No information about closue behavior
         (0, None)
     }
@@ -405,8 +407,8 @@ impl<B, F, I> Iterator for Batching<I, F> where
 /// that map to the same key (“runs”), are returned as the iterator elements.
 ///
 /// See [*.group_by()*](trait.Itertools.html#method.group_by) for more information.
-pub struct GroupBy<K, I, F> where
-    I: Iterator,
+pub struct GroupBy<K, I, F>
+    where I: Iterator
 {
     key: F,
     iter: I,
@@ -414,33 +416,38 @@ pub struct GroupBy<K, I, F> where
     elts: Vec<I::Item>,
 }
 
-impl<K, F, I> GroupBy<K, I, F> where
-    I: Iterator,
+impl<K, F, I> GroupBy<K, I, F>
+    where I: Iterator
 {
     /// Create a new `GroupBy` iterator.
-    pub fn new(iter: I, key: F) -> Self
-    {
-        GroupBy{key: key, iter: iter, current_key: None, elts: Vec::new()}
+    pub fn new(iter: I, key: F) -> Self {
+        GroupBy {
+            key: key,
+            iter: iter,
+            current_key: None,
+            elts: Vec::new(),
+        }
     }
 }
 
-impl<K, I, F> Iterator for GroupBy<K, I, F> where
-    K: PartialEq,
-    I: Iterator,
-    F: FnMut(&I::Item) -> K,
+impl<K, I, F> Iterator for GroupBy<K, I, F>
+    where K: PartialEq,
+          I: Iterator,
+          F: FnMut(&I::Item) -> K
 {
     type Item = (K, Vec<I::Item>);
-    fn next(&mut self) -> Option<(K, Vec<I::Item>)>
-    {
+    fn next(&mut self) -> Option<(K, Vec<I::Item>)> {
         for elt in self.iter.by_ref() {
             let key = (self.key)(&elt);
             match self.current_key.take() {
                 None => {}
-                Some(old_key) => if old_key != key {
-                    self.current_key = Some(key);
-                    let v = mem::replace(&mut self.elts, vec![elt]);
-                    return Some((old_key, v))
-                },
+                Some(old_key) => {
+                    if old_key != key {
+                        self.current_key = Some(key);
+                        let v = mem::replace(&mut self.elts, vec![elt]);
+                        return Some((old_key, v));
+                    }
+                }
             }
             self.current_key = Some(key);
             self.elts.push(elt);
@@ -454,11 +461,9 @@ impl<K, I, F> Iterator for GroupBy<K, I, F> where
         }
     }
 
-    fn size_hint(&self) -> (usize, Option<usize>)
-    {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         let stored_count = self.current_key.is_some() as usize;
-        let mut sh = size_hint::add_scalar(self.iter.size_hint(),
-                                           stored_count);
+        let mut sh = size_hint::add_scalar(self.iter.size_hint(), stored_count);
         if sh.0 > 0 {
             sh.0 = 1;
         }
@@ -479,31 +484,33 @@ pub struct Step<I> {
     skip: usize,
 }
 
-impl<I> Step<I> where I: Iterator
+impl<I> Step<I>
+    where I: Iterator
 {
     /// Create a `Step` iterator.
     ///
     /// **Panics** if the step is 0.
-    pub fn new(iter: I, step: usize) -> Self
-    {
+    pub fn new(iter: I, step: usize) -> Self {
         assert!(step != 0);
-        Step{iter: iter.fuse(), skip: step - 1}
+        Step {
+            iter: iter.fuse(),
+            skip: step - 1,
+        }
     }
 }
 
-impl<I> Iterator for Step<I> where I: Iterator
+impl<I> Iterator for Step<I>
+    where I: Iterator
 {
     type Item = I::Item;
     #[inline]
-    fn next(&mut self) -> Option<I::Item>
-    {
+    fn next(&mut self) -> Option<I::Item> {
         let elt = self.iter.next();
         self.iter.dropn(self.skip);
         elt
     }
 
-    fn size_hint(&self) -> (usize, Option<usize>)
-    {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         let (low, high) = self.iter.size_hint();
         let div = |x: usize| {
             if x == 0 {
@@ -517,14 +524,14 @@ impl<I> Iterator for Step<I> where I: Iterator
 }
 
 // known size
-impl<I> ExactSizeIterator for Step<I> where
-    I: ExactSizeIterator,
-{ }
+impl<I> ExactSizeIterator for Step<I>
+    where I: ExactSizeIterator
+{}
 
 
 struct MergeCore<I, J>
     where I: Iterator,
-          J: Iterator<Item=I::Item>,
+          J: Iterator<Item = I::Item>
 {
     a: Peekable<I>,
     b: Peekable<J>,
@@ -532,11 +539,11 @@ struct MergeCore<I, J>
 }
 
 
-impl<I, J> Clone for MergeCore<I, J> where
-    I: Iterator,
-    J: Iterator<Item=I::Item>,
-    Peekable<I>: Clone,
-    Peekable<J>: Clone,
+impl<I, J> Clone for MergeCore<I, J>
+    where I: Iterator,
+          J: Iterator<Item = I::Item>,
+          Peekable<I>: Clone,
+          Peekable<J>: Clone
 {
     fn clone(&self) -> Self {
         clone_fields!(MergeCore, self, a, b, fused)
@@ -545,7 +552,7 @@ impl<I, J> Clone for MergeCore<I, J> where
 
 impl<I, J> MergeCore<I, J>
     where I: Iterator,
-          J: Iterator<Item=I::Item>,
+          J: Iterator<Item = I::Item>
 {
     fn next_with<F>(&mut self, mut less_than: F) -> Option<I::Item>
         where F: FnMut(&I::Item, &I::Item) -> bool
@@ -585,18 +592,18 @@ impl<I, J> MergeCore<I, J>
 /// Iterator element type is `I::Item`.
 ///
 /// See [*.merge()*](trait.Itertools.html#method.merge_by) for more information.
-pub struct Merge<I, J> where
-    I: Iterator,
-    J: Iterator<Item=I::Item>,
+pub struct Merge<I, J>
+    where I: Iterator,
+          J: Iterator<Item = I::Item>
 {
     merge: MergeCore<I, J>,
 }
 
-impl<I, J> Clone for Merge<I, J> where
-    I: Iterator,
-    J: Iterator<Item=I::Item>,
-    Peekable<I>: Clone,
-    Peekable<J>: Clone,
+impl<I, J> Clone for Merge<I, J>
+    where I: Iterator,
+          J: Iterator<Item = I::Item>,
+          Peekable<I>: Clone,
+          Peekable<J>: Clone
 {
     fn clone(&self) -> Self {
         clone_fields!(Merge, self, merge)
@@ -606,21 +613,21 @@ impl<I, J> Clone for Merge<I, J> where
 /// Create a `Merge` iterator.
 pub fn merge_new<I, J>(a: I, b: J) -> Merge<I, J>
     where I: Iterator,
-          J: Iterator<Item=I::Item>,
+          J: Iterator<Item = I::Item>
 {
     Merge {
         merge: MergeCore {
             a: a.peekable(),
             b: b.peekable(),
             fused: None,
-        }
+        },
     }
 }
 
 impl<I, J> Iterator for Merge<I, J>
     where I: Iterator,
-          J: Iterator<Item=I::Item>,
-          I::Item: PartialOrd,
+          J: Iterator<Item = I::Item>,
+          I::Item: PartialOrd
 {
     type Item = I::Item;
 
@@ -639,9 +646,9 @@ impl<I, J> Iterator for Merge<I, J>
 /// Iterator element type is `I::Item`.
 ///
 /// See [*.merge_by()*](trait.Itertools.html#method.merge_by) for more information.
-pub struct MergeBy<I, J, F> where
-    I: Iterator,
-    J: Iterator<Item=I::Item>,
+pub struct MergeBy<I, J, F>
+    where I: Iterator,
+          J: Iterator<Item = I::Item>
 {
     merge: MergeCore<I, J>,
     cmp: F,
@@ -650,7 +657,7 @@ pub struct MergeBy<I, J, F> where
 /// Create a `MergeBy` iterator.
 pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I, J, F>
     where I: Iterator,
-          J: Iterator<Item=I::Item>,
+          J: Iterator<Item = I::Item>
 {
     MergeBy {
         merge: MergeCore {
@@ -662,22 +669,22 @@ pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I, J, F>
     }
 }
 
-impl<I, J, F> Clone for MergeBy<I, J, F> where
-    I: Iterator,
-    J: Iterator<Item=I::Item>,
-    Peekable<I>: Clone,
-    Peekable<J>: Clone,
-    F: Clone,
+impl<I, J, F> Clone for MergeBy<I, J, F>
+    where I: Iterator,
+          J: Iterator<Item = I::Item>,
+          Peekable<I>: Clone,
+          Peekable<J>: Clone,
+          F: Clone
 {
     fn clone(&self) -> Self {
         clone_fields!(MergeBy, self, merge, cmp)
     }
 }
 
-impl<I, J, F> Iterator for MergeBy<I, J, F> where
-    I: Iterator,
-    J: Iterator<Item=I::Item>,
-    F: FnMut(&I::Item, &I::Item) -> bool
+impl<I, J, F> Iterator for MergeBy<I, J, F>
+    where I: Iterator,
+          J: Iterator<Item = I::Item>,
+          F: FnMut(&I::Item, &I::Item) -> bool
 {
     type Item = I::Item;
 
@@ -697,20 +704,25 @@ impl<I, J, F> Iterator for MergeBy<I, J, F> where
 ///
 /// The meanings of `PartialOrd` and `Ord` are reversed so as to turn the `BinaryHeap` used in
 /// `KMerge` into a min-heap.
-struct NonEmpty<I> where
-    I: Iterator
+struct NonEmpty<I>
+    where I: Iterator
 {
     head: I::Item,
     tail: I,
 }
 
-impl<I> NonEmpty<I> where
-    I: Iterator,
+impl<I> NonEmpty<I>
+    where I: Iterator
 {
     /// Constructs a `NonEmpty` from an `Iterator`. Returns `None` if the `Iterator` is empty.
     fn new(mut it: I) -> Option<NonEmpty<I>> {
         let head = it.next();
-        head.map(|h| NonEmpty { head: h, tail: it })
+        head.map(|h| {
+            NonEmpty {
+                head: h,
+                tail: it,
+            }
+        })
     }
 
     /// Returns the next item in the sequence. If more items remain, the remainder of the sequence
@@ -725,32 +737,32 @@ impl<I> NonEmpty<I> where
     }
 }
 
-impl<I> Clone for NonEmpty<I> where
-    I: Iterator + Clone,
-    I::Item: Clone
+impl<I> Clone for NonEmpty<I>
+    where I: Iterator + Clone,
+          I::Item: Clone
 {
     fn clone(&self) -> Self {
         clone_fields!(NonEmpty, self, head, tail)
     }
 }
 
-impl<I> PartialEq for NonEmpty<I> where
-    I: Iterator,
-    I::Item: PartialEq
+impl<I> PartialEq for NonEmpty<I>
+    where I: Iterator,
+          I::Item: PartialEq
 {
     fn eq(&self, other: &NonEmpty<I>) -> bool {
         self.head.eq(&other.head)
     }
 }
 
-impl<I> Eq for NonEmpty<I> where
-    I: Iterator,
-    I::Item: Eq
-{ }
+impl<I> Eq for NonEmpty<I>
+    where I: Iterator,
+          I::Item: Eq
+{}
 
-impl<I> PartialOrd for NonEmpty<I> where
-    I: Iterator,
-    I::Item: PartialOrd
+impl<I> PartialOrd for NonEmpty<I>
+    where I: Iterator,
+          I::Item: PartialOrd
 {
     fn partial_cmp(&self, other: &NonEmpty<I>) -> Option<Ordering> {
         other.head.partial_cmp(&self.head)
@@ -773,9 +785,9 @@ impl<I> PartialOrd for NonEmpty<I> where
     }
 }
 
-impl<I> Ord for NonEmpty<I> where
-    I: Iterator,
-    I::Item: Ord
+impl<I> Ord for NonEmpty<I>
+    where I: Iterator,
+          I::Item: Ord
 {
     fn cmp(&self, other: &Self) -> Ordering {
         other.head.cmp(&self.head)
@@ -788,8 +800,8 @@ impl<I> Ord for NonEmpty<I> where
 /// Iterator element type is `I::Item`.
 ///
 /// See [*.kmerge()*](trait.Itertools.html#method.kmerge) for more information.
-pub struct KMerge<I> where
-    I: Iterator
+pub struct KMerge<I>
+    where I: Iterator
 {
     heap: BinaryHeap<NonEmpty<I>>,
 }
@@ -800,23 +812,21 @@ pub fn kmerge_new<I>(it: I) -> KMerge<<I::Item as IntoIterator>::IntoIter>
           I::Item: IntoIterator,
           <<I as Iterator>::Item as IntoIterator>::Item: Ord
 {
-    KMerge {
-        heap: it.filter_map(|it| NonEmpty::new(it.into_iter())).collect()
-    }
+    KMerge { heap: it.filter_map(|it| NonEmpty::new(it.into_iter())).collect() }
 }
 
-impl<I> Clone for KMerge<I> where
-    I: Iterator + Clone,
-    I::Item: Clone
+impl<I> Clone for KMerge<I>
+    where I: Iterator + Clone,
+          I::Item: Clone
 {
     fn clone(&self) -> KMerge<I> {
         clone_fields!(KMerge, self, heap)
     }
 }
 
-impl<I> Iterator for KMerge<I> where
-    I: Iterator,
-    I::Item: Ord
+impl<I> Iterator for KMerge<I>
+    where I: Iterator,
+          I::Item: Ord
 {
     type Item = I::Item;
 
@@ -844,31 +854,31 @@ impl<I> Iterator for KMerge<I> where
 /// with a custom starting value and integer type.
 ///
 /// See [*.enumerate_from()*](trait.Itertools.html#method.enumerate_from) for more information.
-pub struct EnumerateFrom<I, K>
-{
+pub struct EnumerateFrom<I, K> {
     index: K,
     iter: I,
 }
 
 #[cfg(feature = "unstable")]
-impl<K, I> EnumerateFrom<I, K> where
-    I: Iterator,
+impl<K, I> EnumerateFrom<I, K>
+    where I: Iterator
 {
     /// Create a new `EnumerateFrom`.
-    pub fn new(iter: I, start: K) -> Self
-    {
-        EnumerateFrom{index: start, iter: iter}
+    pub fn new(iter: I, start: K) -> Self {
+        EnumerateFrom {
+            index: start,
+            iter: iter,
+        }
     }
 }
 
 #[cfg(feature = "unstable")]
-impl<K, I> Iterator for EnumerateFrom<I, K> where
-    K: Copy + One + Add<Output=K>,
-    I: Iterator,
+impl<K, I> Iterator for EnumerateFrom<I, K>
+    where K: Copy + One + Add<Output = K>,
+          I: Iterator
 {
     type Item = (K, I::Item);
-    fn next(&mut self) -> Option<(K, I::Item)>
-    {
+    fn next(&mut self) -> Option<(K, I::Item)> {
         match self.iter.next() {
             None => None,
             Some(elt) => {
@@ -881,26 +891,25 @@ impl<K, I> Iterator for EnumerateFrom<I, K> where
         }
     }
 
-    fn size_hint(&self) -> (usize, Option<usize>)
-    {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         self.iter.size_hint()
     }
 }
 
 // Same size
 #[cfg(feature = "unstable")]
-impl<K, I> ExactSizeIterator for EnumerateFrom<I, K> where
-    K: Copy + One + Add<Output=K>,
-    I: ExactSizeIterator,
-{ }
+impl<K, I> ExactSizeIterator for EnumerateFrom<I, K>
+    where K: Copy + One + Add<Output = K>,
+          I: ExactSizeIterator
+{}
 
 #[derive(Clone)]
 /// An iterator adaptor that allows the user to peek at multiple *.next()*
 /// values without advancing itself.
 ///
 /// See [*.multipeek()*](trait.Itertools.html#method.multipeek) for more information.
-pub struct MultiPeek<I> where
-    I: Iterator,
+pub struct MultiPeek<I>
+    where I: Iterator
 {
     iter: Fuse<I>,
     buf: Vec<I::Item>,
@@ -910,7 +919,11 @@ pub struct MultiPeek<I> where
 impl<I: Iterator> MultiPeek<I> {
     /// Create a `MultiPeek` iterator.
     pub fn new(iter: I) -> MultiPeek<I> {
-        MultiPeek{ iter: iter.fuse(), buf: Vec::new(), index: 0 }
+        MultiPeek {
+            iter: iter.fuse(),
+            buf: Vec::new(),
+            index: 0,
+        }
     }
 
     /// Works exactly like *.next()* with the only difference that it doesn't
@@ -925,7 +938,7 @@ impl<I: Iterator> MultiPeek<I> {
                     self.buf.push(x);
                     Some(&self.buf[self.index])
                 }
-                None => return None
+                None => return None,
             }
         };
 
@@ -934,8 +947,8 @@ impl<I: Iterator> MultiPeek<I> {
     }
 }
 
-impl<I> Iterator for MultiPeek<I> where
-    I: Iterator,
+impl<I> Iterator for MultiPeek<I>
+    where I: Iterator
 {
     type Item = I::Item;
 
@@ -948,27 +961,26 @@ impl<I> Iterator for MultiPeek<I> where
         }
     }
 
-    fn size_hint(&self) -> (usize, Option<usize>)
-    {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         size_hint::add_scalar(self.iter.size_hint(), self.buf.len())
     }
 }
 
 // Same size
-impl<I> ExactSizeIterator for MultiPeek<I> where
-    I: ExactSizeIterator,
-{ }
+impl<I> ExactSizeIterator for MultiPeek<I>
+    where I: ExactSizeIterator
+{}
 
 #[derive(Clone)]
 pub struct CoalesceCore<I>
-    where I: Iterator,
+    where I: Iterator
 {
     iter: I,
     last: Option<I::Item>,
 }
 
 impl<I> CoalesceCore<I>
-    where I: Iterator,
+    where I: Iterator
 {
     fn next_with<F>(&mut self, mut f: F) -> Option<I::Item>
         where F: FnMut(I::Item, I::Item) -> Result<I::Item, (I::Item, I::Item)>
@@ -983,7 +995,7 @@ impl<I> CoalesceCore<I>
                 Ok(joined) => last = joined,
                 Err((last_, next_)) => {
                     self.last = Some(next_);
-                    return Some(last_)
+                    return Some(last_);
                 }
             }
         }
@@ -991,8 +1003,7 @@ impl<I> CoalesceCore<I>
         Some(last)
     }
 
-    fn size_hint(&self) -> (usize, Option<usize>)
-    {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         let (low, hi) = size_hint::add_scalar(self.iter.size_hint(),
                                               self.last.is_some() as usize);
         ((low > 0) as usize, hi)
@@ -1003,22 +1014,23 @@ impl<I> CoalesceCore<I>
 ///
 /// See [*.coalesce()*](trait.Itertools.html#method.coalesce) for more information.
 pub struct Coalesce<I, F>
-    where I: Iterator,
+    where I: Iterator
 {
     iter: CoalesceCore<I>,
     f: F,
 }
 
 impl<I: Clone, F: Clone> Clone for Coalesce<I, F>
-    where I: Iterator, I::Item: Clone
+    where I: Iterator,
+          I::Item: Clone
 {
     fn clone(&self) -> Self {
         clone_fields!(Coalesce, self, iter, f)
     }
 }
 
-impl<I, F> Coalesce<I, F> where
-    I: Iterator,
+impl<I, F> Coalesce<I, F>
+    where I: Iterator
 {
     /// Create a new `Coalesce`.
     pub fn new(mut iter: I, f: F) -> Self {
@@ -1051,21 +1063,22 @@ impl<I, F> Iterator for Coalesce<I, F>
 ///
 /// See [*.dedup()*](trait.Itertools.html#method.dedup) for more information.
 pub struct Dedup<I>
-    where I: Iterator,
+    where I: Iterator
 {
     iter: CoalesceCore<I>,
 }
 
 impl<I: Clone> Clone for Dedup<I>
-    where I: Iterator, I::Item: Clone
+    where I: Iterator,
+          I::Item: Clone
 {
     fn clone(&self) -> Self {
         clone_fields!(Dedup, self, iter)
     }
 }
 
-impl<I> Dedup<I> where
-    I: Iterator,
+impl<I> Dedup<I>
+    where I: Iterator
 {
     /// Create a new `Dedup`.
     pub fn new(mut iter: I) -> Self {
@@ -1080,7 +1093,7 @@ impl<I> Dedup<I> where
 
 impl<I> Iterator for Dedup<I>
     where I: Iterator,
-          I::Item: PartialEq,
+          I::Item: PartialEq
 {
     type Item = I::Item;
 
@@ -1099,21 +1112,22 @@ impl<I> Iterator for Dedup<I>
 ///
 /// See [*.mend_slices()*](trait.Itertools.html#method.mend_slices) for more information.
 pub struct MendSlices<I>
-    where I: Iterator,
+    where I: Iterator
 {
     iter: CoalesceCore<I>,
 }
 
 impl<I: Clone> Clone for MendSlices<I>
-    where I: Iterator, I::Item: Clone
+    where I: Iterator,
+          I::Item: Clone
 {
     fn clone(&self) -> Self {
         clone_fields!(MendSlices, self, iter)
     }
 }
 
-impl<I> MendSlices<I> where
-    I: Iterator,
+impl<I> MendSlices<I>
+    where I: Iterator
 {
     /// Create a new `MendSlices`.
     pub fn new(mut iter: I) -> Self {
@@ -1128,7 +1142,7 @@ impl<I> MendSlices<I> where
 
 impl<I> Iterator for MendSlices<I>
     where I: Iterator,
-          I::Item: MendSlice,
+          I::Item: MendSlice
 {
     type Item = I::Item;
 
@@ -1145,32 +1159,27 @@ impl<I> Iterator for MendSlices<I>
 /// to only pick off elements while the predicate returns `true`.
 ///
 /// See [*.take_while_ref()*](trait.Itertools.html#method.take_while_ref) for more information.
-pub struct TakeWhileRef<'a, I: 'a, F>
-{
+pub struct TakeWhileRef<'a, I: 'a, F> {
     iter: &'a mut I,
     f: F,
 }
 
-impl<'a, I, F> TakeWhileRef<'a, I, F> where I: Iterator + Clone,
+impl<'a, I, F> TakeWhileRef<'a, I, F>
+    where I: Iterator + Clone
 {
     /// Create a new `TakeWhileRef` from a reference to clonable iterator.
-    pub fn new(iter: &'a mut I, f: F) -> Self
-    {
-        TakeWhileRef {
-            iter: iter,
-            f: f,
-        }
+    pub fn new(iter: &'a mut I, f: F) -> Self {
+        TakeWhileRef { iter: iter, f: f }
     }
 }
 
-impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F> where
-    I: Iterator + Clone,
-    F: FnMut(&I::Item) -> bool,
+impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F>
+    where I: Iterator + Clone,
+          F: FnMut(&I::Item) -> bool
 {
     type Item = I::Item;
 
-    fn next(&mut self) -> Option<I::Item>
-    {
+    fn next(&mut self) -> Option<I::Item> {
         let old = self.iter.clone();
         match self.iter.next() {
             None => None,
@@ -1185,8 +1194,7 @@ impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F> where
         }
     }
 
-    fn size_hint(&self) -> (usize, Option<usize>)
-    {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         let (_, hi) = self.iter.size_hint();
         (0, hi)
     }
@@ -1208,8 +1216,8 @@ impl<I> WhileSome<I> {
     }
 }
 
-impl<I, A> Iterator for WhileSome<I> where
-    I: Iterator<Item=Option<A>>
+impl<I, A> Iterator for WhileSome<I>
+    where I: Iterator<Item = Option<A>>
 {
     type Item = A;
 
@@ -1235,18 +1243,23 @@ pub struct Combinations<I: Iterator> {
     next_iter: I,
     val: Option<I::Item>,
 }
-impl<I> Combinations<I> where I: Iterator + Clone {
+impl<I> Combinations<I>
+    where I: Iterator + Clone
+{
     /// Create a new `Combinations` from a clonable iterator.
     pub fn new(iter: I) -> Combinations<I> {
-        Combinations { 
-            next_iter: iter.clone(), 
-            iter: iter, 
+        Combinations {
+            next_iter: iter.clone(),
+            iter: iter,
             val: None,
         }
     }
 }
 
-impl<I> Iterator for Combinations<I> where I: Iterator + Clone, I::Item: Clone {
+impl<I> Iterator for Combinations<I>
+    where I: Iterator + Clone,
+          I::Item: Clone
+{
     type Item = (I::Item, I::Item);
     fn next(&mut self) -> Option<Self::Item> {
         // not having a value means we iterate once more through the first iterator
@@ -1291,7 +1304,9 @@ struct LazyBuffer<I: Iterator> {
     buffer: Vec<I::Item>,
 }
 
-impl<I> LazyBuffer<I> where I: Iterator {
+impl<I> LazyBuffer<I>
+    where I: Iterator
+{
     pub fn new(it: I) -> LazyBuffer<I> {
         let mut it = it;
         let mut buffer = Vec::new();
@@ -1326,16 +1341,19 @@ impl<I> LazyBuffer<I> where I: Iterator {
             Some(x) => {
                 self.buffer.push(x);
                 true
-            },
+            }
             None => {
                 self.done = true;
                 false
-            },
+            }
         }
     }
 }
 
-impl<I> Index<usize> for LazyBuffer<I> where I: Iterator, I::Item: Sized {
+impl<I> Index<usize> for LazyBuffer<I>
+    where I: Iterator,
+          I::Item: Sized
+{
     type Output = I::Item;
 
     fn index<'b>(&'b self, _index: usize) -> &'b I::Item {
@@ -1352,7 +1370,9 @@ pub struct CombinationsN<I: Iterator> {
     pool: LazyBuffer<I>,
     first: bool,
 }
-impl<I> CombinationsN<I> where I: Iterator {
+impl<I> CombinationsN<I>
+    where I: Iterator
+{
     /// Create a new `CombinationsN` from a clonable iterator.
     pub fn new(iter: I, n: usize) -> CombinationsN<I> {
         let mut indices: Vec<usize> = Vec::with_capacity(n);
@@ -1376,7 +1396,10 @@ impl<I> CombinationsN<I> where I: Iterator {
     }
 }
 
-impl<I> Iterator for CombinationsN<I> where I: Iterator, I::Item: Clone {
+impl<I> Iterator for CombinationsN<I>
+    where I: Iterator,
+          I::Item: Clone
+{
     type Item = Vec<I::Item>;
     fn next(&mut self) -> Option<Self::Item> {
         let mut pool_len = self.pool.len();
@@ -1412,7 +1435,7 @@ impl<I> Iterator for CombinationsN<I> where I: Iterator, I::Item: Clone {
             self.indices[i] += 1;
             let mut j = i + 1;
             while j < self.n {
-                self.indices[j] = self.indices[j-1] + 1;
+                self.indices[j] = self.indices[j - 1] + 1;
                 j += 1;
             }
         }
@@ -1450,10 +1473,10 @@ impl<I: Iterator, V, F> UniqueBy<I, V, F>
     }
 }
 
-impl<I, V, F> Iterator for UniqueBy<I, V, F> where
-    I: Iterator,
-    V: Eq + Hash,
-    F: FnMut(&I::Item) -> V
+impl<I, V, F> Iterator for UniqueBy<I, V, F>
+    where I: Iterator,
+          V: Eq + Hash,
+          F: FnMut(&I::Item) -> V
 {
     type Item = I::Item;
 
@@ -1478,9 +1501,9 @@ impl<I, V, F> Iterator for UniqueBy<I, V, F> where
     }
 }
 
-impl<I> Iterator for Unique<I> where
-    I: Iterator,
-    I::Item: Eq + Hash + Clone,
+impl<I> Iterator for Unique<I>
+    where I: Iterator,
+          I::Item: Eq + Hash + Clone
 {
     type Item = I::Item;
 
@@ -1532,27 +1555,27 @@ pub fn unique<I>(iter: I) -> Unique<I>
 /// See [*.flatten()*](trait.Itertools.html#method.flatten) for more information.
 pub struct Flatten<I>
     where I: Iterator,
-          I::Item: IntoIterator,
+          I::Item: IntoIterator
 {
-    iter: FlatMap<I, I::Item, fn(I::Item) -> I::Item>
+    iter: FlatMap<I, I::Item, fn(I::Item) -> I::Item>,
 }
 
-impl<I> Flatten<I> where
-    I: Iterator,
-    I::Item: IntoIterator
+impl<I> Flatten<I>
+    where I: Iterator,
+          I::Item: IntoIterator
 {
     /// Create a new `Flatten` iterator.
     pub fn new(iter: I) -> Flatten<I> {
-        fn identity<T>(t: T) -> T { t }
-        Flatten {
-            iter: iter.flat_map(identity)
+        fn identity<T>(t: T) -> T {
+            t
         }
+        Flatten { iter: iter.flat_map(identity) }
     }
 }
 
-impl<I> Iterator for Flatten<I> where
-    I: Iterator,
-    I::Item: IntoIterator
+impl<I> Iterator for Flatten<I>
+    where I: Iterator,
+          I::Item: IntoIterator
 {
     type Item = <I::Item as IntoIterator>::Item;
     fn next(&mut self) -> Option<Self::Item> {
@@ -1562,7 +1585,7 @@ impl<I> Iterator for Flatten<I> where
 
 impl<I> DoubleEndedIterator for Flatten<I>
     where I: DoubleEndedIterator,
-          I::Item: DoubleEndedIterator,
+          I::Item: DoubleEndedIterator
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back()

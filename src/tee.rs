@@ -5,8 +5,7 @@ use std::collections::VecDeque;
 use std::rc::Rc;
 
 /// Common buffer object for the two tee halves
-struct TeeBuffer<A, I>
-{
+struct TeeBuffer<A, I> {
     backlog: VecDeque<A>,
     iter: I,
     /// The owner field indicates which id should read from the backlog
@@ -16,15 +15,15 @@ struct TeeBuffer<A, I>
 /// One half of an iterator pair where both return the same elements.
 ///
 /// See [*.tee()*](trait.Itertools.html#method.tee) for more information.
-pub struct Tee<I> where
-    I: Iterator
+pub struct Tee<I>
+    where I: Iterator
 {
     rcbuffer: Rc<RefCell<TeeBuffer<I::Item, I>>>,
     id: bool,
 }
 
-pub fn new<I>(iter: I) -> (Tee<I>, Tee<I>) where
-    I: Iterator
+pub fn new<I>(iter: I) -> (Tee<I>, Tee<I>)
+    where I: Iterator
 {
     let buffer = TeeBuffer{backlog: VecDeque::new(), iter: iter, owner: false};
     let t1 = Tee{rcbuffer: Rc::new(RefCell::new(buffer)), id: true};
@@ -32,13 +31,12 @@ pub fn new<I>(iter: I) -> (Tee<I>, Tee<I>) where
     (t1, t2)
 }
 
-impl<I> Iterator for Tee<I> where
-    I: Iterator,
-    I::Item: Clone,
+impl<I> Iterator for Tee<I>
+    where I: Iterator,
+          I::Item: Clone
 {
     type Item = I::Item;
-    fn next(&mut self) -> Option<I::Item>
-    {
+    fn next(&mut self) -> Option<I::Item> {
         // .borrow_mut may fail here -- but only if the user has tied some kind of weird
         // knot where the iterator refers back to itself.
         let mut buffer = self.rcbuffer.borrow_mut();
@@ -58,8 +56,7 @@ impl<I> Iterator for Tee<I> where
         }
     }
 
-    fn size_hint(&self) -> (usize, Option<usize>)
-    {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         let buffer = self.rcbuffer.borrow();
         let sh = buffer.iter.size_hint();
 
@@ -72,7 +69,7 @@ impl<I> Iterator for Tee<I> where
     }
 }
 
-impl<I> ExactSizeIterator for Tee<I> where
-    I: ExactSizeIterator,
-    I::Item: Clone,
-{ }
+impl<I> ExactSizeIterator for Tee<I>
+    where I: ExactSizeIterator,
+          I::Item: Clone
+{}
