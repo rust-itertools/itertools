@@ -533,28 +533,6 @@ pub trait Itertools : Iterator {
         adaptors::merge_new(self, other.into_iter())
     }
 
-    /// Return an iterator adaptor that merges the base iterators in ascending order.
-    /// If all base iterators are sorted (ascending), the result is sorted.
-    ///
-    /// Iterator element type is `Self::Item`.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// let a = (0..6).step(3);
-    /// let b = (1..6).step(3);
-    /// let c = (2..6).step(3);
-    /// let it = vec![a, b, c].into_iter().kmerge();
-    /// itertools::assert_equal(it, vec![0, 1, 2, 3, 4, 5]);
-    /// ```
-    fn kmerge(self) -> KMerge<<<Self as Iterator>::Item as IntoIterator>::IntoIter> where
-        Self: Sized,
-        Self::Item: IntoIterator,
-        <<Self as Iterator>::Item as IntoIterator>::Item: Ord,
-    {
-        adaptors::kmerge_new(self)
-    }
-
     /// Return an iterator adaptor that merges the two base iterators in order.
     /// This is much like `.merge()` but allows for a custom ordering.
     ///
@@ -577,6 +555,30 @@ pub trait Itertools : Iterator {
         F: FnMut(&Self::Item, &Self::Item) -> bool
     {
         adaptors::merge_by_new(self, other.into_iter(), is_first)
+    }
+
+    /// Return an iterator adaptor that flattens an iterator of iterators by
+    /// merging them in ascending order.
+    ///
+    /// If all base iterators are sorted (ascending), the result is sorted.
+    ///
+    /// Iterator element type is `Self::Item`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let a = (0..6).step(3);
+    /// let b = (1..6).step(3);
+    /// let c = (2..6).step(3);
+    /// let it = vec![a, b, c].into_iter().kmerge();
+    /// itertools::assert_equal(it, vec![0, 1, 2, 3, 4, 5]);
+    /// ```
+    fn kmerge(self) -> KMerge<<<Self as Iterator>::Item as IntoIterator>::IntoIter> where
+        Self: Sized,
+        Self::Item: IntoIterator,
+        <<Self as Iterator>::Item as IntoIterator>::Item: Ord,
+    {
+        adaptors::kmerge_new(self)
     }
 
     /// Return an iterator adaptor that iterates over the cartesian product of
