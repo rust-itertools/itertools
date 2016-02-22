@@ -8,7 +8,9 @@ trait KeyFunction<A> {
     fn call_mut(&mut self, arg: A) -> Self::Key;
 }
 
-impl<'a, A, K, F: ?Sized> KeyFunction<A> for F where F: FnMut(A) -> K {
+impl<'a, A, K, F: ?Sized> KeyFunction<A> for F
+    where F: FnMut(A) -> K
+{
     type Key = K;
     #[inline]
     fn call_mut(&mut self, arg: A) -> Self::Key {
@@ -50,7 +52,7 @@ impl<'a, A> KeyFunction<A> for ChunkIndex {
 
 
 struct GroupInner<K, I, F>
-    where I: Iterator,
+    where I: Iterator
 {
     key: F,
     iter: I,
@@ -104,7 +106,7 @@ impl<K, I, F> GroupInner<K, I, F>
         // if `bufidx` doesn't exist in self.buffer, it might be empty
         let bufidx = client - self.bufbot;
         if client < self.bot {
-            return None
+            return None;
         }
         let elt = self.buffer.get_mut(bufidx).and_then(|queue| queue.next());
         if elt.is_none() && client == self.bot {
@@ -332,15 +334,13 @@ impl<'a, K, I, F> IntoIterator for &'a GroupByLazy<K, I, F>
     where I: Iterator,
           I::Item: 'a,
           F: FnMut(&I::Item) -> K,
-          K: PartialEq,
+          K: PartialEq
 {
     type Item = (K, Group<'a, K, I, F>);
     type IntoIter = Groups<'a, K, I, F>;
 
     fn into_iter(self) -> Self::IntoIter {
-        Groups {
-            parent: self,
-        }
+        Groups { parent: self }
     }
 }
 
@@ -353,7 +353,7 @@ impl<'a, K, I, F> IntoIterator for &'a GroupByLazy<K, I, F>
 /// See [`.group_by_lazy()`](trait.Itertools.html#method.group_by_lazy) for more information.
 pub struct Groups<'a, K: 'a, I: 'a, F: 'a>
     where I: Iterator,
-          I::Item: 'a,
+          I::Item: 'a
 {
     parent: &'a GroupByLazy<K, I, F>,
 }
@@ -362,7 +362,7 @@ impl<'a, K, I, F> Iterator for Groups<'a, K, I, F>
     where I: Iterator,
           I::Item: 'a,
           F: FnMut(&I::Item) -> K,
-          K: PartialEq,
+          K: PartialEq
 {
     type Item = (K, Group<'a, K, I, F>);
 

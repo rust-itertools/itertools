@@ -25,17 +25,16 @@ use super::size_hint;
 /// assert_eq!(xs, [69, 106, 103]);
 /// ```
 pub struct Zip<T> {
-    t: T
+    t: T,
 }
 
-impl<T> Zip<T> where
-    T: IntoIteratorTuple,
-    Zip<T::Output>: Iterator
+impl<T> Zip<T>
+    where T: IntoIteratorTuple,
+          Zip<T::Output>: Iterator
 {
     /// Create a new `Zip` from a tuple of iterators.
-    pub fn new(t: T) -> Zip<T::Output>
-    {
-        Zip{t: t.into_iterator_tuple()}
+    pub fn new(t: T) -> Zip<T::Output> {
+        Zip { t: t.into_iterator_tuple() }
     }
 }
 
@@ -107,4 +106,3 @@ impl_zip_iter!(A, B, C, D, E, F);
 impl_zip_iter!(A, B, C, D, E, F, G);
 impl_zip_iter!(A, B, C, D, E, F, G, H);
 impl_zip_iter!(A, B, C, D, E, F, G, H, I);
-

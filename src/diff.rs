@@ -13,7 +13,7 @@ use adaptors::PutBack;
 /// iterator `J`.
 pub enum Diff<I, J>
     where I: Iterator,
-          J: Iterator,
+          J: Iterator
 {
     /// The index of the first non-matching element along with both iterator's remaining elements
     /// starting with the first mis-match.
@@ -36,10 +36,11 @@ pub enum Diff<I, J>
 ///
 /// If `i` becomes exhausted before `j` becomes exhausted, the number of elements in `i` along with
 /// the remaining `j` elements will be returned as `Diff::Longer`.
-pub fn diff_with<I, J, F>(i: I, j: J, is_equal: F) -> Option<Diff<I::IntoIter, J::IntoIter>>
+pub fn diff_with<I, J, F>(i: I, j: J, is_equal: F)
+    -> Option<Diff<I::IntoIter, J::IntoIter>>
     where I: IntoIterator,
           J: IntoIterator,
-          F: Fn(&I::Item, &J::Item) -> bool,
+          F: Fn(&I::Item, &J::Item) -> bool
 {
     let mut i = i.into_iter();
     let mut j = j.into_iter();
