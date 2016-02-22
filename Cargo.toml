@@ -20,10 +20,8 @@ optional = true
 version = "0.1"
 
 [features]
-
 # Unstable features, nightly channel
 unstable = []
-qc = ["quickcheck"]
 
 [profile]
 bench = { debug = true }
