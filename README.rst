@@ -33,6 +33,11 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.4.9
+
+  - Add k-ary merge adaptor .kmerge()
+  - Fix a bug in .islice() with ranges a..b where a > b.
+
 - 0.4.8
 
   - Implement Clone, Debug for Linspace
