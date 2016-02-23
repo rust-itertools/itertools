@@ -53,7 +53,6 @@ pub use adaptors::{
     Step,
     Merge,
     MergeBy,
-    KMerge,
     MultiPeek,
     TakeWhileRef,
     WhileSome,
@@ -68,19 +67,20 @@ pub use adaptors::{
 #[cfg(feature = "unstable")]
 pub use adaptors::EnumerateFrom;
 pub use diff::{diff_with, Diff};
-pub use free::{enumerate, rev};
 pub use format::Format;
+pub use free::{enumerate, rev};
 pub use groupbylazy::{ChunksLazy, Chunk, Chunks, GroupByLazy, Group, Groups};
 pub use intersperse::Intersperse;
 pub use islice::ISlice;
+pub use kmerge::KMerge;
+pub use linspace::{linspace, Linspace};
 pub use pad_tail::PadUsing;
-pub use repeatn::RepeatN;
 pub use rciter::RcIter;
+pub use repeatn::RepeatN;
+pub use sources::{RepeatCall, Unfold};
 pub use stride::Stride;
 pub use stride::StrideMut;
 pub use tee::Tee;
-pub use linspace::{linspace, Linspace};
-pub use sources::{RepeatCall, Unfold};
 pub use zip_longest::{ZipLongest, EitherOrBoth};
 pub use ziptuple::Zip;
 #[cfg(feature = "unstable")]
@@ -93,6 +93,7 @@ mod groupbylazy;
 mod intersperse;
 mod islice;
 mod diff;
+mod kmerge;
 mod linspace;
 pub mod misc;
 mod pad_tail;
@@ -575,7 +576,7 @@ pub trait Itertools : Iterator {
         Self::Item: IntoIterator,
         <<Self as Iterator>::Item as IntoIterator>::Item: Ord,
     {
-        adaptors::kmerge_new(self)
+        kmerge::kmerge_new(self)
     }
 
     /// Return an iterator adaptor that iterates over the cartesian product of

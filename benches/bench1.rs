@@ -666,40 +666,34 @@ fn kmerge_default(b: &mut test::Bencher) {
 }
 
 #[bench]
-fn kmerge_threeway(b: &mut test::Bencher) {
-    let mut data1 = vec![0; 1024];
-    let mut data2 = vec![0; 800];
-    let mut data3 = vec![0; 1024];
-    let mut x = 0;
-    for (_, elt) in data1.iter_mut().enumerate() {
-        *elt = x;
-        x += 1;
+fn kmerge_tenway(b: &mut test::Bencher) {
+    let mut data = vec![0; 10240];
+
+    let mut state = 1729u16;
+    fn rng(state: &mut u16) -> u16 {
+        let new = state.wrapping_mul(31421) + 6927;
+        *state = new;
+        new
     }
 
-    let mut y = 0;
-    for (i, elt) in data2.iter_mut().enumerate() {
-        *elt += y;
-        if i % 3 == 0 {
-            y += 3;
-        } else {
-            y += 0;
-        }
+    for elt in &mut data {
+        *elt = rng(&mut state);
     }
 
-    let mut z = 0;
-    for (i, elt) in data3.iter_mut().enumerate() {
-        *elt += z;
-        if i % 10 == 0 {
-            z += 10;
-        } else {
-            z += 0;
-        }
+    let mut chunks = Vec::new();
+    let mut rest = &mut data[..];
+    while rest.len() > 0 {
+        let chunk_len = 1 + rng(&mut state) % 512;
+        let chunk_len = cmp::min(rest.len(), chunk_len as usize);
+        let (fst, tail) = {rest}.split_at_mut(chunk_len);
+        fst.sort();
+        chunks.push(fst.iter().cloned());
+        rest = tail;
     }
-    let data1 = test::black_box(data1);
-    let data2 = test::black_box(data2);
-    let data3 = test::black_box(data3);
-    let its = &[data1.iter(), data2.iter(), data3.iter()];
+
+    // println!("Chunk lengths: {}", chunks.iter().format(", ", |elt, f| f(&elt.len())));
+
     b.iter(|| {
-        its.iter().cloned().kmerge().count()
+        chunks.iter().cloned().kmerge().count()
     })
 }
