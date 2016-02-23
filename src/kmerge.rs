@@ -42,6 +42,17 @@ impl<I> HeadTail<I>
         })
     }
 
+    /// Get the next element and update `head`, returning the old head in `Some`.
+    ///
+    /// Returns `None` when the tail is exhausted (only `head` then remains).
+    fn next(&mut self) -> Option<I::Item> {
+        if let Some(next) = self.tail.next() {
+            Some(replace(&mut self.head, next))
+        } else {
+            None
+        }
+    }
+
     /// Hints at the size of the sequence, same as the `Iterator` method.
     fn size_hint(&self) -> (usize, Option<usize>) {
         size_hint::add_scalar(self.tail.size_hint(), 1)
@@ -180,8 +191,8 @@ impl<I> Iterator for KMerge<I>
         if self.heap.is_empty() {
             return None;
         }
-        let result = if let Some(next_0) = self.heap[0].tail.next() {
-            replace(&mut self.heap[0].head, next_0)
+        let result = if let Some(next) = self.heap[0].next() {
+            next
         } else {
             self.heap.swap_remove(0).head
         };
