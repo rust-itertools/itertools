@@ -127,7 +127,7 @@ fn sift_down<T: Ord>(heap: &mut [T], index: usize) {
         }
 
         // sift down is done if we are already in order
-        if heap[pos] > heap[child] {
+        if heap[pos] >= heap[child] {
             return;
         }
         heap.swap(pos, child);
