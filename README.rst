@@ -33,6 +33,10 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.4.10
+
+  - Improve performance of .kmerge()
+
 - 0.4.9
 
   - Add k-ary merge adaptor .kmerge()
