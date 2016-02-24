@@ -1,5 +1,6 @@
 
 use size_hint;
+use Itertools;
 
 use std::cmp::Ordering;
 use std::mem::replace;
@@ -201,13 +202,10 @@ impl<I> Iterator for KMerge<I>
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        if !self.heap.is_empty() {
-            let mut it = self.heap.iter();
-            let sh0 = it.next().unwrap().size_hint();
-            it.fold(sh0, |acc, it| size_hint::add(acc, it.size_hint()))
-        } else {
-            (0, Some(0))
-        }
+        self.heap.iter()
+                 .map(|i| i.size_hint())
+                 .fold1(size_hint::add)
+                 .unwrap_or((0, Some(0)))
     }
 }
 
