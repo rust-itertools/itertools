@@ -289,7 +289,7 @@ impl<'a, A> StrideMut<'a, A> {
         } else {
             unsafe {
                 let ptr = self.begin.offset(self.offset + self.stride * (i as isize));
-                Some(mem::transmute(ptr))
+                Some(&mut *ptr)
             }
         }
     }
@@ -303,7 +303,7 @@ impl<'a, A> IndexMut<usize> for StrideMut<'a, A> {
         assert!(i < self.len());
         unsafe {
             let ptr = self.begin.offset(self.offset + self.stride * (i as isize));
-            mem::transmute(ptr)
+            &mut *ptr
         }
     }
 }
