@@ -24,6 +24,13 @@ fn mut_stride_compose() {
         }
     }
     assert_eq!(xs, vec![0, 1, 1, 1, 1, 1, 0, 1, 1, 1]);
+
+    let mut vs = vec![1, 2, 3];
+    let mut it = StrideMut::from_slice(&mut *vs, 1);
+    {
+        assert_eq!(it.get_mut(3), None);
+        assert_eq!(it.get_mut(1), Some(&mut 2));
+    }
 }
 
 #[test]
@@ -65,8 +72,12 @@ fn stride_compose() {
     let xs = &[1, 2, 3];
     let every = Stride::from_slice(xs, 1);
     assert_eq!(every.len(), 3);
+    assert_eq!(every.get(1), Some(&2));
     let odds = Stride::from_stride(every, 2);
     assert_eq!(odds.len(), 2);
+    assert_eq!(odds.get(0), Some(&1));
+    assert_eq!(odds.get(1), Some(&3));
+    assert_eq!(odds.get(2), None);
     assert!(equal(odds, &[1, 3]));
 
     let xs = &[1, 2, 3, 4, 5, 6, 7, 8, 9];
