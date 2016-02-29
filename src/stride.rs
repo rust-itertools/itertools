@@ -167,6 +167,19 @@ macro_rules! stride_impl {
             pub fn len(&self) -> usize {
                 ((self.end - self.offset) / self.stride) as usize
             }
+
+            /// Returns the element of a stride at the given index, or None if the index is out of bounds.
+            #[inline]
+            pub fn get(&self, i: usize) -> Option<$elem> {
+                if i >= self.len() {
+                    None
+                } else {
+                    unsafe {
+                        let ptr = self.begin.offset(self.offset + self.stride * (i as isize));
+                        Some(mem::transmute(ptr))
+                    }
+                }
+            }
         }
 
         impl<'a, A> Iterator for $name<'a, A>
