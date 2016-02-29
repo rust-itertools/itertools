@@ -168,9 +168,10 @@ macro_rules! stride_impl {
                 ((self.end - self.offset) / self.stride) as usize
             }
 
-            /// Returns the element of a stride at the given index, or None if the index is out of bounds.
+            /// Return a reference to the element of a stride at the
+            /// given index, or None if the index is out of bounds.
             #[inline]
-            pub fn get(&self, i: usize) -> Option<$elem> {
+            pub fn get<'b>(&'b self, i: usize) -> Option<&'b A> {
                 if i >= self.len() {
                     None
                 } else {
@@ -276,6 +277,21 @@ stride_impl!{struct StrideMut -> &'a mut [A], as_mut_ptr, *mut A, &'a mut A}
 impl<'a, A> Clone for Stride<'a, A> {
     fn clone(&self) -> Stride<'a, A> {
         *self
+    }
+}
+
+impl<'a, A> StrideMut<'a, A> {
+    /// Return a mutable reference to the element of a stride at the
+    /// given index, or None if the index is out of bounds.
+    pub fn get_mut<'b>(&'b mut self, i: usize) -> Option<&'b mut A> {
+        if i >= self.len() {
+            None
+        } else {
+            unsafe {
+                let ptr = self.begin.offset(self.offset + self.stride * (i as isize));
+                Some(mem::transmute(ptr))
+            }
+        }
     }
 }
 

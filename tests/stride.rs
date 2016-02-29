@@ -24,6 +24,13 @@ fn mut_stride_compose() {
         }
     }
     assert_eq!(xs, vec![0, 1, 1, 1, 1, 1, 0, 1, 1, 1]);
+
+    let mut vs = vec![1, 2, 3];
+    let mut it = StrideMut::from_slice(&mut *vs, 1);
+    {
+        assert_eq!(it.get_mut(3), None);
+        assert_eq!(it.get_mut(1), Some(&mut 2));
+    }
 }
 
 #[test]
