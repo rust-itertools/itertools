@@ -186,7 +186,7 @@ macro_rules! izip {
 ///
 /// This trait defines a number of methods. They are divided into two groups:
 ///
-/// * *Adaptors* take an interator and parameter as input, and return
+/// * *Adaptors* take an iterator and parameter as input, and return
 /// a new iterator value. These are listed first in the trait. An example
 /// of an adaptor is [`.interleave()`](#method.interleave)
 ///
