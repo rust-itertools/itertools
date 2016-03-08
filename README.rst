@@ -33,6 +33,10 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.4.11
+
+  - Add .get() for Stride{,Mut} and .get_mut() for StrideMut
+
 - 0.4.10
 
   - Improve performance of .kmerge()
