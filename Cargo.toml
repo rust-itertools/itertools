@@ -12,6 +12,9 @@ description = "Extra iterator adaptors, iterator methods and macros."
 
 keywords = ["iterator", "data-structure", "zip", "product", "group-by"]
 
+[lib]
+bench = false
+
 [dependencies.quickcheck]
 version = "0.2.21"
 optional = true
