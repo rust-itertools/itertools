@@ -641,12 +641,13 @@ pub trait Itertools : Iterator {
     }
 
     /// Return an iterator adaptor that uses the passed-in closure to
-    /// optionally merge together consecutive elements. For each pair the closure
-    /// is passed the latest two elements, `x`, `y` and may return either `Ok(z)`
-    /// to merge the two values or `Err((x, y))` to indicate they can't be merged.
+    /// optionally merge together consecutive elements.
     ///
-    /// `.dedup()` and `.mend_slices()` are specializations of the coalesce
-    /// adaptor.
+    /// The closure `f` is passed two elements, `x`, `y` and may return either
+    /// (1) `Ok(z)` to merge the two values or (2) `Err((x', y'))` to indicate
+    /// they can't be merged. In (2), the value `x'` is emitted by the iterator.
+    /// Coalesce continues with either `z` (1) or `y'` (2), and the next iterator
+    /// element as the next pair of elements to merge.
     ///
     /// Iterator element type is `Self::Item`.
     ///
