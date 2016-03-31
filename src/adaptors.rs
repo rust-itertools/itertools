@@ -28,6 +28,13 @@ macro_rules! clone_fields {
     );
 }
 
+/// An enum used for controlling the execution of `.fold_while()`.
+/// 
+/// See [*`.fold_while()`*](trait.Itertools.html#method.fold_while) for more information.
+pub enum FoldWhile<T> {
+    Continue(T),
+    Done(T),
+}
 
 /// An iterator adaptor that alternates elements from two iterators until both
 /// run out.
