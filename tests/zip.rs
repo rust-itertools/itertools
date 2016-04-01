@@ -100,7 +100,7 @@ fn zip_eq_panic1()
 #[test]
 fn zip_eq_panic2()
 {
-    let a = None::<i32>;
+    let a: [i32; 0] = [];
     let b = [1, 2, 3];
 
     zip_eq(&a, &b).count();
