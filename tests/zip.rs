@@ -4,6 +4,7 @@ use itertools::Itertools;
 use itertools::EitherOrBoth::{Both, Left, Right};
 #[cfg(feature = "unstable")]
 use itertools::ZipTrusted;
+use itertools::free::zip_eq;
 
 #[test]
 fn zip_longest_fused()
@@ -84,3 +85,24 @@ fn zipslices() {
     }
     itertools::assert_equal(&xs, &ys);
 }
+
+#[should_panic]
+#[test]
+fn zip_eq_panic1()
+{
+    let a = [1, 2];
+    let b = [1, 2, 3];
+
+    zip_eq(&a, &b).count();
+}
+
+#[should_panic]
+#[test]
+fn zip_eq_panic2()
+{
+    let a = None::<i32>;
+    let b = [1, 2, 3];
+
+    zip_eq(&a, &b).count();
+}
+
