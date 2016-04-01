@@ -112,6 +112,15 @@ mod zipslices;
 /// The function pointer map iterator created with `.map_fn()`.
 pub type MapFn<I, B> where I: Iterator = iter::Map<I, fn(I::Item) -> B>;
 
+/// Classifies the result of the `.partition_map()` closure into a
+/// partition.
+pub enum Partition<L, R> {
+    /// Classify into the left partition.
+    Left(L),
+    /// Classify into the right partition.
+    Right(R),
+}
+
 #[macro_export]
 /// Create an iterator over the “cartesian product” of iterators.
 ///
@@ -1330,6 +1339,46 @@ pub trait Itertools : Iterator {
               F: FnMut(&Self::Item, &Self::Item) -> Ordering,
     {
         self.sorted_by(cmp)
+    }
+
+    /// Collect all iterator elements into one of two
+    /// partitions. Unlike `Iterator::partition`, each partition may
+    /// have a distinct type.
+    ///
+    /// ```
+    /// use itertools::{Itertools, Partition};
+    ///
+    /// let successes_and_failures = vec![Ok(1), Err(false), Err(true), Ok(2)];
+    ///
+    /// let (successes, failures): (Vec<_>, Vec<_>) = successes_and_failures
+    ///     .into_iter()
+    ///     .partition_map(|r| {
+    ///         match r {
+    ///             Ok(v) => Partition::Left(v),
+    ///             Err(v) => Partition::Right(v),
+    ///         }
+    ///     });
+    ///
+    /// assert_eq!(successes, [1, 2]);
+    /// assert_eq!(failures, [false, true]);
+    /// ```
+    fn partition_map<A, B, F, L, R>(self, predicate: F) -> (A, B)
+        where Self: Sized,
+              F: Fn(Self::Item) -> Partition<L, R>,
+              A: Default + Extend<L>,
+              B: Default + Extend<R>,
+    {
+        let mut left = A::default();
+        let mut right = B::default();
+
+        for val in self {
+            match predicate(val) {
+                Partition::Left(v) => left.extend(Some(v)),
+                Partition::Right(v) => right.extend(Some(v)),
+            }
+        }
+
+        (left, right)
     }
 }
 
