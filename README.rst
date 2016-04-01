@@ -33,6 +33,15 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.4.12
+
+  - Add .zip_eq(), an adaptor like .zip() except it ensures iterators
+    of inequal length don't pass silently (instead it panics).
+  - Add .fold_while(), an iterator method that is a fold that
+    can short-circuit.
+  - Add .partition_map(), an iterator method that can separate elements
+    into two collections.
+
 - 0.4.11
 
   - Add .get() for Stride{,Mut} and .get_mut() for StrideMut
