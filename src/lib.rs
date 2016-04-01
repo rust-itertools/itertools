@@ -63,7 +63,6 @@ pub use adaptors::{
     Unique,
     UniqueBy,
     Flatten,
-    FoldWhile,
 };
 #[cfg(feature = "unstable")]
 pub use adaptors::EnumerateFrom;
@@ -114,15 +113,6 @@ mod zipslices;
 
 /// The function pointer map iterator created with `.map_fn()`.
 pub type MapFn<I, B> where I: Iterator = iter::Map<I, fn(I::Item) -> B>;
-
-/// Classifies the result of the `.partition_map()` closure into a
-/// partition.
-pub enum Partition<L, R> {
-    /// Classify into the left partition.
-    Left(L),
-    /// Classify into the right partition.
-    Right(R),
-}
 
 #[macro_export]
 /// Create an iterator over the “cartesian product” of iterators.
@@ -1562,3 +1552,24 @@ pub fn partition<'a, A: 'a, I, F>(iter: I, mut pred: F) -> usize
     }
     split_index
 }
+
+/// Classifies the result of the `.partition_map()` closure into a
+/// partition.
+pub enum Partition<L, R> {
+    /// Classify into the left partition.
+    Left(L),
+    /// Classify into the right partition.
+    Right(R),
+}
+
+
+/// An enum used for controlling the execution of `.fold_while()`.
+/// 
+/// See [`.fold_while()`](trait.Itertools.html#method.fold_while) for more information.
+pub enum FoldWhile<T> {
+    /// Continue folding with this value
+    Continue(T),
+    /// Fold is complete and will return this value
+    Done(T),
+}
+
