@@ -19,6 +19,10 @@ use itertools::{
     Stride,
     EitherOrBoth,
 };
+use itertools::free::{
+    zip,
+    zip_eq,
+};
 
 /// Our base iterator that we can impl Arbitrary for
 ///
@@ -306,6 +310,16 @@ quickcheck! {
     fn prop(a: Iter<i16>, b: Iter<i16>, c: Iter<i16>) -> bool {
         use itertools::free::kmerge;
         correct_size_hint(kmerge(vec![a, b, c]))
+    }
+}
+
+quickcheck! {
+    equal_zip_eq(2),
+    fn prop(a: Vec<i32>, b: Vec<i32>) -> bool {
+        let len = std::cmp::min(a.len(), b.len());
+        let a = &a[..len];
+        let b = &b[..len];
+        itertools::equal(zip_eq(a, b), zip(a, b))
     }
 }
 

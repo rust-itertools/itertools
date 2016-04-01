@@ -10,6 +10,7 @@ use {
     Merge,
     KMerge,
     Interleave,
+    ZipEq,
 };
 
 /// Iterate `iterable` with a running index.
@@ -64,6 +65,27 @@ pub fn zip<I, J>(i: I, j: J) -> Zip<I::IntoIter, J::IntoIter>
           J: IntoIterator
 {
     i.into_iter().zip(j)
+}
+
+/// Iterate `i` and `j` in lock step.
+///
+/// **Panics** if the iterators are not of the same length.
+///
+/// `IntoIterator` enabled version of `i.zip_eq(j)`.
+///
+/// ```
+/// use itertools::free::zip_eq;
+///
+/// let data = [1, 2, 3, 4, 5];
+/// for (a, b) in zip_eq(&data[..data.len() - 1], &data[1..]) {
+///     /* loop body */
+/// }
+/// ```
+pub fn zip_eq<I, J>(i: I, j: J) -> ZipEq<I::IntoIter, J::IntoIter>
+    where I: IntoIterator,
+          J: IntoIterator
+{
+    i.into_iter().zip_eq(j)
 }
 
 /// Create an iterator that first iterates `i` and then `j`.

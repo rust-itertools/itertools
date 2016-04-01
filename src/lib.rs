@@ -82,6 +82,7 @@ pub use sources::{RepeatCall, Unfold};
 pub use stride::Stride;
 pub use stride::StrideMut;
 pub use tee::Tee;
+pub use zip_eq::ZipEq;
 pub use zip_longest::{ZipLongest, EitherOrBoth};
 pub use ziptuple::Zip;
 #[cfg(feature = "unstable")]
@@ -104,6 +105,7 @@ mod sources;
 pub mod size_hint;
 mod stride;
 mod tee;
+mod zip_eq;
 mod zip_longest;
 mod ziptuple;
 #[cfg(feature = "unstable")]
@@ -285,6 +287,19 @@ pub trait Itertools : Iterator {
               Self: Sized
     {
         ZipLongest::new(self, other.into_iter())
+    }
+
+    /// Create an iterator which iterates over both this and the specified
+    /// iterator simultaneously, yielding pairs of elements.
+    ///
+    /// **Panics** if the iterators reach an end and they are not of equal
+    /// lengths.
+    #[inline]
+    fn zip_eq<J>(self, other: J) -> ZipEq<Self, J::IntoIter>
+        where J: IntoIterator,
+              Self: Sized
+    {
+        zip_eq::new(self, other.into_iter())
     }
 
     /// A “meta iterator adaptor”. Its closure recives a reference to the iterator
