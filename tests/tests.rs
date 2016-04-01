@@ -10,6 +10,7 @@ extern crate permutohedron;
 use it::Itertools;
 use it::Interleave;
 use it::Zip;
+use it::FoldWhile;
 
 #[test]
 fn product2() {
@@ -179,7 +180,7 @@ fn intersperse() {
 fn linspace() {
     let iter = it::linspace::<f32>(0., 2., 3);
     it::assert_equal(iter, vec![0., 1., 2.]);
-    
+
     let iter = it::linspace::<f32>(0., 1.0, 11);
     for (a, b) in iter.zip(vec![ 0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]) {
         assert!((a - b).abs() < 1.0e-6);
@@ -254,7 +255,7 @@ fn group_by() {
     let xs = [0, 1, 1, 1, 2, 1, 3, 3];
     let ans = vec![(0, vec![0]), (1, vec![1, 1, 1]),
                    (2, vec![2]), (1, vec![1]), (3, vec![3, 3])];
-    
+
     let gb = xs.iter().cloned().group_by(|elt| *elt);
     it::assert_equal(gb, ans.into_iter());
 }
@@ -915,4 +916,21 @@ fn diff_shorter() {
         Some(it::Diff::Shorter(len, _)) => len == 2,
         _ => false,
     });
+}
+
+#[test]
+fn fold_while() {
+    let mut iterations = 0;
+    let vec = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    let sum = vec.into_iter().fold_while(0, |acc, item| {
+        iterations += 1;
+        let new_sum = acc.clone() + item;
+        if new_sum <= 20 {
+            FoldWhile::Continue(new_sum)
+        } else {
+            FoldWhile::Done(acc)
+        }
+    });
+    assert_eq!(iterations, 6);
+    assert_eq!(sum, 15);
 }

@@ -63,6 +63,7 @@ pub use adaptors::{
     Unique,
     UniqueBy,
     Flatten,
+    FoldWhile,
 };
 #[cfg(feature = "unstable")]
 pub use adaptors::EnumerateFrom;
@@ -1254,6 +1255,64 @@ pub trait Itertools : Iterator {
                 Some(x)
             }
         }
+    }
+
+    /// An iterator adaptor that applies a function, producing a single, final value.
+    ///
+    /// `fold_while()` is basically equivalent to `fold()` but with additional support for
+    /// early exit via short-circuiting.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::FoldWhile::{Continue, Done};
+    ///
+    /// let numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    ///
+    /// let mut result = 0;
+    ///
+    /// // for loop:
+    /// for i in &numbers {
+    ///     if *i > 5 {
+    ///         break;
+    ///     }
+    ///     result = result + i;
+    /// }
+    ///
+    /// // fold:
+    /// let result2 = numbers.iter().fold(0, |acc, x| {
+    ///     if *x > 5 { acc } else { acc + x }
+    /// });
+    ///
+    /// // fold_while:
+    /// let result3 = numbers.iter().fold_while(0, |acc, x| {
+    ///     if *x > 5 { Done(acc) } else { Continue(acc + x) }
+    /// });
+    ///
+    /// // they're the same
+    /// assert_eq!(result, result2);
+    /// assert_eq!(result2, result3);
+    /// ```
+    ///
+    /// The big difference between the computations of `result2` and `result3` is that while
+    /// `fold()` called the provided closure for every item of the callee iterator,
+    /// `fold_while()` actually stopped iterating as soon as it encountered `Fold::Done(_)`.
+    fn fold_while<B, F>(self, init: B, mut f: F) -> B
+        where Self: Sized,
+              F: FnMut(B, Self::Item) -> FoldWhile<B>
+    {
+        let mut accum = init;
+        for item in self {
+            match f(accum, item) {
+                FoldWhile::Continue(res) => {
+                    accum = res;
+                }
+                FoldWhile::Done(res) => {
+                    accum = res;
+                    break;
+                }
+            }
+        }
+        accum
     }
 
     /// Tell if the iterator is empty or not according to its size hint.
