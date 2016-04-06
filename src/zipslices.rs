@@ -11,7 +11,11 @@ use misc::Slice;
 
 /// An iterator which iterates two slices simultaneously.
 ///
-/// `ZipSlices` acts like a double-ended `.zip()` iterator, but more efficiently.
+/// `ZipSlices` acts like a double-ended `.zip()` iterator.
+///
+/// It was intended to be more efficient than `.zip()`, and it was, then
+/// rustc changed how it optimizes so it can not promise improved performance
+/// at this time.
 ///
 /// Note that elements past the end of the shortest of the two slices are ignored.
 ///
