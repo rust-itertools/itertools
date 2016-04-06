@@ -74,6 +74,7 @@ pub use intersperse::Intersperse;
 pub use islice::ISlice;
 pub use kmerge::KMerge;
 pub use linspace::{linspace, Linspace};
+pub use minmax::MinMaxResult;
 pub use pad_tail::PadUsing;
 pub use rciter::RcIter;
 pub use repeatn::RepeatN;
@@ -96,6 +97,7 @@ mod islice;
 mod diff;
 mod kmerge;
 mod linspace;
+mod minmax;
 pub mod misc;
 mod pad_tail;
 mod rciter;
@@ -1443,6 +1445,58 @@ pub trait Itertools : Iterator {
         }
 
         (left, right)
+    }
+
+    /// Return the minimum and maximum elements in the iterator.
+    ///
+    /// The return type `MinMaxResult` is an enum of three variants:
+    ///
+    /// - `NoElements` if the iterator is empty.
+    /// - `OneElement(x)` if the iterator has exactly one element.
+    /// - `MinMax(x, y)` is returned otherwise, where `x <= y`. Two
+    ///    values are equal if and only if there is more than one
+    ///    element in the iterator and all elements are equal.
+    ///
+    /// On an iterator of length `n`, `min_max` does `1.5 * n` comparisons,
+    /// and so is faster than calling `min` and `max` separately which does
+    /// `2 * n` comparisons.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{NoElements, OneElement, MinMax};
+    ///
+    /// let a: [i32; 0] = [];
+    /// assert_eq!(a.iter().minmax(), NoElements);
+    ///
+    /// let a = [1];
+    /// assert_eq!(a.iter().minmax(), OneElement(&1));
+    ///
+    /// let a = [1, 2, 3, 4, 5];
+    /// assert_eq!(a.iter().minmax(), MinMax(&1, &5));
+    ///
+    /// let a = [1, 1, 1, 1];
+    /// assert_eq!(a.iter().minmax(), MinMax(&1, &1));
+    /// ```
+    fn minmax(self) -> MinMaxResult<Self::Item>
+        where Self: Sized, Self::Item: Ord
+    {
+        minmax::minmax_impl(self, |_| (), |x, y, _, _| x < y, |x, y, _, _| x > y)
+    }
+
+    /// Return the minimum and maximum element of an iterator, as determined by
+    /// the specified function.
+    ///
+    /// The return value is a variant of `MinMaxResult` like for `minmax()`.
+    ///
+    /// For the minimum, the first minimal element is returned.  For the maximum,
+    /// the last maximal element wins.  This matches the behavior of the standard
+    /// `Iterator::min()` and `Iterator::max()` methods.
+    fn minmax_by_key<K, F>(self, f: F) -> MinMaxResult<Self::Item>
+        where Self: Sized, K: Ord, F: FnMut(&Self::Item) -> K
+    {
+        minmax::minmax_impl(self, f, |_, _, xk, yk| xk < yk, |_, _, xk, yk| xk > yk)
     }
 }
 

@@ -934,3 +934,39 @@ fn fold_while() {
     assert_eq!(iterations, 6);
     assert_eq!(sum, 15);
 }
+
+#[test]
+fn minmax() {
+    use std::cmp::Ordering;
+    use it::MinMaxResult;
+
+    // A peculiar type: Equality compares both tuple items, but ordering only the
+    // first item.  This is so we can check the stability property easily.
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    struct Val(u32, u32);
+
+    impl PartialOrd<Val> for Val {
+        fn partial_cmp(&self, other: &Val) -> Option<Ordering> {
+            self.0.partial_cmp(&other.0)
+        }
+    }
+
+    impl Ord for Val {
+        fn cmp(&self, other: &Val) -> Ordering {
+            self.0.cmp(&other.0)
+        }
+    }
+
+    assert_eq!(None::<Option<u32>>.iter().minmax(), MinMaxResult::NoElements);
+
+    assert_eq!(Some(1u32).iter().minmax(), MinMaxResult::OneElement(&1));
+
+    let data = vec![Val(0, 1), Val(2, 0), Val(0, 2), Val(1, 0), Val(2, 1)];
+
+    let minmax = data.iter().minmax();
+    assert_eq!(minmax, MinMaxResult::MinMax(&Val(0, 1), &Val(2, 1)));
+
+    let (min, max) = data.iter().minmax_by_key(|v| v.1).into_option().unwrap();
+    assert_eq!(min, &Val(2, 0));
+    assert_eq!(max, &Val(0, 2));
+}
