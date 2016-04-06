@@ -1479,60 +1479,10 @@ pub trait Itertools : Iterator {
     /// let a = [1, 1, 1, 1];
     /// assert_eq!(a.iter().minmax(), MinMax(&1, &1));
     /// ```
-    fn minmax(mut self) -> MinMaxResult<Self::Item>
+    fn minmax(self) -> MinMaxResult<Self::Item>
         where Self: Sized, Self::Item: Ord
     {
-        let (mut min, mut max) = match self.next() {
-            None => return MinMaxResult::NoElements,
-            Some(x) => {
-                match self.next() {
-                    None => return MinMaxResult::OneElement(x),
-                    Some(y) => {
-                        if x <= y {(x, y)} else {(y, x)}
-                    }
-                }
-            }
-        };
-
-        loop {
-            // `first` and `second` are the two next elements we want to look
-            // at.  We first compare `first` and `second` (#1). The smaller one
-            // is then compared to current minimum (#2). The larger one is
-            // compared to current maximum (#3). This way we do 3 comparisons
-            // for 2 elements.
-            let first = match self.next() {
-                None => break,
-                Some(x) => x
-            };
-            let second = match self.next() {
-                None => {
-                    if first < min {
-                        min = first;
-                    } else if first >= max {
-                        max = first;
-                    }
-                    break;
-                }
-                Some(x) => x
-            };
-            if first <= second {
-                if first < min {
-                    min = first;
-                }
-                if second >= max {
-                    max = second;
-                }
-            } else {
-                if second < min {
-                    min = second;
-                }
-                if first >= max {
-                    max = first;
-                }
-            }
-        }
-
-        MinMaxResult::MinMax(min, max)
+        minmax::minmax_impl(self, |_| (), |x, y, _, _| x < y, |x, y, _, _| x > y)
     }
 
     /// Return the minimum and maximum element of an iterator, as determined by
@@ -1543,69 +1493,10 @@ pub trait Itertools : Iterator {
     /// For the minimum, the first minimal element is returned.  For the maximum,
     /// the last maximal element wins.  This matches the behavior of the standard
     /// `Iterator::min()` and `Iterator::max()` methods.
-    fn minmax_by_key<K, F>(mut self, mut f: F) -> MinMaxResult<Self::Item>
+    fn minmax_by_key<K, F>(self, f: F) -> MinMaxResult<Self::Item>
         where Self: Sized, K: Ord, F: FnMut(&Self::Item) -> K
     {
-        let (mut min, mut max, mut min_key, mut max_key) = match self.next() {
-            None => return MinMaxResult::NoElements,
-            Some(x) => {
-                match self.next() {
-                    None => return MinMaxResult::OneElement(x),
-                    Some(y) => {
-                        let xk = f(&x);
-                        let yk = f(&y);
-                        if xk <= yk {(x, y, xk, yk)} else {(y, x, yk, xk)}
-                    }
-                }
-            }
-        };
-
-        loop {
-            // `first` and `second` are the two next elements we want to look
-            // at.  We first compare `first` and `second` (#1). The smaller one
-            // is then compared to current minimum (#2). The larger one is
-            // compared to current maximum (#3). This way we do 3 comparisons
-            // for 2 elements.
-            let first = match self.next() {
-                None => break,
-                Some(x) => x
-            };
-            let second = match self.next() {
-                None => {
-                    let first_key = f(&first);
-                    if first_key < min_key {
-                        min = first;
-                    } else if first_key >= max_key {
-                        max = first;
-                    }
-                    break;
-                }
-                Some(x) => x
-            };
-            let first_key = f(&first);
-            let second_key = f(&second);
-            if first_key <= second_key {
-                if first_key < min_key {
-                    min = first;
-                    min_key = first_key;
-                }
-                if second_key >= max_key {
-                    max = second;
-                    max_key = second_key;
-                }
-            } else {
-                if second_key < min_key {
-                    min = second;
-                    min_key = second_key;
-                }
-                if first_key >= max_key {
-                    max = first;
-                    max_key = first_key;
-                }
-            }
-        }
-
-        MinMaxResult::MinMax(min, max)
+        minmax::minmax_impl(self, f, |_, _, xk, yk| xk < yk, |_, _, xk, yk| xk > yk)
     }
 }
 
