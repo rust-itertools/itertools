@@ -1118,17 +1118,16 @@ pub trait Itertools : Iterator {
 
     /// Format all iterator elements, separated by `sep`.
     ///
-    /// All elements are formatted (both Display or Debug supported)
+    /// All elements are formatted (any formatting trait)
     /// with `sep` inserted between each element.
     ///
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let data = [0, 7, 2, 3];
+    /// let data = [1.1, 2.71828, -3.];
     /// assert_eq!(
-    ///     format!("{}", data.iter().format_default(", ")),
-    ///     "0, 7, 2, 3"
-    /// );
+    ///     format!("{:.2}", data.iter().format_default(", ")),
+    ///            "1.10, 2.72, -3.00");
     /// ```
     fn format_default(self, sep: &str) -> FormatDefault<Self>
         where Self: Sized,
@@ -1151,7 +1150,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// let data = [1.1, 2.71828, -3.];
-    /// let data_formatter = data.iter().format(", ", |elt, f| f(&format_args!("{:2.2}", elt)));
+    /// let data_formatter = data.iter().format(", ", |elt, f| f(&format_args!("{:.2}", elt)));
     /// assert_eq!(format!("{}", data_formatter),
     ///            "1.10, 2.72, -3.00");
     ///

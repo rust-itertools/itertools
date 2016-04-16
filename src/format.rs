@@ -67,42 +67,41 @@ impl<'a, I, F> fmt::Display for Format<'a, I, F>
     }
 }
 
-impl<'a, I> fmt::Display for FormatDefault<'a, I>
+impl<'a, I> FormatDefault<'a, I>
     where I: Iterator,
-          I::Item: fmt::Display,
 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn format<F>(&self, f: &mut fmt::Formatter, mut cb: F) -> fmt::Result
+        where F: FnMut(&I::Item, &mut fmt::Formatter) -> fmt::Result,
+    {
         let iter = &mut *self.inner.borrow_mut();
 
         if let Some(fst) = iter.next() {
-            try!(write!(f, "{}", fst));
+            try!(cb(&fst, f));
             for elt in iter {
                 if self.sep.len() > 0 {
                     try!(f.write_str(self.sep));
                 }
-                try!(write!(f, "{}", elt));
+                try!(cb(&elt, f));
             }
         }
         Ok(())
     }
 }
 
-impl<'a, I> fmt::Debug for FormatDefault<'a, I>
-    where I: Iterator,
-          I::Item: fmt::Debug,
-{
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let iter = &mut *self.inner.borrow_mut();
-
-        if let Some(fst) = iter.next() {
-            try!(write!(f, "{:?}", fst));
-            for elt in iter {
-                if self.sep.len() > 0 {
-                    try!(f.write_str(self.sep));
+macro_rules! impl_format {
+    ($($fmt_trait:ident)*) => {
+        $(
+            impl<'a, I> fmt::$fmt_trait for FormatDefault<'a, I>
+                where I: Iterator,
+                      I::Item: fmt::$fmt_trait,
+            {
+                fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                    self.format(f, fmt::$fmt_trait::fmt)
                 }
-                try!(write!(f, "{:?}", elt));
             }
-        }
-        Ok(())
+        )*
     }
 }
+
+impl_format!{Display Debug
+             UpperExp LowerExp UpperHex LowerHex Octal Binary Pointer}
