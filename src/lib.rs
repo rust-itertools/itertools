@@ -67,7 +67,7 @@ pub use adaptors::{
 #[cfg(feature = "unstable")]
 pub use adaptors::EnumerateFrom;
 pub use diff::{diff_with, Diff};
-pub use format::Format;
+pub use format::{Format, FormatDefault};
 pub use free::{enumerate, rev};
 pub use groupbylazy::{ChunksLazy, Chunk, Chunks, GroupByLazy, Group, Groups};
 pub use intersperse::Intersperse;
@@ -1118,6 +1118,27 @@ pub trait Itertools : Iterator {
 
     /// Format all iterator elements, separated by `sep`.
     ///
+    /// All elements are formatted (any formatting trait)
+    /// with `sep` inserted between each element.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = [1.1, 2.71828, -3.];
+    /// assert_eq!(
+    ///     format!("{:.2}", data.iter().format_default(", ")),
+    ///            "1.10, 2.72, -3.00");
+    /// ```
+    fn format_default(self, sep: &str) -> FormatDefault<Self>
+        where Self: Sized,
+    {
+        format::new_format_default(self, sep)
+    }
+
+    /// Format all iterator elements, separated by `sep`.
+    ///
+    /// This is a customizable version of `.format_default()`.
+    ///
     /// The supplied closure `format` is called once per iterator element,
     /// with two arguments: the element and a callback that takes a
     /// `&Display` value, i.e. any reference to type that implements `Display`.
@@ -1129,7 +1150,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// let data = [1.1, 2.71828, -3.];
-    /// let data_formatter = data.iter().format(", ", |elt, f| f(&format_args!("{:2.2}", elt)));
+    /// let data_formatter = data.iter().format(", ", |elt, f| f(&format_args!("{:.2}", elt)));
     /// assert_eq!(format!("{}", data_formatter),
     ///            "1.10, 2.72, -3.00");
     ///
