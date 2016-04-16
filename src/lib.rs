@@ -67,7 +67,7 @@ pub use adaptors::{
 #[cfg(feature = "unstable")]
 pub use adaptors::EnumerateFrom;
 pub use diff::{diff_with, Diff};
-pub use format::Format;
+pub use format::{Format, FormatDefault};
 pub use free::{enumerate, rev};
 pub use groupbylazy::{ChunksLazy, Chunk, Chunks, GroupByLazy, Group, Groups};
 pub use intersperse::Intersperse;
@@ -1117,6 +1117,28 @@ pub trait Itertools : Iterator {
     }
 
     /// Format all iterator elements, separated by `sep`.
+    ///
+    /// All elements are formatted (both Display or Debug supported)
+    /// with `sep` inserted between each element.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = [0, 7, 2, 3];
+    /// assert_eq!(
+    ///     format!("{}", data.iter().format_default(", ")),
+    ///     "0, 7, 2, 3"
+    /// );
+    /// ```
+    fn format_default(self, sep: &str) -> FormatDefault<Self>
+        where Self: Sized,
+    {
+        format::new_format_default(self, sep)
+    }
+
+    /// Format all iterator elements, separated by `sep`.
+    ///
+    /// This is a customizable version of `.format_default()`.
     ///
     /// The supplied closure `format` is called once per iterator element,
     /// with two arguments: the element and a callback that takes a

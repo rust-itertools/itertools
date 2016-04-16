@@ -970,3 +970,15 @@ fn minmax() {
     assert_eq!(min, &Val(2, 0));
     assert_eq!(max, &Val(0, 2));
 }
+
+#[test]
+fn format() {
+    let data = [0, 1, 2, 3];
+    let ans1 = "0, 1, 2, 3";
+    let ans2 = "0--1--2--3";
+
+    let t1 = format!("{}", data.iter().format_default(", "));
+    assert_eq!(t1, ans1);
+    let t2 = format!("{:?}", data.iter().format_default("--"));
+    assert_eq!(t2, ans2);
+}
