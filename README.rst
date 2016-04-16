@@ -33,6 +33,13 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.4.13
+
+  - Add .minmax() and .minmax_by_key(), iterator methods for finding both minimum
+    and maximum in one scan.
+  - Add .format_default(), a simpler version of .format() (lazy formatting
+    for iterators).
+
 - 0.4.12
 
   - Add .zip_eq(), an adaptor like .zip() except it ensures iterators
