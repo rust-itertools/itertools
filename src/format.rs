@@ -50,17 +50,17 @@ impl<'a, I, F> fmt::Display for Format<'a, I, F>
     where I: Iterator,
           F: FnMut(I::Item, &mut FnMut(&fmt::Display) -> fmt::Result) -> fmt::Result
 {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        let mut cb = &mut |disp: &fmt::Display| write!(fmt, "{}", disp);
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let (ref mut iter, ref mut format) = *self.inner.borrow_mut();
 
         if let Some(fst) = iter.next() {
-            try!(format(fst, cb));
+            try!(format(fst, &mut |disp: &fmt::Display| disp.fmt(f)));
             for elt in iter {
                 if self.sep.len() > 0 {
-                    try!(cb(&self.sep));
+
+                    try!(f.write_str(self.sep));
                 }
-                try!(format(elt, cb));
+                try!(format(elt, &mut |disp: &fmt::Display| disp.fmt(f)));
             }
         }
         Ok(())
