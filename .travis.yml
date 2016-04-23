@@ -4,6 +4,8 @@ matrix:
   include:
     - rust: 1.2.0
     - rust: 1.4.0
+    - rust: 1.7.0
+    - rust: 1.8.0
     - rust: stable
       env:
        - FEATURES='quickcheck'
@@ -17,7 +19,7 @@ branches:
     - master
 script:
   - |
-      cargo build --verbose &&
+      JE_MALLOC_CONF=abort:true,junk:true,redzone:true MALLOC_CONF=abort:true,junk:true,redzone:true cargo build --verbose &&
       cargo test --verbose &&
       ([ -z "$FEATURES" ] || cargo build --verbose --features "$FEATURES") &&
       ([ -z "$FEATURES" ] || cargo test --verbose --features "$FEATURES") &&
