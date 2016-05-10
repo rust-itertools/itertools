@@ -312,8 +312,7 @@ impl<I, J> Product<I, J>
     /// Create a new cartesian product iterator
     ///
     /// Iterator element type is `(I::Item, J::Item)`.
-    pub fn new(i: I, j: J) -> Self {
-        let mut i = i;
+    pub fn new(mut i: I, j: J) -> Self {
         Product {
             a_cur: i.next(),
             a: i,
