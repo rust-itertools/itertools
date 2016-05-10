@@ -331,8 +331,7 @@ impl<I, J> Iterator for Product<I, J>
 {
     type Item = (I::Item, J::Item);
     fn next(&mut self) -> Option<(I::Item, J::Item)> {
-		fn get_next_b() { 
-			match self.b.next() {
+		let get_next_b = || match self.b.next() {
 				None => {
 					self.b = self.b_orig.clone();
 					match self.b.next() {
@@ -344,8 +343,7 @@ impl<I, J> Iterator for Product<I, J>
 					}
 				}
 				Some(x) => x
-			}
-        }
+			};
         match self.a_cur {
             None => None,
             Some(ref a) => {
