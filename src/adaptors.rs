@@ -139,7 +139,7 @@ impl<I, J> Iterator for InterleaveShortest<I, J>
         let bound = |a: usize, b: usize| -> Option<usize> {
             use std::cmp::min;
             2usize.checked_mul(min(a, b))
-                .and_then(|lhs| lhs.checked_add(if !self.phase && a > b { 1 } else { 0 }))
+                .and_then(|lhs| lhs.checked_add(if  !self.phase && a > b || (self.phase && a < b)  { 1 } else { 0 }))
         };
 
         let (l0, u0) = self.it0.size_hint();
