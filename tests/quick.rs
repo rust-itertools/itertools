@@ -156,10 +156,11 @@ macro_rules! quickcheck {
     // accept several property function definitions
     // The property functions can use pattern matching and `mut` as usual
     // in the function arguments, but the functions can not be generic.
-    {$(fn $fn_name:ident($($arg:tt)*) -> $ret:ty { $($code:tt)* })*} => (
+    {$($(#$attr:tt)* fn $fn_name:ident($($arg:tt)*) -> $ret:ty { $($code:tt)* })*} => (
         quickcheck!{@as_items
         $(
             #[test]
+            $(#$attr)*
             fn $fn_name() {
                 fn prop($($arg)*) -> $ret {
                     $($code)*
@@ -369,10 +370,8 @@ quickcheck! {
         let it = itertools::RepeatN::new(x, n);
         exact_size(it)
     }
-}
 
-#[cfg(feature = "unstable")]
-quickcheck! {
+    #[cfg(feature = "unstable")]
     fn size_ziptrusted(a: Vec<u8>, b: Vec<u8>) -> bool {
         exact_size(itertools::ZipTrusted::new((a.iter(), b.iter())))
     }
