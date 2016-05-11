@@ -153,33 +153,44 @@ fn size_range_u8(a: Iter<u8>) -> bool {
  */
 
 macro_rules! quickcheck {
-    (@as_items $($i:item)*) => ($($i)*);
-    {
-    $(fn $fn_name:ident($($arg_name:ident : $arg_ty:ty),*) -> $ret:ty { $($code:tt)* })*} => (
+    // accept several property function definitions
+    // The property functions can use pattern matching and `mut` as usual
+    // in the function arguments, but the functions can not be generic.
+    {$(fn $fn_name:ident($($arg:tt)*) -> $ret:ty { $($code:tt)* })*} => (
         quickcheck!{@as_items
         $(
             #[test]
             fn $fn_name() {
-                fn prop($($arg_name: $arg_ty),*) -> $ret {
+                fn prop($($arg)*) -> $ret {
                     $($code)*
                 }
-                ::quickcheck::quickcheck(prop as fn($($arg_ty),*) -> $ret);
+                ::quickcheck::quickcheck(quickcheck!(@fn prop [] $($arg)*));
             }
         )*
         }
-    )
+    );
+    // parse argument list (with patterns allowed) into prop as fn(_, _) -> _
+    (@fn $f:ident [$($t:tt)*]) => {
+        quickcheck!(@as_expr $f as fn($($t),*) -> _)
+    };
+    (@fn $f:ident [$($p:tt)*] : $($tail:tt)*) => {
+        quickcheck!(@fn $f [$($p)* _] $($tail)*)
+    };
+    (@fn $f:ident [$($p:tt)*] $t:tt $($tail:tt)*) => {
+        quickcheck!(@fn $f [$($p)*] $($tail)*)
+    };
+    (@as_items $($i:item)*) => ($($i)*);
+    (@as_expr $i:expr) => ($i);
 }
 
 quickcheck! {
-    fn size_stride(data: Vec<u8>, stride: isize) -> bool {
-        let mut stride = stride;
+    fn size_stride(data: Vec<u8>, mut stride: isize) -> bool {
         if stride == 0 {
             stride += 1; // never zero
         }
         exact_size(Stride::from_slice(&data, stride))
     }
-    fn equal_stride(data: Vec<u8>, stride: i8) -> bool {
-        let mut stride = stride;
+    fn equal_stride(data: Vec<u8>, mut stride: i8) -> bool {
         if stride == 0 {
             // never zero
             stride += 1;
@@ -354,7 +365,7 @@ quickcheck! {
 }
 
 quickcheck! {
-    fn exact_repeatn(n: usize, x: i32) -> bool {
+    fn exact_repeatn((n, x): (usize, i32)) -> bool {
         let it = itertools::RepeatN::new(x, n);
         exact_size(it)
     }
