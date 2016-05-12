@@ -33,6 +33,11 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.4.15
+
+  - Fixup on top of the workaround in 0.4.14. A function in itertools::free was
+    removed by mistake and now it is added back again.
+
 - 0.4.14
 
   - Workaround an upstream regression in a rust nightly build that broke
