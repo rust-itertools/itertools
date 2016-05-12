@@ -33,6 +33,11 @@ How to use in your crate:
 Recent Changes
 --------------
 
+- 0.4.14
+
+  - Workaround an upstream regression in a rust nightly build that broke
+    compilation of of itertools::free::{interleave, merge}
+
 - 0.4.13
 
   - Add .minmax() and .minmax_by_key(), iterator methods for finding both minimum
