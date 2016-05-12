@@ -6,10 +6,10 @@
 use std::fmt::Display;
 use std::iter::{self, Zip};
 use {
-    Itertools,
-    Merge,
-    KMerge,
     Interleave,
+    Itertools,
+    KMerge,
+    Merge,
     ZipEq,
 };
 
@@ -88,6 +88,7 @@ pub fn zip_eq<I, J>(i: I, j: J) -> ZipEq<I::IntoIter, J::IntoIter>
     i.into_iter().zip_eq(j)
 }
 
+/*
 /// Create an iterator that first iterates `i` and then `j`.
 ///
 /// `IntoIterator` enabled version of `i.chain(j)`.
@@ -105,6 +106,7 @@ pub fn chain<I, J>(i: I, j: J) -> iter::Chain<I::IntoIter, J::IntoIter>
 {
     i.into_iter().chain(j)
 }
+*/
 
 /// Perform a fold operation over the iterable.
 ///
@@ -197,7 +199,7 @@ pub fn min<I>(iterable: I) -> Option<I::Item>
 ///     /* loop body */
 /// }
 /// ```
-pub fn interleave<I, J>(i: I, j: J) -> Interleave<I::IntoIter, J::IntoIter>
+pub fn interleave<I, J>(i: I, j: J) -> Interleave<<I as IntoIterator>::IntoIter, <J as IntoIterator>::IntoIter>
     where I: IntoIterator,
           J: IntoIterator<Item = I::Item>
 {
@@ -215,7 +217,7 @@ pub fn interleave<I, J>(i: I, j: J) -> Interleave<I::IntoIter, J::IntoIter>
 ///     /* loop body */
 /// }
 /// ```
-pub fn merge<I, J>(i: I, j: J) -> Merge<I::IntoIter, J::IntoIter>
+pub fn merge<I, J>(i: I, j: J) -> Merge<<I as IntoIterator>::IntoIter, <J as IntoIterator>::IntoIter>
     where I: IntoIterator,
           J: IntoIterator<Item = I::Item>,
           I::Item: PartialOrd
