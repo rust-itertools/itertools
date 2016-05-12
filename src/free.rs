@@ -88,7 +88,6 @@ pub fn zip_eq<I, J>(i: I, j: J) -> ZipEq<I::IntoIter, J::IntoIter>
     i.into_iter().zip_eq(j)
 }
 
-/*
 /// Create an iterator that first iterates `i` and then `j`.
 ///
 /// `IntoIterator` enabled version of `i.chain(j)`.
@@ -100,13 +99,12 @@ pub fn zip_eq<I, J>(i: I, j: J) -> ZipEq<I::IntoIter, J::IntoIter>
 ///     /* loop body */
 /// }
 /// ```
-pub fn chain<I, J>(i: I, j: J) -> iter::Chain<I::IntoIter, J::IntoIter>
+pub fn chain<I, J>(i: I, j: J) -> iter::Chain<<I as IntoIterator>::IntoIter, <J as IntoIterator>::IntoIter>
     where I: IntoIterator,
           J: IntoIterator<Item = I::Item>
 {
     i.into_iter().chain(j)
 }
-*/
 
 /// Perform a fold operation over the iterable.
 ///
