@@ -9,7 +9,7 @@ use super::size_hint;
 ///
 /// This iterator is *fused*.
 ///
-/// See [*.intersperse()*](trait.Itertools.html#method.intersperse) for more information.
+/// See [`.intersperse()`](trait.Itertools.html#method.intersperse) for more information.
 pub struct Intersperse<I>
     where I: Iterator
 {

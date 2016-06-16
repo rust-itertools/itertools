@@ -15,7 +15,7 @@ use super::misc::GenericRange;
 /// assert_eq!(it.count(), 3);
 /// ```
 ///
-/// See [*.slice()*](trait.Itertools.html#method.slice) for more information.
+/// See [`.slice()`](trait.Itertools.html#method.slice) for more information.
 #[derive(Copy, Clone)]
 pub struct ISlice<I> {
     start: usize,

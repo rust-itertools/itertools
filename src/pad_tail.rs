@@ -4,9 +4,9 @@ use size_hint;
 /// An iterator adaptor that pads a sequence to a minimum length by filling
 /// missing elements using a closure.
 ///
-/// Iterator element type is **I::Item**.
+/// Iterator element type is `I::Item`.
 ///
-/// See [*.pad_using()*](trait.Itertools.html#method.pad_using) for more information.
+/// See [`.pad_using()`](trait.Itertools.html#method.pad_using) for more information.
 #[derive(Clone)]
 pub struct PadUsing<I, F> {
     iter: Fuse<I>,
