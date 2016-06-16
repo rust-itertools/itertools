@@ -991,6 +991,9 @@ pub trait Itertools : Iterator {
     /// let mut iter = "αβγ".chars().dropping(2);
     /// itertools::assert_equal(iter, "γ".chars());
     /// ```
+    ///
+    /// *Fusing notes: if the iterator is exhausted by dropping,
+    /// the result of calling `.next()` again depends on the iterator implementation.*
     fn dropping(mut self, n: usize) -> Self
         where Self: Sized
     {
