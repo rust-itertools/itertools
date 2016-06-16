@@ -19,7 +19,7 @@ __ http://bluss.github.io/rust-itertools/
 How to use with cargo::
 
     [dependencies]
-    itertools = "0.4"
+    itertools = "0.4.16"
 
 How to use in your crate:
 
@@ -29,9 +29,20 @@ How to use in your crate:
 
     use itertools::Itertools;
 
+How to contribute:
+
+- Fix a bug or implement a new thing
+- Include tests for your new feature, preferably a quickcheck test
+- Make a Pull Request
+
 
 Recent Changes
 --------------
+
+- 0.4.16
+
+  - Improve precision of the interleave_shortest adaptor's size hint (it is
+    now computed exactly when possible).
 
 - 0.4.15
 
