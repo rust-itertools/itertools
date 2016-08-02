@@ -283,6 +283,18 @@ quickcheck! {
         merged.sort();
         itertools::equal(merged.into_iter(), kmerge(vec![sa, sb, sc]))
     }
+
+    // Any number of input iterators
+    fn equal_kmerge_2(mut inputs: Vec<Vec<i16>>) -> bool {
+        use itertools::free::kmerge;
+        // sort the inputs
+        for input in &mut inputs {
+            input.sort();
+        }
+        let mut merged = inputs.concat();
+        merged.sort();
+        itertools::equal(merged.into_iter(), kmerge(inputs))
+    }
     fn size_kmerge(a: Iter<i16>, b: Iter<i16>, c: Iter<i16>) -> bool {
         use itertools::free::kmerge;
         correct_size_hint(kmerge(vec![a, b, c]))
