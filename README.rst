@@ -19,7 +19,7 @@ __ http://bluss.github.io/rust-itertools/
 How to use with cargo::
 
     [dependencies]
-    itertools = "0.4.16"
+    itertools = "0.4.17"
 
 How to use in your crate:
 
@@ -38,6 +38,10 @@ How to contribute:
 
 Recent Changes
 --------------
+
+- 0.4.17
+
+  - Fix bug in .kmerge() that caused it to often produce the wrong order (#134)
 
 - 0.4.16
 
