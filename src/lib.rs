@@ -65,6 +65,7 @@ pub use adaptors::{
     Flatten,
 };
 #[cfg(feature = "unstable")]
+#[cfg_attr(feature = "unstable", deprecated(note = "Uses deprecated libstd traits"))]
 pub use adaptors::EnumerateFrom;
 pub use diff::{diff_with, Diff};
 pub use format::{Format, FormatDefault};
@@ -73,20 +74,25 @@ pub use groupbylazy::{ChunksLazy, Chunk, Chunks, GroupByLazy, Group, Groups};
 pub use intersperse::Intersperse;
 pub use islice::ISlice;
 pub use kmerge::KMerge;
+#[cfg_attr(feature = "unstable", deprecated(note = "Will move to different crate"))]
 pub use linspace::{linspace, Linspace};
 pub use minmax::MinMaxResult;
 pub use pad_tail::PadUsing;
 pub use rciter::RcIter;
 pub use repeatn::RepeatN;
 pub use sources::{RepeatCall, Unfold};
+#[cfg_attr(feature = "unstable", deprecated(note = "Will move to different crate"))]
 pub use stride::Stride;
+#[cfg_attr(feature = "unstable", deprecated(note = "Will move to different crate"))]
 pub use stride::StrideMut;
 pub use tee::Tee;
 pub use zip_eq::ZipEq;
 pub use zip_longest::{ZipLongest, EitherOrBoth};
 pub use ziptuple::Zip;
 #[cfg(feature = "unstable")]
+#[cfg_attr(feature = "unstable", deprecated(note = "Will move to different crate"))]
 pub use ziptrusted::{ZipTrusted, TrustedIterator};
+#[cfg_attr(feature = "unstable", deprecated(note = "No longer has desired performance."))]
 pub use zipslices::ZipSlices;
 mod adaptors;
 pub mod free;
@@ -630,6 +636,7 @@ pub trait Itertools : Iterator {
     /// );
     /// ```
     #[cfg(feature = "unstable")]
+    #[cfg_attr(feature = "unstable", deprecated(note = "Uses deprecated libstd traits"))]
     fn enumerate_from<K>(self, start: K) -> EnumerateFrom<Self, K>
         where Self: Sized
     {
@@ -1423,6 +1430,7 @@ pub trait Itertools : Iterator {
         v
     }
 
+    #[cfg_attr(feature = "unstable", deprecated(note = "Replaced by .sorted_by()"))]
     /// **Deprecated:** renamed to `.sorted_by()`
     fn sort_by<F>(self, cmp: F) -> Vec<Self::Item>
         where Self: Sized,
