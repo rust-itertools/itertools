@@ -39,6 +39,14 @@ How to contribute:
 Recent Changes
 --------------
 
+- 0.4.18
+
+  - Only changes related to the "unstable" crate feature. This feature is more
+    or less deprecated.
+    
+    - Use deprecated warnings when unstable is enabled. .enumerate_from() will
+      be removed imminently since it's using a deprecated libstd trait.
+
 - 0.4.17
 
   - Fix bug in .kmerge() that caused it to often produce the wrong order (#134)
