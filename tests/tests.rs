@@ -976,6 +976,10 @@ fn minmax() {
     let (min, max) = data.iter().minmax_by_key(|v| v.1).into_option().unwrap();
     assert_eq!(min, &Val(2, 0));
     assert_eq!(max, &Val(0, 2));
+
+    let (min, max) = data.iter().minmax_by(|x, y| x.1.cmp(&y.1)).into_option().unwrap();
+    assert_eq!(min, &Val(2, 0));
+    assert_eq!(max, &Val(0, 2));
 }
 
 #[test]

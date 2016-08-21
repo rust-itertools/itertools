@@ -1530,6 +1530,25 @@ pub trait Itertools : Iterator {
     {
         minmax::minmax_impl(self, f, |_, _, xk, yk| xk < yk, |_, _, xk, yk| xk > yk)
     }
+
+    /// Return the minimum and maximum element of an iterator, as determined by
+    /// the specified comparison function.
+    ///
+    /// The return value is a variant of `MinMaxResult` like for `minmax()`.
+    ///
+    /// For the minimum, the first minimal element is returned.  For the maximum,
+    /// the last maximal element wins.  This matches the behavior of the standard
+    /// `Iterator::min()` and `Iterator::max()` methods.
+    fn minmax_by<F>(self, compare: F) -> MinMaxResult<Self::Item>
+        where Self: Sized, F: Fn(&Self::Item, &Self::Item) -> Ordering
+    {
+        minmax::minmax_impl(
+            self,
+            |_| (),
+            |x, y, _, _| Ordering::Less == compare(x, y),
+            |x, y, _, _| Ordering::Greater == compare(x, y)
+        )
+    }
 }
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }
