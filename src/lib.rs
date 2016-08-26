@@ -63,6 +63,7 @@ pub use adaptors::{
     Unique,
     UniqueBy,
     Flatten,
+    Starmap,
 };
 #[cfg(feature = "unstable")]
 #[cfg_attr(feature = "unstable", deprecated(note = "Uses deprecated libstd traits"))]
@@ -936,6 +937,13 @@ pub trait Itertools : Iterator {
         where Self: Sized
     {
         self.map(f)
+    }
+
+    fn starmap<F>(self, f: F) -> Starmap<Self, F, Self::Item>
+        where Self: Sized,
+              Starmap<Self, F, Self::Item>: Iterator
+    {
+        Starmap::new(self, f)
     }
 
     // non-adaptor methods

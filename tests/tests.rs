@@ -993,3 +993,12 @@ fn format() {
     let t3 = format!("{:.2e}", dataf.iter().format_default(", "));
     assert_eq!(t3, "1.10e0, 2.72e0, -2.20e1");
 }
+
+#[test]
+fn starmap() {
+    it::assert_equal((0..10).zip(0..10).starmap(|x, y| x + y),
+                     (0..10).map(|x| x * 2));
+
+    it::assert_equal(Zip::new((0..5, 1..5, 2..5)).starmap(|x, y, z| (x, y, z)),
+                     vec![(0, 1, 2), (1, 2, 3), (2, 3, 4)]);
+}
