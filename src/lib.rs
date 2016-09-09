@@ -1514,7 +1514,7 @@ pub trait Itertools : Iterator {
     fn minmax(self) -> MinMaxResult<Self::Item>
         where Self: Sized, Self::Item: Ord
     {
-        minmax::minmax_impl(self, |_| (), |x, y, _, _| x < y, |x, y, _, _| x > y)
+        minmax::minmax_impl(self, |_| (), |x, y, _, _| x < y)
     }
 
     /// Return the minimum and maximum element of an iterator, as determined by
@@ -1528,7 +1528,7 @@ pub trait Itertools : Iterator {
     fn minmax_by_key<K, F>(self, f: F) -> MinMaxResult<Self::Item>
         where Self: Sized, K: Ord, F: FnMut(&Self::Item) -> K
     {
-        minmax::minmax_impl(self, f, |_, _, xk, yk| xk < yk, |_, _, xk, yk| xk > yk)
+        minmax::minmax_impl(self, f, |_, _, xk, yk| xk < yk)
     }
 
     /// Return the minimum and maximum element of an iterator, as determined by
@@ -1539,14 +1539,13 @@ pub trait Itertools : Iterator {
     /// For the minimum, the first minimal element is returned.  For the maximum,
     /// the last maximal element wins.  This matches the behavior of the standard
     /// `Iterator::min()` and `Iterator::max()` methods.
-    fn minmax_by<F>(self, compare: F) -> MinMaxResult<Self::Item>
-        where Self: Sized, F: Fn(&Self::Item, &Self::Item) -> Ordering
+    fn minmax_by<F>(self, mut compare: F) -> MinMaxResult<Self::Item>
+        where Self: Sized, F: FnMut(&Self::Item, &Self::Item) -> Ordering
     {
         minmax::minmax_impl(
             self,
             |_| (),
-            |x, y, _, _| Ordering::Less == compare(x, y),
-            |x, y, _, _| Ordering::Greater == compare(x, y)
+            |x, y, _, _| Ordering::Less == compare(x, y)
         )
     }
 }

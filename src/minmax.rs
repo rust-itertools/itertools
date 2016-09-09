@@ -46,11 +46,10 @@ impl<T: Clone> MinMaxResult<T> {
 }
 
 /// Implementation guts for `minmax` and `minmax_by_key`.
-pub fn minmax_impl<I: Itertools, K, F, L, G>(mut it: I, mut key_for: F,
-                                             lt: L, gt: G) -> MinMaxResult<I::Item>
+pub fn minmax_impl<I: Itertools, K, F, L>(mut it: I, mut key_for: F,
+                                             mut lt: L) -> MinMaxResult<I::Item>
     where I: Sized, F: FnMut(&I::Item) -> K,
-          L: Fn(&I::Item, &I::Item, &K, &K) -> bool,
-          G: Fn(&I::Item, &I::Item, &K, &K) -> bool
+          L: FnMut(&I::Item, &I::Item, &K, &K) -> bool,
 {
     let (mut min, mut max, mut min_key, mut max_key) = match it.next() {
         None => return MinMaxResult::NoElements,
@@ -60,7 +59,7 @@ pub fn minmax_impl<I: Itertools, K, F, L, G>(mut it: I, mut key_for: F,
                 Some(y) => {
                     let xk = key_for(&x);
                     let yk = key_for(&y);
-                    if !gt(&x, &y, &xk, &yk) {(x, y, xk, yk)} else {(y, x, yk, xk)}
+                    if !lt(&y, &x, &yk, &xk) {(x, y, xk, yk)} else {(y, x, yk, xk)}
                 }
             }
         }
@@ -90,7 +89,7 @@ pub fn minmax_impl<I: Itertools, K, F, L, G>(mut it: I, mut key_for: F,
         };
         let first_key = key_for(&first);
         let second_key = key_for(&second);
-        if !gt(&first, &second, &first_key, &second_key) {
+        if !lt(&second, &first, &second_key, &first_key) {
             if lt(&first, &min, &first_key, &min_key) {
                 min = first;
                 min_key = first_key;
