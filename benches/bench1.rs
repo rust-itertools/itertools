@@ -697,3 +697,22 @@ fn kmerge_tenway(b: &mut test::Bencher) {
         chunks.iter().cloned().kmerge().count()
     })
 }
+
+
+
+
+#[bench]
+fn step_vec_2(b: &mut test::Bencher) {
+    let v = vec![0; 1024];
+    b.iter(|| {
+        v.iter().step(2).sum::<i32>()
+    });
+}
+
+#[bench]
+fn step_vec_10(b: &mut test::Bencher) {
+    let v = vec![0; 1024];
+    b.iter(|| {
+        v.iter().step(10).sum::<i32>()
+    });
+}
