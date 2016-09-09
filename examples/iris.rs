@@ -87,10 +87,8 @@ fn main() {
         println!("{} (symbol={})", species, symbolmap[species]);
 
         for iris in species_group {
-            // using Itertools::format for lazy formatting
-            println!("{}",
-                     iris.data.iter()
-                     .format(", ", |elt, f| f(&format_args!("{:>3.1}", elt))));
+            // using Itertools::format_default for lazy formatting
+            println!("{:>3.1}", iris.data.iter().format_default(", "));
         }
 
     }
@@ -112,14 +110,13 @@ fn main() {
         // using Itertools::set_from
         plot.iter_mut().set_from(repeat(' '));
 
-        // using Itertools::fold1
+        // using Itertools::minmax_by
         let min_max = |data: &[Iris], col| {
             data.iter()
                 .map(|iris| iris.data[col])
-                .map(|x| (x, x))
-                .fold1(|(min, max), (elt, _)|
-                    (f32::min(min, elt), f32::max(max, elt))
-                ).expect("Can't find min/max of empty iterator")
+                .minmax_by(|a, b| f32::partial_cmp(a, b).unwrap())
+                .into_option()
+                .expect("Can't find min/max of empty iterator")
         };
         let (min_x, max_x) = min_max(&irises, a);
         let (min_y, max_y) = min_max(&irises, b);
