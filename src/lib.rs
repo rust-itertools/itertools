@@ -1525,10 +1525,10 @@ pub trait Itertools : Iterator {
     /// For the minimum, the first minimal element is returned.  For the maximum,
     /// the last maximal element wins.  This matches the behavior of the standard
     /// `Iterator::min()` and `Iterator::max()` methods.
-    fn minmax_by_key<K, F>(self, f: F) -> MinMaxResult<Self::Item>
+    fn minmax_by_key<K, F>(self, key: F) -> MinMaxResult<Self::Item>
         where Self: Sized, K: Ord, F: FnMut(&Self::Item) -> K
     {
-        minmax::minmax_impl(self, f, |_, _, xk, yk| xk < yk)
+        minmax::minmax_impl(self, key, |_, _, xk, yk| xk < yk)
     }
 
     /// Return the minimum and maximum element of an iterator, as determined by

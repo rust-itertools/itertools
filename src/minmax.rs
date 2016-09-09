@@ -46,9 +46,10 @@ impl<T: Clone> MinMaxResult<T> {
 }
 
 /// Implementation guts for `minmax` and `minmax_by_key`.
-pub fn minmax_impl<I: Itertools, K, F, L>(mut it: I, mut key_for: F,
-                                             mut lt: L) -> MinMaxResult<I::Item>
-    where I: Sized, F: FnMut(&I::Item) -> K,
+pub fn minmax_impl<I, K, F, L>(mut it: I, mut key_for: F,
+                               mut lt: L) -> MinMaxResult<I::Item>
+    where I: Iterator,
+          F: FnMut(&I::Item) -> K,
           L: FnMut(&I::Item, &I::Item, &K, &K) -> bool,
 {
     let (mut min, mut max, mut min_key, mut max_key) = match it.next() {
