@@ -14,7 +14,6 @@ use std::ops::Index;
 use std::iter::{Fuse, Peekable, FlatMap};
 use std::collections::HashSet;
 use std::hash::Hash;
-use Itertools;
 use size_hint;
 use misc::MendSlice;
 
@@ -503,7 +502,9 @@ impl<I> Iterator for Step<I>
     #[inline]
     fn next(&mut self) -> Option<I::Item> {
         let elt = self.iter.next();
-        self.iter.dropn(self.skip);
+        if self.skip > 0 {
+            self.iter.nth(self.skip - 1);
+        }
         elt
     }
 
