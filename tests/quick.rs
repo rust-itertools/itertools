@@ -237,6 +237,31 @@ quickcheck! {
         correct_size_hint(filt.step(s)) &&
             exact_size(a.step(s))
     }
+    fn equal_step(a: Iter<i16>, s: usize) -> bool {
+        let mut s = s;
+        if s == 0 {
+            s += 1; // never zero
+        }
+        let mut i = 0;
+        itertools::equal(a.clone().step(s), a.filter(|_| {
+            let keep = i % s == 0;
+            i += 1;
+            keep
+        }))
+    }
+    fn equal_step_vec(a: Vec<i16>, s: usize) -> bool {
+        let mut s = s;
+        if s == 0 {
+            s += 1; // never zero
+        }
+        let mut i = 0;
+        itertools::equal(a.iter().step(s), a.iter().filter(|_| {
+            let keep = i % s == 0;
+            i += 1;
+            keep
+        }))
+    }
+
     fn size_multipeek(a: Iter<u16>, s: u8) -> bool {
         let mut it = a.multipeek();
         // peek a few times

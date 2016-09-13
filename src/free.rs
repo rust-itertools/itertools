@@ -106,6 +106,22 @@ pub fn chain<I, J>(i: I, j: J) -> iter::Chain<<I as IntoIterator>::IntoIter, <J 
     i.into_iter().chain(j)
 }
 
+/// Create an iterator that clones each element from &T to T
+///
+/// `IntoIterator` enabled version of `i.cloned()`.
+///
+/// ```
+/// use itertools::free::cloned;
+///
+/// assert_eq!(cloned(b"abc").next(), Some(b'a'));
+/// ```
+pub fn cloned<'a, I, T: 'a>(iterable: I) -> iter::Cloned<I::IntoIter>
+    where I: IntoIterator<Item=&'a T>,
+          T: Clone,
+{
+    iterable.into_iter().cloned()
+}
+
 /// Perform a fold operation over the iterable.
 ///
 /// `IntoIterator` enabled version of `i.fold(init, f)`
