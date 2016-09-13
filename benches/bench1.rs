@@ -11,9 +11,11 @@ use itertools::Itertools;
 use itertools::{ZipTrusted};
 
 use itertools::ZipSlices;
+use itertools::free::cloned;
 
 use std::iter::repeat;
 use std::cmp;
+use std::ops::Add;
 
 #[bench]
 fn slice_iter(b: &mut test::Bencher)
@@ -699,13 +701,19 @@ fn kmerge_tenway(b: &mut test::Bencher) {
 }
 
 
+fn fast_integer_sum<I>(iter: I) -> I::Item
+    where I: IntoIterator,
+          I::Item: Default + Add<Output=I::Item>
+{
+    iter.into_iter().fold(<_>::default(), |x, y| x + y)
+}
 
 
 #[bench]
 fn step_vec_2(b: &mut test::Bencher) {
     let v = vec![0; 1024];
     b.iter(|| {
-        v.iter().step(2).sum::<i32>()
+        fast_integer_sum(cloned(v.iter().step(2)))
     });
 }
 
@@ -713,6 +721,22 @@ fn step_vec_2(b: &mut test::Bencher) {
 fn step_vec_10(b: &mut test::Bencher) {
     let v = vec![0; 1024];
     b.iter(|| {
-        v.iter().step(10).sum::<i32>()
+        fast_integer_sum(cloned(v.iter().step(10)))
+    });
+}
+
+#[bench]
+fn step_range_2(b: &mut test::Bencher) {
+    let v = black_box(0..1024);
+    b.iter(|| {
+        fast_integer_sum(v.clone().step(2))
+    });
+}
+
+#[bench]
+fn step_range_10(b: &mut test::Bencher) {
+    let v = black_box(0..1024);
+    b.iter(|| {
+        fast_integer_sum(v.clone().step(10))
     });
 }
