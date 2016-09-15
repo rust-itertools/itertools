@@ -6,7 +6,7 @@ Extra iterator adaptors, functions and macros. Requires Rust 1.2+.
 
 Please read the `API documentation here`__
 
-__ http://bluss.github.io/rust-itertools/
+__ https://bluss.github.io/rust-itertools/
 
 |build_status|_ |crates|_
 
@@ -19,7 +19,7 @@ __ http://bluss.github.io/rust-itertools/
 How to use with cargo::
 
     [dependencies]
-    itertools = "0.4.17"
+    itertools = "0.4.19"
 
 How to use in your crate:
 
@@ -38,6 +38,13 @@ How to contribute:
 
 Recent Changes
 --------------
+
+- 0.4.19
+
+  - Add ``.minmax_by()``
+  - Add ``itertools::free::cloned``
+  - Add ``itertools::free::rciter``
+  - Improve ``.step(n)`` slightly to take advantage of specialized Fuse better.
 
 - 0.4.18
 
