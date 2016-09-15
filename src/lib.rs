@@ -920,6 +920,8 @@ pub trait Itertools : Iterator {
         Flatten::new(self)
     }
 
+    /// **Deprecated:** Will be removed in the next version
+    ///
     /// Like regular `.map()`, specialized to using a simple function pointer instead,
     /// so that the resulting `Map` iterator value can be cloned.
     ///
@@ -936,6 +938,7 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(iter, vec![Some(1), Some(0), None]);
     /// itertools::assert_equal(iter_copy, vec![Some(1), Some(0), None]);
     /// ```
+    #[cfg_attr(feature = "unstable", deprecated(note = "will be removed in the next version"))]
     fn map_fn<B>(self, f: fn(Self::Item) -> B) -> MapFn<Self, B>
         where Self: Sized
     {
