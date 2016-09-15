@@ -478,6 +478,9 @@ pub trait Itertools : Iterator {
         ISlice::new(self, range)
     }
 
+    /// **Deprecated:** use `itertools::free::rciter` instead.
+    /// (It's an iterator constructor, not an adaptor).
+    ///
     /// Return an iterator inside a `Rc<RefCell<_>>` wrapper.
     ///
     /// The returned `RcIter` can be cloned, and each clone will refer back to the
@@ -505,6 +508,7 @@ pub trait Itertools : Iterator {
     /// **Panics** in iterator methods if a borrow error is encountered,
     /// but it can only happen if the `RcIter` is reentered in for example `.next()`,
     /// i.e. if it somehow participates in an “iterator knot” where it is an adaptor of itself.
+    #[cfg_attr(feature = "unstable", deprecated(note = "use itertools::free::rciter instead"))]
     fn into_rc(self) -> RcIter<Self>
         where Self: Sized
     {
