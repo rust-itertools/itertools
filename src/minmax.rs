@@ -1,7 +1,7 @@
 
 /// `MinMaxResult` is an enum returned by `minmax`. See `Itertools::minmax()` for
 /// more detail.
-#[derive(PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum MinMaxResult<T> {
     /// Empty iterator
     NoElements,
