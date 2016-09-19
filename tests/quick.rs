@@ -426,34 +426,6 @@ quickcheck! {
         let it = itertools::RepeatN::new(x, n);
         exact_size(it)
     }
-
-    #[cfg(feature = "unstable")]
-    fn size_ziptrusted(a: Vec<u8>, b: Vec<u8>) -> bool {
-        exact_size(itertools::ZipTrusted::new((a.iter(), b.iter())))
-    }
-}
-
-#[cfg(feature = "unstable")]
-quickcheck! {
-    fn size_ziptrusted3(a: Vec<u8>, b: Vec<u8>, c: Vec<u8>) -> bool {
-        exact_size(itertools::ZipTrusted::new((a.iter(), b.iter(), c.iter())))
-    }
-}
-
-#[cfg(feature = "unstable")]
-quickcheck! {
-    fn equal_ziptrusted_mix(a: Vec<u8>, b: Vec<()>, x: u8, y: u8) -> bool {
-        let it = itertools::ZipTrusted::new((a.iter(), b.iter(), x..y));
-        let jt = Zip::new((a.iter(), b.iter(), x..y));
-        itertools::equal(it, jt)
-    }
-}
-
-#[cfg(feature = "unstable")]
-quickcheck! {
-    fn size_ziptrusted_mix(a: Vec<u8>, b: Vec<()>, x: u8, y: u8) -> bool {
-        exact_size(itertools::ZipTrusted::new((a.iter(), b.iter(), x..y)))
-    }
 }
 
 quickcheck! {

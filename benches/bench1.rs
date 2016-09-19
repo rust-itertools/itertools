@@ -7,9 +7,6 @@ use test::{black_box};
 use itertools::Stride;
 use itertools::Itertools;
 
-#[cfg(feature = "unstable")]
-use itertools::{ZipTrusted};
-
 use itertools::ZipSlices;
 use itertools::free::cloned;
 
@@ -206,78 +203,6 @@ fn zipdot_f32_zipslices(b: &mut test::Bencher)
     })
 }
 
-#[cfg(feature = "unstable")]
-#[bench]
-fn ziptrusted(b: &mut test::Bencher)
-{
-    let xs = vec![0; 1024];
-    let ys = vec![0; 768];
-    let xs = black_box(xs);
-    let ys = black_box(ys);
-
-    b.iter(|| {
-        for (&x, &y) in ZipTrusted::new((xs.iter(), ys.iter())) {
-            test::black_box(x);
-            test::black_box(y);
-        }
-    })
-}
-
-#[cfg(feature = "unstable")]
-#[bench]
-fn zipdot_i32_ziptrusted(b: &mut test::Bencher)
-{
-    let xs = vec![2; 1024];
-    let ys = vec![2; 768];
-    let xs = black_box(xs);
-    let ys = black_box(ys);
-
-    b.iter(|| {
-        let mut s = 0i32;
-        for (&x, &y) in ZipTrusted::new((xs.iter(), ys.iter())) {
-            s += x * y;
-        }
-        s
-    })
-}
-
-#[cfg(feature = "unstable")]
-#[bench]
-fn zipdot_f32_ziptrusted(b: &mut test::Bencher)
-{
-    let xs = vec![2.; 1024];
-    let ys = vec![2.; 768];
-    let xs = black_box(xs);
-    let ys = black_box(ys);
-
-    b.iter(|| {
-        let mut s = 0f32;
-        for (&x, &y) in ZipTrusted::new((xs.iter(), ys.iter())) {
-            s += x * y;
-        }
-        s
-    })
-}
-
-#[cfg(feature = "unstable")]
-#[bench]
-fn ziptrusted3(b: &mut test::Bencher)
-{
-    let xs = vec![0; 1024];
-    let ys = vec![0; 768];
-    let zs = vec![0; 766];
-    let xs = black_box(xs);
-    let ys = black_box(ys);
-    let zs = black_box(zs);
-
-    b.iter(|| {
-        for (&x, &y, &z) in ZipTrusted::new((xs.iter(), ys.iter(), zs.iter())) {
-            test::black_box(x);
-            test::black_box(y);
-            test::black_box(z);
-        }
-    })
-}
 
 #[bench]
 fn zip_checked_counted_loop(b: &mut test::Bencher)

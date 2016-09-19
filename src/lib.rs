@@ -2,7 +2,6 @@
 #![cfg_attr(feature = "unstable",
             feature(
                 zero_one,
-                core_intrinsics,
                 ))]
 #![crate_name="itertools"]
 
@@ -89,9 +88,6 @@ pub use tee::Tee;
 pub use zip_eq::ZipEq;
 pub use zip_longest::{ZipLongest, EitherOrBoth};
 pub use ziptuple::Zip;
-#[cfg(feature = "unstable")]
-#[cfg_attr(feature = "unstable", deprecated(note = "Will move to different crate"))]
-pub use ziptrusted::{ZipTrusted, TrustedIterator};
 #[cfg_attr(feature = "unstable", deprecated(note = "No longer has desired performance."))]
 pub use zipslices::ZipSlices;
 mod adaptors;
@@ -115,8 +111,6 @@ mod tee;
 mod zip_eq;
 mod zip_longest;
 mod ziptuple;
-#[cfg(feature = "unstable")]
-mod ziptrusted;
 mod zipslices;
 
 /// The function pointer map iterator created with `.map_fn()`.
