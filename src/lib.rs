@@ -1437,15 +1437,6 @@ pub trait Itertools : Iterator {
         v
     }
 
-    #[cfg_attr(feature = "unstable", deprecated(note = "Replaced by .sorted_by()"))]
-    /// **Deprecated:** renamed to `.sorted_by()`
-    fn sort_by<F>(self, cmp: F) -> Vec<Self::Item>
-        where Self: Sized,
-              F: FnMut(&Self::Item, &Self::Item) -> Ordering,
-    {
-        self.sorted_by(cmp)
-    }
-
     /// Collect all iterator elements into one of two
     /// partitions. Unlike `Iterator::partition`, each partition may
     /// have a distinct type.
