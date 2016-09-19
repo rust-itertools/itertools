@@ -98,9 +98,6 @@ mod zip_longest;
 mod ziptuple;
 mod zipslices;
 
-/// The function pointer map iterator created with `.map_fn()`.
-pub type MapFn<I, B> where I: Iterator = iter::Map<I, fn(I::Item) -> B>;
-
 #[macro_export]
 /// Create an iterator over the “cartesian product” of iterators.
 ///
@@ -839,31 +836,6 @@ pub trait Itertools : Iterator {
               Self::Item: IntoIterator
     {
         Flatten::new(self)
-    }
-
-    /// **Deprecated:** Will be removed in the next version
-    ///
-    /// Like regular `.map()`, specialized to using a simple function pointer instead,
-    /// so that the resulting `Map` iterator value can be cloned.
-    ///
-    /// Iterator element type is `B`.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// let data = vec![Ok(1), Ok(0), Err("No result")];
-    ///
-    /// let iter = data.iter().cloned().map_fn(Result::ok);
-    /// let iter_copy = iter.clone();
-    ///
-    /// itertools::assert_equal(iter, vec![Some(1), Some(0), None]);
-    /// itertools::assert_equal(iter_copy, vec![Some(1), Some(0), None]);
-    /// ```
-    #[cfg_attr(feature = "unstable", deprecated(note = "will be removed in the next version"))]
-    fn map_fn<B>(self, f: fn(Self::Item) -> B) -> MapFn<Self, B>
-        where Self: Sized
-    {
-        self.map(f)
     }
 
     // non-adaptor methods

@@ -582,16 +582,6 @@ fn mend_slices_mut() {
 }
 
 #[test]
-fn map_fn() {
-    // make sure it can be cloned
-    fn mapper<T: ToString>(x: T) -> String { x.to_string() }
-    let it = (0..4).map_fn(mapper);
-    let jt = it.clone();
-    it::assert_equal((0..4).map(|x| x.to_string()), it);
-    it::assert_equal((0..4).map(mapper), jt);
-}
-
-#[test]
 fn part() {
     let mut data = [7, 1, 1, 9, 1, 1, 3];
     let i = it::partition(&mut data, |elt| *elt >= 3);
