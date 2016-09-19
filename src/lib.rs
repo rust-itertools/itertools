@@ -66,8 +66,6 @@ pub use groupbylazy::{ChunksLazy, Chunk, Chunks, GroupByLazy, Group, Groups};
 pub use intersperse::Intersperse;
 pub use islice::ISlice;
 pub use kmerge::KMerge;
-#[cfg_attr(feature = "unstable", deprecated(note = "Will move to different crate"))]
-pub use linspace::{linspace, Linspace};
 pub use minmax::MinMaxResult;
 pub use pad_tail::PadUsing;
 pub use rciter::RcIter;
@@ -91,7 +89,6 @@ mod intersperse;
 mod islice;
 mod diff;
 mod kmerge;
-mod linspace;
 mod minmax;
 pub mod misc;
 mod pad_tail;
