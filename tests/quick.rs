@@ -19,6 +19,7 @@ use itertools::{
     EitherOrBoth,
 };
 use itertools::free::{
+    rciter,
     zip,
     zip_eq,
 };
@@ -270,7 +271,7 @@ quickcheck! {
             exact_size(Zip::new((a, b, c)))
     }
     fn size_zip_rc(a: Iter<i16>, b: Iter<i16>) -> bool {
-        let rc = a.clone().into_rc();
+        let rc = rciter(a.clone());
         correct_size_hint(Zip::new((&rc, &rc, b)))
     }
 

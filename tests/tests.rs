@@ -11,6 +11,7 @@ use it::Itertools;
 use it::Interleave;
 use it::Zip;
 use it::FoldWhile;
+use it::free::rciter;
 
 #[test]
 fn product2() {
@@ -280,10 +281,10 @@ fn tee() {
 
 
 #[test]
-fn rciter() {
+fn test_rciter() {
     let xs = [0, 1, 1, 1, 2, 1, 3, 5, 6];
 
-    let mut r1 = xs.iter().cloned().into_rc();
+    let mut r1 = rciter(xs.iter().cloned());
     let mut r2 = r1.clone();
     assert_eq!(r1.next(), Some(0));
     assert_eq!(r2.next(), Some(1));
@@ -294,7 +295,7 @@ fn rciter() {
     assert_eq!(z.next(), None);
 
     // test intoiterator
-    let r1 = (0..5).into_rc();
+    let r1 = rciter(0..5);
     let mut z = izip!(&r1, r1);
     assert_eq!(z.next(), Some((0, 1)));
 }

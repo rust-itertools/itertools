@@ -457,43 +457,6 @@ pub trait Itertools : Iterator {
         ISlice::new(self, range)
     }
 
-    /// **Deprecated:** use `itertools::free::rciter` instead.
-    /// (It's an iterator constructor, not an adaptor).
-    ///
-    /// Return an iterator inside a `Rc<RefCell<_>>` wrapper.
-    ///
-    /// The returned `RcIter` can be cloned, and each clone will refer back to the
-    /// same original iterator.
-    ///
-    /// `RcIter` allows doing interesting things like using `.zip()` on an iterator with
-    /// itself, at the cost of runtime borrow checking.
-    /// (If it is not obvious: this has a performance penalty.)
-    ///
-    /// Iterator element type is `Self::Item`.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// let mut rit = (0..9).into_rc();
-    /// let mut z = rit.clone().zip(rit.clone());
-    /// assert_eq!(z.next(), Some((0, 1)));
-    /// assert_eq!(z.next(), Some((2, 3)));
-    /// assert_eq!(z.next(), Some((4, 5)));
-    /// assert_eq!(rit.next(), Some(6));
-    /// assert_eq!(z.next(), Some((7, 8)));
-    /// assert_eq!(z.next(), None);
-    /// ```
-    ///
-    /// **Panics** in iterator methods if a borrow error is encountered,
-    /// but it can only happen if the `RcIter` is reentered in for example `.next()`,
-    /// i.e. if it somehow participates in an “iterator knot” where it is an adaptor of itself.
-    #[cfg_attr(feature = "unstable", deprecated(note = "use itertools::free::rciter instead"))]
-    fn into_rc(self) -> RcIter<Self>
-        where Self: Sized
-    {
-        RcIter::new(self)
-    }
-
     /// Return an iterator adaptor that steps `n` elements in the base iterator
     /// for each iteration.
     ///
