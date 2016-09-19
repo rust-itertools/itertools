@@ -11,7 +11,7 @@
 //!
 //! Some iterators or adaptors are used directly like regular structs, for example
 //! [`PutBack`](./struct.PutBack.html), [`Unfold`](./struct.Unfold.html),
-//! [`Zip`](./struct.Zip.html), [`Stride`](./struct.Stride.html)
+//! [`Zip`](./struct.Zip.html)
 //!
 //! To enable the macros in this crate, use the `#[macro_use]` attribute:
 //!
@@ -71,10 +71,6 @@ pub use pad_tail::PadUsing;
 pub use rciter::RcIter;
 pub use repeatn::RepeatN;
 pub use sources::{RepeatCall, Unfold};
-#[cfg_attr(feature = "unstable", deprecated(note = "Will move to different crate"))]
-pub use stride::Stride;
-#[cfg_attr(feature = "unstable", deprecated(note = "Will move to different crate"))]
-pub use stride::StrideMut;
 pub use tee::Tee;
 pub use zip_eq::ZipEq;
 pub use zip_longest::{ZipLongest, EitherOrBoth};
@@ -96,7 +92,6 @@ mod rciter;
 mod repeatn;
 mod sources;
 pub mod size_hint;
-mod stride;
 mod tee;
 mod zip_eq;
 mod zip_longest;

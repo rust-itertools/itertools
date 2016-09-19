@@ -16,7 +16,6 @@ use std::ops::Range;
 use itertools::Itertools;
 use itertools::{
     Zip,
-    Stride,
     EitherOrBoth,
 };
 use itertools::free::{
@@ -201,25 +200,6 @@ macro_rules! quickcheck {
 }
 
 quickcheck! {
-    fn size_stride(data: Vec<u8>, mut stride: isize) -> bool {
-        if stride == 0 {
-            stride += 1; // never zero
-        }
-        exact_size(Stride::from_slice(&data, stride))
-    }
-    fn equal_stride(data: Vec<u8>, mut stride: i8) -> bool {
-        if stride == 0 {
-            // never zero
-            stride += 1;
-        }
-        if stride > 0 {
-            itertools::equal(Stride::from_slice(&data, stride as isize),
-                             data.iter().step(stride as usize))
-        } else {
-            itertools::equal(Stride::from_slice(&data, stride as isize),
-                             data.iter().rev().step(-stride as usize))
-        }
-    }
 
     fn size_product(a: Iter<u16>, b: Iter<u16>) -> bool {
         correct_size_hint(a.cartesian_product(b))
@@ -639,29 +619,3 @@ quickcheck! {
     }
 }
 
-quickcheck! {
-    fn equal_zipslices_stride(a: Vec<u8>, b: Vec<u8>, s1: i8, s2: i8) -> bool {
-        let mut s1 = s1;
-        let mut s2 = s2;
-        use itertools::ZipSlices;
-        use itertools::Stride;
-        if s1 == 0 { s1 += 1; }
-        if s2 == 0 { s2 += 1; }
-        let a = Stride::from_slice(&a, s1 as isize);
-        let b = Stride::from_slice(&b, s2 as isize);
-        itertools::equal(ZipSlices::from_slices(a, b), a.zip(b))
-    }
-}
-
-quickcheck! {
-    fn exact_size_zipslices_stride(a: Vec<u8>, b: Vec<u8>, s1: i8, s2: i8) -> bool {
-        let mut s1 = s1;
-        let mut s2 = s2;
-        use itertools::ZipSlices;
-        use itertools::Stride;
-        if s1 == 0 { s1 += 1; }
-        if s2 == 0 { s2 += 1; }
-        exact_size(ZipSlices::from_slices(Stride::from_slice(&a, s1 as isize),
-                                          Stride::from_slice(&b, s2 as isize)))
-    }
-}

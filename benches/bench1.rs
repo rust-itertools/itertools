@@ -4,7 +4,6 @@ extern crate test;
 extern crate itertools;
 
 use test::{black_box};
-use itertools::Stride;
 use itertools::Itertools;
 
 use itertools::ZipSlices;
@@ -28,24 +27,6 @@ fn slice_iter_rev(b: &mut test::Bencher)
 {
     let xs: Vec<_> = repeat(1i32).take(20).collect();
     b.iter(|| for elt in xs.iter().rev() {
-        test::black_box(elt);
-    })
-}
-
-#[bench]
-fn stride_iter(b: &mut test::Bencher)
-{
-    let xs: Vec<_> = repeat(1i32).take(20).collect();
-    b.iter(|| for elt in Stride::from_slice(&xs, 1) {
-        test::black_box(elt);
-    })
-}
-
-#[bench]
-fn stride_iter_rev(b: &mut test::Bencher)
-{
-    let xs: Vec<_> = repeat(1i32).take(20).collect();
-    b.iter(|| for elt in Stride::from_slice(&xs, 1).rev() {
         test::black_box(elt);
     })
 }
