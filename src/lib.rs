@@ -30,7 +30,7 @@
 //!
 //!
 
-use std::iter::{self, IntoIterator};
+use std::iter::{IntoIterator};
 use std::fmt::Write;
 use std::cmp::Ordering;
 use std::fmt;
@@ -75,8 +75,6 @@ pub use tee::Tee;
 pub use zip_eq::ZipEq;
 pub use zip_longest::{ZipLongest, EitherOrBoth};
 pub use ziptuple::Zip;
-#[cfg_attr(feature = "unstable", deprecated(note = "No longer has desired performance."))]
-pub use zipslices::ZipSlices;
 mod adaptors;
 pub mod free;
 mod format;
@@ -96,7 +94,6 @@ mod tee;
 mod zip_eq;
 mod zip_longest;
 mod ziptuple;
-mod zipslices;
 
 #[macro_export]
 /// Create an iterator over the “cartesian product” of iterators.

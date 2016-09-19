@@ -6,12 +6,15 @@ extern crate itertools;
 use test::{black_box};
 use itertools::Itertools;
 
-use itertools::ZipSlices;
 use itertools::free::cloned;
 
 use std::iter::repeat;
 use std::cmp;
 use std::ops::Add;
+
+mod extra;
+
+use extra::ZipSlices;
 
 #[bench]
 fn slice_iter(b: &mut test::Bencher)

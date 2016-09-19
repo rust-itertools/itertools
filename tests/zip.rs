@@ -45,22 +45,6 @@ fn test_double_ended_zip_longest() {
 }
 
 
-#[test]
-fn zipslices() {
-    use itertools::ZipSlices;
-
-    let xs = [1, 2, 3, 4, 5, 6];
-    let ys = [1, 2, 3, 7];
-    itertools::assert_equal(ZipSlices::new(&xs, &ys), xs.iter().zip(&ys));
-
-    let xs = [1, 2, 3, 4, 5, 6];
-    let mut ys = [0; 6];
-    for (x, y) in ZipSlices::from_slices(&xs[..], &mut ys[..]) {
-        *y = *x;
-    }
-    itertools::assert_equal(&xs, &ys);
-}
-
 #[should_panic]
 #[test]
 fn zip_eq_panic1()

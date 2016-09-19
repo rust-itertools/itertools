@@ -592,31 +592,3 @@ quickcheck! {
     }
 }
 
-quickcheck! {
-    fn equal_zipslices(a: Vec<u8>, b: Vec<u8>) -> bool {
-        use itertools::ZipSlices;
-        itertools::equal(ZipSlices::new(&a, &b), a.iter().zip(&b))
-    }
-}
-
-quickcheck! {
-    fn equal_zipslices_rev(a: Vec<u8>, b: Vec<u8>) -> bool {
-        use itertools::ZipSlices;
-        itertools::equal(ZipSlices::new(&a, &b).rev(), a.iter().zip(&b).rev())
-    }
-}
-
-quickcheck! {
-    fn exact_size_zipslices(a: Vec<u8>, b: Vec<u8>) -> bool {
-        use itertools::ZipSlices;
-        exact_size(ZipSlices::new(&a, &b))
-    }
-}
-
-quickcheck! {
-    fn exact_size_zipslices_rev(a: Vec<u8>, b: Vec<u8>) -> bool {
-        use itertools::ZipSlices;
-        exact_size(ZipSlices::new(&a, &b).rev())
-    }
-}
-
