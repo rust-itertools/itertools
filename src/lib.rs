@@ -1,8 +1,4 @@
 #![warn(missing_docs)]
-#![cfg_attr(feature = "unstable",
-            feature(
-                zero_one,
-                ))]
 #![crate_name="itertools"]
 
 //! Itertools — extra iterator adaptors, functions and macros.
@@ -63,9 +59,6 @@ pub use adaptors::{
     UniqueBy,
     Flatten,
 };
-#[cfg(feature = "unstable")]
-#[cfg_attr(feature = "unstable", deprecated(note = "Uses deprecated libstd traits"))]
-pub use adaptors::EnumerateFrom;
 pub use diff::{diff_with, Diff};
 pub use format::{Format, FormatDefault};
 pub use free::{enumerate, rev};
@@ -618,27 +611,6 @@ pub trait Itertools : Iterator {
               J::IntoIter: Clone
     {
         Product::new(self, other.into_iter())
-    }
-
-    /// Return an iterator adaptor that enumerates the iterator elements,
-    /// starting from `start` and incrementing by one.
-    ///
-    /// Iterator element type is `(K, Self::Item)`.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// assert_eq!(
-    ///     "αβγ".chars().enumerate_from(-10i8).collect_vec(),
-    ///     [(-10, 'α'), (-9, 'β'), (-8, 'γ')]
-    /// );
-    /// ```
-    #[cfg(feature = "unstable")]
-    #[cfg_attr(feature = "unstable", deprecated(note = "Uses deprecated libstd traits"))]
-    fn enumerate_from<K>(self, start: K) -> EnumerateFrom<Self, K>
-        where Self: Sized
-    {
-        EnumerateFrom::new(self, start)
     }
 
     /// Return an iterator adapter that allows peeking multiple values.

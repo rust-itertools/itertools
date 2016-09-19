@@ -528,15 +528,6 @@ fn count_clones() {
     }
 }
 
-#[cfg(feature = "unstable")]
-#[test]
-#[should_panic]
-/// NOTE: Will only panic/overflow in debug builds
-fn enumerate_from_overflow() {
-    for _ in (0..1000).enumerate_from(0i8) {
-    }
-}
-
 /// Like CharIndices iterator, except it yields slices instead
 #[derive(Copy, Clone, Debug)]
 struct CharSlices<'a> {

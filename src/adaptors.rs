@@ -6,10 +6,6 @@
 
 use std::cmp;
 use std::mem;
-#[cfg(feature = "unstable")]
-use std::num::One;
-#[cfg(feature = "unstable")]
-use std::ops::Add;
 use std::ops::Index;
 use std::iter::{Fuse, Peekable, FlatMap};
 use std::collections::HashSet;
@@ -694,60 +690,6 @@ impl<I, J, F> Iterator for MergeBy<I, J, F>
         self.merge.size_hint()
     }
 }
-
-#[cfg(feature = "unstable")]
-/// An iterator adaptor that enumerates the iterator elements,
-/// with a custom starting value and integer type.
-///
-/// See [`.enumerate_from()`](trait.Itertools.html#method.enumerate_from) for more information.
-pub struct EnumerateFrom<I, K> {
-    index: K,
-    iter: I,
-}
-
-#[cfg(feature = "unstable")]
-impl<K, I> EnumerateFrom<I, K>
-    where I: Iterator
-{
-    /// Create a new `EnumerateFrom`.
-    pub fn new(iter: I, start: K) -> Self {
-        EnumerateFrom {
-            index: start,
-            iter: iter,
-        }
-    }
-}
-
-#[cfg(feature = "unstable")]
-impl<K, I> Iterator for EnumerateFrom<I, K>
-    where K: Copy + One + Add<Output = K>,
-          I: Iterator
-{
-    type Item = (K, I::Item);
-    fn next(&mut self) -> Option<(K, I::Item)> {
-        match self.iter.next() {
-            None => None,
-            Some(elt) => {
-                let index = self.index.clone();
-                // FIXME: Arithmetic needs to be wrapping here to be sane,
-                // imagine i8 counter to enumerate a sequence 0 to 127 inclusive.
-                self.index = self.index + K::one();
-                Some((index, elt))
-            }
-        }
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.iter.size_hint()
-    }
-}
-
-// Same size
-#[cfg(feature = "unstable")]
-impl<K, I> ExactSizeIterator for EnumerateFrom<I, K>
-    where K: Copy + One + Add<Output = K>,
-          I: ExactSizeIterator
-{}
 
 #[derive(Clone)]
 /// An iterator adaptor that allows the user to peek at multiple `.next()`
