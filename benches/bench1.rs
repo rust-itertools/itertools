@@ -602,7 +602,7 @@ fn kmerge_tenway(b: &mut test::Bencher) {
         rest = tail;
     }
 
-    // println!("Chunk lengths: {}", chunks.iter().format(", ", |elt, f| f(&elt.len())));
+    // println!("Chunk lengths: {}", chunks.iter().format_with(", ", |elt, f| f(&elt.len())));
 
     b.iter(|| {
         chunks.iter().cloned().kmerge().count()

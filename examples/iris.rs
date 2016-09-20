@@ -87,8 +87,8 @@ fn main() {
         println!("{} (symbol={})", species, symbolmap[species]);
 
         for iris in species_group {
-            // using Itertools::format_default for lazy formatting
-            println!("{:>3.1}", iris.data.iter().format_default(", "));
+            // using Itertools::format for lazy formatting
+            println!("{:>3.1}", iris.data.iter().format(", "));
         }
 
     }

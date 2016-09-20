@@ -83,7 +83,7 @@ impl<K, I, F> GroupInner<K, I, F>
         /*
         println!("client={}, bufbot={}, bot={}, top={}, buffers=[{}]",
                  client, self.bufbot, self.bot, self.top,
-                 self.buffer.iter().format(", ", |elt, f| f(&elt.len())));
+                 self.buffer.iter().map(|elt| elt.len()).format(", "));
          */
         if client < self.bot {
             None

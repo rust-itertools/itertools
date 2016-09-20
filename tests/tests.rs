@@ -941,12 +941,12 @@ fn format() {
     let ans1 = "0, 1, 2, 3";
     let ans2 = "0--1--2--3";
 
-    let t1 = format!("{}", data.iter().format_default(", "));
+    let t1 = format!("{}", data.iter().format(", "));
     assert_eq!(t1, ans1);
-    let t2 = format!("{:?}", data.iter().format_default("--"));
+    let t2 = format!("{:?}", data.iter().format("--"));
     assert_eq!(t2, ans2);
 
     let dataf = [1.1, 2.71828, -22.];
-    let t3 = format!("{:.2e}", dataf.iter().format_default(", "));
+    let t3 = format!("{:.2e}", dataf.iter().format(", "));
     assert_eq!(t3, "1.10e0, 2.72e0, -2.20e1");
 }

@@ -60,7 +60,7 @@ pub use adaptors::{
     Flatten,
 };
 pub use diff::{diff_with, Diff};
-pub use format::{Format, FormatDefault};
+pub use format::{Format, FormatWith};
 pub use free::{enumerate, rev};
 pub use groupbylazy::{ChunksLazy, Chunk, Chunks, GroupByLazy, Group, Groups};
 pub use intersperse::Intersperse;
@@ -1028,15 +1028,25 @@ pub trait Itertools : Iterator {
     /// All elements are formatted (any formatting trait)
     /// with `sep` inserted between each element.
     ///
+    /// **Panics** if the formatter helper is formatted more than once.
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
     /// let data = [1.1, 2.71828, -3.];
     /// assert_eq!(
-    ///     format!("{:.2}", data.iter().format_default(", ")),
+    ///     format!("{:.2}", data.iter().format(", ")),
     ///            "1.10, 2.72, -3.00");
     /// ```
-    fn format_default(self, sep: &str) -> FormatDefault<Self>
+    fn format(self, sep: &str) -> Format<Self>
+        where Self: Sized,
+    {
+        format::new_format_default(self, sep)
+    }
+
+    ///
+    #[deprecated(note = "renamed to .format()")]
+    fn format_default(self, sep: &str) -> Format<Self>
         where Self: Sized,
     {
         format::new_format_default(self, sep)
@@ -1044,7 +1054,7 @@ pub trait Itertools : Iterator {
 
     /// Format all iterator elements, separated by `sep`.
     ///
-    /// This is a customizable version of `.format_default()`.
+    /// This is a customizable version of `.format()`.
     ///
     /// The supplied closure `format` is called once per iterator element,
     /// with two arguments: the element and a callback that takes a
@@ -1053,26 +1063,28 @@ pub trait Itertools : Iterator {
     /// Using `&format_args!(...)` is the most versatile way to apply custom
     /// element formatting. The callback can be called multiple times if needed.
     ///
+    /// **Panics** if the formatter helper is formatted more than once.
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
     /// let data = [1.1, 2.71828, -3.];
-    /// let data_formatter = data.iter().format(", ", |elt, f| f(&format_args!("{:.2}", elt)));
+    /// let data_formatter = data.iter().format_with(", ", |elt, f| f(&format_args!("{:.2}", elt)));
     /// assert_eq!(format!("{}", data_formatter),
     ///            "1.10, 2.72, -3.00");
     ///
-    /// // .format() is recursively composable
+    /// // .format_with() is recursively composable
     /// let matrix = [[1., 2., 3.],
     ///               [4., 5., 6.]];
-    /// let matrix_formatter = matrix.iter().format("\n", |row, f| {
-    ///                                 f(&row.iter().format(", ", |elt, g| g(&elt)))
+    /// let matrix_formatter = matrix.iter().format_with("\n", |row, f| {
+    ///                                 f(&row.iter().format_with(", ", |elt, g| g(&elt)))
     ///                              });
     /// assert_eq!(format!("{}", matrix_formatter),
     ///            "1, 2, 3\n4, 5, 6");
     ///
     ///
     /// ```
-    fn format<F>(self, sep: &str, format: F) -> Format<Self, F>
+    fn format_with<F>(self, sep: &str, format: F) -> FormatWith<Self, F>
         where Self: Sized,
               F: FnMut(Self::Item, &mut FnMut(&fmt::Display) -> fmt::Result) -> fmt::Result,
     {
