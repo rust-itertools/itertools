@@ -1,13 +1,6 @@
 //! A module of helper traits and iterators that are not intended to be used
 //! directly.
 
-use std::ops::{
-    RangeFull,
-    Range,
-    RangeTo,
-    RangeFrom
-};
-
 use std::mem;
 use std::slice;
 
