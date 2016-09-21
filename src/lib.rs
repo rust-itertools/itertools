@@ -9,10 +9,6 @@
 //! use itertools::Itertools;
 //! ```
 //!
-//! Some iterators or adaptors are used directly like regular structs, for example
-//! [`PutBack`](./struct.PutBack.html), [`Unfold`](./struct.Unfold.html),
-//! [`Zip`](./struct.Zip.html)
-//!
 //! To enable the macros in this crate, use the `#[macro_use]` attribute:
 //!
 //! ```ignore
