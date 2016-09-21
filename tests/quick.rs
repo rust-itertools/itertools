@@ -337,15 +337,6 @@ quickcheck! {
                          }
                          ))
     }
-    fn equal_islice(a: Vec<i16>, x: usize, y: usize) -> bool {
-        if x > y || y > a.len() { return true; }
-        let slc = &a[x..y];
-        itertools::equal(a.iter().slice(x..y), slc)
-    }
-    fn size_islice(a: Iter<i16>, x: usize, y: usize) -> bool {
-        correct_size_hint(a.clone().dedup().slice(x..y)) &&
-            exact_size(a.clone().slice(x..y))
-    }
     fn size_interleave(a: Iter<i16>, b: Iter<i16>) -> bool {
         correct_size_hint(a.interleave(b))
     }

@@ -301,14 +301,6 @@ fn test_rciter() {
 }
 
 #[test]
-fn slice() {
-    it::assert_equal((0..10).slice(..3), 0..3);
-    it::assert_equal((0..10).slice(3..7), 3..7);
-    it::assert_equal((0..10).slice(3..27), 3..10);
-    it::assert_equal((0..10).slice(44..), 0..0);
-}
-
-#[test]
 fn step() {
     it::assert_equal((0..10).step(1), (0..10));
     it::assert_equal((0..10).step(2), (0..10).filter(|x: &i32| *x % 2 == 0));

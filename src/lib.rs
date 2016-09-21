@@ -64,7 +64,6 @@ pub use format::{Format, FormatWith};
 pub use free::{enumerate, rev};
 pub use groupbylazy::{ChunksLazy, Chunk, Chunks, GroupByLazy, Group, Groups};
 pub use intersperse::Intersperse;
-pub use islice::ISlice;
 pub use kmerge::KMerge;
 pub use minmax::MinMaxResult;
 pub use pad_tail::PadUsing;
@@ -80,7 +79,6 @@ pub mod free;
 mod format;
 mod groupbylazy;
 mod intersperse;
-mod islice;
 mod diff;
 mod kmerge;
 mod minmax;
@@ -428,27 +426,6 @@ pub trait Itertools : Iterator {
               Self::Item: Clone
     {
         tee::new(self)
-    }
-
-    /// Return a sliced iterator.
-    ///
-    /// **Note:** slicing an iterator is not constant time, and much less efficient than
-    /// slicing for example a vector.
-    ///
-    /// Iterator element type is `Self::Item`.
-    ///
-    /// ```
-    /// use std::iter::repeat;
-    /// use itertools::Itertools;
-    ///
-    /// let it = repeat('a').slice(..3);
-    /// assert_eq!(it.count(), 3);
-    /// ```
-    fn slice<R>(self, range: R) -> ISlice<Self>
-        where R: misc::GenericRange,
-              Self: Sized
-    {
-        ISlice::new(self, range)
     }
 
     /// Return an iterator adaptor that steps `n` elements in the base iterator
