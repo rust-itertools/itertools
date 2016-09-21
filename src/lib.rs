@@ -60,6 +60,7 @@ pub mod structs {
         UniqueBy,
         Flatten,
     };
+    pub use cons_tuples::ConsTuples;
     pub use format::{Format, FormatWith};
     pub use groupbylazy::{ChunksLazy, Chunk, Chunks, GroupByLazy, Group, Groups};
     pub use intersperse::Intersperse;
@@ -83,18 +84,18 @@ pub use zip_longest::EitherOrBoth;
 pub use ziptuple::multizip;
 mod adaptors;
 pub mod free;
+mod cons_tuples;
+mod diff;
 mod format;
 mod groupbylazy;
 mod intersperse;
-mod diff;
 mod kmerge;
 mod minmax;
-pub mod misc;
 mod pad_tail;
 mod rciter;
 mod repeatn;
-mod sources;
 mod size_hint;
+mod sources;
 mod tee;
 mod zip_eq;
 mod zip_longest;
@@ -121,7 +122,7 @@ macro_rules! iproduct {
         $I
     );
     (@flatten $I:expr, $J:expr, $($K:expr,)*) => (
-        iproduct!(@flatten $crate::misc::FlatTuples::new(iproduct!($I, $J)), $($K,)*)
+        iproduct!(@flatten $crate::ConsTuples::new(iproduct!($I, $J)), $($K,)*)
     );
     ($I:expr) => (
         (::std::iter::IntoIterator::into_iter($I))
