@@ -1,16 +1,3 @@
-//! A module of helper traits and iterators that are not intended to be used
-//! directly.
-
-
-/// Apply `IntoIterator` on each element of a tuple.
-pub trait IntoIteratorTuple
-{
-    /// Tuple of values that implement `Iterator`.
-    type Output;
-
-    /// Return a tuple of iterators.
-    fn into_iterator_tuple(self) -> Self::Output;
-}
 
 macro_rules! impl_cons_iter(
     () => ();
