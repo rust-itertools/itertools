@@ -136,27 +136,6 @@ impl GenericRange for Range<usize> {
     }
 }
 
-/// Helper trait to convert usize to floating point type.
-pub trait ToFloat<F> : Copy {
-    #[doc(hidden)]
-    /// Convert usize to float.
-    fn to_float(self) -> F;
-}
-
-impl ToFloat<f32> for usize {
-    #[inline(always)]
-    fn to_float(self) -> f32 {
-        self as f32
-    }
-}
-
-impl ToFloat<f64> for usize {
-    #[inline(always)]
-    fn to_float(self) -> f64 {
-        self as f64
-    }
-}
-
 /// A trait for items that can *maybe* be joined together.
 pub trait MendSlice
 {
