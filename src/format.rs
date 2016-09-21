@@ -6,7 +6,7 @@ use std::cell::RefCell;
 /// The format value can only be formatted once, after that the iterator is
 /// exhausted.
 ///
-/// See [`.format()`](../trait.Itertools.html#method.format) for more information.
+/// See [`.format_with()`](../trait.Itertools.html#method.format_with) for more information.
 pub struct FormatWith<'a, I, F> {
     sep: &'a str,
     /// FormatWith uses interior mutability because Display::fmt takes &self.
