@@ -805,7 +805,7 @@ pub trait Itertools : Iterator {
     ///
     /// itertools::assert_equal(flattened, vec![1, 2, 3, 4, 5, 6]);
     /// ```
-    fn flatten(self) -> Flatten<Self>
+    fn flatten(self) -> Flatten<Self, <<Self as Iterator>::Item as IntoIterator>::IntoIter>
         where Self: Sized,
               Self::Item: IntoIterator
     {

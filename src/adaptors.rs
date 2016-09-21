@@ -7,7 +7,7 @@
 use std::cmp;
 use std::mem;
 use std::ops::Index;
-use std::iter::{Fuse, Peekable, FlatMap};
+use std::iter::{Fuse, Peekable};
 use std::collections::HashSet;
 use std::hash::Hash;
 use size_hint;
@@ -1341,53 +1341,82 @@ pub fn unique<I>(iter: I) -> Unique<I>
 /// An iterator adapter to simply flatten a structure.
 ///
 /// See [`.flatten()`](trait.Itertools.html#method.flatten) for more information.
-pub struct Flatten<I>
-    where I: Iterator,
-          I::Item: IntoIterator
-{
-    iter: FlatMap<I, I::Item, fn(I::Item) -> I::Item>,
+#[derive(Clone)]
+pub struct Flatten<I, J> {
+    iter: I,
+    front: Option<J>,
+    back: Option<J>,
 }
 
-impl<I> Flatten<I>
+impl<I, J> Flatten<I, J>
     where I: Iterator,
-          I::Item: IntoIterator
+          J: Iterator,
 {
     /// Create a new `Flatten` iterator.
-    pub fn new(iter: I) -> Flatten<I> {
-        fn identity<T>(t: T) -> T {
-            t
+    pub fn new(iter: I) -> Flatten<I, J> {
+        Flatten {
+            iter: iter,
+            front: None,
+            back: None,
         }
-        Flatten { iter: iter.flat_map(identity) }
     }
 }
 
-impl<I> Iterator for Flatten<I>
+impl<I, J> Iterator for Flatten<I, J>
     where I: Iterator,
-          I::Item: IntoIterator
+          I::Item: IntoIterator<IntoIter=J, Item=J::Item>,
+          J: Iterator,
 {
-    type Item = <I::Item as IntoIterator>::Item;
+    type Item = J::Item;
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next()
+        loop {
+            if let Some(ref mut f) = self.front {
+                match f.next() {
+                    elt @ Some(_) => return elt,
+                    None => { }
+                }
+            }
+            if let Some(next_front) = self.iter.next() {
+                self.front = Some(next_front.into_iter());
+            } else {
+                break;
+            }
+        }
+        if let Some(ref mut b) = self.back {
+            match b.next() {
+                elt @ Some(_) => return elt,
+                None => { }
+            }
+        }
+        None
     }
 }
 
-impl<I> DoubleEndedIterator for Flatten<I>
+impl<I, J> DoubleEndedIterator for Flatten<I, J>
     where I: DoubleEndedIterator,
-          I::Item: DoubleEndedIterator
+          I::Item: IntoIterator<IntoIter=J, Item=J::Item>,
+          J: DoubleEndedIterator,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.iter.next_back()
-    }
-}
-
-impl<I> Clone for Flatten<I> where
-    I: Iterator + Clone,
-    I::Item: IntoIterator + Clone,
-    <<I as Iterator>::Item as IntoIterator>::IntoIter: Clone
-{
-    fn clone(&self) -> Self {
-        Flatten {
-            iter: self.iter.clone()
+        loop {
+            if let Some(ref mut b) = self.back {
+                match b.next_back() {
+                    elt @ Some(_) => return elt,
+                    None => { }
+                }
+            }
+            if let Some(next_back) = self.iter.next_back() {
+                self.back = Some(next_back.into_iter());
+            } else {
+                break;
+            }
         }
+        if let Some(ref mut f) = self.front {
+            match f.next_back() {
+                elt @ Some(_) => return elt,
+                None => { }
+            }
+        }
+        None
     }
 }

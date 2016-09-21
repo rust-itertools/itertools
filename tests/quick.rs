@@ -363,6 +363,20 @@ quickcheck! {
         }
         true
     }
+
+    fn equal_flatten(a: Vec<Option<i32>>) -> bool {
+        itertools::equal(a.iter().flatten(),
+                         a.iter().filter_map(|x| x.as_ref()))
+    }
+
+    fn equal_flatten_vec(a: Vec<Vec<u8>>) -> bool {
+        itertools::equal(a.iter().flatten(),
+                         a.iter().flat_map(|x| x))
+    }
+    fn equal_flatten_vec_rev(a: Vec<Vec<u8>>) -> bool {
+        itertools::equal(a.iter().flatten().rev(),
+                         a.iter().flat_map(|x| x).rev())
+    }
 }
 
 quickcheck! {
