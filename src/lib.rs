@@ -69,7 +69,7 @@ pub use minmax::MinMaxResult;
 pub use pad_tail::PadUsing;
 pub use rciter::RcIter;
 pub use repeatn::RepeatN;
-pub use sources::{RepeatCall, Unfold};
+pub use sources::{repeat_call, RepeatCall, unfold, Unfold};
 pub use tee::Tee;
 pub use zip_eq::ZipEq;
 pub use zip_longest::{ZipLongest, EitherOrBoth};
