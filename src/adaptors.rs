@@ -1449,3 +1449,57 @@ impl<I> Clone for Flatten<I> where
         }
     }
 }
+
+pub struct Starmap<I, F, A>
+    where I: Iterator<Item=A>,
+{
+    iter: I,
+    f: F,
+}
+
+impl<I, F, A> Starmap<I, F, A>
+    where I: Iterator<Item=A>,
+{
+    pub fn new(iter: I, f: F) -> Self {
+        Starmap {
+            iter: iter,
+            f: f,
+        }
+    }
+}
+
+macro_rules! starmap_iterator {
+    ($a:ident, $($b:ident,)+) => {
+        starmap_iterator!($($b,)*);
+        impl<I, F, R, $a, $($b),*> Iterator for Starmap<I, F, ($a, $($b),*)>
+            where I: Iterator<Item=($a, $($b),*)>,
+                  F: FnMut($a, $($b),*) -> R,
+        {
+            type Item = R;
+            #[allow(non_snake_case)]
+            fn next(&mut self) -> Option<R> {
+                let f = &mut self.f;
+                self.iter.next().map(|($a, $($b),*)| f($a, $($b),*))
+            }
+
+            fn size_hint(&self) -> (usize, Option<usize>) {
+                self.iter.size_hint()
+            }
+        }
+        impl<I, F, R, $a, $($b),*> DoubleEndedIterator for Starmap<I, F, ($a, $($b),*)>
+            where I: DoubleEndedIterator<Item=($a, $($b),*)>,
+                  F: FnMut($a, $($b),*) -> R,
+        {
+            #[allow(non_snake_case)]
+            fn next_back(&mut self) -> Option<R> {
+                let f = &mut self.f;
+                self.iter.next_back().map(|($a, $($b),*)| f($a, $($b),*))
+            }
+        }
+    };
+    ($a:ident, ) => {
+        // no impl for Item=A
+    }
+}
+
+starmap_iterator!{A_, B_, C_, D_, E_, F_, G_, H_, }
