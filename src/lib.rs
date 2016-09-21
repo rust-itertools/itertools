@@ -36,44 +36,53 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::hash::Hash;
 
-pub use adaptors::{
-    Dedup,
-    Interleave,
-    InterleaveShortest,
-    Product,
-    PutBack,
-    PutBackN,
-    Batching,
-    GroupBy,
-    Step,
-    Merge,
-    MergeBy,
-    MultiPeek,
-    TakeWhileRef,
-    WhileSome,
-    Coalesce,
-    MendSlices,
-    Combinations,
-    CombinationsN,
-    Unique,
-    UniqueBy,
-    Flatten,
-};
-pub use diff::{diff_with, Diff};
-pub use format::{Format, FormatWith};
+/// The concrete iterator types.
+pub mod structs {
+    pub use adaptors::{
+        Dedup,
+        Interleave,
+        InterleaveShortest,
+        Product,
+        PutBack,
+        PutBackN,
+        Batching,
+        GroupBy,
+        Step,
+        Merge,
+        MergeBy,
+        MultiPeek,
+        TakeWhileRef,
+        WhileSome,
+        Coalesce,
+        MendSlices,
+        Combinations,
+        CombinationsN,
+        Unique,
+        UniqueBy,
+        Flatten,
+    };
+    pub use format::{Format, FormatWith};
+    pub use groupbylazy::{ChunksLazy, Chunk, Chunks, GroupByLazy, Group, Groups};
+    pub use intersperse::Intersperse;
+    pub use kmerge::KMerge;
+    pub use pad_tail::PadUsing;
+    pub use rciter::RcIter;
+    pub use repeatn::RepeatN;
+    pub use sources::{RepeatCall, Unfold};
+    pub use tee::Tee;
+    pub use zip_eq::ZipEq;
+    pub use zip_longest::ZipLongest;
+    pub use ziptuple::Zip;
+}
+#[deprecated(note = "Use the iterator structs through the itertools::structs module")]
+pub use structs::*;
+pub use diff::diff_with;
+pub use diff::Diff;
 pub use free::{enumerate, rev};
-pub use groupbylazy::{ChunksLazy, Chunk, Chunks, GroupByLazy, Group, Groups};
-pub use intersperse::Intersperse;
-pub use kmerge::KMerge;
 pub use minmax::MinMaxResult;
-pub use pad_tail::PadUsing;
-pub use rciter::RcIter;
-pub use repeatn::RepeatN;
-pub use sources::{repeat_call, RepeatCall, unfold, Unfold};
-pub use tee::Tee;
-pub use zip_eq::ZipEq;
-pub use zip_longest::{ZipLongest, EitherOrBoth};
-pub use ziptuple::{multizip, Zip};
+pub use sources::{repeat_call, unfold};
+pub use zip_longest::EitherOrBoth;
+pub use ziptuple::multizip;
 mod adaptors;
 pub mod free;
 mod format;

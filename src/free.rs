@@ -5,9 +5,9 @@
 
 use std::fmt::Display;
 use std::iter::{self, Zip};
-use {
+use Itertools;
+use structs::{
     Interleave,
-    Itertools,
     KMerge,
     Merge,
     ZipEq,
