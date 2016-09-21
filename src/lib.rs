@@ -54,7 +54,6 @@ pub mod structs {
         TakeWhileRef,
         WhileSome,
         Coalesce,
-        MendSlices,
         Combinations,
         CombinationsN,
         Unique,
@@ -665,31 +664,6 @@ pub trait Itertools : Iterator {
               F: FnMut(&Self::Item) -> V
     {
         UniqueBy::new(self, f)
-    }
-
-    /// Return an iterator adaptor that joins together adjacent slices if possible.
-    ///
-    /// Only implemented for iterators with slice or string slice elements.
-    /// Only slices that are contiguous together can be joined.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// // Split a string into a slice per letter, filter out whitespace,
-    /// // and join into words again by mending adjacent slices.
-    /// let text = String::from("Warning:  γ-radiation (ionizing)");
-    /// let char_slices = text.char_indices()
-    ///                       .map(|(index, ch)| &text[index..index + ch.len_utf8()]);
-    /// let words = char_slices.filter(|s| !s.chars().any(char::is_whitespace))
-    ///                        .mend_slices();
-    ///
-    /// itertools::assert_equal(words, vec!["Warning:", "γ-radiation", "(ionizing)"]);
-    /// ```
-    fn mend_slices(self) -> MendSlices<Self>
-        where Self: Sized,
-              Self::Item: misc::MendSlice
-    {
-        MendSlices::new(self)
     }
 
     /// Return an iterator adaptor that borrows from a `Clone`-able iterator

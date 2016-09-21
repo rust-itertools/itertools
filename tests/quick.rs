@@ -448,19 +448,6 @@ quickcheck! {
 }
 
 quickcheck! {
-    fn size_mend_slices(a: Vec<u8>, splits: Vec<usize>) -> bool {
-        let slice_iter = splits.into_iter().map(|ix|
-            if ix < a.len() {
-                &a[ix..(ix + 1)]
-            } else {
-                &a[0..0]
-            }
-        ).mend_slices();
-        correct_size_hint(slice_iter)
-    }
-}
-
-quickcheck! {
     fn size_take_while_ref(a: Vec<u8>, stop: u8) -> bool {
         correct_size_hint(a.iter().take_while_ref(|x| **x != stop))
     }

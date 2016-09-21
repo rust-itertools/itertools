@@ -11,7 +11,6 @@ use std::iter::{Fuse, Peekable};
 use std::collections::HashSet;
 use std::hash::Hash;
 use size_hint;
-use misc::MendSlice;
 
 macro_rules! clone_fields {
     ($name:ident, $base:expr, $($field:ident),+) => (
@@ -889,53 +888,6 @@ impl<I> Iterator for Dedup<I>
         self.iter.next_with(|x, y| {
             if x == y { Ok(x) } else { Err((x, y)) }
         })
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.iter.size_hint()
-    }
-}
-
-/// An iterator adaptor that glues together adjacent contiguous slices.
-///
-/// See [`.mend_slices()`](../trait.Itertools.html#method.mend_slices) for more information.
-pub struct MendSlices<I>
-    where I: Iterator
-{
-    iter: CoalesceCore<I>,
-}
-
-impl<I: Clone> Clone for MendSlices<I>
-    where I: Iterator,
-          I::Item: Clone
-{
-    fn clone(&self) -> Self {
-        clone_fields!(MendSlices, self, iter)
-    }
-}
-
-impl<I> MendSlices<I>
-    where I: Iterator
-{
-    /// Create a new `MendSlices`.
-    pub fn new(mut iter: I) -> Self {
-        MendSlices {
-            iter: CoalesceCore {
-                last: iter.next(),
-                iter: iter,
-            },
-        }
-    }
-}
-
-impl<I> Iterator for MendSlices<I>
-    where I: Iterator,
-          I::Item: MendSlice
-{
-    type Item = I::Item;
-
-    fn next(&mut self) -> Option<I::Item> {
-        self.iter.next_with(MendSlice::mend)
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
