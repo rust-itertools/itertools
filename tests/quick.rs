@@ -20,6 +20,8 @@ use itertools::{
 };
 use itertools::free::{
     rciter,
+    put_back,
+    put_back_n,
     zip,
     zip_eq,
 };
@@ -408,7 +410,7 @@ quickcheck! {
 
 quickcheck! {
     fn size_put_back(a: Vec<u8>, x: Option<u8>) -> bool {
-        let mut it = itertools::PutBack::new(a.into_iter());
+        let mut it = put_back(a.into_iter());
         match x {
             Some(t) => it.put_back(t),
             None => {}
@@ -419,7 +421,7 @@ quickcheck! {
 
 quickcheck! {
     fn size_put_backn(a: Vec<u8>, b: Vec<u8>) -> bool {
-        let mut it = itertools::PutBackN::new(a.into_iter());
+        let mut it = put_back_n(a.into_iter());
         for elt in b {
             it.put_back(elt)
         }

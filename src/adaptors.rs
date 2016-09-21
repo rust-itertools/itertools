@@ -163,10 +163,31 @@ pub struct PutBack<I>
     iter: I,
 }
 
+/// Create an iterator where you can put back a single item
+pub fn put_back<I>(iterable: I) -> PutBack<I::IntoIter>
+    where I: IntoIterator
+{
+    PutBack {
+        top: None,
+        iter: iterable.into_iter(),
+    }
+}
+
+/// Create an iterator where you can put back a single item
+pub fn put_back_with_value<I>(value: I::Item, iterable: I) -> PutBack<I::IntoIter>
+    where I: IntoIterator
+{
+    PutBack {
+        top: Some(value),
+        iter: iterable.into_iter(),
+    }
+}
+
 impl<I> PutBack<I>
     where I: Iterator
 {
-    /// Iterator element type is `A`
+    #[doc(hidden)]
+    #[deprecated(note = "replaced by put_back")]
     #[inline]
     pub fn new(it: I) -> Self {
         PutBack {
@@ -175,6 +196,8 @@ impl<I> PutBack<I>
         }
     }
 
+    #[doc(hidden)]
+    #[deprecated(note = "replaced by put_back_with_value")]
     /// Create a `PutBack` along with the `value` to put back.
     #[inline]
     pub fn with_value(value: I::Item, it: I) -> Self {
@@ -227,14 +250,25 @@ pub struct PutBackN<I: Iterator> {
     iter: I,
 }
 
+/// Create an iterator where you can put back multiple values to the front
+/// of the iteration.
+///
+/// Iterator element type is `I::Item`.
+pub fn put_back_n<I>(iterable: I) -> PutBackN<I::IntoIter>
+    where I: IntoIterator
+{
+    PutBackN {
+        top: Vec::new(),
+        iter: iterable.into_iter(),
+    }
+}
+
 impl<I: Iterator> PutBackN<I> {
-    /// Iterator element type is `A`
+    #[doc(hidden)]
+    #[deprecated(note = "replaced by put_back_n")]
     #[inline]
     pub fn new(it: I) -> Self {
-        PutBackN {
-            top: vec![],
-            iter: it,
-        }
+        put_back_n(it)
     }
 
     /// Puts x in front of the iterator.

@@ -12,6 +12,8 @@ use it::Interleave;
 use it::multizip;
 use it::FoldWhile;
 use it::free::rciter;
+use it::free::put_back;
+use it::free::put_back_n;
 
 #[test]
 fn product2() {
@@ -233,9 +235,9 @@ fn group_by() {
 }
 
 #[test]
-fn put_back() {
+fn test_put_back() {
     let xs = [0, 1, 1, 1, 2, 1, 3, 3];
-    let mut pb = it::PutBack::new(xs.iter().cloned());
+    let mut pb = put_back(xs.iter().cloned());
     pb.next();
     pb.put_back(1);
     pb.put_back(0);
@@ -243,9 +245,9 @@ fn put_back() {
 }
 
 #[test]
-fn put_back_n() {
+fn test_put_back_n() {
     let xs = [0, 1, 1, 1, 2, 1, 3, 3];
-    let mut pb = it::PutBackN::new(xs.iter().cloned());
+    let mut pb = put_back_n(xs.iter().cloned());
     pb.next();
     pb.next();
     pb.put_back(1);
