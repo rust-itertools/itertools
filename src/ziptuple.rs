@@ -110,4 +110,3 @@ impl_zip_iter!(A, B, C, D, E);
 impl_zip_iter!(A, B, C, D, E, F);
 impl_zip_iter!(A, B, C, D, E, F, G);
 impl_zip_iter!(A, B, C, D, E, F, G, H);
-impl_zip_iter!(A, B, C, D, E, F, G, H, I);
