@@ -28,7 +28,7 @@ macro_rules! clone_fields {
 ///
 /// This iterator is *fused*.
 ///
-/// See [`.interleave()`](trait.Itertools.html#method.interleave) for more information.
+/// See [`.interleave()`](../trait.Itertools.html#method.interleave) for more information.
 #[derive(Clone)]
 pub struct Interleave<I, J> {
     a: Fuse<I>,
@@ -77,7 +77,7 @@ impl<I, J> Iterator for Interleave<I, J>
 ///
 /// This iterator is *fused*.
 ///
-/// See [`.interleave_shortest()`](trait.Itertools.html#method.interleave_shortest)
+/// See [`.interleave_shortest()`](../trait.Itertools.html#method.interleave_shortest)
 /// for more information.
 #[derive(Clone)]
 pub struct InterleaveShortest<I, J>
@@ -289,7 +289,7 @@ impl<I: Iterator> Clone for PutBackN<I>
 ///
 /// Iterator element type is `(I::Item, J::Item)`.
 ///
-/// See [`.cartesian_product()`](trait.Itertools.html#method.cartesian_product) for more information.
+/// See [`.cartesian_product()`](../trait.Itertools.html#method.cartesian_product) for more information.
 pub struct Product<I, J>
     where I: Iterator
 {
@@ -363,7 +363,7 @@ impl<I, J> Iterator for Product<I, J>
 ///
 /// Iterator element type is *X*, if the return type of `F` is *Option\<X\>*.
 ///
-/// See [`.batching()`](trait.Itertools.html#method.batching) for more information.
+/// See [`.batching()`](../trait.Itertools.html#method.batching) for more information.
 #[derive(Clone)]
 pub struct Batching<I, F> {
     f: F,
@@ -398,7 +398,7 @@ impl<B, F, I> Iterator for Batching<I, F>
 /// An iterator adaptor that groups iterator elements. Consecutive elements
 /// that map to the same key (“runs”), are returned as the iterator elements.
 ///
-/// See [`.group_by()`](trait.Itertools.html#method.group_by) for more information.
+/// See [`.group_by()`](../trait.Itertools.html#method.group_by) for more information.
 pub struct GroupBy<K, I, F>
     where I: Iterator
 {
@@ -469,7 +469,7 @@ impl<K, I, F> Iterator for GroupBy<K, I, F>
 /// The iterator steps by yielding the next element from the base iterator,
 /// then skipping forward *n-1* elements.
 ///
-/// See [`.step()`](trait.Itertools.html#method.step) for more information.
+/// See [`.step()`](../trait.Itertools.html#method.step) for more information.
 #[derive(Clone)]
 pub struct Step<I> {
     iter: Fuse<I>,
@@ -585,7 +585,7 @@ impl<I, J> MergeCore<I, J>
 ///
 /// Iterator element type is `I::Item`.
 ///
-/// See [`.merge()`](trait.Itertools.html#method.merge_by) for more information.
+/// See [`.merge()`](../trait.Itertools.html#method.merge_by) for more information.
 pub struct Merge<I, J>
     where I: Iterator,
           J: Iterator<Item = I::Item>
@@ -639,7 +639,7 @@ impl<I, J> Iterator for Merge<I, J>
 ///
 /// Iterator element type is `I::Item`.
 ///
-/// See [`.merge_by()`](trait.Itertools.html#method.merge_by) for more information.
+/// See [`.merge_by()`](../trait.Itertools.html#method.merge_by) for more information.
 pub struct MergeBy<I, J, F>
     where I: Iterator,
           J: Iterator<Item = I::Item>
@@ -695,7 +695,7 @@ impl<I, J, F> Iterator for MergeBy<I, J, F>
 /// An iterator adaptor that allows the user to peek at multiple `.next()`
 /// values without advancing itself.
 ///
-/// See [`.multipeek()`](trait.Itertools.html#method.multipeek) for more information.
+/// See [`.multipeek()`](../trait.Itertools.html#method.multipeek) for more information.
 pub struct MultiPeek<I>
     where I: Iterator
 {
@@ -800,7 +800,7 @@ impl<I> CoalesceCore<I>
 
 /// An iterator adaptor that may join together adjacent elements.
 ///
-/// See [`.coalesce()`](trait.Itertools.html#method.coalesce) for more information.
+/// See [`.coalesce()`](../trait.Itertools.html#method.coalesce) for more information.
 pub struct Coalesce<I, F>
     where I: Iterator
 {
@@ -849,7 +849,7 @@ impl<I, F> Iterator for Coalesce<I, F>
 
 /// An iterator adaptor that removes repeated duplicates.
 ///
-/// See [`.dedup()`](trait.Itertools.html#method.dedup) for more information.
+/// See [`.dedup()`](../trait.Itertools.html#method.dedup) for more information.
 pub struct Dedup<I>
     where I: Iterator
 {
@@ -898,7 +898,7 @@ impl<I> Iterator for Dedup<I>
 
 /// An iterator adaptor that glues together adjacent contiguous slices.
 ///
-/// See [`.mend_slices()`](trait.Itertools.html#method.mend_slices) for more information.
+/// See [`.mend_slices()`](../trait.Itertools.html#method.mend_slices) for more information.
 pub struct MendSlices<I>
     where I: Iterator
 {
@@ -946,7 +946,7 @@ impl<I> Iterator for MendSlices<I>
 /// An iterator adaptor that borrows from a `Clone`-able iterator
 /// to only pick off elements while the predicate returns `true`.
 ///
-/// See [`.take_while_ref()`](trait.Itertools.html#method.take_while_ref) for more information.
+/// See [`.take_while_ref()`](../trait.Itertools.html#method.take_while_ref) for more information.
 pub struct TakeWhileRef<'a, I: 'a, F> {
     iter: &'a mut I,
     f: F,
@@ -991,7 +991,7 @@ impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F>
 /// An iterator adaptor that filters `Option<A>` iterator elements
 /// and produces `A`. Stops on the first `None` encountered.
 ///
-/// See [`.while_some()`](trait.Itertools.html#method.while_some) for more information.
+/// See [`.while_some()`](../trait.Itertools.html#method.while_some) for more information.
 #[derive(Clone)]
 pub struct WhileSome<I> {
     iter: I,
@@ -1024,7 +1024,7 @@ impl<I, A> Iterator for WhileSome<I>
 
 /// An iterator to iterate through all the combinations of pairs in a `Clone`-able iterator.
 ///
-/// See [`.combinations()`](trait.Itertools.html#method.combinations) for more information.
+/// See [`.combinations()`](../trait.Itertools.html#method.combinations) for more information.
 #[derive(Clone)]
 pub struct Combinations<I: Iterator> {
     iter: I,
@@ -1151,7 +1151,7 @@ impl<I> Index<usize> for LazyBuffer<I>
 
 /// An iterator to iterate through all the `n`-length combinations in an iterator.
 ///
-/// See [`.combinations_n()`](trait.Itertools.html#method.combinations_n) for more information.
+/// See [`.combinations_n()`](../trait.Itertools.html#method.combinations_n) for more information.
 pub struct CombinationsN<I: Iterator> {
     n: usize,
     indices: Vec<usize>,
@@ -1239,7 +1239,7 @@ impl<I> Iterator for CombinationsN<I>
 
 /// An iterator adapter to filter out duplicate elements.
 ///
-/// See [`.unique_by()`](trait.Itertools.html#method.unique) for more information.
+/// See [`.unique_by()`](../trait.Itertools.html#method.unique) for more information.
 #[derive(Clone)]
 pub struct UniqueBy<I: Iterator, V, F> {
     iter: I,
@@ -1319,7 +1319,7 @@ impl<I> Iterator for Unique<I>
 
 /// An iterator adapter to filter out duplicate elements.
 ///
-/// See [`.unique()`](trait.Itertools.html#method.unique) for more information.
+/// See [`.unique()`](../trait.Itertools.html#method.unique) for more information.
 #[derive(Clone)]
 pub struct Unique<I: Iterator> {
     iter: UniqueBy<I, I::Item, ()>,
@@ -1340,7 +1340,7 @@ pub fn unique<I>(iter: I) -> Unique<I>
 
 /// An iterator adapter to simply flatten a structure.
 ///
-/// See [`.flatten()`](trait.Itertools.html#method.flatten) for more information.
+/// See [`.flatten()`](../trait.Itertools.html#method.flatten) for more information.
 #[derive(Clone)]
 pub struct Flatten<I, J> {
     iter: I,

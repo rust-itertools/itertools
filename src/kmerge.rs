@@ -153,7 +153,7 @@ fn sift_down<T: Ord>(heap: &mut [T], index: usize) {
 ///
 /// Iterator element type is `I::Item`.
 ///
-/// See [`.kmerge()`](trait.Itertools.html#method.kmerge) for more information.
+/// See [`.kmerge()`](../trait.Itertools.html#method.kmerge) for more information.
 pub struct KMerge<I>
     where I: Iterator
 {

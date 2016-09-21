@@ -280,7 +280,7 @@ impl<K, I, F> GroupInner<K, I, F>
 /// value. It should be stored in a local variable or temporary and
 /// iterated.
 ///
-/// See [`.group_by_lazy()`](trait.Itertools.html#method.group_by_lazy) for more information.
+/// See [`.group_by_lazy()`](../trait.Itertools.html#method.group_by_lazy) for more information.
 pub struct GroupByLazy<K, I, F>
     where I: Iterator,
 {
@@ -349,7 +349,7 @@ impl<'a, K, I, F> IntoIterator for &'a GroupByLazy<K, I, F>
 /// Iterator element type is `(K, Group)`:
 /// the group's key `K` and the group's iterator.
 ///
-/// See [`.group_by_lazy()`](trait.Itertools.html#method.group_by_lazy) for more information.
+/// See [`.group_by_lazy()`](../trait.Itertools.html#method.group_by_lazy) for more information.
 pub struct Groups<'a, K: 'a, I: 'a, F: 'a>
     where I: Iterator,
           I::Item: 'a
@@ -454,7 +454,7 @@ pub fn new_chunks<J>(iter: J, size: usize) -> ChunksLazy<J::IntoIter>
 ///
 /// Iterator element type is `Chunk`, each chunk's iterator.
 ///
-/// See [`.chunks_lazy()`](trait.Itertools.html#method.chunks_lazy) for more information.
+/// See [`.chunks_lazy()`](../trait.Itertools.html#method.chunks_lazy) for more information.
 pub struct ChunksLazy<I>
     where I: Iterator,
 {
@@ -498,7 +498,7 @@ impl<'a, I> IntoIterator for &'a ChunksLazy<I>
 ///
 /// Iterator element type is `Chunk`.
 ///
-/// See [`.chunks_lazy()`](trait.Itertools.html#method.chunks_lazy) for more information.
+/// See [`.chunks_lazy()`](../trait.Itertools.html#method.chunks_lazy) for more information.
 pub struct Chunks<'a, I: 'a>
     where I: Iterator,
           I::Item: 'a,

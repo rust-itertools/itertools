@@ -1,7 +1,7 @@
 //! Iterators that are sources (produce elements from parameters,
 //! not from another iterator).
 
-/// See [`repeat_call`](fn.repeat_call.html) for more information.
+/// See [`repeat_call`](../fn.repeat_call.html) for more information.
 pub struct RepeatCall<F> {
     f: F,
 }
@@ -92,9 +92,7 @@ pub fn unfold<A, St, F>(initial_state: St, f: F) -> Unfold<St, F>
 }
 
 
-/// `Unfold`
-///
-/// See [`unfold`](fn.unfold.html) for more information.
+/// See [`unfold`](../fn.unfold.html) for more information.
 #[derive(Clone)]
 pub struct Unfold<St, F> {
     f: F,
