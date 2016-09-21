@@ -87,7 +87,7 @@ mod pad_tail;
 mod rciter;
 mod repeatn;
 mod sources;
-pub mod size_hint;
+mod size_hint;
 mod tee;
 mod zip_eq;
 mod zip_longest;
