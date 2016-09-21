@@ -14,7 +14,7 @@ use structs::{
     RcIter,
 };
 
-pub use adaptors::{put_back, put_back_with_value, put_back_n};
+pub use adaptors::{put_back, put_back_n};
 
 /// Iterate `iterable` with a running index.
 ///

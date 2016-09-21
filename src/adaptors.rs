@@ -173,16 +173,6 @@ pub fn put_back<I>(iterable: I) -> PutBack<I::IntoIter>
     }
 }
 
-/// Create an iterator where you can put back a single item
-pub fn put_back_with_value<I>(value: I::Item, iterable: I) -> PutBack<I::IntoIter>
-    where I: IntoIterator
-{
-    PutBack {
-        top: Some(value),
-        iter: iterable.into_iter(),
-    }
-}
-
 impl<I> PutBack<I>
     where I: Iterator
 {
@@ -196,15 +186,10 @@ impl<I> PutBack<I>
         }
     }
 
-    #[doc(hidden)]
-    #[deprecated(note = "replaced by put_back_with_value")]
-    /// Create a `PutBack` along with the `value` to put back.
-    #[inline]
-    pub fn with_value(value: I::Item, it: I) -> Self {
-        PutBack {
-            top: Some(value),
-            iter: it,
-        }
+    /// put back value `value` (builder method)
+    pub fn with_value(mut self, value: I::Item) -> Self {
+        self.put_back(value);
+        self
     }
 
     /// Split the `PutBack` into its parts.
