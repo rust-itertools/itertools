@@ -73,7 +73,6 @@ pub mod structs {
     pub use zip_longest::ZipLongest;
     pub use ziptuple::Zip;
 }
-#[deprecated(note = "Use the iterator structs through the itertools::structs module")]
 pub use structs::*;
 pub use diff::diff_with;
 pub use diff::Diff;
