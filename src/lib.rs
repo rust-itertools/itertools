@@ -73,7 +73,7 @@ pub use sources::{repeat_call, RepeatCall, unfold, Unfold};
 pub use tee::Tee;
 pub use zip_eq::ZipEq;
 pub use zip_longest::{ZipLongest, EitherOrBoth};
-pub use ziptuple::Zip;
+pub use ziptuple::{multizip, Zip};
 mod adaptors;
 pub mod free;
 mod format;
@@ -158,7 +158,7 @@ macro_rules! izip {
     );
     ($($I:expr),*) => (
         {
-            $crate::Zip::new(($(izip!($I)),*))
+            $crate::multizip(($(izip!($I)),*))
         }
     );
 }

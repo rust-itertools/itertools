@@ -1,7 +1,23 @@
 use super::misc::IntoIteratorTuple;
 use super::size_hint;
 
+/// See [`multizip`](fn.multizip.html) for more information.
 #[derive(Clone)]
+pub struct Zip<T> {
+    t: T,
+}
+
+impl<T> Zip<T>
+    where T: IntoIteratorTuple,
+          Zip<T::Output>: Iterator,
+{
+    /// Deprecated: renamed to multizip
+    #[deprecated(note = "Renamed to multizip")]
+    pub fn new(t: T) -> Zip<T::Output> {
+        multizip(t)
+    }
+}
+
 /// An iterator that generalizes *.zip()* and allows running multiple iterators in lockstep.
 ///
 /// The iterator `Zip<(I, J, ..., M)>` is formed from a tuple of iterators (or values that
@@ -12,30 +28,23 @@ use super::size_hint;
 /// element types of the subiterator.
 ///
 /// ```
-/// use itertools::Zip;
+/// use itertools::multizip;
 ///
 /// // Iterate over three sequences side-by-side
 /// let mut xs = [0, 0, 0];
 /// let ys = [69, 107, 101];
 ///
-/// for (i, a, b) in Zip::new((0..100, &mut xs, &ys)) {
+/// for (i, a, b) in multizip((0..100, &mut xs, &ys)) {
 ///    *a = i ^ *b;
 /// }
 ///
 /// assert_eq!(xs, [69, 106, 103]);
 /// ```
-pub struct Zip<T> {
-    t: T,
-}
-
-impl<T> Zip<T>
+pub fn multizip<T>(t: T) -> Zip<T::Output>
     where T: IntoIteratorTuple,
           Zip<T::Output>: Iterator
 {
-    /// Create a new `Zip` from a tuple of iterators.
-    pub fn new(t: T) -> Zip<T::Output> {
         Zip { t: t.into_iterator_tuple() }
-    }
 }
 
 macro_rules! impl_zip_iter {

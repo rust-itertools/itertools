@@ -15,7 +15,7 @@ use quickcheck as qc;
 use std::ops::Range;
 use itertools::Itertools;
 use itertools::{
-    Zip,
+    multizip,
     EitherOrBoth,
 };
 use itertools::free::{
@@ -267,12 +267,12 @@ quickcheck! {
     }
     fn size_zip(a: Iter<i16>, b: Iter<i16>, c: Iter<i16>) -> bool {
         let filt = a.clone().dedup();
-        correct_size_hint(Zip::new((filt, b.clone(), c.clone()))) &&
-            exact_size(Zip::new((a, b, c)))
+        correct_size_hint(multizip((filt, b.clone(), c.clone()))) &&
+            exact_size(multizip((a, b, c)))
     }
     fn size_zip_rc(a: Iter<i16>, b: Iter<i16>) -> bool {
         let rc = rciter(a.clone());
-        correct_size_hint(Zip::new((&rc, &rc, b)))
+        correct_size_hint(multizip((&rc, &rc, b)))
     }
 
     fn equal_kmerge(a: Vec<i16>, b: Vec<i16>, c: Vec<i16>) -> bool {

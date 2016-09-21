@@ -9,7 +9,7 @@ extern crate permutohedron;
 
 use it::Itertools;
 use it::Interleave;
-use it::Zip;
+use it::multizip;
 use it::FoldWhile;
 use it::free::rciter;
 
@@ -69,17 +69,17 @@ fn izip_macro() {
 
 #[test]
 fn izip3() {
-    let mut zip = Zip::new((0..3, 0..2, 0..2i8));
+    let mut zip = multizip((0..3, 0..2, 0..2i8));
     for i in 0..2 {
         assert!((i as usize, i, i as i8) == zip.next().unwrap());
     }
     assert!(zip.next().is_none());
 
     let xs: [isize; 0] = [];
-    let mut zip = Zip::new((0..3, 0..2, 0..2i8, xs.iter()));
+    let mut zip = multizip((0..3, 0..2, 0..2i8, xs.iter()));
     assert!(zip.next().is_none());
 
-    for (_, _, _, _, _) in Zip::new((0..3, 0..2, xs.iter(), &xs, xs.to_vec())) {
+    for (_, _, _, _, _) in multizip((0..3, 0..2, xs.iter(), &xs, xs.to_vec())) {
         /* test compiles */
     }
 }
@@ -654,7 +654,7 @@ fn group_by_lazy() {
     let sc = subs.pop().unwrap();
     let sb = subs.pop().unwrap();
     let sa = subs.pop().unwrap();
-    for (a, b, c, d) in Zip::new((sa, sb, sc, sd)) {
+    for (a, b, c, d) in multizip((sa, sb, sc, sd)) {
         assert_eq!(a, 'A');
         assert_eq!(b, 'B');
         assert_eq!(c, 'C');
