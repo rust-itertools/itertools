@@ -408,14 +408,10 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     /// let xs = vec![0, 1, 2, 3];
     ///
-    /// let (mut t1, mut t2) = xs.into_iter().tee();
-    /// assert_eq!(t1.next(), Some(0));
-    /// assert_eq!(t1.next(), Some(1));
-    /// assert_eq!(t2.next(), Some(0));
-    /// assert_eq!(t1.next(), Some(2));
-    /// assert_eq!(t1.next(), Some(3));
-    /// assert_eq!(t1.next(), None);
-    /// assert_eq!(t2.next(), Some(1));
+    /// let (mut t1, t2) = xs.into_iter().tee();
+    /// itertools::assert_equal(t1.next(), Some(0));
+    /// itertools::assert_equal(t2, 0..4);
+    /// itertools::assert_equal(t1, 1..4);
     /// ```
     fn tee(self) -> (Tee<Self>, Tee<Self>)
         where Self: Sized,
