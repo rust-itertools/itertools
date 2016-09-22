@@ -5,7 +5,6 @@
 //! except according to those terms.
 
 use std::cmp;
-use std::mem;
 use std::ops::Index;
 use std::iter::{Fuse, Peekable};
 use std::collections::HashSet;
@@ -409,75 +408,6 @@ impl<B, F, I> Iterator for Batching<I, F>
     fn size_hint(&self) -> (usize, Option<usize>) {
         // No information about closue behavior
         (0, None)
-    }
-}
-
-#[derive(Clone)]
-/// An iterator adaptor that groups iterator elements. Consecutive elements
-/// that map to the same key (“runs”), are returned as the iterator elements.
-///
-/// See [`.group_by()`](../trait.Itertools.html#method.group_by) for more information.
-pub struct GroupBy<K, I, F>
-    where I: Iterator
-{
-    key: F,
-    iter: I,
-    current_key: Option<K>,
-    elts: Vec<I::Item>,
-}
-
-impl<K, F, I> GroupBy<K, I, F>
-    where I: Iterator
-{
-    /// Create a new `GroupBy` iterator.
-    pub fn new(iter: I, key: F) -> Self {
-        GroupBy {
-            key: key,
-            iter: iter,
-            current_key: None,
-            elts: Vec::new(),
-        }
-    }
-}
-
-impl<K, I, F> Iterator for GroupBy<K, I, F>
-    where K: PartialEq,
-          I: Iterator,
-          F: FnMut(&I::Item) -> K
-{
-    type Item = (K, Vec<I::Item>);
-    fn next(&mut self) -> Option<(K, Vec<I::Item>)> {
-        for elt in self.iter.by_ref() {
-            let key = (self.key)(&elt);
-            match self.current_key.take() {
-                None => {}
-                Some(old_key) => {
-                    if old_key != key {
-                        self.current_key = Some(key);
-                        let v = mem::replace(&mut self.elts, vec![elt]);
-                        return Some((old_key, v));
-                    }
-                }
-            }
-            self.current_key = Some(key);
-            self.elts.push(elt);
-        }
-        match self.current_key.take() {
-            None => None,
-            Some(key) => {
-                let v = mem::replace(&mut self.elts, Vec::new());
-                Some((key, v))
-            }
-        }
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let stored_count = self.current_key.is_some() as usize;
-        let mut sh = size_hint::add_scalar(self.iter.size_hint(), stored_count);
-        if sh.0 > 0 {
-            sh.0 = 1;
-        }
-        sh
     }
 }
 

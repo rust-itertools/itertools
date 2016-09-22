@@ -396,12 +396,6 @@ quickcheck! {
 }
 
 quickcheck! {
-    fn size_group_by(a: Vec<i8>) -> bool {
-        correct_size_hint(a.iter().group_by(|x| x.abs()))
-    }
-}
-
-quickcheck! {
     fn exact_repeatn((n, x): (usize, i32)) -> bool {
         let it = itertools::RepeatN::new(x, n);
         exact_size(it)

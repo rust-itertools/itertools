@@ -42,7 +42,6 @@ pub mod structs {
         PutBack,
         PutBackN,
         Batching,
-        GroupBy,
         Step,
         Merge,
         MergeBy,
@@ -305,31 +304,6 @@ pub trait Itertools : Iterator {
     {
         Batching::new(self, f)
     }
-
-    /// Group iterator elements. Consecutive elements that map to the same key (“runs”),
-    /// are returned as the iterator elements of `GroupBy`.
-    ///
-    /// Iterator element type is `(K, Vec<Self::Item>)`
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// // group data into runs of larger than zero or not.
-    /// let data = vec![1, 3, -2, -2, 1, 0, 1, 2];
-    /// // groups:     |---->|------>|--------->|
-    ///
-    /// for (key, group) in data.into_iter().group_by(|elt| *elt >= 0) {
-    ///     // Check that the sum of each group is +/- 4.
-    ///     assert_eq!(4, group.iter().fold(0_i32, |a, b| a + b).abs());
-    /// }
-    /// ```
-    fn group_by<K, F>(self, key: F) -> GroupBy<K, Self, F>
-        where Self: Sized,
-              F: FnMut(&Self::Item) -> K,
-    {
-        GroupBy::new(self, key)
-    }
-
 
     /// Return an iterable that can group iterator elements.
     /// Consecutive elements that map to the same key (“runs”), are assigned

@@ -213,16 +213,6 @@ fn batching() {
 }
 
 #[test]
-fn group_by() {
-    let xs = [0, 1, 1, 1, 2, 1, 3, 3];
-    let ans = vec![(0, vec![0]), (1, vec![1, 1, 1]),
-                   (2, vec![2]), (1, vec![1]), (3, vec![3, 3])];
-
-    let gb = xs.iter().cloned().group_by(|elt| *elt);
-    it::assert_equal(gb, ans.into_iter());
-}
-
-#[test]
 fn test_put_back() {
     let xs = [0, 1, 1, 1, 2, 1, 3, 3];
     let mut pb = put_back(xs.iter().cloned());
