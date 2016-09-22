@@ -100,8 +100,8 @@ fn main() {
     let n = 30; // plot size
     let mut plot = vec![' '; n * n];
 
-    // using Itertools::combinations
-    for (a, b) in (0..4).combinations() {
+    // using Itertools::pair_combinations
+    for (a, b) in (0..4).pair_combinations() {
         println!("Column {} vs {}:", a, b);
 
         // Clear plot

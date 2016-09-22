@@ -995,19 +995,19 @@ impl<I, A> Iterator for WhileSome<I>
 
 /// An iterator to iterate through all the combinations of pairs in a `Clone`-able iterator.
 ///
-/// See [`.combinations()`](../trait.Itertools.html#method.combinations) for more information.
+/// See [`.pair_combinations()`](../trait.Itertools.html#method.pair_combinations) for more information.
 #[derive(Clone)]
-pub struct Combinations<I: Iterator> {
+pub struct PairCombinations<I: Iterator> {
     iter: I,
     next_iter: I,
     val: Option<I::Item>,
 }
-impl<I> Combinations<I>
+impl<I> PairCombinations<I>
     where I: Iterator + Clone
 {
-    /// Create a new `Combinations` from a clonable iterator.
-    pub fn new(iter: I) -> Combinations<I> {
-        Combinations {
+    /// Create a new `PairCombinations` from a clonable iterator.
+    pub fn new(iter: I) -> PairCombinations<I> {
+        PairCombinations {
             next_iter: iter.clone(),
             iter: iter,
             val: None,
@@ -1015,7 +1015,7 @@ impl<I> Combinations<I>
     }
 }
 
-impl<I> Iterator for Combinations<I>
+impl<I> Iterator for PairCombinations<I>
     where I: Iterator + Clone,
           I::Item: Clone
 {

@@ -50,7 +50,7 @@ pub mod structs {
         TakeWhileRef,
         WhileSome,
         Coalesce,
-        Combinations,
+        PairCombinations,
         CombinationsN,
         Unique,
         UniqueBy,
@@ -708,22 +708,22 @@ pub trait Itertools : Iterator {
         WhileSome::new(self)
     }
 
-    /// Return an iterator adaptor that iterates over the combinations of
-    /// the elements from an iterator.
+    /// Return an iterator adaptor that iterates over the pairwise combinations
+    /// of the elements from an iterator.
     ///
     /// Iterator element type is `(Self::Item, Self::Item)`.
     ///
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let it = (1..5).combinations();
+    /// let it = (1..5).pair_combinations();
     /// itertools::assert_equal(it, vec![(1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)]);
     /// ```
-    fn combinations(self) -> Combinations<Self>
+    fn pair_combinations(self) -> PairCombinations<Self>
         where Self: Sized + Clone,
               Self::Item: Clone
     {
-        Combinations::new(self)
+        PairCombinations::new(self)
     }
 
     /// Return an iterator adaptor that iterates over the `n`-length combinations of

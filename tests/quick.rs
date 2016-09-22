@@ -471,14 +471,14 @@ quickcheck! {
 
 quickcheck! {
     fn size_combinations(it: Iter<i16>) -> bool {
-        correct_size_hint(it.combinations())
+        correct_size_hint(it.pair_combinations())
     }
 }
 
 quickcheck! {
     fn equal_combinations(it: Iter<i16>) -> bool {
         let values = it.clone().collect_vec();
-        let mut cmb = it.combinations();
+        let mut cmb = it.pair_combinations();
         for i in 0..values.len() {
             for j in i+1..values.len() {
                 let pair = (values[i], values[j]);
