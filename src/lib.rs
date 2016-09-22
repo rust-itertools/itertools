@@ -818,29 +818,6 @@ pub trait Itertools : Iterator {
         None
     }
 
-    /// Consume the first `n` elements of the iterator eagerly.
-    ///
-    /// Return actual number of elements consumed, until done or reaching the end.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// let mut iter = "αβγ".chars();
-    /// iter.dropn(2);
-    /// itertools::assert_equal(iter, "γ".chars());
-    /// ```
-    fn dropn(&mut self, mut n: usize) -> usize {
-        // FIXME: Can we use .nth() somehow?
-        let start = n;
-        while n > 0 {
-            match self.next() {
-                Some(..) => n -= 1,
-                None => break,
-            }
-        }
-        start - n
-    }
-
     /// Consume the first `n` elements from the iterator eagerly,
     /// and return the same iterator again.
     ///
@@ -884,7 +861,9 @@ pub trait Itertools : Iterator {
         where Self: Sized,
               Self: DoubleEndedIterator
     {
-        self.by_ref().rev().dropn(n);
+        if n > 0 {
+            (&mut self).rev().nth(n - 1);
+        }
         self
     }
 

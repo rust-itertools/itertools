@@ -146,18 +146,6 @@ fn foreach() {
 }
 
 #[test]
-fn dropn() {
-    let xs = [1, 2, 3];
-    let mut it = xs.iter();
-    assert!(it.dropn(2) == 2);
-    assert!(it.next().is_some());
-    assert!(it.next().is_none());
-    let mut it = xs.iter();
-    assert!(it.dropn(5) == 3);
-    assert!(it.next().is_none());
-}
-
-#[test]
 fn dropping() {
     let xs = [1, 2, 3];
     let mut it = xs.iter().dropping(2);
