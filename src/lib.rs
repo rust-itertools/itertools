@@ -1199,33 +1199,6 @@ pub trait Itertools : Iterator {
         accum
     }
 
-    /// Tell if the iterator is empty or not according to its size hint.
-    /// Return `None` if the size hint does not tell, or return a `Some`
-    /// value with the emptiness if it's possible to tell.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// assert_eq!((1..1).is_empty_hint(), Some(true));
-    /// assert_eq!([1, 2, 3].iter().is_empty_hint(), Some(false));
-    /// assert_eq!((0..10).filter(|&x| x > 0).is_empty_hint(), None);
-    /// ```
-    fn is_empty_hint(&self) -> Option<bool> {
-        let (low, opt_hi) = self.size_hint();
-        // check for erronous hint
-        if let Some(hi) = opt_hi {
-            if hi < low { return None }
-        }
-
-        if opt_hi == Some(0) {
-            Some(true)
-        } else if low > 0 {
-            Some(false)
-        } else {
-            None
-        }
-    }
-
     /// Collect all iterator elements into a sorted vector in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, uses the
