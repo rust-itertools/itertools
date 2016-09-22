@@ -335,7 +335,7 @@ pub trait Itertools : Iterator {
     /// // only by reference. You can also call `.into_iter()` explicitly.
     /// for (key, group) in &data.into_iter().group_by(|elt| *elt >= 0) {
     ///     // Check that the sum of each group is +/- 4.
-    ///     assert_eq!(4, group.fold(0_i32, |a, b| a + b).abs());
+    ///     assert_eq!(4, group.sum::<i32>().abs());
     /// }
     /// ```
     fn group_by<K, F>(self, key: F) -> GroupBy<K, Self, F>
@@ -378,7 +378,7 @@ pub trait Itertools : Iterator {
     /// // only by reference. You can also call `.into_iter()` explicitly.
     /// for chunk in &data.into_iter().chunks(3) {
     ///     // Check that the sum of each chunk is 4.
-    ///     assert_eq!(4, chunk.fold(0_i32, |a, b| a + b));
+    ///     assert_eq!(4, chunk.sum());
     /// }
     /// ```
     fn chunks(self, size: usize) -> IntoChunks<Self>
