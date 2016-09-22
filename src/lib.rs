@@ -73,13 +73,15 @@ pub mod structs {
 pub use structs::*;
 pub use diff::diff_with;
 pub use diff::Diff;
-pub use free::{enumerate, rev};
 pub use minmax::MinMaxResult;
 pub use sources::{repeat_call, unfold};
 pub use zip_longest::EitherOrBoth;
 pub use ziptuple::multizip;
 mod adaptors;
+#[doc(hidden)]
 pub mod free;
+#[doc(inline)]
+pub use free::*;
 mod cons_tuples;
 mod diff;
 mod format;
