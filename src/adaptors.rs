@@ -1122,18 +1122,18 @@ impl<I> Index<usize> for LazyBuffer<I>
 
 /// An iterator to iterate through all the `n`-length combinations in an iterator.
 ///
-/// See [`.combinations_n()`](../trait.Itertools.html#method.combinations_n) for more information.
-pub struct CombinationsN<I: Iterator> {
+/// See [`.combinations()`](../trait.Itertools.html#method.combinations) for more information.
+pub struct Combinations<I: Iterator> {
     n: usize,
     indices: Vec<usize>,
     pool: LazyBuffer<I>,
     first: bool,
 }
-impl<I> CombinationsN<I>
+impl<I> Combinations<I>
     where I: Iterator
 {
-    /// Create a new `CombinationsN` from a clonable iterator.
-    pub fn new(iter: I, n: usize) -> CombinationsN<I> {
+    /// Create a new `Combinations` from a clonable iterator.
+    pub fn new(iter: I, n: usize) -> Combinations<I> {
         let mut indices: Vec<usize> = Vec::with_capacity(n);
         for i in 0..n {
             indices.push(i);
@@ -1146,7 +1146,7 @@ impl<I> CombinationsN<I>
             }
         }
 
-        CombinationsN {
+        Combinations {
             n: n,
             indices: indices,
             pool: pool,
@@ -1155,7 +1155,7 @@ impl<I> CombinationsN<I>
     }
 }
 
-impl<I> Iterator for CombinationsN<I>
+impl<I> Iterator for Combinations<I>
     where I: Iterator,
           I::Item: Clone
 {

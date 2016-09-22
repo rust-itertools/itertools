@@ -710,15 +710,15 @@ fn flatten_clone() {
 }
 
 #[test]
-fn combinations_n() {
-    assert!((1..3).combinations_n(5).next().is_none());
+fn combinations() {
+    assert!((1..3).combinations(5).next().is_none());
 
-    let it = (1..3).combinations_n(2);
+    let it = (1..3).combinations(2);
     it::assert_equal(it, vec![
         vec![1, 2],
         ]);
 
-    let it = (1..5).combinations_n(2);
+    let it = (1..5).combinations(2);
     it::assert_equal(it, vec![
         vec![1, 2],
         vec![1, 3],
@@ -732,10 +732,10 @@ fn combinations_n() {
     it::assert_equal((0..1).pair_combinations(), <Vec<_>>::new());
     it::assert_equal((0..2).pair_combinations(), vec![(0, 1)]);
 
-    it::assert_equal((0..0).combinations_n(2), <Vec<Vec<_>>>::new());
-    it::assert_equal((0..1).combinations_n(1), vec![vec![0]]);
-    it::assert_equal((0..2).combinations_n(1), vec![vec![0], vec![1]]);
-    it::assert_equal((0..2).combinations_n(2), vec![vec![0, 1]]);
+    it::assert_equal((0..0).combinations(2), <Vec<Vec<_>>>::new());
+    it::assert_equal((0..1).combinations(1), vec![vec![0]]);
+    it::assert_equal((0..2).combinations(1), vec![vec![0], vec![1]]);
+    it::assert_equal((0..2).combinations(2), vec![vec![0, 1]]);
 }
 
 #[test]

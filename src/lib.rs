@@ -51,7 +51,7 @@ pub mod structs {
         WhileSome,
         Coalesce,
         PairCombinations,
-        CombinationsN,
+        Combinations,
         Unique,
         UniqueBy,
         Flatten,
@@ -735,7 +735,7 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let it = (1..5).combinations_n(3);
+    /// let it = (1..5).combinations(3);
     /// itertools::assert_equal(it, vec![
     ///     vec![1, 2, 3],
     ///     vec![1, 2, 4],
@@ -743,11 +743,11 @@ pub trait Itertools : Iterator {
     ///     vec![2, 3, 4],
     ///     ]);
     /// ```
-    fn combinations_n(self, n: usize) -> CombinationsN<Self>
+    fn combinations(self, n: usize) -> Combinations<Self>
         where Self: Sized,
               Self::Item: Clone
     {
-        CombinationsN::new(self, n)
+        Combinations::new(self, n)
     }
 
     /// Return an iterator adaptor that pads the sequence to a minimum length of
