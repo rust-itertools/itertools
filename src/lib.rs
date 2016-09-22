@@ -57,7 +57,7 @@ pub mod structs {
     };
     pub use cons_tuples::ConsTuples;
     pub use format::{Format, FormatWith};
-    pub use groupbylazy::{ChunksLazy, Chunk, Chunks, GroupByLazy, Group, Groups};
+    pub use groupbylazy::{ChunksLazy, Chunk, Chunks, GroupBy, Group, Groups};
     pub use intersperse::Intersperse;
     pub use kmerge::KMerge;
     pub use pad_tail::PadUsing;
@@ -309,10 +309,10 @@ pub trait Itertools : Iterator {
     /// Consecutive elements that map to the same key (“runs”), are assigned
     /// to the same group.
     ///
-    /// `GroupByLazy` is the storage for the lazy grouping operation.
+    /// `GroupBy` is the storage for the lazy grouping operation.
     ///
     /// If the groups are consumed in order, or if each group's iterator is
-    /// dropped without keeping it around, then `GroupByLazy` uses no
+    /// dropped without keeping it around, then `GroupBy` uses no
     /// allocations.  It needs allocations only if several group iterators
     /// are alive at the same time.
     ///
@@ -331,18 +331,27 @@ pub trait Itertools : Iterator {
     /// let data = vec![1, 3, -2, -2, 1, 0, 1, 2];
     /// // groups:     |---->|------>|--------->|
     ///
-    /// // Note: The `&` is significant here, `GroupByLazy` is iterable
+    /// // Note: The `&` is significant here, `GroupBy` is iterable
     /// // only by reference. You can also call `.into_iter()` explicitly.
-    /// for (key, group) in &data.into_iter().group_by_lazy(|elt| *elt >= 0) {
+    /// for (key, group) in &data.into_iter().group_by(|elt| *elt >= 0) {
     ///     // Check that the sum of each group is +/- 4.
     ///     assert_eq!(4, group.fold(0_i32, |a, b| a + b).abs());
     /// }
     /// ```
-    fn group_by_lazy<K, F>(self, key: F) -> GroupByLazy<K, Self, F>
+    fn group_by<K, F>(self, key: F) -> GroupBy<K, Self, F>
         where Self: Sized,
               F: FnMut(&Self::Item) -> K,
     {
         groupbylazy::new(self, key)
+    }
+
+    ///
+    #[deprecated(note = "renamed to .group_by()")]
+    fn group_by_lazy<K, F>(self, key: F) -> GroupBy<K, Self, F>
+        where Self: Sized,
+              F: FnMut(&Self::Item) -> K,
+    {
+        self.group_by(key)
     }
 
     /// Return an iterable that can chunk the iterator.
@@ -351,7 +360,7 @@ pub trait Itertools : Iterator {
     /// determined by `size`. The last chunk will be shorter if there aren't
     /// enough elements.
     ///
-    /// `ChunksLazy` is based on `GroupByLazy`: it is iterable (implements
+    /// `ChunksLazy` is based on `GroupBy`: it is iterable (implements
     /// `IntoIterator`, **not** `Iterator`), and it only buffers if several
     /// chunk iterators are alive at the same time.
     ///

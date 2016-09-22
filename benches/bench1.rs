@@ -402,7 +402,7 @@ fn group_by_lazy_1(b: &mut test::Bencher) {
     let data = test::black_box(data);
 
     b.iter(|| {
-        for (_key, group) in &data.iter().group_by_lazy(|elt| **elt) {
+        for (_key, group) in &data.iter().group_by(|elt| **elt) {
             for elt in group {
                 test::black_box(elt);
             }
@@ -420,7 +420,7 @@ fn group_by_lazy_2(b: &mut test::Bencher) {
     let data = test::black_box(data);
 
     b.iter(|| {
-        for (_key, group) in &data.iter().group_by_lazy(|elt| **elt) {
+        for (_key, group) in &data.iter().group_by(|elt| **elt) {
             for elt in group {
                 test::black_box(elt);
             }

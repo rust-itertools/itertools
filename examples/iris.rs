@@ -78,8 +78,8 @@ fn main() {
     let mut plot_symbols = "+ox".chars().cycle();
     let mut symbolmap = HashMap::new();
 
-    // using Itertools::group_by_lazy
-    for (species, species_group) in &irises.iter().group_by_lazy(|iris| &iris.name) {
+    // using Itertools::group_by
+    for (species, species_group) in &irises.iter().group_by(|iris| &iris.name) {
         // assign a plot symbol
         symbolmap.entry(species).or_insert_with(|| {
             plot_symbols.next().unwrap()

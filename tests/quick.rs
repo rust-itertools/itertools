@@ -507,7 +507,7 @@ quickcheck! {
 quickcheck! {
     fn fuzz_group_by_lazy_1(it: Iter<u8>) -> bool {
         let jt = it.clone();
-        let groups = it.group_by_lazy(|k| *k);
+        let groups = it.group_by(|k| *k);
         let res = itertools::equal(jt, groups.into_iter().flat_map(|(_, x)| x));
         res
     }
@@ -515,7 +515,7 @@ quickcheck! {
 
 quickcheck! {
     fn fuzz_group_by_lazy_2(data: Vec<u8>) -> bool {
-        let groups = data.iter().group_by_lazy(|k| *k / 10);
+        let groups = data.iter().group_by(|k| *k / 10);
         let res = itertools::equal(data.iter(), groups.into_iter().flat_map(|(_, x)| x));
         res
     }
@@ -523,7 +523,7 @@ quickcheck! {
 
 quickcheck! {
     fn fuzz_group_by_lazy_3(data: Vec<u8>) -> bool {
-        let grouper = data.iter().group_by_lazy(|k| *k / 10);
+        let grouper = data.iter().group_by(|k| *k / 10);
         let groups = grouper.into_iter().collect_vec();
         let res = itertools::equal(data.iter(), groups.into_iter().flat_map(|(_, x)| x));
         res
@@ -532,7 +532,7 @@ quickcheck! {
 
 quickcheck! {
     fn fuzz_group_by_lazy_duo(data: Vec<u8>, order: Vec<(bool, bool)>) -> bool {
-        let grouper = data.iter().group_by_lazy(|k| *k / 3);
+        let grouper = data.iter().group_by(|k| *k / 3);
         let mut groups1 = grouper.into_iter();
         let mut groups2 = grouper.into_iter();
         let mut elts = Vec::<&u8>::new();

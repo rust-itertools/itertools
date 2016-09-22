@@ -510,14 +510,14 @@ fn while_some() {
 }
 
 #[test]
-fn group_by_lazy() {
-    for (ch1, sub) in &"AABBCCC".chars().group_by_lazy(|&x| x) {
+fn group_by() {
+    for (ch1, sub) in &"AABBCCC".chars().group_by(|&x| x) {
         for ch2 in sub {
             assert_eq!(ch1, ch2);
         }
     }
 
-    for (ch1, sub) in &"AAABBBCCCCDDDD".chars().group_by_lazy(|&x| x) {
+    for (ch1, sub) in &"AAABBBCCCCDDDD".chars().group_by(|&x| x) {
         for ch2 in sub {
             assert_eq!(ch1, ch2);
             if ch1 == 'C' {
@@ -530,7 +530,7 @@ fn group_by_lazy() {
 
     // try all possible orderings
     for indices in permutohedron::Heap::new(&mut [0, 1, 2, 3]) {
-        let groups = "AaaBbbccCcDDDD".chars().group_by_lazy(&toupper);
+        let groups = "AaaBbbccCcDDDD".chars().group_by(&toupper);
         let mut subs = groups.into_iter().collect_vec();
 
         for &idx in &indices[..] {
@@ -546,7 +546,7 @@ fn group_by_lazy() {
         }
     }
 
-    let groups = "AAABBBCCCCDDDD".chars().group_by_lazy(|&x| x);
+    let groups = "AAABBBCCCCDDDD".chars().group_by(|&x| x);
     let mut subs = groups.into_iter().map(|(_, g)| g).collect_vec();
 
     let sd = subs.pop().unwrap();
@@ -564,7 +564,7 @@ fn group_by_lazy() {
     {
         let mut ntimes = 0;
         let text = "AABCCC";
-        for (_, sub) in &text.chars().group_by_lazy(|&x| { ntimes += 1; x}) {
+        for (_, sub) in &text.chars().group_by(|&x| { ntimes += 1; x}) {
             for _ in sub {
             }
         }
@@ -574,14 +574,14 @@ fn group_by_lazy() {
     {
         let mut ntimes = 0;
         let text = "AABCCC";
-        for _ in &text.chars().group_by_lazy(|&x| { ntimes += 1; x}) {
+        for _ in &text.chars().group_by(|&x| { ntimes += 1; x}) {
         }
         assert_eq!(ntimes, text.len());
     }
 
     {
         let text = "ABCCCDEEFGHIJJKK";
-        let gr = text.chars().group_by_lazy(|&x| x);
+        let gr = text.chars().group_by(|&x| x);
         it::assert_equal(gr.into_iter().flat_map(|(_, sub)| sub), text.chars());
     }
 }
@@ -589,17 +589,17 @@ fn group_by_lazy() {
 #[test]
 fn group_by_lazy_2() {
     let data = vec![0, 1];
-    let groups = data.iter().group_by_lazy(|k| *k);
+    let groups = data.iter().group_by(|k| *k);
     let gs = groups.into_iter().collect_vec();
     it::assert_equal(data.iter(), gs.into_iter().flat_map(|(_k, g)| g));
 
     let data = vec![0, 1, 1, 0, 0];
-    let groups = data.iter().group_by_lazy(|k| *k);
+    let groups = data.iter().group_by(|k| *k);
     let mut gs = groups.into_iter().collect_vec();
     gs[1..].reverse();
     it::assert_equal(&[0, 0, 0, 1, 1], gs.into_iter().flat_map(|(_, g)| g));
 
-    let grouper = data.iter().group_by_lazy(|k| *k);
+    let grouper = data.iter().group_by(|k| *k);
     let mut groups = Vec::new();
     for (k, group) in &grouper {
         if *k == 1 {
@@ -609,7 +609,7 @@ fn group_by_lazy_2() {
     it::assert_equal(&mut groups[0], &[1, 1]);
 
     let data = vec![0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
-    let grouper = data.iter().group_by_lazy(|k| *k);
+    let grouper = data.iter().group_by(|k| *k);
     let mut groups = Vec::new();
     for (i, (_, group)) in grouper.into_iter().enumerate() {
         if i < 2 {
@@ -628,7 +628,7 @@ fn group_by_lazy_2() {
     // use groups as chunks
     let data = vec![0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
     let mut i = 0;
-    let grouper = data.iter().group_by_lazy(move |_| { let k = i / 3; i += 1; k });
+    let grouper = data.iter().group_by(move |_| { let k = i / 3; i += 1; k });
     for (i, group) in &grouper {
         match i {
             0 => it::assert_equal(group, &[0, 0, 0]),
@@ -644,7 +644,7 @@ fn group_by_lazy_2() {
 fn group_by_lazy_3() {
     // test consuming each group on the lap after it was produced
     let data = vec![0, 0, 0, 1, 1, 0, 0, 1, 1, 2, 2];
-    let grouper = data.iter().group_by_lazy(|elt| *elt);
+    let grouper = data.iter().group_by(|elt| *elt);
     let mut last = None;
     for (key, group) in &grouper {
         if let Some(gr) = last.take() {
