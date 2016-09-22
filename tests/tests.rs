@@ -657,9 +657,9 @@ fn group_by_lazy_3() {
 }
 
 #[test]
-fn chunks_lazy() {
+fn chunks() {
     let data = vec![0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
-    let grouper = data.iter().chunks_lazy(3);
+    let grouper = data.iter().chunks(3);
     for (i, chunk) in grouper.into_iter().enumerate() {
         match i {
             0 => it::assert_equal(chunk, &[0, 0, 0]),

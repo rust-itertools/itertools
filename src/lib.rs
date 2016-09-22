@@ -57,7 +57,7 @@ pub mod structs {
     };
     pub use cons_tuples::ConsTuples;
     pub use format::{Format, FormatWith};
-    pub use groupbylazy::{ChunksLazy, Chunk, Chunks, GroupBy, Group, Groups};
+    pub use groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
     pub use intersperse::Intersperse;
     pub use kmerge::KMerge;
     pub use pad_tail::PadUsing;
@@ -305,7 +305,7 @@ pub trait Itertools : Iterator {
         Batching::new(self, f)
     }
 
-    /// Return an iterable that can group iterator elements.
+    /// Return an *iterable* that can group iterator elements.
     /// Consecutive elements that map to the same key (“runs”), are assigned
     /// to the same group.
     ///
@@ -354,13 +354,13 @@ pub trait Itertools : Iterator {
         self.group_by(key)
     }
 
-    /// Return an iterable that can chunk the iterator.
+    /// Return an *iterable* that can chunk the iterator.
     ///
     /// Yield subiterators (chunks) that each yield a fixed number elements,
     /// determined by `size`. The last chunk will be shorter if there aren't
     /// enough elements.
     ///
-    /// `ChunksLazy` is based on `GroupBy`: it is iterable (implements
+    /// `IntoChunks` is based on `GroupBy`: it is iterable (implements
     /// `IntoIterator`, **not** `Iterator`), and it only buffers if several
     /// chunk iterators are alive at the same time.
     ///
@@ -374,20 +374,27 @@ pub trait Itertools : Iterator {
     /// let data = vec![1, 1, 2, -2, 6, 0, 3, 1];
     /// //chunk size=3 |------->|-------->|--->|
     ///
-    /// // Note: The `&` is significant here, `ChunksLazy` is iterable
+    /// // Note: The `&` is significant here, `IntoChunks` is iterable
     /// // only by reference. You can also call `.into_iter()` explicitly.
-    /// for chunk in &data.into_iter().chunks_lazy(3) {
+    /// for chunk in &data.into_iter().chunks(3) {
     ///     // Check that the sum of each chunk is 4.
     ///     assert_eq!(4, chunk.fold(0_i32, |a, b| a + b));
     /// }
     /// ```
-    fn chunks_lazy(self, size: usize) -> ChunksLazy<Self>
+    fn chunks(self, size: usize) -> IntoChunks<Self>
         where Self: Sized,
     {
         assert!(size != 0);
         groupbylazy::new_chunks(self, size)
     }
 
+    ///
+    #[deprecated(note = "renamed to .chunks()")]
+    fn chunks_lazy(self, size: usize) -> IntoChunks<Self>
+        where Self: Sized,
+    {
+        self.chunks(size)
+    }
 
     /// Split into an iterator pair that both yield all elements from
     /// the original iterator.

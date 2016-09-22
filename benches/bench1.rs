@@ -452,7 +452,7 @@ fn chunks_lazy_1(b: &mut test::Bencher) {
     let sz = test::black_box(10);
 
     b.iter(|| {
-        for group in &data.iter().chunks_lazy(sz) {
+        for group in &data.iter().chunks(sz) {
             for elt in group {
                 test::black_box(elt);
             }

@@ -569,7 +569,7 @@ quickcheck! {
         if size == 0 {
             size += 1;
         }
-        let chunks = a.iter().chunks_lazy(size as usize);
+        let chunks = a.iter().chunks(size as usize);
         let it = a.chunks(size as usize);
         for (a, b) in chunks.into_iter().zip(it) {
             if !itertools::equal(a, b) {

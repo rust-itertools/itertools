@@ -175,7 +175,7 @@ Recent Changes
 
 - 0.3.23
 
-  - Added .chunks_lazy(), similar to (and based on) .group_by_lazy().
+  - Added .chunks(), similar to (and based on) .group_by_lazy().
   - Tweak linspace to match numpy.linspace and make it double ended.
 
 - 0.3.22
