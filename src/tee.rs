@@ -14,7 +14,7 @@ struct TeeBuffer<A, I> {
 
 /// One half of an iterator pair where both return the same elements.
 ///
-/// See [`.tee()`](trait.Itertools.html#method.tee) for more information.
+/// See [`.tee()`](../trait.Itertools.html#method.tee) for more information.
 pub struct Tee<I>
     where I: Iterator
 {

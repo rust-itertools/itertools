@@ -4,18 +4,42 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 /// A wrapper for `Rc<RefCell<I>>`, that implements the `Iterator` trait.
-///
-/// See [`.into_rc()`](trait.Itertools.html#method.into_rc) for more information.
 pub struct RcIter<I> {
     /// The boxed iterator.
     pub rciter: Rc<RefCell<I>>,
 }
 
-impl<I> RcIter<I> {
-    /// Create a new RcIter.
-    pub fn new(iter: I) -> RcIter<I> {
-        RcIter { rciter: Rc::new(RefCell::new(iter)) }
-    }
+/// Return an iterator inside a `Rc<RefCell<_>>` wrapper.
+///
+/// The returned `RcIter` can be cloned, and each clone will refer back to the
+/// same original iterator.
+///
+/// `RcIter` allows doing interesting things like using `.zip()` on an iterator with
+/// itself, at the cost of runtime borrow checking.
+/// (If it is not obvious: this has a performance penalty.)
+///
+/// Iterator element type is `Self::Item`.
+///
+/// ```
+/// use itertools::rciter;
+///
+/// let mut rit = rciter(0..9);
+/// let mut z = rit.clone().zip(rit.clone());
+/// assert_eq!(z.next(), Some((0, 1)));
+/// assert_eq!(z.next(), Some((2, 3)));
+/// assert_eq!(z.next(), Some((4, 5)));
+/// assert_eq!(rit.next(), Some(6));
+/// assert_eq!(z.next(), Some((7, 8)));
+/// assert_eq!(z.next(), None);
+/// ```
+///
+/// **Panics** in iterator methods if a borrow error is encountered,
+/// but it can only happen if the `RcIter` is reentered in for example `.next()`,
+/// i.e. if it somehow participates in an “iterator knot” where it is an adaptor of itself.
+pub fn rciter<I>(iterable: I) -> RcIter<I::IntoIter>
+    where I: IntoIterator
+{
+    RcIter { rciter: Rc::new(RefCell::new(iterable.into_iter())) }
 }
 
 impl<I> Clone for RcIter<I> {

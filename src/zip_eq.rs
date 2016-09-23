@@ -2,7 +2,7 @@ use super::size_hint;
 
 /// An iterator which iterates two other iterators simultaneously
 ///
-/// See [`.zip_eq()`](trait.Itertools.html#method.zip_eq) for more information.
+/// See [`.zip_eq()`](../trait.Itertools.html#method.zip_eq) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct ZipEq<I, J> {
@@ -10,10 +10,27 @@ pub struct ZipEq<I, J> {
     b: J,
 }
 
-pub fn new<I, J>(a: I, b: J) -> ZipEq<I, J> {
+/// Iterate `i` and `j` in lock step.
+///
+/// **Panics** if the iterators are not of the same length.
+///
+/// `IntoIterator` enabled version of `i.zip_eq(j)`.
+///
+/// ```
+/// use itertools::zip_eq;
+///
+/// let data = [1, 2, 3, 4, 5];
+/// for (a, b) in zip_eq(&data[..data.len() - 1], &data[1..]) {
+///     /* loop body */
+/// }
+/// ```
+pub fn zip_eq<I, J>(i: I, j: J) -> ZipEq<I::IntoIter, J::IntoIter>
+    where I: IntoIterator,
+          J: IntoIterator
+{
     ZipEq {
-        a: a,
-        b: b,
+        a: i.into_iter(),
+        b: j.into_iter(),
     }
 }
 

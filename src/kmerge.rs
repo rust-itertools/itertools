@@ -153,19 +153,30 @@ fn sift_down<T: Ord>(heap: &mut [T], index: usize) {
 ///
 /// Iterator element type is `I::Item`.
 ///
-/// See [`.kmerge()`](trait.Itertools.html#method.kmerge) for more information.
+/// See [`.kmerge()`](../trait.Itertools.html#method.kmerge) for more information.
 pub struct KMerge<I>
     where I: Iterator
 {
     heap: Vec<HeadTail<I>>,
 }
 
-/// Create a `KMerge` iterator.
-pub fn kmerge_new<I>(iter: I) -> KMerge<<I::Item as IntoIterator>::IntoIter>
-    where I: Iterator,
+/// Create an iterator that merges elements of the contained iterators.
+///
+/// Equivalent to `i.into_iter().kmerge()`.
+///
+/// ```
+/// use itertools::kmerge;
+///
+/// for elt in kmerge(vec![vec![0, 2, 4], vec![1, 3, 5], vec![6, 7]]) {
+///     /* loop body */
+/// }
+/// ```
+pub fn kmerge<I>(iterable: I) -> KMerge<<I::Item as IntoIterator>::IntoIter>
+    where I: IntoIterator,
           I::Item: IntoIterator,
-          <<I as Iterator>::Item as IntoIterator>::Item: Ord
+          <<I as IntoIterator>::Item as IntoIterator>::Item: Ord
 {
+    let iter = iterable.into_iter();
     let (lower, _) = iter.size_hint();
     let mut heap = Vec::with_capacity(lower);
     heap.extend(iter.filter_map(|it| HeadTail::new(it.into_iter())));

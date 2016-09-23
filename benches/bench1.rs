@@ -4,18 +4,17 @@ extern crate test;
 extern crate itertools;
 
 use test::{black_box};
-use itertools::Stride;
 use itertools::Itertools;
 
-#[cfg(feature = "unstable")]
-use itertools::{ZipTrusted};
-
-use itertools::ZipSlices;
 use itertools::free::cloned;
 
 use std::iter::repeat;
 use std::cmp;
 use std::ops::Add;
+
+mod extra;
+
+use extra::ZipSlices;
 
 #[bench]
 fn slice_iter(b: &mut test::Bencher)
@@ -31,24 +30,6 @@ fn slice_iter_rev(b: &mut test::Bencher)
 {
     let xs: Vec<_> = repeat(1i32).take(20).collect();
     b.iter(|| for elt in xs.iter().rev() {
-        test::black_box(elt);
-    })
-}
-
-#[bench]
-fn stride_iter(b: &mut test::Bencher)
-{
-    let xs: Vec<_> = repeat(1i32).take(20).collect();
-    b.iter(|| for elt in Stride::from_slice(&xs, 1) {
-        test::black_box(elt);
-    })
-}
-
-#[bench]
-fn stride_iter_rev(b: &mut test::Bencher)
-{
-    let xs: Vec<_> = repeat(1i32).take(20).collect();
-    b.iter(|| for elt in Stride::from_slice(&xs, 1).rev() {
         test::black_box(elt);
     })
 }
@@ -206,78 +187,6 @@ fn zipdot_f32_zipslices(b: &mut test::Bencher)
     })
 }
 
-#[cfg(feature = "unstable")]
-#[bench]
-fn ziptrusted(b: &mut test::Bencher)
-{
-    let xs = vec![0; 1024];
-    let ys = vec![0; 768];
-    let xs = black_box(xs);
-    let ys = black_box(ys);
-
-    b.iter(|| {
-        for (&x, &y) in ZipTrusted::new((xs.iter(), ys.iter())) {
-            test::black_box(x);
-            test::black_box(y);
-        }
-    })
-}
-
-#[cfg(feature = "unstable")]
-#[bench]
-fn zipdot_i32_ziptrusted(b: &mut test::Bencher)
-{
-    let xs = vec![2; 1024];
-    let ys = vec![2; 768];
-    let xs = black_box(xs);
-    let ys = black_box(ys);
-
-    b.iter(|| {
-        let mut s = 0i32;
-        for (&x, &y) in ZipTrusted::new((xs.iter(), ys.iter())) {
-            s += x * y;
-        }
-        s
-    })
-}
-
-#[cfg(feature = "unstable")]
-#[bench]
-fn zipdot_f32_ziptrusted(b: &mut test::Bencher)
-{
-    let xs = vec![2.; 1024];
-    let ys = vec![2.; 768];
-    let xs = black_box(xs);
-    let ys = black_box(ys);
-
-    b.iter(|| {
-        let mut s = 0f32;
-        for (&x, &y) in ZipTrusted::new((xs.iter(), ys.iter())) {
-            s += x * y;
-        }
-        s
-    })
-}
-
-#[cfg(feature = "unstable")]
-#[bench]
-fn ziptrusted3(b: &mut test::Bencher)
-{
-    let xs = vec![0; 1024];
-    let ys = vec![0; 768];
-    let zs = vec![0; 766];
-    let xs = black_box(xs);
-    let ys = black_box(ys);
-    let zs = black_box(zs);
-
-    b.iter(|| {
-        for (&x, &y, &z) in ZipTrusted::new((xs.iter(), ys.iter(), zs.iter())) {
-            test::black_box(x);
-            test::black_box(y);
-            test::black_box(z);
-        }
-    })
-}
 
 #[bench]
 fn zip_checked_counted_loop(b: &mut test::Bencher)
@@ -493,7 +402,7 @@ fn group_by_lazy_1(b: &mut test::Bencher) {
     let data = test::black_box(data);
 
     b.iter(|| {
-        for (_key, group) in &data.iter().group_by_lazy(|elt| **elt) {
+        for (_key, group) in &data.iter().group_by(|elt| **elt) {
             for elt in group {
                 test::black_box(elt);
             }
@@ -511,7 +420,7 @@ fn group_by_lazy_2(b: &mut test::Bencher) {
     let data = test::black_box(data);
 
     b.iter(|| {
-        for (_key, group) in &data.iter().group_by_lazy(|elt| **elt) {
+        for (_key, group) in &data.iter().group_by(|elt| **elt) {
             for elt in group {
                 test::black_box(elt);
             }
@@ -543,7 +452,7 @@ fn chunks_lazy_1(b: &mut test::Bencher) {
     let sz = test::black_box(10);
 
     b.iter(|| {
-        for group in &data.iter().chunks_lazy(sz) {
+        for group in &data.iter().chunks(sz) {
             for elt in group {
                 test::black_box(elt);
             }
@@ -693,7 +602,7 @@ fn kmerge_tenway(b: &mut test::Bencher) {
         rest = tail;
     }
 
-    // println!("Chunk lengths: {}", chunks.iter().format(", ", |elt, f| f(&elt.len())));
+    // println!("Chunk lengths: {}", chunks.iter().format_with(", ", |elt, f| f(&elt.len())));
 
     b.iter(|| {
         chunks.iter().cloned().kmerge().count()

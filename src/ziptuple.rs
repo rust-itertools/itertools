@@ -1,7 +1,22 @@
-use super::misc::IntoIteratorTuple;
 use super::size_hint;
 
+/// See [`multizip`](fn.multizip.html) for more information.
 #[derive(Clone)]
+pub struct Zip<T> {
+    t: T,
+}
+
+impl<T> Zip<T> {
+    /// Deprecated: renamed to multizip
+    #[deprecated(note = "Renamed to multizip")]
+    pub fn new<U>(t: U) -> Zip<T>
+        where Zip<T>: From<U>,
+              Zip<T>: Iterator,
+    {
+        multizip(t)
+    }
+}
+
 /// An iterator that generalizes *.zip()* and allows running multiple iterators in lockstep.
 ///
 /// The iterator `Zip<(I, J, ..., M)>` is formed from a tuple of iterators (or values that
@@ -12,42 +27,32 @@ use super::size_hint;
 /// element types of the subiterator.
 ///
 /// ```
-/// use itertools::Zip;
+/// use itertools::multizip;
 ///
 /// // Iterate over three sequences side-by-side
 /// let mut xs = [0, 0, 0];
 /// let ys = [69, 107, 101];
 ///
-/// for (i, a, b) in Zip::new((0..100, &mut xs, &ys)) {
+/// for (i, a, b) in multizip((0..100, &mut xs, &ys)) {
 ///    *a = i ^ *b;
 /// }
 ///
 /// assert_eq!(xs, [69, 106, 103]);
 /// ```
-pub struct Zip<T> {
-    t: T,
-}
-
-impl<T> Zip<T>
-    where T: IntoIteratorTuple,
-          Zip<T::Output>: Iterator
+pub fn multizip<T, U>(t: U) -> Zip<T>
+    where Zip<T>: From<U>,
+          Zip<T>: Iterator,
 {
-    /// Create a new `Zip` from a tuple of iterators.
-    pub fn new(t: T) -> Zip<T::Output> {
-        Zip { t: t.into_iterator_tuple() }
-    }
+    Zip::from(t)
 }
 
 macro_rules! impl_zip_iter {
     ($($B:ident),*) => (
         #[allow(non_snake_case)]
-        impl<$($B: IntoIterator),*> IntoIteratorTuple for ($($B,)*)
-        {
-            type Output = ($($B::IntoIter,)*);
-            fn into_iterator_tuple(self) -> Self::Output
-            {
-                let ($($B,)*) = self;
-                ($($B.into_iter(),)*)
+        impl<$($B: IntoIterator),*> From<($($B,)*)> for Zip<($($B::IntoIter,)*)> {
+            fn from(t: ($($B,)*)) -> Self {
+                let ($($B,)*) = t;
+                Zip { t: ($($B.into_iter(),)*) }
             }
         }
 
@@ -105,4 +110,3 @@ impl_zip_iter!(A, B, C, D, E);
 impl_zip_iter!(A, B, C, D, E, F);
 impl_zip_iter!(A, B, C, D, E, F, G);
 impl_zip_iter!(A, B, C, D, E, F, G, H);
-impl_zip_iter!(A, B, C, D, E, F, G, H, I);

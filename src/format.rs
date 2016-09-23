@@ -6,11 +6,11 @@ use std::cell::RefCell;
 /// The format value can only be formatted once, after that the iterator is
 /// exhausted.
 ///
-/// See [`.format()`](trait.Itertools.html#method.format) for more information.
-pub struct Format<'a, I, F> {
+/// See [`.format_with()`](../trait.Itertools.html#method.format_with) for more information.
+pub struct FormatWith<'a, I, F> {
     sep: &'a str,
-    /// Format uses interior mutability because Display::fmt takes &self.
-    inner: RefCell<(I, F)>,
+    /// FormatWith uses interior mutability because Display::fmt takes &self.
+    inner: RefCell<Option<(I, F)>>,
 }
 
 /// Format all iterator elements lazily, separated by `sep`.
@@ -18,40 +18,43 @@ pub struct Format<'a, I, F> {
 /// The format value can only be formatted once, after that the iterator is
 /// exhausted.
 ///
-/// See [`.format_default()`](trait.Itertools.html#method.format_default)
+/// See [`.format()`](../trait.Itertools.html#method.format)
 /// for more information.
 #[derive(Clone)]
-pub struct FormatDefault<'a, I> {
+pub struct Format<'a, I> {
     sep: &'a str,
     /// Format uses interior mutability because Display::fmt takes &self.
-    inner: RefCell<I>,
+    inner: RefCell<Option<I>>,
 }
 
-pub fn new_format<'a, I, F>(iter: I, separator: &'a str, f: F) -> Format<'a, I, F>
+pub fn new_format<'a, I, F>(iter: I, separator: &'a str, f: F) -> FormatWith<'a, I, F>
     where I: Iterator,
           F: FnMut(I::Item, &mut FnMut(&fmt::Display) -> fmt::Result) -> fmt::Result
 {
-    Format {
+    FormatWith {
         sep: separator,
-        inner: RefCell::new((iter, f)),
+        inner: RefCell::new(Some((iter, f))),
     }
 }
 
-pub fn new_format_default<'a, I>(iter: I, separator: &'a str) -> FormatDefault<'a, I>
+pub fn new_format_default<'a, I>(iter: I, separator: &'a str) -> Format<'a, I>
     where I: Iterator,
 {
-    FormatDefault {
+    Format {
         sep: separator,
-        inner: RefCell::new(iter),
+        inner: RefCell::new(Some(iter)),
     }
 }
 
-impl<'a, I, F> fmt::Display for Format<'a, I, F>
+impl<'a, I, F> fmt::Display for FormatWith<'a, I, F>
     where I: Iterator,
           F: FnMut(I::Item, &mut FnMut(&fmt::Display) -> fmt::Result) -> fmt::Result
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let (ref mut iter, ref mut format) = *self.inner.borrow_mut();
+        let (mut iter, mut format) = match self.inner.borrow_mut().take() {
+            Some(t) => t,
+            None => panic!("FormatWith: was already formatted once"),
+        };
 
         if let Some(fst) = iter.next() {
             try!(format(fst, &mut |disp: &fmt::Display| disp.fmt(f)));
@@ -67,13 +70,16 @@ impl<'a, I, F> fmt::Display for Format<'a, I, F>
     }
 }
 
-impl<'a, I> FormatDefault<'a, I>
+impl<'a, I> Format<'a, I>
     where I: Iterator,
 {
     fn format<F>(&self, f: &mut fmt::Formatter, mut cb: F) -> fmt::Result
         where F: FnMut(&I::Item, &mut fmt::Formatter) -> fmt::Result,
     {
-        let iter = &mut *self.inner.borrow_mut();
+        let mut iter = match self.inner.borrow_mut().take() {
+            Some(t) => t,
+            None => panic!("Format: was already formatted once"),
+        };
 
         if let Some(fst) = iter.next() {
             try!(cb(&fst, f));
@@ -91,7 +97,7 @@ impl<'a, I> FormatDefault<'a, I>
 macro_rules! impl_format {
     ($($fmt_trait:ident)*) => {
         $(
-            impl<'a, I> fmt::$fmt_trait for FormatDefault<'a, I>
+            impl<'a, I> fmt::$fmt_trait for Format<'a, I>
                 where I: Iterator,
                       I::Item: fmt::$fmt_trait,
             {

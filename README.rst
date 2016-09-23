@@ -2,7 +2,7 @@
 Itertools
 =========
 
-Extra iterator adaptors, functions and macros. Requires Rust 1.2+.
+Extra iterator adaptors, functions and macros. Requires Rust 1.11 or later.
 
 Please read the `API documentation here`__
 
@@ -19,7 +19,7 @@ __ https://bluss.github.io/rust-itertools/
 How to use with cargo::
 
     [dependencies]
-    itertools = "0.4.19"
+    itertools = "0.5"
 
 How to use in your crate:
 
@@ -38,6 +38,11 @@ How to contribute:
 
 Recent Changes
 --------------
+
+- 0.5.0
+
+  - Renamed:
+  - Remove deprecated items:
 
 - 0.4.19
 
@@ -170,7 +175,7 @@ Recent Changes
 
 - 0.3.23
 
-  - Added .chunks_lazy(), similar to (and based on) .group_by_lazy().
+  - Added .chunks(), similar to (and based on) .group_by_lazy().
   - Tweak linspace to match numpy.linspace and make it double ended.
 
 - 0.3.22

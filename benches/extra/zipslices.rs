@@ -1,7 +1,5 @@
 use std::cmp;
 
-use misc::Slice;
-
 // Note: There are different ways to implement ZipSlices.
 // This version performed the best in benchmarks.
 //
@@ -136,3 +134,56 @@ unsafe impl<T, U> Slice for ZipSlices<T, U>
          self.u.get_unchecked(i))
     }
 }
+
+/// A helper trait to let `ZipSlices` accept both `&[T]` and `&mut [T]`.
+///
+/// Unsafe trait because:
+///
+/// - Implementors must guarantee that `get_unchecked` is valid for all indices `0..len()`.
+pub unsafe trait Slice {
+    /// The type of a reference to the slice's elements
+    type Item;
+    #[doc(hidden)]
+    fn len(&self) -> usize;
+    #[doc(hidden)]
+    unsafe fn get_unchecked(&mut self, i: usize) -> Self::Item;
+}
+
+unsafe impl<'a, T> Slice for &'a [T] {
+    type Item = &'a T;
+    #[inline(always)]
+    fn len(&self) -> usize { (**self).len() }
+    #[inline(always)]
+    unsafe fn get_unchecked(&mut self, i: usize) -> &'a T {
+        debug_assert!(i < self.len());
+        (**self).get_unchecked(i)
+    }
+}
+
+unsafe impl<'a, T> Slice for &'a mut [T] {
+    type Item = &'a mut T;
+    #[inline(always)]
+    fn len(&self) -> usize { (**self).len() }
+    #[inline(always)]
+    unsafe fn get_unchecked(&mut self, i: usize) -> &'a mut T {
+        debug_assert!(i < self.len());
+        // override the lifetime constraints of &mut &'a mut [T]
+        (*(*self as *mut [T])).get_unchecked_mut(i)
+    }
+}
+
+#[test]
+fn zipslices() {
+
+    let xs = [1, 2, 3, 4, 5, 6];
+    let ys = [1, 2, 3, 7];
+    ::itertools::assert_equal(ZipSlices::new(&xs, &ys), xs.iter().zip(&ys));
+
+    let xs = [1, 2, 3, 4, 5, 6];
+    let mut ys = [0; 6];
+    for (x, y) in ZipSlices::from_slices(&xs[..], &mut ys[..]) {
+        *y = *x;
+    }
+    ::itertools::assert_equal(&xs, &ys);
+}
+

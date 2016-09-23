@@ -10,7 +10,7 @@ use self::EitherOrBoth::{Right, Left, Both};
 ///
 /// This iterator is *fused*.
 ///
-/// See [`.zip_longest()`](trait.Itertools.html#method.zip_longest) for more information.
+/// See [`.zip_longest()`](../trait.Itertools.html#method.zip_longest) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct ZipLongest<T, U> {
@@ -18,16 +18,14 @@ pub struct ZipLongest<T, U> {
     b: Fuse<U>,
 }
 
-impl<T, U> ZipLongest<T, U>
+/// Create a new `ZipLongest` iterator.
+pub fn zip_longest<T, U>(a: T, b: U) -> ZipLongest<T, U> 
     where T: Iterator,
           U: Iterator
 {
-    /// Create a new `ZipLongest` iterator.
-    pub fn new(a: T, b: U) -> ZipLongest<T, U> {
-        ZipLongest {
-            a: a.fuse(),
-            b: b.fuse(),
-        }
+    ZipLongest {
+        a: a.fuse(),
+        b: b.fuse(),
     }
 }
 

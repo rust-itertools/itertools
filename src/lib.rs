@@ -1,9 +1,4 @@
 #![warn(missing_docs)]
-#![cfg_attr(feature = "unstable",
-            feature(
-                zero_one,
-                core_intrinsics,
-                ))]
 #![crate_name="itertools"]
 
 //! Itertools — extra iterator adaptors, functions and macros.
@@ -13,10 +8,6 @@
 //! ```ignore
 //! use itertools::Itertools;
 //! ```
-//!
-//! Some iterators or adaptors are used directly like regular structs, for example
-//! [`PutBack`](./struct.PutBack.html), [`Unfold`](./struct.Unfold.html),
-//! [`Zip`](./struct.Zip.html), [`Stride`](./struct.Stride.html)
 //!
 //! To enable the macros in this crate, use the `#[macro_use]` attribute:
 //!
@@ -35,92 +26,82 @@
 //!
 //!
 
-use std::iter::{self, IntoIterator};
+extern crate either;
+
+pub use either::Either;
+
+use std::iter::{IntoIterator};
 use std::fmt::Write;
 use std::cmp::Ordering;
 use std::fmt;
 use std::hash::Hash;
 
-pub use adaptors::{
-    Dedup,
-    Interleave,
-    InterleaveShortest,
-    Product,
-    PutBack,
-    PutBackN,
-    Batching,
-    GroupBy,
-    Step,
-    Merge,
-    MergeBy,
-    MultiPeek,
-    TakeWhileRef,
-    WhileSome,
-    Coalesce,
-    MendSlices,
-    Combinations,
-    CombinationsN,
-    Unique,
-    UniqueBy,
-    Flatten,
-};
-#[cfg(feature = "unstable")]
-#[cfg_attr(feature = "unstable", deprecated(note = "Uses deprecated libstd traits"))]
-pub use adaptors::EnumerateFrom;
-pub use diff::{diff_with, Diff};
-pub use format::{Format, FormatDefault};
-pub use free::{enumerate, rev};
-pub use groupbylazy::{ChunksLazy, Chunk, Chunks, GroupByLazy, Group, Groups};
-pub use intersperse::Intersperse;
-pub use islice::ISlice;
-pub use kmerge::KMerge;
-#[cfg_attr(feature = "unstable", deprecated(note = "Will move to different crate"))]
-pub use linspace::{linspace, Linspace};
+/// The concrete iterator types.
+pub mod structs {
+    pub use adaptors::{
+        Dedup,
+        Interleave,
+        InterleaveShortest,
+        Product,
+        PutBack,
+        PutBackN,
+        Batching,
+        Step,
+        Merge,
+        MergeBy,
+        MultiPeek,
+        TakeWhileRef,
+        WhileSome,
+        Coalesce,
+        PairCombinations,
+        Combinations,
+        Unique,
+        UniqueBy,
+        Flatten,
+    };
+    pub use cons_tuples::ConsTuples;
+    pub use format::{Format, FormatWith};
+    pub use groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
+    pub use intersperse::Intersperse;
+    pub use kmerge::KMerge;
+    pub use pad_tail::PadUsing;
+    pub use rciter::RcIter;
+    pub use repeatn::RepeatN;
+    pub use sources::{RepeatCall, Unfold};
+    pub use tee::Tee;
+    pub use zip_eq::ZipEq;
+    pub use zip_longest::ZipLongest;
+    pub use ziptuple::Zip;
+}
+pub use structs::*;
+pub use cons_tuples::cons_tuples;
+pub use diff::diff_with;
+pub use diff::Diff;
 pub use minmax::MinMaxResult;
-pub use pad_tail::PadUsing;
-pub use rciter::RcIter;
-pub use repeatn::RepeatN;
-pub use sources::{RepeatCall, Unfold};
-#[cfg_attr(feature = "unstable", deprecated(note = "Will move to different crate"))]
-pub use stride::Stride;
-#[cfg_attr(feature = "unstable", deprecated(note = "Will move to different crate"))]
-pub use stride::StrideMut;
-pub use tee::Tee;
-pub use zip_eq::ZipEq;
-pub use zip_longest::{ZipLongest, EitherOrBoth};
-pub use ziptuple::Zip;
-#[cfg(feature = "unstable")]
-#[cfg_attr(feature = "unstable", deprecated(note = "Will move to different crate"))]
-pub use ziptrusted::{ZipTrusted, TrustedIterator};
-#[cfg_attr(feature = "unstable", deprecated(note = "No longer has desired performance."))]
-pub use zipslices::ZipSlices;
+pub use sources::{repeat_call, unfold};
+pub use zip_longest::EitherOrBoth;
+pub use ziptuple::multizip;
 mod adaptors;
+#[doc(hidden)]
 pub mod free;
+#[doc(inline)]
+pub use free::*;
+mod cons_tuples;
+mod diff;
 mod format;
 mod groupbylazy;
 mod intersperse;
-mod islice;
-mod diff;
 mod kmerge;
-mod linspace;
 mod minmax;
-pub mod misc;
 mod pad_tail;
 mod rciter;
 mod repeatn;
+mod size_hint;
 mod sources;
-pub mod size_hint;
-mod stride;
 mod tee;
 mod zip_eq;
 mod zip_longest;
 mod ziptuple;
-#[cfg(feature = "unstable")]
-mod ziptrusted;
-mod zipslices;
-
-/// The function pointer map iterator created with `.map_fn()`.
-pub type MapFn<I, B> where I: Iterator = iter::Map<I, fn(I::Item) -> B>;
 
 #[macro_export]
 /// Create an iterator over the “cartesian product” of iterators.
@@ -143,13 +124,13 @@ macro_rules! iproduct {
         $I
     );
     (@flatten $I:expr, $J:expr, $($K:expr,)*) => (
-        iproduct!(@flatten $crate::misc::FlatTuples::new(iproduct!($I, $J)), $($K,)*)
+        iproduct!(@flatten $crate::cons_tuples(iproduct!($I, $J)), $($K,)*)
     );
     ($I:expr) => (
         (::std::iter::IntoIterator::into_iter($I))
     );
     ($I:expr, $J:expr) => (
-        $crate::Product::new(iproduct!($I), iproduct!($J))
+        $crate::Itertools::cartesian_product(iproduct!($I), iproduct!($J))
     );
     ($I:expr, $J:expr, $($K:expr),+) => (
         iproduct!(@flatten iproduct!($I, $J), $($K,)+)
@@ -187,7 +168,7 @@ macro_rules! izip {
     );
     ($($I:expr),*) => (
         {
-            $crate::Zip::new(($(izip!($I)),*))
+            $crate::multizip(($(izip!($I)),*))
         }
     );
 }
@@ -223,7 +204,7 @@ pub trait Itertools : Iterator {
         where J: IntoIterator<Item = Self::Item>,
               Self: Sized
     {
-        Interleave::new(self, other.into_iter())
+        interleave(self, other)
     }
 
     /// Alternate elements from two iterators until one of them runs out.
@@ -240,7 +221,7 @@ pub trait Itertools : Iterator {
         where J: IntoIterator<Item = Self::Item>,
               Self: Sized
     {
-        InterleaveShortest::new(self, other.into_iter())
+        adaptors::interleave_shortest(self, other.into_iter())
     }
 
     /// An iterator adaptor to insert a particular value
@@ -259,7 +240,7 @@ pub trait Itertools : Iterator {
         where Self: Sized,
               Self::Item: Clone
     {
-        Intersperse::new(self, element)
+        intersperse::intersperse(self, element)
     }
 
     /// Create an iterator which iterates over both this and the specified
@@ -284,7 +265,7 @@ pub trait Itertools : Iterator {
         where J: IntoIterator,
               Self: Sized
     {
-        ZipLongest::new(self, other.into_iter())
+        zip_longest::zip_longest(self, other.into_iter())
     }
 
     /// Create an iterator which iterates over both this and the specified
@@ -297,7 +278,7 @@ pub trait Itertools : Iterator {
         where J: IntoIterator,
               Self: Sized
     {
-        zip_eq::new(self, other.into_iter())
+        zip_eq(self, other)
     }
 
     /// A “meta iterator adaptor”. Its closure recives a reference to the iterator
@@ -326,42 +307,17 @@ pub trait Itertools : Iterator {
         where F: FnMut(&mut Self) -> Option<B>,
               Self: Sized
     {
-        Batching::new(self, f)
+        adaptors::batching(self, f)
     }
 
-    /// Group iterator elements. Consecutive elements that map to the same key (“runs”),
-    /// are returned as the iterator elements of `GroupBy`.
-    ///
-    /// Iterator element type is `(K, Vec<Self::Item>)`
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// // group data into runs of larger than zero or not.
-    /// let data = vec![1, 3, -2, -2, 1, 0, 1, 2];
-    /// // groups:     |---->|------>|--------->|
-    ///
-    /// for (key, group) in data.into_iter().group_by(|elt| *elt >= 0) {
-    ///     // Check that the sum of each group is +/- 4.
-    ///     assert_eq!(4, group.iter().fold(0_i32, |a, b| a + b).abs());
-    /// }
-    /// ```
-    fn group_by<K, F>(self, key: F) -> GroupBy<K, Self, F>
-        where Self: Sized,
-              F: FnMut(&Self::Item) -> K,
-    {
-        GroupBy::new(self, key)
-    }
-
-
-    /// Return an iterable that can group iterator elements.
+    /// Return an *iterable* that can group iterator elements.
     /// Consecutive elements that map to the same key (“runs”), are assigned
     /// to the same group.
     ///
-    /// `GroupByLazy` is the storage for the lazy grouping operation.
+    /// `GroupBy` is the storage for the lazy grouping operation.
     ///
     /// If the groups are consumed in order, or if each group's iterator is
-    /// dropped without keeping it around, then `GroupByLazy` uses no
+    /// dropped without keeping it around, then `GroupBy` uses no
     /// allocations.  It needs allocations only if several group iterators
     /// are alive at the same time.
     ///
@@ -380,27 +336,36 @@ pub trait Itertools : Iterator {
     /// let data = vec![1, 3, -2, -2, 1, 0, 1, 2];
     /// // groups:     |---->|------>|--------->|
     ///
-    /// // Note: The `&` is significant here, `GroupByLazy` is iterable
+    /// // Note: The `&` is significant here, `GroupBy` is iterable
     /// // only by reference. You can also call `.into_iter()` explicitly.
-    /// for (key, group) in &data.into_iter().group_by_lazy(|elt| *elt >= 0) {
+    /// for (key, group) in &data.into_iter().group_by(|elt| *elt >= 0) {
     ///     // Check that the sum of each group is +/- 4.
-    ///     assert_eq!(4, group.fold(0_i32, |a, b| a + b).abs());
+    ///     assert_eq!(4, group.sum::<i32>().abs());
     /// }
     /// ```
-    fn group_by_lazy<K, F>(self, key: F) -> GroupByLazy<K, Self, F>
+    fn group_by<K, F>(self, key: F) -> GroupBy<K, Self, F>
         where Self: Sized,
               F: FnMut(&Self::Item) -> K,
     {
         groupbylazy::new(self, key)
     }
 
-    /// Return an iterable that can chunk the iterator.
+    ///
+    #[deprecated(note = "renamed to .group_by()")]
+    fn group_by_lazy<K, F>(self, key: F) -> GroupBy<K, Self, F>
+        where Self: Sized,
+              F: FnMut(&Self::Item) -> K,
+    {
+        self.group_by(key)
+    }
+
+    /// Return an *iterable* that can chunk the iterator.
     ///
     /// Yield subiterators (chunks) that each yield a fixed number elements,
     /// determined by `size`. The last chunk will be shorter if there aren't
     /// enough elements.
     ///
-    /// `ChunksLazy` is based on `GroupByLazy`: it is iterable (implements
+    /// `IntoChunks` is based on `GroupBy`: it is iterable (implements
     /// `IntoIterator`, **not** `Iterator`), and it only buffers if several
     /// chunk iterators are alive at the same time.
     ///
@@ -414,20 +379,27 @@ pub trait Itertools : Iterator {
     /// let data = vec![1, 1, 2, -2, 6, 0, 3, 1];
     /// //chunk size=3 |------->|-------->|--->|
     ///
-    /// // Note: The `&` is significant here, `ChunksLazy` is iterable
+    /// // Note: The `&` is significant here, `IntoChunks` is iterable
     /// // only by reference. You can also call `.into_iter()` explicitly.
-    /// for chunk in &data.into_iter().chunks_lazy(3) {
+    /// for chunk in &data.into_iter().chunks(3) {
     ///     // Check that the sum of each chunk is 4.
-    ///     assert_eq!(4, chunk.fold(0_i32, |a, b| a + b));
+    ///     assert_eq!(4, chunk.sum());
     /// }
     /// ```
-    fn chunks_lazy(self, size: usize) -> ChunksLazy<Self>
+    fn chunks(self, size: usize) -> IntoChunks<Self>
         where Self: Sized,
     {
         assert!(size != 0);
         groupbylazy::new_chunks(self, size)
     }
 
+    ///
+    #[deprecated(note = "renamed to .chunks()")]
+    fn chunks_lazy(self, size: usize) -> IntoChunks<Self>
+        where Self: Sized,
+    {
+        self.chunks(size)
+    }
 
     /// Split into an iterator pair that both yield all elements from
     /// the original iterator.
@@ -441,78 +413,16 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     /// let xs = vec![0, 1, 2, 3];
     ///
-    /// let (mut t1, mut t2) = xs.into_iter().tee();
-    /// assert_eq!(t1.next(), Some(0));
-    /// assert_eq!(t1.next(), Some(1));
-    /// assert_eq!(t2.next(), Some(0));
-    /// assert_eq!(t1.next(), Some(2));
-    /// assert_eq!(t1.next(), Some(3));
-    /// assert_eq!(t1.next(), None);
-    /// assert_eq!(t2.next(), Some(1));
+    /// let (mut t1, t2) = xs.into_iter().tee();
+    /// itertools::assert_equal(t1.next(), Some(0));
+    /// itertools::assert_equal(t2, 0..4);
+    /// itertools::assert_equal(t1, 1..4);
     /// ```
     fn tee(self) -> (Tee<Self>, Tee<Self>)
         where Self: Sized,
               Self::Item: Clone
     {
         tee::new(self)
-    }
-
-    /// Return a sliced iterator.
-    ///
-    /// **Note:** slicing an iterator is not constant time, and much less efficient than
-    /// slicing for example a vector.
-    ///
-    /// Iterator element type is `Self::Item`.
-    ///
-    /// ```
-    /// use std::iter::repeat;
-    /// use itertools::Itertools;
-    ///
-    /// let it = repeat('a').slice(..3);
-    /// assert_eq!(it.count(), 3);
-    /// ```
-    fn slice<R>(self, range: R) -> ISlice<Self>
-        where R: misc::GenericRange,
-              Self: Sized
-    {
-        ISlice::new(self, range)
-    }
-
-    /// **Deprecated:** use `itertools::free::rciter` instead.
-    /// (It's an iterator constructor, not an adaptor).
-    ///
-    /// Return an iterator inside a `Rc<RefCell<_>>` wrapper.
-    ///
-    /// The returned `RcIter` can be cloned, and each clone will refer back to the
-    /// same original iterator.
-    ///
-    /// `RcIter` allows doing interesting things like using `.zip()` on an iterator with
-    /// itself, at the cost of runtime borrow checking.
-    /// (If it is not obvious: this has a performance penalty.)
-    ///
-    /// Iterator element type is `Self::Item`.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// let mut rit = (0..9).into_rc();
-    /// let mut z = rit.clone().zip(rit.clone());
-    /// assert_eq!(z.next(), Some((0, 1)));
-    /// assert_eq!(z.next(), Some((2, 3)));
-    /// assert_eq!(z.next(), Some((4, 5)));
-    /// assert_eq!(rit.next(), Some(6));
-    /// assert_eq!(z.next(), Some((7, 8)));
-    /// assert_eq!(z.next(), None);
-    /// ```
-    ///
-    /// **Panics** in iterator methods if a borrow error is encountered,
-    /// but it can only happen if the `RcIter` is reentered in for example `.next()`,
-    /// i.e. if it somehow participates in an “iterator knot” where it is an adaptor of itself.
-    #[cfg_attr(feature = "unstable", deprecated(note = "use itertools::free::rciter instead"))]
-    fn into_rc(self) -> RcIter<Self>
-        where Self: Sized
-    {
-        RcIter::new(self)
     }
 
     /// Return an iterator adaptor that steps `n` elements in the base iterator
@@ -534,7 +444,7 @@ pub trait Itertools : Iterator {
     fn step(self, n: usize) -> Step<Self>
         where Self: Sized
     {
-        Step::new(self, n)
+        adaptors::step(self, n)
     }
 
     /// Return an iterator adaptor that merges the two base iterators in ascending order.
@@ -555,7 +465,7 @@ pub trait Itertools : Iterator {
               Self::Item: PartialOrd,
               J: IntoIterator<Item = Self::Item>
     {
-        adaptors::merge_new(self, other.into_iter())
+        merge(self, other)
     }
 
     /// Return an iterator adaptor that merges the two base iterators in order.
@@ -603,7 +513,7 @@ pub trait Itertools : Iterator {
         Self::Item: IntoIterator,
         <<Self as Iterator>::Item as IntoIterator>::Item: Ord,
     {
-        kmerge::kmerge_new(self)
+        kmerge(self)
     }
 
     /// Return an iterator adaptor that iterates over the cartesian product of
@@ -623,28 +533,7 @@ pub trait Itertools : Iterator {
               J: IntoIterator,
               J::IntoIter: Clone
     {
-        Product::new(self, other.into_iter())
-    }
-
-    /// Return an iterator adaptor that enumerates the iterator elements,
-    /// starting from `start` and incrementing by one.
-    ///
-    /// Iterator element type is `(K, Self::Item)`.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// assert_eq!(
-    ///     "αβγ".chars().enumerate_from(-10i8).collect_vec(),
-    ///     [(-10, 'α'), (-9, 'β'), (-8, 'γ')]
-    /// );
-    /// ```
-    #[cfg(feature = "unstable")]
-    #[cfg_attr(feature = "unstable", deprecated(note = "Uses deprecated libstd traits"))]
-    fn enumerate_from<K>(self, start: K) -> EnumerateFrom<Self, K>
-        where Self: Sized
-    {
-        EnumerateFrom::new(self, start)
+        adaptors::cartesian_product(self, other.into_iter())
     }
 
     /// Return an iterator adapter that allows peeking multiple values.
@@ -699,7 +588,7 @@ pub trait Itertools : Iterator {
               F: FnMut(Self::Item, Self::Item)
                        -> Result<Self::Item, (Self::Item, Self::Item)>
     {
-        Coalesce::new(self, f)
+        adaptors::coalesce(self, f)
     }
 
     /// Remove duplicates from sections of consecutive identical elements.
@@ -720,7 +609,7 @@ pub trait Itertools : Iterator {
         where Self: Sized,
               Self::Item: PartialEq,
     {
-        Dedup::new(self)
+        adaptors::dedup(self)
     }
 
     /// Return an iterator adaptor that filters out elements that have
@@ -763,32 +652,7 @@ pub trait Itertools : Iterator {
               V: Eq + Hash,
               F: FnMut(&Self::Item) -> V
     {
-        UniqueBy::new(self, f)
-    }
-
-    /// Return an iterator adaptor that joins together adjacent slices if possible.
-    ///
-    /// Only implemented for iterators with slice or string slice elements.
-    /// Only slices that are contiguous together can be joined.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// // Split a string into a slice per letter, filter out whitespace,
-    /// // and join into words again by mending adjacent slices.
-    /// let text = String::from("Warning:  γ-radiation (ionizing)");
-    /// let char_slices = text.char_indices()
-    ///                       .map(|(index, ch)| &text[index..index + ch.len_utf8()]);
-    /// let words = char_slices.filter(|s| !s.chars().any(char::is_whitespace))
-    ///                        .mend_slices();
-    ///
-    /// itertools::assert_equal(words, vec!["Warning:", "γ-radiation", "(ionizing)"]);
-    /// ```
-    fn mend_slices(self) -> MendSlices<Self>
-        where Self: Sized,
-              Self::Item: misc::MendSlice
-    {
-        MendSlices::new(self)
+        adaptors::unique_by(self, f)
     }
 
     /// Return an iterator adaptor that borrows from a `Clone`-able iterator
@@ -812,7 +676,7 @@ pub trait Itertools : Iterator {
         where Self: Clone,
               F: FnMut(&Self::Item) -> bool
     {
-        TakeWhileRef::new(self, f)
+        adaptors::take_while_ref(self, f)
     }
 
     /// Return an iterator adaptor that filters `Option<A>` iterator elements
@@ -832,25 +696,25 @@ pub trait Itertools : Iterator {
     fn while_some<A>(self) -> WhileSome<Self>
         where Self: Sized + Iterator<Item = Option<A>>
     {
-        WhileSome::new(self)
+        adaptors::while_some(self)
     }
 
-    /// Return an iterator adaptor that iterates over the combinations of
-    /// the elements from an iterator.
+    /// Return an iterator adaptor that iterates over the pairwise combinations
+    /// of the elements from an iterator.
     ///
     /// Iterator element type is `(Self::Item, Self::Item)`.
     ///
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let it = (1..5).combinations();
+    /// let it = (1..5).pair_combinations();
     /// itertools::assert_equal(it, vec![(1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)]);
     /// ```
-    fn combinations(self) -> Combinations<Self>
+    fn pair_combinations(self) -> PairCombinations<Self>
         where Self: Sized + Clone,
               Self::Item: Clone
     {
-        Combinations::new(self)
+        adaptors::pair_combinations(self)
     }
 
     /// Return an iterator adaptor that iterates over the `n`-length combinations of
@@ -862,7 +726,7 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let it = (1..5).combinations_n(3);
+    /// let it = (1..5).combinations(3);
     /// itertools::assert_equal(it, vec![
     ///     vec![1, 2, 3],
     ///     vec![1, 2, 4],
@@ -870,11 +734,11 @@ pub trait Itertools : Iterator {
     ///     vec![2, 3, 4],
     ///     ]);
     /// ```
-    fn combinations_n(self, n: usize) -> CombinationsN<Self>
+    fn combinations(self, n: usize) -> Combinations<Self>
         where Self: Sized,
               Self::Item: Clone
     {
-        CombinationsN::new(self, n)
+        adaptors::combinations(self, n)
     }
 
     /// Return an iterator adaptor that pads the sequence to a minimum length of
@@ -898,7 +762,7 @@ pub trait Itertools : Iterator {
         where Self: Sized,
               F: FnMut(usize) -> Self::Item
     {
-        PadUsing::new(self, min, f)
+        pad_tail::pad_using(self, min, f)
     }
 
     /// Unravel a nested iterator.
@@ -913,36 +777,11 @@ pub trait Itertools : Iterator {
     ///
     /// itertools::assert_equal(flattened, vec![1, 2, 3, 4, 5, 6]);
     /// ```
-    fn flatten(self) -> Flatten<Self>
+    fn flatten(self) -> Flatten<Self, <<Self as Iterator>::Item as IntoIterator>::IntoIter>
         where Self: Sized,
               Self::Item: IntoIterator
     {
-        Flatten::new(self)
-    }
-
-    /// **Deprecated:** Will be removed in the next version
-    ///
-    /// Like regular `.map()`, specialized to using a simple function pointer instead,
-    /// so that the resulting `Map` iterator value can be cloned.
-    ///
-    /// Iterator element type is `B`.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// let data = vec![Ok(1), Ok(0), Err("No result")];
-    ///
-    /// let iter = data.iter().cloned().map_fn(Result::ok);
-    /// let iter_copy = iter.clone();
-    ///
-    /// itertools::assert_equal(iter, vec![Some(1), Some(0), None]);
-    /// itertools::assert_equal(iter_copy, vec![Some(1), Some(0), None]);
-    /// ```
-    #[cfg_attr(feature = "unstable", deprecated(note = "will be removed in the next version"))]
-    fn map_fn<B>(self, f: fn(Self::Item) -> B) -> MapFn<Self, B>
-        where Self: Sized
-    {
-        self.map(f)
+        adaptors::flatten(self)
     }
 
     // non-adaptor methods
@@ -968,29 +807,6 @@ pub trait Itertools : Iterator {
             index += 1;
         }
         None
-    }
-
-    /// Consume the first `n` elements of the iterator eagerly.
-    ///
-    /// Return actual number of elements consumed, until done or reaching the end.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// let mut iter = "αβγ".chars();
-    /// iter.dropn(2);
-    /// itertools::assert_equal(iter, "γ".chars());
-    /// ```
-    fn dropn(&mut self, mut n: usize) -> usize {
-        // FIXME: Can we use .nth() somehow?
-        let start = n;
-        while n > 0 {
-            match self.next() {
-                Some(..) => n -= 1,
-                None => break,
-            }
-        }
-        start - n
     }
 
     /// Consume the first `n` elements from the iterator eagerly,
@@ -1036,7 +852,9 @@ pub trait Itertools : Iterator {
         where Self: Sized,
               Self: DoubleEndedIterator
     {
-        self.by_ref().rev().dropn(n);
+        if n > 0 {
+            (&mut self).rev().nth(n - 1);
+        }
         self
     }
 
@@ -1138,15 +956,25 @@ pub trait Itertools : Iterator {
     /// All elements are formatted (any formatting trait)
     /// with `sep` inserted between each element.
     ///
+    /// **Panics** if the formatter helper is formatted more than once.
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
     /// let data = [1.1, 2.71828, -3.];
     /// assert_eq!(
-    ///     format!("{:.2}", data.iter().format_default(", ")),
+    ///     format!("{:.2}", data.iter().format(", ")),
     ///            "1.10, 2.72, -3.00");
     /// ```
-    fn format_default(self, sep: &str) -> FormatDefault<Self>
+    fn format(self, sep: &str) -> Format<Self>
+        where Self: Sized,
+    {
+        format::new_format_default(self, sep)
+    }
+
+    ///
+    #[deprecated(note = "renamed to .format()")]
+    fn format_default(self, sep: &str) -> Format<Self>
         where Self: Sized,
     {
         format::new_format_default(self, sep)
@@ -1154,7 +982,7 @@ pub trait Itertools : Iterator {
 
     /// Format all iterator elements, separated by `sep`.
     ///
-    /// This is a customizable version of `.format_default()`.
+    /// This is a customizable version of `.format()`.
     ///
     /// The supplied closure `format` is called once per iterator element,
     /// with two arguments: the element and a callback that takes a
@@ -1163,26 +991,28 @@ pub trait Itertools : Iterator {
     /// Using `&format_args!(...)` is the most versatile way to apply custom
     /// element formatting. The callback can be called multiple times if needed.
     ///
+    /// **Panics** if the formatter helper is formatted more than once.
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
     /// let data = [1.1, 2.71828, -3.];
-    /// let data_formatter = data.iter().format(", ", |elt, f| f(&format_args!("{:.2}", elt)));
+    /// let data_formatter = data.iter().format_with(", ", |elt, f| f(&format_args!("{:.2}", elt)));
     /// assert_eq!(format!("{}", data_formatter),
     ///            "1.10, 2.72, -3.00");
     ///
-    /// // .format() is recursively composable
+    /// // .format_with() is recursively composable
     /// let matrix = [[1., 2., 3.],
     ///               [4., 5., 6.]];
-    /// let matrix_formatter = matrix.iter().format("\n", |row, f| {
-    ///                                 f(&row.iter().format(", ", |elt, g| g(&elt)))
+    /// let matrix_formatter = matrix.iter().format_with("\n", |row, f| {
+    ///                                 f(&row.iter().format_with(", ", |elt, g| g(&elt)))
     ///                              });
     /// assert_eq!(format!("{}", matrix_formatter),
     ///            "1, 2, 3\n4, 5, 6");
     ///
     ///
     /// ```
-    fn format<F>(self, sep: &str, format: F) -> Format<Self, F>
+    fn format_with<F>(self, sep: &str, format: F) -> FormatWith<Self, F>
         where Self: Sized,
               F: FnMut(Self::Item, &mut FnMut(&fmt::Display) -> fmt::Result) -> fmt::Result,
     {
@@ -1360,33 +1190,6 @@ pub trait Itertools : Iterator {
         accum
     }
 
-    /// Tell if the iterator is empty or not according to its size hint.
-    /// Return `None` if the size hint does not tell, or return a `Some`
-    /// value with the emptiness if it's possible to tell.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// assert_eq!((1..1).is_empty_hint(), Some(true));
-    /// assert_eq!([1, 2, 3].iter().is_empty_hint(), Some(false));
-    /// assert_eq!((0..10).filter(|&x| x > 0).is_empty_hint(), None);
-    /// ```
-    fn is_empty_hint(&self) -> Option<bool> {
-        let (low, opt_hi) = self.size_hint();
-        // check for erronous hint
-        if let Some(hi) = opt_hi {
-            if hi < low { return None }
-        }
-
-        if opt_hi == Some(0) {
-            Some(true)
-        } else if low > 0 {
-            Some(false)
-        } else {
-            None
-        }
-    }
-
     /// Collect all iterator elements into a sorted vector in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, uses the
@@ -1437,21 +1240,12 @@ pub trait Itertools : Iterator {
         v
     }
 
-    #[cfg_attr(feature = "unstable", deprecated(note = "Replaced by .sorted_by()"))]
-    /// **Deprecated:** renamed to `.sorted_by()`
-    fn sort_by<F>(self, cmp: F) -> Vec<Self::Item>
-        where Self: Sized,
-              F: FnMut(&Self::Item, &Self::Item) -> Ordering,
-    {
-        self.sorted_by(cmp)
-    }
-
     /// Collect all iterator elements into one of two
     /// partitions. Unlike `Iterator::partition`, each partition may
     /// have a distinct type.
     ///
     /// ```
-    /// use itertools::{Itertools, Partition};
+    /// use itertools::{Itertools, Either};
     ///
     /// let successes_and_failures = vec![Ok(1), Err(false), Err(true), Ok(2)];
     ///
@@ -1459,8 +1253,8 @@ pub trait Itertools : Iterator {
     ///     .into_iter()
     ///     .partition_map(|r| {
     ///         match r {
-    ///             Ok(v) => Partition::Left(v),
-    ///             Err(v) => Partition::Right(v),
+    ///             Ok(v) => Either::Left(v),
+    ///             Err(v) => Either::Right(v),
     ///         }
     ///     });
     ///
@@ -1469,7 +1263,7 @@ pub trait Itertools : Iterator {
     /// ```
     fn partition_map<A, B, F, L, R>(self, predicate: F) -> (A, B)
         where Self: Sized,
-              F: Fn(Self::Item) -> Partition<L, R>,
+              F: Fn(Self::Item) -> Either<L, R>,
               A: Default + Extend<L>,
               B: Default + Extend<R>,
     {
@@ -1478,8 +1272,8 @@ pub trait Itertools : Iterator {
 
         for val in self {
             match predicate(val) {
-                Partition::Left(v) => left.extend(Some(v)),
-                Partition::Right(v) => right.extend(Some(v)),
+                Either::Left(v) => left.extend(Some(v)),
+                Either::Right(v) => right.extend(Some(v)),
             }
         }
 
@@ -1663,16 +1457,6 @@ pub fn partition<'a, A: 'a, I, F>(iter: I, mut pred: F) -> usize
     }
     split_index
 }
-
-/// Classifies the result of the `.partition_map()` closure into a
-/// partition.
-pub enum Partition<L, R> {
-    /// Classify into the left partition.
-    Left(L),
-    /// Classify into the right partition.
-    Right(R),
-}
-
 
 /// An enum used for controlling the execution of `.fold_while()`.
 /// 

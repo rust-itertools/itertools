@@ -15,11 +15,13 @@ use quickcheck as qc;
 use std::ops::Range;
 use itertools::Itertools;
 use itertools::{
-    Zip,
-    Stride,
+    multizip,
     EitherOrBoth,
 };
 use itertools::free::{
+    rciter,
+    put_back,
+    put_back_n,
     zip,
     zip_eq,
 };
@@ -201,25 +203,6 @@ macro_rules! quickcheck {
 }
 
 quickcheck! {
-    fn size_stride(data: Vec<u8>, mut stride: isize) -> bool {
-        if stride == 0 {
-            stride += 1; // never zero
-        }
-        exact_size(Stride::from_slice(&data, stride))
-    }
-    fn equal_stride(data: Vec<u8>, mut stride: i8) -> bool {
-        if stride == 0 {
-            // never zero
-            stride += 1;
-        }
-        if stride > 0 {
-            itertools::equal(Stride::from_slice(&data, stride as isize),
-                             data.iter().step(stride as usize))
-        } else {
-            itertools::equal(Stride::from_slice(&data, stride as isize),
-                             data.iter().rev().step(-stride as usize))
-        }
-    }
 
     fn size_product(a: Iter<u16>, b: Iter<u16>) -> bool {
         correct_size_hint(a.cartesian_product(b))
@@ -286,12 +269,12 @@ quickcheck! {
     }
     fn size_zip(a: Iter<i16>, b: Iter<i16>, c: Iter<i16>) -> bool {
         let filt = a.clone().dedup();
-        correct_size_hint(Zip::new((filt, b.clone(), c.clone()))) &&
-            exact_size(Zip::new((a, b, c)))
+        correct_size_hint(multizip((filt, b.clone(), c.clone()))) &&
+            exact_size(multizip((a, b, c)))
     }
     fn size_zip_rc(a: Iter<i16>, b: Iter<i16>) -> bool {
-        let rc = a.clone().into_rc();
-        correct_size_hint(Zip::new((&rc, &rc, b)))
+        let rc = rciter(a.clone());
+        correct_size_hint(multizip((&rc, &rc, b)))
     }
 
     fn equal_kmerge(a: Vec<i16>, b: Vec<i16>, c: Vec<i16>) -> bool {
@@ -356,15 +339,6 @@ quickcheck! {
                          }
                          ))
     }
-    fn equal_islice(a: Vec<i16>, x: usize, y: usize) -> bool {
-        if x > y || y > a.len() { return true; }
-        let slc = &a[x..y];
-        itertools::equal(a.iter().slice(x..y), slc)
-    }
-    fn size_islice(a: Iter<i16>, x: usize, y: usize) -> bool {
-        correct_size_hint(a.clone().dedup().slice(x..y)) &&
-            exact_size(a.clone().slice(x..y))
-    }
     fn size_interleave(a: Iter<i16>, b: Iter<i16>) -> bool {
         correct_size_hint(a.interleave(b))
     }
@@ -391,6 +365,20 @@ quickcheck! {
         }
         true
     }
+
+    fn equal_flatten(a: Vec<Option<i32>>) -> bool {
+        itertools::equal(a.iter().flatten(),
+                         a.iter().filter_map(|x| x.as_ref()))
+    }
+
+    fn equal_flatten_vec(a: Vec<Vec<u8>>) -> bool {
+        itertools::equal(a.iter().flatten(),
+                         a.iter().flat_map(|x| x))
+    }
+    fn equal_flatten_vec_rev(a: Vec<Vec<u8>>) -> bool {
+        itertools::equal(a.iter().flatten().rev(),
+                         a.iter().flat_map(|x| x).rev())
+    }
 }
 
 quickcheck! {
@@ -408,57 +396,15 @@ quickcheck! {
 }
 
 quickcheck! {
-    fn size_group_by(a: Vec<i8>) -> bool {
-        correct_size_hint(a.iter().group_by(|x| x.abs()))
-    }
-}
-
-quickcheck! {
-    fn size_linspace(a: f32, b: f32, n: usize) -> bool {
-        let it = itertools::linspace(a, b, n);
-        it.len() == n &&
-            exact_size(it)
-    }
-}
-
-quickcheck! {
     fn exact_repeatn((n, x): (usize, i32)) -> bool {
         let it = itertools::RepeatN::new(x, n);
         exact_size(it)
-    }
-
-    #[cfg(feature = "unstable")]
-    fn size_ziptrusted(a: Vec<u8>, b: Vec<u8>) -> bool {
-        exact_size(itertools::ZipTrusted::new((a.iter(), b.iter())))
-    }
-}
-
-#[cfg(feature = "unstable")]
-quickcheck! {
-    fn size_ziptrusted3(a: Vec<u8>, b: Vec<u8>, c: Vec<u8>) -> bool {
-        exact_size(itertools::ZipTrusted::new((a.iter(), b.iter(), c.iter())))
-    }
-}
-
-#[cfg(feature = "unstable")]
-quickcheck! {
-    fn equal_ziptrusted_mix(a: Vec<u8>, b: Vec<()>, x: u8, y: u8) -> bool {
-        let it = itertools::ZipTrusted::new((a.iter(), b.iter(), x..y));
-        let jt = Zip::new((a.iter(), b.iter(), x..y));
-        itertools::equal(it, jt)
-    }
-}
-
-#[cfg(feature = "unstable")]
-quickcheck! {
-    fn size_ziptrusted_mix(a: Vec<u8>, b: Vec<()>, x: u8, y: u8) -> bool {
-        exact_size(itertools::ZipTrusted::new((a.iter(), b.iter(), x..y)))
     }
 }
 
 quickcheck! {
     fn size_put_back(a: Vec<u8>, x: Option<u8>) -> bool {
-        let mut it = itertools::PutBack::new(a.into_iter());
+        let mut it = put_back(a.into_iter());
         match x {
             Some(t) => it.put_back(t),
             None => {}
@@ -469,7 +415,7 @@ quickcheck! {
 
 quickcheck! {
     fn size_put_backn(a: Vec<u8>, b: Vec<u8>) -> bool {
-        let mut it = itertools::PutBackN::new(a.into_iter());
+        let mut it = put_back_n(a.into_iter());
         for elt in b {
             it.put_back(elt)
         }
@@ -498,19 +444,6 @@ quickcheck! {
 }
 
 quickcheck! {
-    fn size_mend_slices(a: Vec<u8>, splits: Vec<usize>) -> bool {
-        let slice_iter = splits.into_iter().map(|ix|
-            if ix < a.len() {
-                &a[ix..(ix + 1)]
-            } else {
-                &a[0..0]
-            }
-        ).mend_slices();
-        correct_size_hint(slice_iter)
-    }
-}
-
-quickcheck! {
     fn size_take_while_ref(a: Vec<u8>, stop: u8) -> bool {
         correct_size_hint(a.iter().take_while_ref(|x| **x != stop))
     }
@@ -532,14 +465,14 @@ quickcheck! {
 
 quickcheck! {
     fn size_combinations(it: Iter<i16>) -> bool {
-        correct_size_hint(it.combinations())
+        correct_size_hint(it.pair_combinations())
     }
 }
 
 quickcheck! {
     fn equal_combinations(it: Iter<i16>) -> bool {
         let values = it.clone().collect_vec();
-        let mut cmb = it.combinations();
+        let mut cmb = it.pair_combinations();
         for i in 0..values.len() {
             for j in i+1..values.len() {
                 let pair = (values[i], values[j]);
@@ -574,7 +507,7 @@ quickcheck! {
 quickcheck! {
     fn fuzz_group_by_lazy_1(it: Iter<u8>) -> bool {
         let jt = it.clone();
-        let groups = it.group_by_lazy(|k| *k);
+        let groups = it.group_by(|k| *k);
         let res = itertools::equal(jt, groups.into_iter().flat_map(|(_, x)| x));
         res
     }
@@ -582,7 +515,7 @@ quickcheck! {
 
 quickcheck! {
     fn fuzz_group_by_lazy_2(data: Vec<u8>) -> bool {
-        let groups = data.iter().group_by_lazy(|k| *k / 10);
+        let groups = data.iter().group_by(|k| *k / 10);
         let res = itertools::equal(data.iter(), groups.into_iter().flat_map(|(_, x)| x));
         res
     }
@@ -590,7 +523,7 @@ quickcheck! {
 
 quickcheck! {
     fn fuzz_group_by_lazy_3(data: Vec<u8>) -> bool {
-        let grouper = data.iter().group_by_lazy(|k| *k / 10);
+        let grouper = data.iter().group_by(|k| *k / 10);
         let groups = grouper.into_iter().collect_vec();
         let res = itertools::equal(data.iter(), groups.into_iter().flat_map(|(_, x)| x));
         res
@@ -599,7 +532,7 @@ quickcheck! {
 
 quickcheck! {
     fn fuzz_group_by_lazy_duo(data: Vec<u8>, order: Vec<(bool, bool)>) -> bool {
-        let grouper = data.iter().group_by_lazy(|k| *k / 3);
+        let grouper = data.iter().group_by(|k| *k / 3);
         let mut groups1 = grouper.into_iter();
         let mut groups2 = grouper.into_iter();
         let mut elts = Vec::<&u8>::new();
@@ -636,7 +569,7 @@ quickcheck! {
         if size == 0 {
             size += 1;
         }
-        let chunks = a.iter().chunks_lazy(size as usize);
+        let chunks = a.iter().chunks(size as usize);
         let it = a.chunks(size as usize);
         for (a, b) in chunks.into_iter().zip(it) {
             if !itertools::equal(a, b) {
@@ -647,57 +580,3 @@ quickcheck! {
     }
 }
 
-quickcheck! {
-    fn equal_zipslices(a: Vec<u8>, b: Vec<u8>) -> bool {
-        use itertools::ZipSlices;
-        itertools::equal(ZipSlices::new(&a, &b), a.iter().zip(&b))
-    }
-}
-
-quickcheck! {
-    fn equal_zipslices_rev(a: Vec<u8>, b: Vec<u8>) -> bool {
-        use itertools::ZipSlices;
-        itertools::equal(ZipSlices::new(&a, &b).rev(), a.iter().zip(&b).rev())
-    }
-}
-
-quickcheck! {
-    fn exact_size_zipslices(a: Vec<u8>, b: Vec<u8>) -> bool {
-        use itertools::ZipSlices;
-        exact_size(ZipSlices::new(&a, &b))
-    }
-}
-
-quickcheck! {
-    fn exact_size_zipslices_rev(a: Vec<u8>, b: Vec<u8>) -> bool {
-        use itertools::ZipSlices;
-        exact_size(ZipSlices::new(&a, &b).rev())
-    }
-}
-
-quickcheck! {
-    fn equal_zipslices_stride(a: Vec<u8>, b: Vec<u8>, s1: i8, s2: i8) -> bool {
-        let mut s1 = s1;
-        let mut s2 = s2;
-        use itertools::ZipSlices;
-        use itertools::Stride;
-        if s1 == 0 { s1 += 1; }
-        if s2 == 0 { s2 += 1; }
-        let a = Stride::from_slice(&a, s1 as isize);
-        let b = Stride::from_slice(&b, s2 as isize);
-        itertools::equal(ZipSlices::from_slices(a, b), a.zip(b))
-    }
-}
-
-quickcheck! {
-    fn exact_size_zipslices_stride(a: Vec<u8>, b: Vec<u8>, s1: i8, s2: i8) -> bool {
-        let mut s1 = s1;
-        let mut s2 = s2;
-        use itertools::ZipSlices;
-        use itertools::Stride;
-        if s1 == 0 { s1 += 1; }
-        if s2 == 0 { s2 += 1; }
-        exact_size(ZipSlices::from_slices(Stride::from_slice(&a, s1 as isize),
-                                          Stride::from_slice(&b, s2 as isize)))
-    }
-}

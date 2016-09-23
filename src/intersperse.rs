@@ -9,7 +9,7 @@ use super::size_hint;
 ///
 /// This iterator is *fused*.
 ///
-/// See [`.intersperse()`](trait.Itertools.html#method.intersperse) for more information.
+/// See [`.intersperse()`](../trait.Itertools.html#method.intersperse) for more information.
 pub struct Intersperse<I>
     where I: Iterator
 {
@@ -18,17 +18,15 @@ pub struct Intersperse<I>
     peek: Option<I::Item>,
 }
 
-impl<I> Intersperse<I>
+/// Create a new Intersperse iterator
+pub fn intersperse<I>(iter: I, elt: I::Item) -> Intersperse<I>
     where I: Iterator
 {
-    /// Create a new Intersperse iterator
-    pub fn new(iter: I, elt: I::Item) -> Self {
-        let mut iter = iter.fuse();
-        Intersperse {
-            peek: iter.next(),
-            iter: iter,
-            element: elt,
-        }
+    let mut iter = iter.fuse();
+    Intersperse {
+        peek: iter.next(),
+        iter: iter,
+        element: elt,
     }
 }
 

@@ -8,9 +8,12 @@
 extern crate permutohedron;
 
 use it::Itertools;
-use it::Interleave;
-use it::Zip;
+use it::interleave;
+use it::multizip;
 use it::FoldWhile;
+use it::free::rciter;
+use it::free::put_back;
+use it::free::put_back_n;
 
 #[test]
 fn product2() {
@@ -68,17 +71,17 @@ fn izip_macro() {
 
 #[test]
 fn izip3() {
-    let mut zip = Zip::new((0..3, 0..2, 0..2i8));
+    let mut zip = multizip((0..3, 0..2, 0..2i8));
     for i in 0..2 {
         assert!((i as usize, i, i as i8) == zip.next().unwrap());
     }
     assert!(zip.next().is_none());
 
     let xs: [isize; 0] = [];
-    let mut zip = Zip::new((0..3, 0..2, 0..2i8, xs.iter()));
+    let mut zip = multizip((0..3, 0..2, 0..2i8, xs.iter()));
     assert!(zip.next().is_none());
 
-    for (_, _, _, _, _) in Zip::new((0..3, 0..2, xs.iter(), &xs, xs.to_vec())) {
+    for (_, _, _, _, _) in multizip((0..3, 0..2, xs.iter(), &xs, xs.to_vec())) {
         /* test compiles */
     }
 }
@@ -97,15 +100,15 @@ fn write_to() {
 }
 
 #[test]
-fn interleave() {
+fn test_interleave() {
     let xs: [u8; 0]  = [];
     let ys = [7u8, 9, 8, 10];
     let zs = [2u8, 77];
-    let it = Interleave::new(xs.iter(), ys.iter());
+    let it = interleave(xs.iter(), ys.iter());
     it::assert_equal(it, ys.iter());
 
     let rs = [7u8, 2, 9, 77, 8, 10];
-    let it = Interleave::new(ys.iter(), zs.iter());
+    let it = interleave(ys.iter(), zs.iter());
     it::assert_equal(it, rs.iter());
 }
 
@@ -143,18 +146,6 @@ fn foreach() {
 }
 
 #[test]
-fn dropn() {
-    let xs = [1, 2, 3];
-    let mut it = xs.iter();
-    assert!(it.dropn(2) == 2);
-    assert!(it.next().is_some());
-    assert!(it.next().is_none());
-    let mut it = xs.iter();
-    assert!(it.dropn(5) == 3);
-    assert!(it.next().is_none());
-}
-
-#[test]
 fn dropping() {
     let xs = [1, 2, 3];
     let mut it = xs.iter().dropping(2);
@@ -174,35 +165,6 @@ fn intersperse() {
     let ys = [0, 1, 2, 3];
     let mut it = ys[..0].iter().map(|x| *x).intersperse(1);
     assert!(it.next() == None);
-}
-
-#[test]
-fn linspace() {
-    let iter = it::linspace::<f32>(0., 2., 3);
-    it::assert_equal(iter, vec![0., 1., 2.]);
-
-    let iter = it::linspace::<f32>(0., 1.0, 11);
-    for (a, b) in iter.zip(vec![ 0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]) {
-        assert!((a - b).abs() < 1.0e-6);
-    }
-
-    let iter = it::linspace::<f32>(0., 100.0, 1001);
-    assert_eq!(iter.last(), Some(100.0));
-
-    let iter = it::linspace::<f32>(0., -2., 4);
-    it::assert_equal(iter, vec![0., -0.666666666667, -1.333333333333, -2.]);
-
-    let iter = it::linspace::<f32>(0., -2., 4);
-    it::assert_equal(iter.rev(), vec![-2., -1.333333333333, -0.666666666667, 0.]);
-
-    let iter = it::linspace::<f32>(0., 1., 1);
-    it::assert_equal(iter, vec![0.]);
-
-    let iter = it::linspace::<f32>(0., 1., 1);
-    it::assert_equal(iter.rev(), vec![0.]);
-
-    let mut iter = it::linspace::<f32>(0., 1., 0);
-    assert_eq!(iter.next(), None);
 }
 
 #[test]
@@ -251,19 +213,9 @@ fn batching() {
 }
 
 #[test]
-fn group_by() {
+fn test_put_back() {
     let xs = [0, 1, 1, 1, 2, 1, 3, 3];
-    let ans = vec![(0, vec![0]), (1, vec![1, 1, 1]),
-                   (2, vec![2]), (1, vec![1]), (3, vec![3, 3])];
-
-    let gb = xs.iter().cloned().group_by(|elt| *elt);
-    it::assert_equal(gb, ans.into_iter());
-}
-
-#[test]
-fn put_back() {
-    let xs = [0, 1, 1, 1, 2, 1, 3, 3];
-    let mut pb = it::PutBack::new(xs.iter().cloned());
+    let mut pb = put_back(xs.iter().cloned());
     pb.next();
     pb.put_back(1);
     pb.put_back(0);
@@ -271,9 +223,9 @@ fn put_back() {
 }
 
 #[test]
-fn put_back_n() {
+fn test_put_back_n() {
     let xs = [0, 1, 1, 1, 2, 1, 3, 3];
-    let mut pb = it::PutBackN::new(xs.iter().cloned());
+    let mut pb = put_back_n(xs.iter().cloned());
     pb.next();
     pb.next();
     pb.put_back(1);
@@ -309,10 +261,10 @@ fn tee() {
 
 
 #[test]
-fn rciter() {
+fn test_rciter() {
     let xs = [0, 1, 1, 1, 2, 1, 3, 5, 6];
 
-    let mut r1 = xs.iter().cloned().into_rc();
+    let mut r1 = rciter(xs.iter().cloned());
     let mut r2 = r1.clone();
     assert_eq!(r1.next(), Some(0));
     assert_eq!(r2.next(), Some(1));
@@ -323,17 +275,9 @@ fn rciter() {
     assert_eq!(z.next(), None);
 
     // test intoiterator
-    let r1 = (0..5).into_rc();
+    let r1 = rciter(0..5);
     let mut z = izip!(&r1, r1);
     assert_eq!(z.next(), Some((0, 1)));
-}
-
-#[test]
-fn slice() {
-    it::assert_equal((0..10).slice(..3), 0..3);
-    it::assert_equal((0..10).slice(3..7), 3..7);
-    it::assert_equal((0..10).slice(3..27), 3..10);
-    it::assert_equal((0..10).slice(44..), 0..0);
 }
 
 #[test]
@@ -528,106 +472,6 @@ fn count_clones() {
     }
 }
 
-#[cfg(feature = "unstable")]
-#[test]
-#[should_panic]
-/// NOTE: Will only panic/overflow in debug builds
-fn enumerate_from_overflow() {
-    for _ in (0..1000).enumerate_from(0i8) {
-    }
-}
-
-/// Like CharIndices iterator, except it yields slices instead
-#[derive(Copy, Clone, Debug)]
-struct CharSlices<'a> {
-    slice: &'a str,
-    offset: usize,
-}
-
-impl<'a> CharSlices<'a>
-{
-    pub fn new(s: &'a str) -> Self
-    {
-        CharSlices {
-            slice: s,
-            offset: 0,
-        }
-    }
-}
-
-impl<'a> Iterator for CharSlices<'a>
-{
-    type Item = (usize, &'a str);
-
-    fn next(&mut self) -> Option<Self::Item>
-    {
-        if self.slice.len() == 0 {
-            return None
-        }
-        // count continuation bytes
-        let mut char_len = 1;
-        let mut bytes = self.slice.bytes();
-        bytes.next();
-        for byte in bytes {
-            if (byte & 0xC0) != 0x80 {
-                break
-            }
-            char_len += 1;
-        }
-        let ch_slice;
-        unsafe {
-            ch_slice = self.slice.slice_unchecked(0, char_len);
-            self.slice = self.slice.slice_unchecked(char_len, self.slice.len());
-        }
-        let off = self.offset;
-        self.offset += char_len;
-        Some((off, ch_slice))
-    }
-}
-
-#[test]
-fn mend_slices() {
-    let text = "α-toco (and) β-toco";
-    let full_text = CharSlices::new(text).map(|(_, s)| s).mend_slices().join("");
-    assert_eq!(text, full_text);
-
-    // join certain different pieces together again
-    let words = CharSlices::new(text).map(|(_, s)| s)
-                    .filter(|s| !s.chars().any(char::is_whitespace))
-                    .mend_slices().collect::<Vec<_>>();
-    assert_eq!(words, vec!["α-toco", "(and)", "β-toco"]);
-}
-
-#[test]
-fn mend_slices_mut() {
-    let mut data = [1, 2, 3];
-    let mut copy = data.to_vec();
-    {
-        let slc = data.chunks_mut(1).mend_slices().next().unwrap();
-        assert_eq!(slc, &mut copy[..]);
-    }
-    {
-        let slc = data.chunks_mut(2).mend_slices().next().unwrap();
-        assert_eq!(slc, &mut copy[..]);
-    }
-    {
-        let mut iter = data.chunks_mut(1).filter(|c| c[0] != 2).mend_slices();
-        assert_eq!(iter.next(), Some(&mut [1][..]));
-        assert_eq!(iter.next(), Some(&mut [3][..]));
-        assert_eq!(iter.next(), None);
-    }
-}
-
-#[test]
-fn map_fn() {
-    // make sure it can be cloned
-    fn mapper<T: ToString>(x: T) -> String { x.to_string() }
-    let it = (0..4).map_fn(mapper);
-    let jt = it.clone();
-    it::assert_equal((0..4).map(|x| x.to_string()), it);
-    it::assert_equal((0..4).map(mapper), jt);
-}
-
 #[test]
 fn part() {
     let mut data = [7, 1, 1, 9, 1, 1, 3];
@@ -666,14 +510,14 @@ fn while_some() {
 }
 
 #[test]
-fn group_by_lazy() {
-    for (ch1, sub) in &"AABBCCC".chars().group_by_lazy(|&x| x) {
+fn group_by() {
+    for (ch1, sub) in &"AABBCCC".chars().group_by(|&x| x) {
         for ch2 in sub {
             assert_eq!(ch1, ch2);
         }
     }
 
-    for (ch1, sub) in &"AAABBBCCCCDDDD".chars().group_by_lazy(|&x| x) {
+    for (ch1, sub) in &"AAABBBCCCCDDDD".chars().group_by(|&x| x) {
         for ch2 in sub {
             assert_eq!(ch1, ch2);
             if ch1 == 'C' {
@@ -686,7 +530,7 @@ fn group_by_lazy() {
 
     // try all possible orderings
     for indices in permutohedron::Heap::new(&mut [0, 1, 2, 3]) {
-        let groups = "AaaBbbccCcDDDD".chars().group_by_lazy(&toupper);
+        let groups = "AaaBbbccCcDDDD".chars().group_by(&toupper);
         let mut subs = groups.into_iter().collect_vec();
 
         for &idx in &indices[..] {
@@ -702,14 +546,14 @@ fn group_by_lazy() {
         }
     }
 
-    let groups = "AAABBBCCCCDDDD".chars().group_by_lazy(|&x| x);
+    let groups = "AAABBBCCCCDDDD".chars().group_by(|&x| x);
     let mut subs = groups.into_iter().map(|(_, g)| g).collect_vec();
 
     let sd = subs.pop().unwrap();
     let sc = subs.pop().unwrap();
     let sb = subs.pop().unwrap();
     let sa = subs.pop().unwrap();
-    for (a, b, c, d) in Zip::new((sa, sb, sc, sd)) {
+    for (a, b, c, d) in multizip((sa, sb, sc, sd)) {
         assert_eq!(a, 'A');
         assert_eq!(b, 'B');
         assert_eq!(c, 'C');
@@ -720,7 +564,7 @@ fn group_by_lazy() {
     {
         let mut ntimes = 0;
         let text = "AABCCC";
-        for (_, sub) in &text.chars().group_by_lazy(|&x| { ntimes += 1; x}) {
+        for (_, sub) in &text.chars().group_by(|&x| { ntimes += 1; x}) {
             for _ in sub {
             }
         }
@@ -730,14 +574,14 @@ fn group_by_lazy() {
     {
         let mut ntimes = 0;
         let text = "AABCCC";
-        for _ in &text.chars().group_by_lazy(|&x| { ntimes += 1; x}) {
+        for _ in &text.chars().group_by(|&x| { ntimes += 1; x}) {
         }
         assert_eq!(ntimes, text.len());
     }
 
     {
         let text = "ABCCCDEEFGHIJJKK";
-        let gr = text.chars().group_by_lazy(|&x| x);
+        let gr = text.chars().group_by(|&x| x);
         it::assert_equal(gr.into_iter().flat_map(|(_, sub)| sub), text.chars());
     }
 }
@@ -745,17 +589,17 @@ fn group_by_lazy() {
 #[test]
 fn group_by_lazy_2() {
     let data = vec![0, 1];
-    let groups = data.iter().group_by_lazy(|k| *k);
+    let groups = data.iter().group_by(|k| *k);
     let gs = groups.into_iter().collect_vec();
     it::assert_equal(data.iter(), gs.into_iter().flat_map(|(_k, g)| g));
 
     let data = vec![0, 1, 1, 0, 0];
-    let groups = data.iter().group_by_lazy(|k| *k);
+    let groups = data.iter().group_by(|k| *k);
     let mut gs = groups.into_iter().collect_vec();
     gs[1..].reverse();
     it::assert_equal(&[0, 0, 0, 1, 1], gs.into_iter().flat_map(|(_, g)| g));
 
-    let grouper = data.iter().group_by_lazy(|k| *k);
+    let grouper = data.iter().group_by(|k| *k);
     let mut groups = Vec::new();
     for (k, group) in &grouper {
         if *k == 1 {
@@ -765,7 +609,7 @@ fn group_by_lazy_2() {
     it::assert_equal(&mut groups[0], &[1, 1]);
 
     let data = vec![0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
-    let grouper = data.iter().group_by_lazy(|k| *k);
+    let grouper = data.iter().group_by(|k| *k);
     let mut groups = Vec::new();
     for (i, (_, group)) in grouper.into_iter().enumerate() {
         if i < 2 {
@@ -784,7 +628,7 @@ fn group_by_lazy_2() {
     // use groups as chunks
     let data = vec![0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
     let mut i = 0;
-    let grouper = data.iter().group_by_lazy(move |_| { let k = i / 3; i += 1; k });
+    let grouper = data.iter().group_by(move |_| { let k = i / 3; i += 1; k });
     for (i, group) in &grouper {
         match i {
             0 => it::assert_equal(group, &[0, 0, 0]),
@@ -800,7 +644,7 @@ fn group_by_lazy_2() {
 fn group_by_lazy_3() {
     // test consuming each group on the lap after it was produced
     let data = vec![0, 0, 0, 1, 1, 0, 0, 1, 1, 2, 2];
-    let grouper = data.iter().group_by_lazy(|elt| *elt);
+    let grouper = data.iter().group_by(|elt| *elt);
     let mut last = None;
     for (key, group) in &grouper {
         if let Some(gr) = last.take() {
@@ -813,9 +657,9 @@ fn group_by_lazy_3() {
 }
 
 #[test]
-fn chunks_lazy() {
+fn chunks() {
     let data = vec![0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
-    let grouper = data.iter().chunks_lazy(3);
+    let grouper = data.iter().chunks(3);
     for (i, chunk) in grouper.into_iter().enumerate() {
         match i {
             0 => it::assert_equal(chunk, &[0, 0, 0]),
@@ -856,15 +700,15 @@ fn flatten_clone() {
 }
 
 #[test]
-fn combinations_n() {
-    assert!((1..3).combinations_n(5).next().is_none());
+fn combinations() {
+    assert!((1..3).combinations(5).next().is_none());
 
-    let it = (1..3).combinations_n(2);
+    let it = (1..3).combinations(2);
     it::assert_equal(it, vec![
         vec![1, 2],
         ]);
 
-    let it = (1..5).combinations_n(2);
+    let it = (1..5).combinations(2);
     it::assert_equal(it, vec![
         vec![1, 2],
         vec![1, 3],
@@ -874,14 +718,14 @@ fn combinations_n() {
         vec![3, 4],
         ]);
 
-    it::assert_equal((0..0).combinations(), <Vec<_>>::new());
-    it::assert_equal((0..1).combinations(), <Vec<_>>::new());
-    it::assert_equal((0..2).combinations(), vec![(0, 1)]);
+    it::assert_equal((0..0).pair_combinations(), <Vec<_>>::new());
+    it::assert_equal((0..1).pair_combinations(), <Vec<_>>::new());
+    it::assert_equal((0..2).pair_combinations(), vec![(0, 1)]);
 
-    it::assert_equal((0..0).combinations_n(2), <Vec<Vec<_>>>::new());
-    it::assert_equal((0..1).combinations_n(1), vec![vec![0]]);
-    it::assert_equal((0..2).combinations_n(1), vec![vec![0], vec![1]]);
-    it::assert_equal((0..2).combinations_n(2), vec![vec![0, 1]]);
+    it::assert_equal((0..0).combinations(2), <Vec<Vec<_>>>::new());
+    it::assert_equal((0..1).combinations(1), vec![vec![0]]);
+    it::assert_equal((0..2).combinations(1), vec![vec![0], vec![1]]);
+    it::assert_equal((0..2).combinations(2), vec![vec![0, 1]]);
 }
 
 #[test]
@@ -988,12 +832,12 @@ fn format() {
     let ans1 = "0, 1, 2, 3";
     let ans2 = "0--1--2--3";
 
-    let t1 = format!("{}", data.iter().format_default(", "));
+    let t1 = format!("{}", data.iter().format(", "));
     assert_eq!(t1, ans1);
-    let t2 = format!("{:?}", data.iter().format_default("--"));
+    let t2 = format!("{:?}", data.iter().format("--"));
     assert_eq!(t2, ans2);
 
     let dataf = [1.1, 2.71828, -22.];
-    let t3 = format!("{:.2e}", dataf.iter().format_default(", "));
+    let t3 = format!("{:.2e}", dataf.iter().format(", "));
     assert_eq!(t3, "1.10e0, 2.72e0, -2.20e1");
 }

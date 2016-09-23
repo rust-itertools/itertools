@@ -1,7 +1,7 @@
 use std::cell::{Cell, RefCell};
 use std::vec;
 
-/// A trait to unify FnMut for GroupByLazy with the chunk key in ChunksLazy
+/// A trait to unify FnMut for GroupBy with the chunk key in IntoChunks
 trait KeyFunction<A> {
     type Key;
     fn call_mut(&mut self, arg: A) -> Self::Key;
@@ -18,7 +18,7 @@ impl<'a, A, K, F: ?Sized> KeyFunction<A> for F
 }
 
 
-/// ChunkIndex acts like the grouping key function for ChunksLazy
+/// ChunkIndex acts like the grouping key function for IntoChunks
 struct ChunkIndex {
     size: usize,
     index: usize,
@@ -83,7 +83,7 @@ impl<K, I, F> GroupInner<K, I, F>
         /*
         println!("client={}, bufbot={}, bot={}, top={}, buffers=[{}]",
                  client, self.bufbot, self.bot, self.top,
-                 self.buffer.iter().format(", ", |elt, f| f(&elt.len())));
+                 self.buffer.iter().map(|elt| elt.len()).format(", "));
          */
         if client < self.bot {
             None
@@ -268,10 +268,10 @@ impl<K, I, F> GroupInner<K, I, F>
     }
 }
 
-/// `GroupByLazy` is the storage for the lazy grouping operation.
+/// `GroupBy` is the storage for the lazy grouping operation.
 ///
 /// If the groups are consumed in their original order, or if each
-/// group is dropped without keeping it around, then `GroupByLazy` uses
+/// group is dropped without keeping it around, then `GroupBy` uses
 /// no allocations. It needs allocations only if several group iterators
 /// are alive at the same time.
 ///
@@ -280,8 +280,8 @@ impl<K, I, F> GroupInner<K, I, F>
 /// value. It should be stored in a local variable or temporary and
 /// iterated.
 ///
-/// See [`.group_by_lazy()`](trait.Itertools.html#method.group_by_lazy) for more information.
-pub struct GroupByLazy<K, I, F>
+/// See [`.group_by()`](../trait.Itertools.html#method.group_by) for more information.
+pub struct GroupBy<K, I, F>
     where I: Iterator,
 {
     inner: RefCell<GroupInner<K, I, F>>,
@@ -291,11 +291,11 @@ pub struct GroupByLazy<K, I, F>
 }
 
 /// Create a new
-pub fn new<K, J, F>(iter: J, f: F) -> GroupByLazy<K, J::IntoIter, F>
+pub fn new<K, J, F>(iter: J, f: F) -> GroupBy<K, J::IntoIter, F>
     where J: IntoIterator,
           F: FnMut(&J::Item) -> K,
 {
-    GroupByLazy {
+    GroupBy {
         inner: RefCell::new(GroupInner {
             key: f,
             iter: iter.into_iter(),
@@ -312,7 +312,7 @@ pub fn new<K, J, F>(iter: J, f: F) -> GroupByLazy<K, J::IntoIter, F>
     }
 }
 
-impl<K, I, F> GroupByLazy<K, I, F>
+impl<K, I, F> GroupBy<K, I, F>
     where I: Iterator,
 {
     /// `client`: Index of group that requests next element
@@ -329,7 +329,7 @@ impl<K, I, F> GroupByLazy<K, I, F>
     }
 }
 
-impl<'a, K, I, F> IntoIterator for &'a GroupByLazy<K, I, F>
+impl<'a, K, I, F> IntoIterator for &'a GroupBy<K, I, F>
     where I: Iterator,
           I::Item: 'a,
           F: FnMut(&I::Item) -> K,
@@ -349,12 +349,12 @@ impl<'a, K, I, F> IntoIterator for &'a GroupByLazy<K, I, F>
 /// Iterator element type is `(K, Group)`:
 /// the group's key `K` and the group's iterator.
 ///
-/// See [`.group_by_lazy()`](trait.Itertools.html#method.group_by_lazy) for more information.
+/// See [`.group_by()`](../trait.Itertools.html#method.group_by) for more information.
 pub struct Groups<'a, K: 'a, I: 'a, F: 'a>
     where I: Iterator,
           I::Item: 'a
 {
-    parent: &'a GroupByLazy<K, I, F>,
+    parent: &'a GroupBy<K, I, F>,
 }
 
 impl<'a, K, I, F> Iterator for Groups<'a, K, I, F>
@@ -388,7 +388,7 @@ pub struct Group<'a, K: 'a, I: 'a, F: 'a>
     where I: Iterator,
           I::Item: 'a,
 {
-    parent: &'a GroupByLazy<K, I, F>,
+    parent: &'a GroupBy<K, I, F>,
     index: usize,
     first: Option<I::Item>,
 }
@@ -418,13 +418,13 @@ impl<'a, K, I, F> Iterator for Group<'a, K, I, F>
     }
 }
 
-///// ChunksLazy /////
+///// IntoChunks /////
 
 /// Create a new
-pub fn new_chunks<J>(iter: J, size: usize) -> ChunksLazy<J::IntoIter>
+pub fn new_chunks<J>(iter: J, size: usize) -> IntoChunks<J::IntoIter>
     where J: IntoIterator,
 {
-    ChunksLazy {
+    IntoChunks {
         inner: RefCell::new(GroupInner {
             key: ChunkIndex::new(size),
             iter: iter.into_iter(),
@@ -444,7 +444,7 @@ pub fn new_chunks<J>(iter: J, size: usize) -> ChunksLazy<J::IntoIter>
 
 /// `ChunkLazy` is the storage for a lazy chunking operation.
 ///
-/// `ChunksLazy` behaves just like `GroupByLazy`: it is iterable, and
+/// `IntoChunks` behaves just like `GroupBy`: it is iterable, and
 /// it only buffers if several chunk iterators are alive at the same time.
 ///
 /// This type implements `IntoIterator` (it is **not** an iterator
@@ -454,8 +454,8 @@ pub fn new_chunks<J>(iter: J, size: usize) -> ChunksLazy<J::IntoIter>
 ///
 /// Iterator element type is `Chunk`, each chunk's iterator.
 ///
-/// See [`.chunks_lazy()`](trait.Itertools.html#method.chunks_lazy) for more information.
-pub struct ChunksLazy<I>
+/// See [`.chunks()`](../trait.Itertools.html#method.chunks) for more information.
+pub struct IntoChunks<I>
     where I: Iterator,
 {
     inner: RefCell<GroupInner<usize, I, ChunkIndex>>,
@@ -465,7 +465,7 @@ pub struct ChunksLazy<I>
 }
 
 
-impl<I> ChunksLazy<I>
+impl<I> IntoChunks<I>
     where I: Iterator,
 {
     /// `client`: Index of chunk that requests next element
@@ -479,7 +479,7 @@ impl<I> ChunksLazy<I>
     }
 }
 
-impl<'a, I> IntoIterator for &'a ChunksLazy<I>
+impl<'a, I> IntoIterator for &'a IntoChunks<I>
     where I: Iterator,
           I::Item: 'a,
 {
@@ -498,12 +498,12 @@ impl<'a, I> IntoIterator for &'a ChunksLazy<I>
 ///
 /// Iterator element type is `Chunk`.
 ///
-/// See [`.chunks_lazy()`](trait.Itertools.html#method.chunks_lazy) for more information.
+/// See [`.chunks()`](../trait.Itertools.html#method.chunks) for more information.
 pub struct Chunks<'a, I: 'a>
     where I: Iterator,
           I::Item: 'a,
 {
-    parent: &'a ChunksLazy<I>,
+    parent: &'a IntoChunks<I>,
 }
 
 impl<'a, I> Iterator for Chunks<'a, I>
@@ -534,7 +534,7 @@ pub struct Chunk<'a, I: 'a>
     where I: Iterator,
           I::Item: 'a,
 {
-    parent: &'a ChunksLazy<I>,
+    parent: &'a IntoChunks<I>,
     index: usize,
     first: Option<I::Item>,
 }

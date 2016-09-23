@@ -2,23 +2,24 @@ language: rust
 sudo: false
 matrix:
   include:
-    - rust: 1.2.0
-    - rust: 1.4.0
+    - rust: 1.11.0
+      env:
+       - FEATURES='quickcheck'
     - rust: stable
       env:
        - FEATURES='quickcheck'
     - rust: beta
+      env:
+       - FEATURES='quickcheck'
     - rust: nightly
       env:
-       - FEATURES='unstable quickcheck'
+       - FEATURES='quickcheck'
        - BENCH=1
 branches:
   only:
     - master
 script:
   - |
-      cargo build --verbose &&
-      cargo test --verbose &&
-      ([ -z "$FEATURES" ] || cargo build --verbose --features "$FEATURES") &&
-      ([ -z "$FEATURES" ] || cargo test --verbose --features "$FEATURES") &&
+      cargo build --verbose --features "$FEATURES" &&
+      cargo test --verbose --features "$FEATURES" &&
       ([ "$BENCH" != 1 ] || cargo bench --verbose --features "$FEATURES")

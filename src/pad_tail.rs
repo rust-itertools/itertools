@@ -6,7 +6,7 @@ use size_hint;
 ///
 /// Iterator element type is `I::Item`.
 ///
-/// See [`.pad_using()`](trait.Itertools.html#method.pad_using) for more information.
+/// See [`.pad_using()`](../trait.Itertools.html#method.pad_using) for more information.
 #[derive(Clone)]
 pub struct PadUsing<I, F> {
     iter: Fuse<I>,
@@ -15,18 +15,16 @@ pub struct PadUsing<I, F> {
     filler: F,
 }
 
-impl<I, F> PadUsing<I, F>
+/// Create a new **PadUsing** iterator.
+pub fn pad_using<I, F>(iter: I, min: usize, filler: F) -> PadUsing<I, F>
     where I: Iterator,
           F: FnMut(usize) -> I::Item
 {
-    /// Create a new **PadUsing** iterator.
-    pub fn new(iter: I, min: usize, filler: F) -> PadUsing<I, F> {
-        PadUsing {
-            iter: iter.fuse(),
-            min: min,
-            pos: 0,
-            filler: filler,
-        }
+    PadUsing {
+        iter: iter.fuse(),
+        min: min,
+        pos: 0,
+        filler: filler,
     }
 }
 

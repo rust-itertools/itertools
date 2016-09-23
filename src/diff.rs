@@ -5,7 +5,8 @@
 //! describes the difference between two non-`Clone` iterators `I` and `J` after breaking ASAP from
 //! a lock-step comparison.
 
-use adaptors::PutBack;
+use free::put_back;
+use structs::PutBack;
 
 /// A type returned by the [`diff_with`](./fn.diff_with.html) function.
 ///
@@ -47,14 +48,14 @@ pub fn diff_with<I, J, F>(i: I, j: J, is_equal: F)
     let mut idx = 0;
     while let Some(i_elem) = i.next() {
         match j.next() {
-            None => return Some(Diff::Shorter(idx, PutBack::with_value(i_elem, i))),
+            None => return Some(Diff::Shorter(idx, put_back(i).with_value(i_elem))),
             Some(j_elem) => if !is_equal(&i_elem, &j_elem) {
-                let remaining_i = PutBack::with_value(i_elem, i);
-                let remaining_j = PutBack::with_value(j_elem, j);
+                let remaining_i = put_back(i).with_value(i_elem);
+                let remaining_j = put_back(j).with_value(j_elem);
                 return Some(Diff::FirstMismatch(idx, remaining_i, remaining_j));
             },
         }
         idx += 1;
     }
-    j.next().map(|j_elem| Diff::Longer(idx, PutBack::with_value(j_elem, j)))
+    j.next().map(|j_elem| Diff::Longer(idx, put_back(j).with_value(j_elem)))
 }

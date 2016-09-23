@@ -78,8 +78,8 @@ fn main() {
     let mut plot_symbols = "+ox".chars().cycle();
     let mut symbolmap = HashMap::new();
 
-    // using Itertools::group_by_lazy
-    for (species, species_group) in &irises.iter().group_by_lazy(|iris| &iris.name) {
+    // using Itertools::group_by
+    for (species, species_group) in &irises.iter().group_by(|iris| &iris.name) {
         // assign a plot symbol
         symbolmap.entry(species).or_insert_with(|| {
             plot_symbols.next().unwrap()
@@ -87,8 +87,8 @@ fn main() {
         println!("{} (symbol={})", species, symbolmap[species]);
 
         for iris in species_group {
-            // using Itertools::format_default for lazy formatting
-            println!("{:>3.1}", iris.data.iter().format_default(", "));
+            // using Itertools::format for lazy formatting
+            println!("{:>3.1}", iris.data.iter().format(", "));
         }
 
     }
@@ -100,8 +100,8 @@ fn main() {
     let n = 30; // plot size
     let mut plot = vec![' '; n * n];
 
-    // using Itertools::combinations
-    for (a, b) in (0..4).combinations() {
+    // using Itertools::pair_combinations
+    for (a, b) in (0..4).pair_combinations() {
         println!("Column {} vs {}:", a, b);
 
         // Clear plot

@@ -1,36 +1,35 @@
 //! Iterators that are sources (produce elements from parameters,
 //! not from another iterator).
 
+/// See [`repeat_call`](../fn.repeat_call.html) for more information.
+pub struct RepeatCall<F> {
+    f: F,
+}
+
 /// An iterator source that produces elements indefinitely by calling
 /// a given closure.
 ///
 /// Iterator element type is the return type of the closure.
 ///
 /// ```
-/// use itertools::RepeatCall;
+/// use itertools::repeat_call;
+/// use itertools::Itertools;
+/// use std::collections::BinaryHeap;
+///
+/// let mut heap = BinaryHeap::from(vec![2, 5, 3, 7, 8]);
+///
+/// // extract each element in sorted order
+/// for element in repeat_call(|| heap.pop()).while_some() {
+///     print!("{}", element);
+/// }
 ///
 /// itertools::assert_equal(
-///     RepeatCall::new(|| "A".to_string()).take(5),
-///     vec!["A", "A", "A", "A", "A"]
-/// );
-///
-/// let mut x = 1;
-/// itertools::assert_equal(
-///     RepeatCall::new(|| { x = -x; x }).take(5),
-///     vec![-1, 1, -1, 1, -1]
+///     repeat_call(|| 1).take(5),
+///     vec![1, 1, 1, 1, 1]
 /// );
 /// ```
-pub struct RepeatCall<F> {
-    f: F,
-}
-
-impl<F> RepeatCall<F> {
-    /// Create a new `RepeatCall` from a closure.
-    pub fn new<A>(func: F) -> Self
-        where F: FnMut() -> A
-    {
-        RepeatCall { f: func }
-    }
+pub fn repeat_call<F>(function: F) -> RepeatCall<F> {
+    RepeatCall { f: function }
 }
 
 impl<A, F> Iterator for RepeatCall<F>
@@ -48,17 +47,10 @@ impl<A, F> Iterator for RepeatCall<F>
     }
 }
 
-impl<A, F> DoubleEndedIterator for RepeatCall<F>
-    where F: FnMut() -> A
-{
-    #[inline]
-    fn next_back(&mut self) -> Option<A> {
-        self.next()
-    }
-}
-
-
-/// `Unfold` is a general iterator builder: it has a mutable state value,
+/// Creates a new unfold source with the specified closure as the "iterator
+/// function" and an initial state to eventually pass to the closure
+///
+/// `unfold` is a general iterator builder: it has a mutable state value,
 /// and a closure with access to the state that produces the next value.
 ///
 /// This more or less equivalent to a regular struct with an `Iterator`
@@ -68,9 +60,9 @@ impl<A, F> DoubleEndedIterator for RepeatCall<F>
 /// // an iterator that yields sequential Fibonacci numbers,
 /// // and stops at the maximum representable value.
 ///
-/// use itertools::Unfold;
+/// use itertools::unfold;
 ///
-/// let mut fibonacci = Unfold::new((1_u32, 1_u32), |state| {
+/// let mut fibonacci = unfold((1_u32, 1_u32), |state| {
 ///     let (ref mut x1, ref mut x2) = *state;
 ///
 ///     // Attempt to get the next Fibonacci number
@@ -93,25 +85,22 @@ impl<A, F> DoubleEndedIterator for RepeatCall<F>
 ///                         vec![1, 1, 2, 3, 5, 8, 13, 21]);
 /// assert_eq!(fibonacci.last(), Some(2_971_215_073))
 /// ```
+pub fn unfold<A, St, F>(initial_state: St, f: F) -> Unfold<St, F>
+    where F: FnMut(&mut St) -> Option<A>
+{
+    Unfold {
+        f: f,
+        state: initial_state,
+    }
+}
+
+
+/// See [`unfold`](../fn.unfold.html) for more information.
 #[derive(Clone)]
 pub struct Unfold<St, F> {
     f: F,
     /// Internal state that will be passed to the closure on the next iteration
     pub state: St,
-}
-
-impl<A, St, F> Unfold<St, F>
-    where F: FnMut(&mut St) -> Option<A>
-{
-    /// Creates a new iterator with the specified closure as the "iterator
-    /// function" and an initial state to eventually pass to the closure
-    #[inline]
-    pub fn new(initial_state: St, f: F) -> Unfold<St, F> {
-        Unfold {
-            f: f,
-            state: initial_state,
-        }
-    }
 }
 
 impl<A, St, F> Iterator for Unfold<St, F>
