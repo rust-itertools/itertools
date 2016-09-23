@@ -8,7 +8,7 @@
 extern crate permutohedron;
 
 use it::Itertools;
-use it::Interleave;
+use it::interleave;
 use it::multizip;
 use it::FoldWhile;
 use it::free::rciter;
@@ -100,15 +100,15 @@ fn write_to() {
 }
 
 #[test]
-fn interleave() {
+fn test_interleave() {
     let xs: [u8; 0]  = [];
     let ys = [7u8, 9, 8, 10];
     let zs = [2u8, 77];
-    let it = Interleave::new(xs.iter(), ys.iter());
+    let it = interleave(xs.iter(), ys.iter());
     it::assert_equal(it, ys.iter());
 
     let rs = [7u8, 2, 9, 77, 8, 10];
-    let it = Interleave::new(ys.iter(), zs.iter());
+    let it = interleave(ys.iter(), zs.iter());
     it::assert_equal(it, rs.iter());
 }
 

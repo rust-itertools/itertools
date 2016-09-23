@@ -6,10 +6,6 @@
 use std::fmt::Display;
 use std::iter::{self, Zip};
 use Itertools;
-use structs::{
-    ZipEq,
-    RcIter,
-};
 
 pub use adaptors::{
     interleave,
@@ -18,6 +14,8 @@ pub use adaptors::{
     put_back_n,
 };
 pub use kmerge::kmerge;
+pub use zip_eq::zip_eq;
+pub use rciter::rciter;
 
 /// Iterate `iterable` with a running index.
 ///
@@ -71,27 +69,6 @@ pub fn zip<I, J>(i: I, j: J) -> Zip<I::IntoIter, J::IntoIter>
           J: IntoIterator
 {
     i.into_iter().zip(j)
-}
-
-/// Iterate `i` and `j` in lock step.
-///
-/// **Panics** if the iterators are not of the same length.
-///
-/// `IntoIterator` enabled version of `i.zip_eq(j)`.
-///
-/// ```
-/// use itertools::zip_eq;
-///
-/// let data = [1, 2, 3, 4, 5];
-/// for (a, b) in zip_eq(&data[..data.len() - 1], &data[1..]) {
-///     /* loop body */
-/// }
-/// ```
-pub fn zip_eq<I, J>(i: I, j: J) -> ZipEq<I::IntoIter, J::IntoIter>
-    where I: IntoIterator,
-          J: IntoIterator
-{
-    i.into_iter().zip_eq(j)
 }
 
 /// Create an iterator that first iterates `i` and then `j`.
@@ -242,35 +219,3 @@ pub fn sorted<I>(iterable: I) -> Vec<I::Item>
     iterable.into_iter().sorted()
 }
 
-/// Return an iterator inside a `Rc<RefCell<_>>` wrapper.
-///
-/// The returned `RcIter` can be cloned, and each clone will refer back to the
-/// same original iterator.
-///
-/// `RcIter` allows doing interesting things like using `.zip()` on an iterator with
-/// itself, at the cost of runtime borrow checking.
-/// (If it is not obvious: this has a performance penalty.)
-///
-/// Iterator element type is `Self::Item`.
-///
-/// ```
-/// use itertools::rciter;
-///
-/// let mut rit = rciter(0..9);
-/// let mut z = rit.clone().zip(rit.clone());
-/// assert_eq!(z.next(), Some((0, 1)));
-/// assert_eq!(z.next(), Some((2, 3)));
-/// assert_eq!(z.next(), Some((4, 5)));
-/// assert_eq!(rit.next(), Some(6));
-/// assert_eq!(z.next(), Some((7, 8)));
-/// assert_eq!(z.next(), None);
-/// ```
-///
-/// **Panics** in iterator methods if a borrow error is encountered,
-/// but it can only happen if the `RcIter` is reentered in for example `.next()`,
-/// i.e. if it somehow participates in an “iterator knot” where it is an adaptor of itself.
-pub fn rciter<I>(iterable: I) -> RcIter<I::IntoIter>
-    where I: IntoIterator
-{
-    RcIter::new(iterable.into_iter())
-}

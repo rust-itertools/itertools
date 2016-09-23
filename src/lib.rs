@@ -277,7 +277,7 @@ pub trait Itertools : Iterator {
         where J: IntoIterator,
               Self: Sized
     {
-        zip_eq::new(self, other.into_iter())
+        zip_eq(self, other)
     }
 
     /// A “meta iterator adaptor”. Its closure recives a reference to the iterator
@@ -306,7 +306,7 @@ pub trait Itertools : Iterator {
         where F: FnMut(&mut Self) -> Option<B>,
               Self: Sized
     {
-        Batching::new(self, f)
+        adaptors::batching(self, f)
     }
 
     /// Return an *iterable* that can group iterator elements.

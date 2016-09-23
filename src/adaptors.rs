@@ -49,20 +49,10 @@ pub fn interleave<I, J>(i: I, j: J) -> Interleave<<I as IntoIterator>::IntoIter,
     where I: IntoIterator,
           J: IntoIterator<Item = I::Item>
 {
-    Interleave::new(i.into_iter(), j.into_iter())
-}
-
-impl<I, J> Interleave<I, J>
-    where I: Iterator,
-          J: Iterator
-{
-    /// Creat a new `Interleave` iterator.
-    fn new(a: I, b: J) -> Interleave<I, J> {
-        Interleave {
-            a: a.fuse(),
-            b: b.fuse(),
-            flag: false,
-        }
+    Interleave {
+        a: i.into_iter().fuse(),
+        b: j.into_iter().fuse(),
+        flag: false,
     }
 }
 
@@ -405,11 +395,9 @@ pub struct Batching<I, F> {
     iter: I,
 }
 
-impl<F, I> Batching<I, F> {
-    /// Create a new Batching iterator.
-    pub fn new(iter: I, f: F) -> Batching<I, F> {
-        Batching { f: f, iter: iter }
-    }
+/// Create a new Batching iterator.
+pub fn batching<I, F>(iter: I, f: F) -> Batching<I, F> {
+    Batching { f: f, iter: iter }
 }
 
 impl<B, F, I> Iterator for Batching<I, F>
