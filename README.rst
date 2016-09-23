@@ -54,6 +54,7 @@ Recent Changes
     - PutBack::with_value is now a builder setter, not a constructor
     - format to format_with and format_default to format
     - .into_rc() to rciter
+    - ``Partition`` enum is now ``Either``
 
   - Module reorganization:
 
@@ -87,6 +88,9 @@ Recent Changes
   - New features:
 
     - tuple flattening iterator is constructible with ``cons_tuples``
+    - itertools reexports ``Either`` from the ``either`` crate. ``Either<L, R>``
+      is an iterator when ``L, R`` are.
+    - ``MinMaxResult`` now implements Copy and Clone
 
 - 0.4.19
 
