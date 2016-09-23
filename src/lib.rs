@@ -74,6 +74,7 @@ pub mod structs {
     pub use ziptuple::Zip;
 }
 pub use structs::*;
+pub use cons_tuples::cons_tuples;
 pub use diff::diff_with;
 pub use diff::Diff;
 pub use minmax::MinMaxResult;
@@ -123,7 +124,7 @@ macro_rules! iproduct {
         $I
     );
     (@flatten $I:expr, $J:expr, $($K:expr,)*) => (
-        iproduct!(@flatten $crate::ConsTuples::new(iproduct!($I, $J)), $($K,)*)
+        iproduct!(@flatten $crate::cons_tuples(iproduct!($I, $J)), $($K,)*)
     );
     ($I:expr) => (
         (::std::iter::IntoIterator::into_iter($I))

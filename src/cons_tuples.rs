@@ -32,7 +32,7 @@ macro_rules! impl_cons_iter(
 
 impl_cons_iter!(A, B, C, D, E, F, G, H,);
 
-/// A helper iterator that maps an iterator of tuples like
+/// An iterator that maps an iterator of tuples like
 /// `((A, B), C)` to an iterator of `(A, B, C)`.
 ///
 /// Used by the `iproduct!()` macro.
@@ -52,12 +52,10 @@ impl<I, J> Clone for ConsTuples<I, J>
     }
 }
 
-impl<I, J> ConsTuples<I, J>
+/// Create an iterator that maps for example iterators of
+/// `((A, B), C)` to `(A, B, C)`.
+pub fn cons_tuples<I, J>(iterable: I) -> ConsTuples<I, J>
     where I: Iterator<Item=J>
 {
-    /// Create a new `ConsTuples`.
-    #[doc(hidden)]
-    pub fn new(iter: I) -> Self {
-        ConsTuples { iter: iter }
-    }
+    ConsTuples { iter: iterable.into_iter() }
 }
