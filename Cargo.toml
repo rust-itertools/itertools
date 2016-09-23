@@ -15,6 +15,9 @@ keywords = ["iterator", "data-structure", "zip", "product", "group-by"]
 [lib]
 bench = false
 
+[dependencies]
+either = { version = "1.0", default-features = false }
+
 [dependencies.quickcheck]
 version = "0.2.21"
 optional = true

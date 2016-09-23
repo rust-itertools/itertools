@@ -26,6 +26,10 @@
 //!
 //!
 
+extern crate either;
+
+pub use either::Either;
+
 use std::iter::{IntoIterator};
 use std::fmt::Write;
 use std::cmp::Ordering;
@@ -1240,7 +1244,7 @@ pub trait Itertools : Iterator {
     /// have a distinct type.
     ///
     /// ```
-    /// use itertools::{Itertools, Partition};
+    /// use itertools::{Itertools, Either};
     ///
     /// let successes_and_failures = vec![Ok(1), Err(false), Err(true), Ok(2)];
     ///
@@ -1248,8 +1252,8 @@ pub trait Itertools : Iterator {
     ///     .into_iter()
     ///     .partition_map(|r| {
     ///         match r {
-    ///             Ok(v) => Partition::Left(v),
-    ///             Err(v) => Partition::Right(v),
+    ///             Ok(v) => Either::Left(v),
+    ///             Err(v) => Either::Right(v),
     ///         }
     ///     });
     ///
@@ -1258,7 +1262,7 @@ pub trait Itertools : Iterator {
     /// ```
     fn partition_map<A, B, F, L, R>(self, predicate: F) -> (A, B)
         where Self: Sized,
-              F: Fn(Self::Item) -> Partition<L, R>,
+              F: Fn(Self::Item) -> Either<L, R>,
               A: Default + Extend<L>,
               B: Default + Extend<R>,
     {
@@ -1267,8 +1271,8 @@ pub trait Itertools : Iterator {
 
         for val in self {
             match predicate(val) {
-                Partition::Left(v) => left.extend(Some(v)),
-                Partition::Right(v) => right.extend(Some(v)),
+                Either::Left(v) => left.extend(Some(v)),
+                Either::Right(v) => right.extend(Some(v)),
             }
         }
 
@@ -1452,16 +1456,6 @@ pub fn partition<'a, A: 'a, I, F>(iter: I, mut pred: F) -> usize
     }
     split_index
 }
-
-/// Classifies the result of the `.partition_map()` closure into a
-/// partition.
-pub enum Partition<L, R> {
-    /// Classify into the left partition.
-    Left(L),
-    /// Classify into the right partition.
-    Right(R),
-}
-
 
 /// An enum used for controlling the execution of `.fold_while()`.
 /// 
