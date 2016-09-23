@@ -129,7 +129,7 @@ macro_rules! iproduct {
         (::std::iter::IntoIterator::into_iter($I))
     );
     ($I:expr, $J:expr) => (
-        $crate::Product::new(iproduct!($I), iproduct!($J))
+        $crate::Itertools::cartesian_product(iproduct!($I), iproduct!($J))
     );
     ($I:expr, $J:expr, $($K:expr),+) => (
         iproduct!(@flatten iproduct!($I, $J), $($K,)+)
@@ -220,7 +220,7 @@ pub trait Itertools : Iterator {
         where J: IntoIterator<Item = Self::Item>,
               Self: Sized
     {
-        InterleaveShortest::new(self, other.into_iter())
+        adaptors::interleave_shortest(self, other.into_iter())
     }
 
     /// An iterator adaptor to insert a particular value
@@ -239,7 +239,7 @@ pub trait Itertools : Iterator {
         where Self: Sized,
               Self::Item: Clone
     {
-        Intersperse::new(self, element)
+        intersperse::intersperse(self, element)
     }
 
     /// Create an iterator which iterates over both this and the specified
@@ -264,7 +264,7 @@ pub trait Itertools : Iterator {
         where J: IntoIterator,
               Self: Sized
     {
-        ZipLongest::new(self, other.into_iter())
+        zip_longest::zip_longest(self, other.into_iter())
     }
 
     /// Create an iterator which iterates over both this and the specified
@@ -443,7 +443,7 @@ pub trait Itertools : Iterator {
     fn step(self, n: usize) -> Step<Self>
         where Self: Sized
     {
-        Step::new(self, n)
+        adaptors::step(self, n)
     }
 
     /// Return an iterator adaptor that merges the two base iterators in ascending order.
@@ -532,7 +532,7 @@ pub trait Itertools : Iterator {
               J: IntoIterator,
               J::IntoIter: Clone
     {
-        Product::new(self, other.into_iter())
+        adaptors::cartesian_product(self, other.into_iter())
     }
 
     /// Return an iterator adapter that allows peeking multiple values.
@@ -587,7 +587,7 @@ pub trait Itertools : Iterator {
               F: FnMut(Self::Item, Self::Item)
                        -> Result<Self::Item, (Self::Item, Self::Item)>
     {
-        Coalesce::new(self, f)
+        adaptors::coalesce(self, f)
     }
 
     /// Remove duplicates from sections of consecutive identical elements.
@@ -608,7 +608,7 @@ pub trait Itertools : Iterator {
         where Self: Sized,
               Self::Item: PartialEq,
     {
-        Dedup::new(self)
+        adaptors::dedup(self)
     }
 
     /// Return an iterator adaptor that filters out elements that have
@@ -651,7 +651,7 @@ pub trait Itertools : Iterator {
               V: Eq + Hash,
               F: FnMut(&Self::Item) -> V
     {
-        UniqueBy::new(self, f)
+        adaptors::unique_by(self, f)
     }
 
     /// Return an iterator adaptor that borrows from a `Clone`-able iterator
@@ -675,7 +675,7 @@ pub trait Itertools : Iterator {
         where Self: Clone,
               F: FnMut(&Self::Item) -> bool
     {
-        TakeWhileRef::new(self, f)
+        adaptors::take_while_ref(self, f)
     }
 
     /// Return an iterator adaptor that filters `Option<A>` iterator elements
@@ -695,7 +695,7 @@ pub trait Itertools : Iterator {
     fn while_some<A>(self) -> WhileSome<Self>
         where Self: Sized + Iterator<Item = Option<A>>
     {
-        WhileSome::new(self)
+        adaptors::while_some(self)
     }
 
     /// Return an iterator adaptor that iterates over the pairwise combinations
@@ -713,7 +713,7 @@ pub trait Itertools : Iterator {
         where Self: Sized + Clone,
               Self::Item: Clone
     {
-        PairCombinations::new(self)
+        adaptors::pair_combinations(self)
     }
 
     /// Return an iterator adaptor that iterates over the `n`-length combinations of
@@ -737,7 +737,7 @@ pub trait Itertools : Iterator {
         where Self: Sized,
               Self::Item: Clone
     {
-        Combinations::new(self, n)
+        adaptors::combinations(self, n)
     }
 
     /// Return an iterator adaptor that pads the sequence to a minimum length of
@@ -761,7 +761,7 @@ pub trait Itertools : Iterator {
         where Self: Sized,
               F: FnMut(usize) -> Self::Item
     {
-        PadUsing::new(self, min, f)
+        pad_tail::pad_using(self, min, f)
     }
 
     /// Unravel a nested iterator.
@@ -780,7 +780,7 @@ pub trait Itertools : Iterator {
         where Self: Sized,
               Self::Item: IntoIterator
     {
-        Flatten::new(self)
+        adaptors::flatten(self)
     }
 
     // non-adaptor methods

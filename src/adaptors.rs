@@ -95,17 +95,15 @@ pub struct InterleaveShortest<I, J>
     phase: bool, // false ==> it0, true ==> it1
 }
 
-impl<I, J> InterleaveShortest<I, J>
+/// Create a new `InterleaveShortest` iterator.
+pub fn interleave_shortest<I, J>(a: I, b: J) -> InterleaveShortest<I, J>
     where I: Iterator,
           J: Iterator<Item = I::Item>
 {
-    /// Create a new `InterleaveShortest` iterator.
-    pub fn new(a: I, b: J) -> InterleaveShortest<I, J> {
-        InterleaveShortest {
-            it0: a,
-            it1: b,
-            phase: false,
-        }
+    InterleaveShortest {
+        it0: a,
+        it1: b,
+        phase: false,
     }
 }
 
@@ -324,21 +322,19 @@ pub struct Product<I, J>
     b_orig: J,
 }
 
-impl<I, J> Product<I, J>
+/// Create a new cartesian product iterator
+///
+/// Iterator element type is `(I::Item, J::Item)`.
+pub fn cartesian_product<I, J>(mut i: I, j: J) -> Product<I, J>
     where I: Iterator,
           J: Clone + Iterator,
           I::Item: Clone
 {
-    /// Create a new cartesian product iterator
-    ///
-    /// Iterator element type is `(I::Item, J::Item)`.
-    pub fn new(mut i: I, j: J) -> Self {
-        Product {
-            a_cur: i.next(),
-            a: i,
-            b: j.clone(),
-            b_orig: j,
-        }
+    Product {
+        a_cur: i.next(),
+        a: i,
+        b: j.clone(),
+        b_orig: j,
     }
 }
 
@@ -430,18 +426,16 @@ pub struct Step<I> {
     skip: usize,
 }
 
-impl<I> Step<I>
+/// Create a `Step` iterator.
+///
+/// **Panics** if the step is 0.
+pub fn step<I>(iter: I, step: usize) -> Step<I>
     where I: Iterator
 {
-    /// Create a `Step` iterator.
-    ///
-    /// **Panics** if the step is 0.
-    pub fn new(iter: I, step: usize) -> Self {
-        assert!(step != 0);
-        Step {
-            iter: iter.fuse(),
-            skip: step - 1,
-        }
+    assert!(step != 0);
+    Step {
+        iter: iter.fuse(),
+        skip: step - 1,
     }
 }
 
@@ -782,18 +776,16 @@ impl<I: Clone, F: Clone> Clone for Coalesce<I, F>
     }
 }
 
-impl<I, F> Coalesce<I, F>
+/// Create a new `Coalesce`.
+pub fn coalesce<I, F>(mut iter: I, f: F) -> Coalesce<I, F>
     where I: Iterator
 {
-    /// Create a new `Coalesce`.
-    pub fn new(mut iter: I, f: F) -> Self {
-        Coalesce {
-            iter: CoalesceCore {
-                last: iter.next(),
-                iter: iter,
-            },
-            f: f,
-        }
+    Coalesce {
+        iter: CoalesceCore {
+            last: iter.next(),
+            iter: iter,
+        },
+        f: f,
     }
 }
 
@@ -830,17 +822,15 @@ impl<I: Clone> Clone for Dedup<I>
     }
 }
 
-impl<I> Dedup<I>
+/// Create a new `Dedup`.
+pub fn dedup<I>(mut iter: I) -> Dedup<I>
     where I: Iterator
 {
-    /// Create a new `Dedup`.
-    pub fn new(mut iter: I) -> Self {
-        Dedup {
-            iter: CoalesceCore {
-                last: iter.next(),
-                iter: iter,
-            },
-        }
+    Dedup {
+        iter: CoalesceCore {
+            last: iter.next(),
+            iter: iter,
+        },
     }
 }
 
@@ -870,13 +860,11 @@ pub struct TakeWhileRef<'a, I: 'a, F> {
     f: F,
 }
 
-impl<'a, I, F> TakeWhileRef<'a, I, F>
+/// Create a new `TakeWhileRef` from a reference to clonable iterator.
+pub fn take_while_ref<I, F>(iter: &mut I, f: F) -> TakeWhileRef<I, F>
     where I: Iterator + Clone
 {
-    /// Create a new `TakeWhileRef` from a reference to clonable iterator.
-    pub fn new(iter: &'a mut I, f: F) -> Self {
-        TakeWhileRef { iter: iter, f: f }
-    }
+    TakeWhileRef { iter: iter, f: f }
 }
 
 impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F>
@@ -915,11 +903,9 @@ pub struct WhileSome<I> {
     iter: I,
 }
 
-impl<I> WhileSome<I> {
-    /// Create a new `WhileSome<I>`.
-    pub fn new(iter: I) -> Self {
-        WhileSome { iter: iter }
-    }
+/// Create a new `WhileSome<I>`.
+pub fn while_some<I>(iter: I) -> WhileSome<I> {
+    WhileSome { iter: iter }
 }
 
 impl<I, A> Iterator for WhileSome<I>
@@ -949,16 +935,15 @@ pub struct PairCombinations<I: Iterator> {
     next_iter: I,
     val: Option<I::Item>,
 }
-impl<I> PairCombinations<I>
+
+/// Create a new `PairCombinations` from a clonable iterator.
+pub fn pair_combinations<I>(iter: I) -> PairCombinations<I>
     where I: Iterator + Clone
 {
-    /// Create a new `PairCombinations` from a clonable iterator.
-    pub fn new(iter: I) -> PairCombinations<I> {
-        PairCombinations {
-            next_iter: iter.clone(),
-            iter: iter,
-            val: None,
-        }
+    PairCombinations {
+        next_iter: iter.clone(),
+        iter: iter,
+        val: None,
     }
 }
 
@@ -1076,29 +1061,28 @@ pub struct Combinations<I: Iterator> {
     pool: LazyBuffer<I>,
     first: bool,
 }
-impl<I> Combinations<I>
+
+/// Create a new `Combinations` from a clonable iterator.
+pub fn combinations<I>(iter: I, n: usize) -> Combinations<I>
     where I: Iterator
 {
-    /// Create a new `Combinations` from a clonable iterator.
-    pub fn new(iter: I, n: usize) -> Combinations<I> {
-        let mut indices: Vec<usize> = Vec::with_capacity(n);
-        for i in 0..n {
-            indices.push(i);
-        }
-        let mut pool: LazyBuffer<I> = LazyBuffer::new(iter);
+    let mut indices: Vec<usize> = Vec::with_capacity(n);
+    for i in 0..n {
+        indices.push(i);
+    }
+    let mut pool: LazyBuffer<I> = LazyBuffer::new(iter);
 
-        for _ in 0..n {
-            if !pool.get_next() {
-                break;
-            }
+    for _ in 0..n {
+        if !pool.get_next() {
+            break;
         }
+    }
 
-        Combinations {
-            n: n,
-            indices: indices,
-            pool: pool,
-            first: true,
-        }
+    Combinations {
+        n: n,
+        indices: indices,
+        pool: pool,
+        first: true,
     }
 }
 
@@ -1165,17 +1149,16 @@ pub struct UniqueBy<I: Iterator, V, F> {
     f: F,
 }
 
-impl<I: Iterator, V, F> UniqueBy<I, V, F>
+/// Create a new `UniqueBy` iterator.
+pub fn unique_by<I, V, F>(iter: I, f: F) -> UniqueBy<I, V, F>
     where V: Eq + Hash,
-          F: FnMut(&I::Item) -> V
+          F: FnMut(&I::Item) -> V,
+          I: Iterator,
 {
-    /// Create a new `UniqueBy` iterator.
-    pub fn new(iter: I, f: F) -> UniqueBy<I, V, F> {
-        UniqueBy {
-            iter: iter,
-            used: HashSet::new(),
-            f: f,
-        }
+    UniqueBy {
+        iter: iter,
+        used: HashSet::new(),
+        f: f,
     }
 }
 
@@ -1266,17 +1249,12 @@ pub struct Flatten<I, J> {
     back: Option<J>,
 }
 
-impl<I, J> Flatten<I, J>
-    where I: Iterator,
-          J: Iterator,
-{
-    /// Create a new `Flatten` iterator.
-    pub fn new(iter: I) -> Flatten<I, J> {
-        Flatten {
-            iter: iter,
-            front: None,
-            back: None,
-        }
+/// Create a new `Flatten` iterator.
+pub fn flatten<I, J>(iter: I) -> Flatten<I, J> {
+    Flatten {
+        iter: iter,
+        front: None,
+        back: None,
     }
 }
 

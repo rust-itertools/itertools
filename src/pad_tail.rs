@@ -15,18 +15,16 @@ pub struct PadUsing<I, F> {
     filler: F,
 }
 
-impl<I, F> PadUsing<I, F>
+/// Create a new **PadUsing** iterator.
+pub fn pad_using<I, F>(iter: I, min: usize, filler: F) -> PadUsing<I, F>
     where I: Iterator,
           F: FnMut(usize) -> I::Item
 {
-    /// Create a new **PadUsing** iterator.
-    pub fn new(iter: I, min: usize, filler: F) -> PadUsing<I, F> {
-        PadUsing {
-            iter: iter.fuse(),
-            min: min,
-            pos: 0,
-            filler: filler,
-        }
+    PadUsing {
+        iter: iter.fuse(),
+        min: min,
+        pos: 0,
+        filler: filler,
     }
 }
 
