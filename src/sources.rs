@@ -13,16 +13,19 @@ pub struct RepeatCall<F> {
 ///
 /// ```
 /// use itertools::repeat_call;
+/// use itertools::Itertools;
+/// use std::collections::BinaryHeap;
+///
+/// let mut heap = BinaryHeap::from(vec![2, 5, 3, 7, 8]);
+///
+/// // extract each element in sorted order
+/// for element in repeat_call(|| heap.pop()).while_some() {
+///     print!("{}", element);
+/// }
 ///
 /// itertools::assert_equal(
-///     repeat_call(|| "A".to_string()).take(5),
-///     vec!["A", "A", "A", "A", "A"]
-/// );
-///
-/// let mut x = 1;
-/// itertools::assert_equal(
-///     repeat_call(|| { x = -x; x }).take(5),
-///     vec![-1, 1, -1, 1, -1]
+///     repeat_call(|| 1).take(5),
+///     vec![1, 1, 1, 1, 1]
 /// );
 /// ```
 pub fn repeat_call<F>(function: F) -> RepeatCall<F> {
