@@ -26,8 +26,6 @@ optional = true
 version = "0.1"
 
 [features]
-# Unstable features, nightly channel
-unstable = []
 
 [profile]
 bench = { debug = true }

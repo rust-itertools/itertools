@@ -16,7 +16,6 @@ fn zip_longest_fused()
                        vec![Both(1, 1), Right(2), Right(3)]);
 }
 
-#[cfg(feature = "unstable")]
 #[test]
 fn test_zip_longest_size_hint() {
     let c = (1..10).cycle();
