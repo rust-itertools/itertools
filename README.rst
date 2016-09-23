@@ -62,10 +62,10 @@ Recent Changes
     - All free functions are reexported at the root, ``itertools::free`` will
       be removed in the next version
 
-  - Moved out of crate or removed:
+  - Removed:
 
-    - ZipSlices, removed, use .zip() instead
-    - .enumerate_from(), ZipTrusted, removed due to being unstable
+    - ZipSlices, use .zip() instead
+    - .enumerate_from(), ZipTrusted, due to being unstable
     - .mend_slices(), moved to crate odds
     - Stride, StrideMut, moved to crate odds
     - linspace(), moved to crate itertools-num
@@ -73,10 +73,10 @@ Recent Changes
     - .is_empty_hint(), use .size_hint()
     - .dropn(), use .dropping()
     - .map_fn(), use .map()
-    - .slice()
+    - .slice(), use .take() / .skip()
     - helper traits in misc
-    - ``new`` constructors on iterator structs, use Itertools
-      trait or free functions instead
+    - ``new`` constructors on iterator structs, use Itertools trait or free
+      functions instead
     - ``itertools::size_hint`` is now private
 
   - Behaviour changes:
