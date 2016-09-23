@@ -42,8 +42,51 @@ Recent Changes
 - 0.5.0-alpha.0
 
   - Prerelease
-  - Renamed: tons of stuff
-  - Deprecated items were removed
+  - Renamed:
+
+    - combinations to pair_combinations
+    - combinations_n to combinations
+    - group_by_lazy, chunks_lazy to group_by, chunks
+    - Unfold::new to unfold()
+    - RepeatCall::new to repeat_call()
+    - Zip::new to multizip
+    - PutBack::new, PutBackN::new to put_back, put_back_n
+    - PutBack::with_value is now a builder setter, not a constructor
+    - format to format_with and format_default to format
+    - .into_rc() to rciter
+
+  - Module reorganization:
+
+    - All iterator structs are under ``itertools::structs`` but also
+      reexported to the top level, for backwards compatibility
+    - All free functions are reexported at the root, ``itertools::free`` will
+      be removed in the next version
+
+  - Moved out of crate or removed:
+
+    - ZipSlices, removed, use .zip() instead
+    - .enumerate_from(), ZipTrusted, removed due to being unstable
+    - .mend_slices(), moved to crate odds
+    - Stride, StrideMut, moved to crate odds
+    - linspace(), moved to crate itertools-num
+    - .sort_by(), use .sorted_by()
+    - .is_empty_hint(), use .size_hint()
+    - .dropn(), use .dropping()
+    - .map_fn(), use .map()
+    - .slice()
+    - helper traits in misc
+    - ``new`` constructors on iterator structs, use Itertools
+      trait or free functions instead
+    - ``itertools::size_hint`` is now private
+
+  - Behaviour changes:
+
+    - format and format_with helpers now panic if you try to format them more
+      than once.
+
+  - New features:
+
+    - tuple flattening iterator is constructible with ``cons_tuples``
 
 - 0.4.19
 
