@@ -7,14 +7,17 @@ use std::fmt::Display;
 use std::iter::{self, Zip};
 use Itertools;
 use structs::{
-    Interleave,
-    KMerge,
-    Merge,
     ZipEq,
     RcIter,
 };
 
-pub use adaptors::{put_back, put_back_n};
+pub use adaptors::{
+    interleave,
+    merge,
+    put_back,
+    put_back_n,
+};
+pub use kmerge::kmerge;
 
 /// Iterate `iterable` with a running index.
 ///
@@ -205,61 +208,6 @@ pub fn min<I>(iterable: I) -> Option<I::Item>
     iterable.into_iter().min()
 }
 
-/// Create an iterator that interleaves elements in `i` and `j`.
-///
-/// `IntoIterator` enabled version of `i.interleave(j)`.
-///
-/// ```
-/// use itertools::interleave;
-///
-/// for elt in interleave(&[1, 2, 3], &[2, 3, 4]) {
-///     /* loop body */
-/// }
-/// ```
-pub fn interleave<I, J>(i: I, j: J) -> Interleave<<I as IntoIterator>::IntoIter, <J as IntoIterator>::IntoIter>
-    where I: IntoIterator,
-          J: IntoIterator<Item = I::Item>
-{
-    i.into_iter().interleave(j)
-}
-
-/// Create an iterator that merges elements in `i` and `j`.
-///
-/// `IntoIterator` enabled version of `i.merge(j)`.
-///
-/// ```
-/// use itertools::merge;
-///
-/// for elt in merge(&[1, 2, 3], &[2, 3, 4]) {
-///     /* loop body */
-/// }
-/// ```
-pub fn merge<I, J>(i: I, j: J) -> Merge<<I as IntoIterator>::IntoIter, <J as IntoIterator>::IntoIter>
-    where I: IntoIterator,
-          J: IntoIterator<Item = I::Item>,
-          I::Item: PartialOrd
-{
-    i.into_iter().merge(j)
-}
-
-/// Create an iterator that merges elements of the contained iterators.
-///
-/// Equivalent to `i.into_iter().kmerge()`.
-///
-/// ```
-/// use itertools::kmerge;
-///
-/// for elt in kmerge(vec![vec![0, 2, 4], vec![1, 3, 5], vec![6, 7]]) {
-///     /* loop body */
-/// }
-/// ```
-pub fn kmerge<I>(i: I) -> KMerge<<<I as IntoIterator>::Item as IntoIterator>::IntoIter>
-    where I: IntoIterator,
-          I::Item: IntoIterator,
-          <<I as IntoIterator>::Item as IntoIterator>::Item: Ord,
-{
-    i.into_iter().kmerge()
-}
 
 /// Combine all iterator elements into one String, seperated by `sep`.
 ///

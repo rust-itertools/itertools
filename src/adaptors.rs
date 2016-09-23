@@ -34,12 +34,30 @@ pub struct Interleave<I, J> {
     flag: bool,
 }
 
+/// Create an iterator that interleaves elements in `i` and `j`.
+///
+/// `IntoIterator` enabled version of `i.interleave(j)`.
+///
+/// ```
+/// use itertools::interleave;
+///
+/// for elt in interleave(&[1, 2, 3], &[2, 3, 4]) {
+///     /* loop body */
+/// }
+/// ```
+pub fn interleave<I, J>(i: I, j: J) -> Interleave<<I as IntoIterator>::IntoIter, <J as IntoIterator>::IntoIter>
+    where I: IntoIterator,
+          J: IntoIterator<Item = I::Item>
+{
+    Interleave::new(i.into_iter(), j.into_iter())
+}
+
 impl<I, J> Interleave<I, J>
     where I: Iterator,
           J: Iterator
 {
     /// Creat a new `Interleave` iterator.
-    pub fn new(a: I, b: J) -> Interleave<I, J> {
+    fn new(a: I, b: J) -> Interleave<I, J> {
         Interleave {
             a: a.fuse(),
             b: b.fuse(),
@@ -552,15 +570,26 @@ impl<I, J> Clone for Merge<I, J>
     }
 }
 
-/// Create a `Merge` iterator.
-pub fn merge_new<I, J>(a: I, b: J) -> Merge<I, J>
-    where I: Iterator,
-          J: Iterator<Item = I::Item>
+/// Create an iterator that merges elements in `i` and `j`.
+///
+/// `IntoIterator` enabled version of `i.merge(j)`.
+///
+/// ```
+/// use itertools::merge;
+///
+/// for elt in merge(&[1, 2, 3], &[2, 3, 4]) {
+///     /* loop body */
+/// }
+/// ```
+pub fn merge<I, J>(i: I, j: J) -> Merge<<I as IntoIterator>::IntoIter, <J as IntoIterator>::IntoIter>
+    where I: IntoIterator,
+          J: IntoIterator<Item = I::Item>,
+          I::Item: PartialOrd
 {
     Merge {
         merge: MergeCore {
-            a: a.peekable(),
-            b: b.peekable(),
+            a: i.into_iter().peekable(),
+            b: j.into_iter().peekable(),
             fused: None,
         },
     }

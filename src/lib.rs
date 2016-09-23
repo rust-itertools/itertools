@@ -203,7 +203,7 @@ pub trait Itertools : Iterator {
         where J: IntoIterator<Item = Self::Item>,
               Self: Sized
     {
-        Interleave::new(self, other.into_iter())
+        interleave(self, other)
     }
 
     /// Alternate elements from two iterators until one of them runs out.
@@ -464,7 +464,7 @@ pub trait Itertools : Iterator {
               Self::Item: PartialOrd,
               J: IntoIterator<Item = Self::Item>
     {
-        adaptors::merge_new(self, other.into_iter())
+        merge(self, other)
     }
 
     /// Return an iterator adaptor that merges the two base iterators in order.
@@ -512,7 +512,7 @@ pub trait Itertools : Iterator {
         Self::Item: IntoIterator,
         <<Self as Iterator>::Item as IntoIterator>::Item: Ord,
     {
-        kmerge::kmerge_new(self)
+        kmerge(self)
     }
 
     /// Return an iterator adaptor that iterates over the cartesian product of
