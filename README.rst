@@ -84,6 +84,7 @@ Recent Changes
 
     - format and format_with helpers now panic if you try to format them more
       than once.
+    - ``repeat_call`` is not double ended anymore
 
   - New features:
 
