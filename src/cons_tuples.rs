@@ -1,6 +1,6 @@
 
 macro_rules! impl_cons_iter(
-    () => ();
+    ($_A:ident, $_B:ident, ) => (); // stop
 
     ($A:ident, $($B:ident,)*) => (
         impl_cons_iter!($($B,)*);
