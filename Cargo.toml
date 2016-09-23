@@ -1,14 +1,13 @@
 [package]
-
 name = "itertools"
-version = "0.4.19"
+version = "0.5.0-alpha.0"
 
 license = "MIT/Apache-2.0"
 repository = "https://github.com/bluss/rust-itertools"
 documentation = "https://bluss.github.io/rust-itertools/"
 authors = ["bluss"]
 
-description = "Extra iterator adaptors, iterator methods and macros."
+description = "Extra iterator adaptors, iterator methods, free functions, and macros."
 
 keywords = ["iterator", "data-structure", "zip", "product", "group-by"]
 
@@ -23,11 +22,9 @@ version = "0.2.21"
 optional = true
 
 [dev-dependencies.permutohedron]
-version = "0.1"
+version = "0.2"
 
 [features]
 
 [profile]
 bench = { debug = true }
-# uncomment to run tests with optimizations
-# test = { opt-level = 3, debug = false, rpath = false, lto = false, debug-assertions = false }
