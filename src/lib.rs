@@ -53,6 +53,7 @@ pub mod structs {
         TakeWhileRef,
         WhileSome,
         Coalesce,
+        TupleCombinations,
         PairCombinations,
         Combinations,
         Unique,
@@ -676,6 +677,47 @@ pub trait Itertools : Iterator {
         where Self: Sized + Iterator<Item = Option<A>>
     {
         adaptors::while_some(self)
+    }
+
+    /// Return an iterator adaptor that iterates over the combinations of the
+    /// elements from an iterator.
+    ///
+    /// Iterator element can be any homogeneous tuple of type `Self::Item` with
+    /// size up to 4.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut v = Vec::new();
+    /// for (a, b) in (1..5).tuple_combinations() {
+    ///     v.push((a, b));
+    /// }
+    /// assert_eq!(v, vec![(1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)]);
+    ///
+    /// let mut it = (1..5).tuple_combinations();
+    /// assert_eq!(Some((1, 2, 3)), it.next());
+    /// assert_eq!(Some((1, 2, 4)), it.next());
+    /// assert_eq!(Some((1, 3, 4)), it.next());
+    /// assert_eq!(Some((2, 3, 4)), it.next());
+    /// assert_eq!(None, it.next());
+    ///
+    /// // this requires a type hint
+    /// let it = (1..5).tuple_combinations::<(_, _, _)>();
+    /// itertools::assert_equal(it, vec![(1, 2, 3), (1, 2, 4), (1, 3, 4), (2, 3, 4)]);
+    ///
+    /// // you can also specify the complete type
+    /// use itertools::TupleCombinations;
+    /// use std::ops::Range;
+    ///
+    /// let it: TupleCombinations<Range<u32>, (u32, u32, u32)> = (1..5).tuple_combinations();
+    /// itertools::assert_equal(it, vec![(1, 2, 3), (1, 2, 4), (1, 3, 4), (2, 3, 4)]);
+    /// ```
+    fn tuple_combinations<T>(self) -> TupleCombinations<Self, T>
+        where Self: Sized + Clone,
+              Self::Item: Clone,
+              T: adaptors::HasCombination<Self>,
+    {
+        adaptors::tuple_combinations(self)
     }
 
     /// Return an iterator adaptor that iterates over the pairwise combinations
@@ -1438,7 +1480,7 @@ pub fn partition<'a, A: 'a, I, F>(iter: I, mut pred: F) -> usize
 }
 
 /// An enum used for controlling the execution of `.fold_while()`.
-/// 
+///
 /// See [`.fold_while()`](trait.Itertools.html#method.fold_while) for more information.
 pub enum FoldWhile<T> {
     /// Continue folding with this value

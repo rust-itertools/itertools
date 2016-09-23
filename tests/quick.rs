@@ -19,10 +19,12 @@ use itertools::{
     EitherOrBoth,
 };
 use itertools::free::{
+    cloned,
+    enumerate,
     multipeek,
-    rciter,
     put_back,
     put_back_n,
+    rciter,
     zip,
     zip_eq,
 };
@@ -379,6 +381,19 @@ quickcheck! {
     fn equal_flatten_vec_rev(a: Vec<Vec<u8>>) -> bool {
         itertools::equal(a.iter().flatten().rev(),
                          a.iter().flat_map(|x| x).rev())
+    }
+
+    fn equal_combinations_2(a: Vec<u8>) -> bool {
+        itertools::equal(cloned(&a).pair_combinations(), cloned(&a).tuple_combinations())
+    }
+    fn equal_combinations_3(a: Vec<u8>) -> bool {
+        let mut v = Vec::new();
+        for (i, &x) in enumerate(&a) {
+            for &y in &a[i + 1..] {
+                v.push((x, y));
+            }
+        }
+        itertools::equal(cloned(&a).pair_combinations(), cloned(&v))
     }
 }
 
