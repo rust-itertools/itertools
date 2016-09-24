@@ -19,6 +19,7 @@ use itertools::{
     EitherOrBoth,
 };
 use itertools::free::{
+    multipeek,
     rciter,
     put_back,
     put_back_n,
@@ -246,7 +247,7 @@ quickcheck! {
     }
 
     fn size_multipeek(a: Iter<u16>, s: u8) -> bool {
-        let mut it = a.multipeek();
+        let mut it = multipeek(a);
         // peek a few times
         for _ in 0..s {
             it.peek();
