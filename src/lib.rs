@@ -536,27 +536,6 @@ pub trait Itertools : Iterator {
         adaptors::cartesian_product(self, other.into_iter())
     }
 
-    /// Return an iterator adapter that allows peeking multiple values.
-    ///
-    /// After a call to `.next()` the peeking cursor is reset.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// let nums = vec![1u8,2,3,4,5];
-    /// let mut peekable = nums.into_iter().multipeek();
-    /// assert_eq!(peekable.peek(), Some(&1));
-    /// assert_eq!(peekable.peek(), Some(&2));
-    /// assert_eq!(peekable.peek(), Some(&3));
-    /// assert_eq!(peekable.next(), Some(1));
-    /// assert_eq!(peekable.peek(), Some(&2));
-    /// ```
-    fn multipeek(self) -> MultiPeek<Self>
-        where Self: Sized
-    {
-        MultiPeek::new(self)
-    }
-
     /// Return an iterator adaptor that uses the passed-in closure to
     /// optionally merge together consecutive elements.
     ///

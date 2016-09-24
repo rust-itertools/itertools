@@ -52,6 +52,7 @@ Recent Changes
     - Zip::new to multizip
     - PutBack::new, PutBackN::new to put_back, put_back_n
     - PutBack::with_value is now a builder setter, not a constructor
+    - MultiPeek::new, .multipeek() to multipeek()
     - format to format_with and format_default to format
     - .into_rc() to rciter
     - ``Partition`` enum is now ``Either``

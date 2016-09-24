@@ -10,6 +10,7 @@ extern crate permutohedron;
 use it::Itertools;
 use it::interleave;
 use it::multizip;
+use it::multipeek;
 use it::FoldWhile;
 use it::free::rciter;
 use it::free::put_back;
@@ -402,27 +403,27 @@ fn sorted_by() {
 }
 
 #[test]
-fn multipeek() {
+fn test_multipeek() {
     let nums = vec![1u8,2,3,4,5];
 
-    let multipeek = nums.iter().map(|&x| x).multipeek();
-    assert_eq!(nums, multipeek.collect::<Vec<_>>());
+    let mp = multipeek(nums.iter().map(|&x| x));
+    assert_eq!(nums, mp.collect::<Vec<_>>());
 
-    let mut multipeek = nums.iter().map(|&x| x).multipeek();
-    assert_eq!(multipeek.peek(), Some(&1));
-    assert_eq!(multipeek.next(), Some(1));
-    assert_eq!(multipeek.peek(), Some(&2));
-    assert_eq!(multipeek.peek(), Some(&3));
-    assert_eq!(multipeek.next(), Some(2));
-    assert_eq!(multipeek.peek(), Some(&3));
-    assert_eq!(multipeek.peek(), Some(&4));
-    assert_eq!(multipeek.peek(), Some(&5));
-    assert_eq!(multipeek.peek(), None);
-    assert_eq!(multipeek.next(), Some(3));
-    assert_eq!(multipeek.next(), Some(4));
-    assert_eq!(multipeek.next(), Some(5));
-    assert_eq!(multipeek.next(), None);
-    assert_eq!(multipeek.peek(), None);
+    let mut mp = multipeek(nums.iter().map(|&x| x));
+    assert_eq!(mp.peek(), Some(&1));
+    assert_eq!(mp.next(), Some(1));
+    assert_eq!(mp.peek(), Some(&2));
+    assert_eq!(mp.peek(), Some(&3));
+    assert_eq!(mp.next(), Some(2));
+    assert_eq!(mp.peek(), Some(&3));
+    assert_eq!(mp.peek(), Some(&4));
+    assert_eq!(mp.peek(), Some(&5));
+    assert_eq!(mp.peek(), None);
+    assert_eq!(mp.next(), Some(3));
+    assert_eq!(mp.next(), Some(4));
+    assert_eq!(mp.next(), Some(5));
+    assert_eq!(mp.next(), None);
+    assert_eq!(mp.peek(), None);
 
 }
 

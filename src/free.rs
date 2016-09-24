@@ -10,6 +10,7 @@ use Itertools;
 pub use adaptors::{
     interleave,
     merge,
+    multipeek,
     put_back,
     put_back_n,
 };

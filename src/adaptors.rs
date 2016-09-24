@@ -650,11 +650,8 @@ impl<I, J, F> Iterator for MergeBy<I, J, F>
     }
 }
 
+/// See [`multipeek()`](../fn.multipeek.html) for more information.
 #[derive(Clone)]
-/// An iterator adaptor that allows the user to peek at multiple `.next()`
-/// values without advancing itself.
-///
-/// See [`.multipeek()`](../trait.Itertools.html#method.multipeek) for more information.
 pub struct MultiPeek<I>
     where I: Iterator
 {
@@ -663,16 +660,19 @@ pub struct MultiPeek<I>
     index: usize,
 }
 
-impl<I: Iterator> MultiPeek<I> {
-    /// Create a `MultiPeek` iterator.
-    pub fn new(iter: I) -> MultiPeek<I> {
-        MultiPeek {
-            iter: iter.fuse(),
-            buf: Vec::new(),
-            index: 0,
-        }
+/// An iterator adaptor that allows the user to peek at multiple `.next()`
+/// values without advancing the base iterator.
+pub fn multipeek<I>(iterable: I) -> MultiPeek<I::IntoIter>
+    where I: IntoIterator
+{
+    MultiPeek {
+        iter: iterable.into_iter().fuse(),
+        buf: Vec::new(),
+        index: 0,
     }
+}
 
+impl<I: Iterator> MultiPeek<I> {
     /// Works exactly like `.next()` with the only difference that it doesn't
     /// advance itself. `.peek()` can be called multiple times, to peek
     /// further ahead.
