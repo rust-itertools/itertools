@@ -44,7 +44,7 @@ Recent Changes
   - Prerelease
   - Renamed:
 
-    - combinations to pair_combinations
+    - combinations is now tuple_combinations
     - combinations_n to combinations
     - group_by_lazy, chunks_lazy to group_by, chunks
     - Unfold::new to unfold()
@@ -93,6 +93,7 @@ Recent Changes
     - itertools reexports ``Either`` from the ``either`` crate. ``Either<L, R>``
       is an iterator when ``L, R`` are.
     - ``MinMaxResult`` now implements Copy and Clone
+    - tuple_combinations supports 1-4 tuples of combinations (previously just 2)
 
 - 0.4.19
 
