@@ -1031,10 +1031,8 @@ macro_rules! impl_tuple_combination {
 
             #[inline(always)]
             fn next(&mut self) -> Option<Self::Item> {
-                use unreachable::UncheckedOptionExt;
                 if let Some(($($X),*,)) = self.c.next() {
-                    // This is faster than self.item.clone().unwrap()
-                    let z = unsafe { self.item.clone().unchecked_unwrap() };
+                    let z = self.item.clone().unwrap();
                     Some((z, $($X),*))
                 } else {
                     self.item = self.iter.next();

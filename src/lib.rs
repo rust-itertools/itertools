@@ -27,7 +27,6 @@
 //!
 
 extern crate either;
-extern crate unreachable;
 
 pub use either::Either;
 
