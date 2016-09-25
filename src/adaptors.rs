@@ -964,7 +964,6 @@ impl<I, T> Iterator for TupleCombination<I, T>
 {
     type Item = T;
 
-    #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next()
     }
@@ -975,7 +974,6 @@ pub struct Tuple1Combination<I> {
 }
 
 impl<I> From<I> for Tuple1Combination<I> {
-    #[inline(always)]
     fn from(iter: I) -> Self {
         Tuple1Combination { iter: iter }
     }
@@ -984,7 +982,6 @@ impl<I> From<I> for Tuple1Combination<I> {
 impl<I: Iterator> Iterator for Tuple1Combination<I> {
     type Item = (I::Item,);
 
-    #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next().map(|x| (x,))
     }
@@ -1029,7 +1026,6 @@ macro_rules! impl_tuple_combination {
         {
             type Item = ($($I),*);
 
-            #[inline(always)]
             fn next(&mut self) -> Option<Self::Item> {
                 if let Some(($($X),*,)) = self.c.next() {
                     let z = self.item.clone().unwrap();
