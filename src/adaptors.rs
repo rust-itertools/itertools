@@ -932,7 +932,7 @@ impl<I, A> Iterator for WhileSome<I>
 ///
 /// See [`.tuple_combinations()`](../trait.Itertools.html#method.tuple_combinations) for more
 /// information.
-pub struct TupleCombination<I, T>
+pub struct TupleCombinations<I, T>
     where I: Iterator,
           T: HasCombination<I>
 {
@@ -946,19 +946,19 @@ pub trait HasCombination<I>: Sized {
 }
 
 /// Create a new `TupleCombinations` from a clonable iterator.
-pub fn tuple_combinations<T, I>(iter: I) -> TupleCombination<I, T>
+pub fn tuple_combinations<T, I>(iter: I) -> TupleCombinations<I, T>
     where I: Iterator + Clone,
           I::Item: Clone,
           T: HasCombination<I>,
 {
-    TupleCombination {
+    TupleCombinations {
         iter: T::Combination::from(iter),
         _mi: PhantomData,
         _mt: PhantomData,
     }
 }
 
-impl<I, T> Iterator for TupleCombination<I, T>
+impl<I, T> Iterator for TupleCombinations<I, T>
     where I: Iterator,
           T: HasCombination<I>,
 {
