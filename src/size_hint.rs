@@ -30,6 +30,7 @@ pub fn add_scalar(sh: SizeHint, x: usize) -> SizeHint {
 
 /// Sbb **x** correctly to a **SizeHint**.
 #[inline]
+#[allow(dead_code)]
 pub fn sub_scalar(sh: SizeHint, x: usize) -> SizeHint {
     let (mut low, mut hi) = sh;
     low = low.saturating_sub(x);
