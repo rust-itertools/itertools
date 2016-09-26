@@ -95,12 +95,3 @@ fn comb_c4(b: &mut Bencher) {
         }
     });
 }
-
-#[bench]
-fn comb_pairs(b: &mut Bencher) {
-    b.iter(|| {
-        for (i, j) in (0..N2).pair_combinations() {
-            black_box(i + j);
-        }
-    });
-}
