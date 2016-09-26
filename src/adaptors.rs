@@ -1053,69 +1053,6 @@ impl_tuple_combination!(Tuple2Combination Tuple1Combination ; A, A, A ; a);
 impl_tuple_combination!(Tuple3Combination Tuple2Combination ; A, A, A, A ; a b);
 impl_tuple_combination!(Tuple4Combination Tuple3Combination ; A, A, A, A, A; a b c);
 
-/// An iterator to iterate through all the combinations of pairs in a `Clone`-able iterator.
-///
-/// See [`.pair_combinations()`](../trait.Itertools.html#method.pair_combinations) for more information.
-#[derive(Clone)]
-pub struct PairCombinations<I: Iterator> {
-    iter: I,
-    next_iter: I,
-    val: Option<I::Item>,
-}
-
-/// Create a new `PairCombinations` from a clonable iterator.
-pub fn pair_combinations<I>(iter: I) -> PairCombinations<I>
-    where I: Iterator + Clone
-{
-    PairCombinations {
-        next_iter: iter.clone(),
-        iter: iter,
-        val: None,
-    }
-}
-
-impl<I> Iterator for PairCombinations<I>
-    where I: Iterator + Clone,
-          I::Item: Clone
-{
-    type Item = (I::Item, I::Item);
-    fn next(&mut self) -> Option<Self::Item> {
-        // not having a value means we iterate once more through the first iterator
-        if self.val.is_none() {
-            self.val = self.iter.next();
-            self.next_iter = self.iter.clone();
-        }
-
-        // if its still none, we're out of values
-        let elt = match self.val {
-            Some(ref x) => x.clone(),
-            None => return None,
-        };
-
-        match self.next_iter.next() {
-            Some(ref x) => {
-                return Some((elt, x.clone()));
-            },
-            None => {
-                self.val = None;
-            }
-        }
-        // try again if we ran out of values in the second iterator
-        self.next()
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let sh = self.iter.size_hint();
-        let (lo, hi) = size_hint::mul(sh, size_hint::sub_scalar(sh, 1));
-        let mut extra = (0, Some(0));
-        if self.val.is_some() {
-            extra = self.next_iter.size_hint();
-        }
-        // won't truncate because x * (x - 1) is guarenteed to be even
-        size_hint::add((lo / 2, hi.map(|hi| hi / 2)), extra)
-    }
-}
-
 struct LazyBuffer<I: Iterator> {
     it: I,
     done: bool,

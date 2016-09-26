@@ -384,16 +384,13 @@ quickcheck! {
     }
 
     fn equal_combinations_2(a: Vec<u8>) -> bool {
-        itertools::equal(cloned(&a).pair_combinations(), cloned(&a).tuple_combinations())
-    }
-    fn equal_combinations_3(a: Vec<u8>) -> bool {
         let mut v = Vec::new();
         for (i, &x) in enumerate(&a) {
             for &y in &a[i + 1..] {
                 v.push((x, y));
             }
         }
-        itertools::equal(cloned(&a).pair_combinations(), cloned(&v))
+        itertools::equal(cloned(&a).tuple_combinations::<(_, _)>(), cloned(&v))
     }
 }
 
@@ -481,14 +478,14 @@ quickcheck! {
 
 quickcheck! {
     fn size_combinations(it: Iter<i16>) -> bool {
-        correct_size_hint(it.pair_combinations())
+        correct_size_hint(it.tuple_combinations::<(_, _)>())
     }
 }
 
 quickcheck! {
     fn equal_combinations(it: Iter<i16>) -> bool {
         let values = it.clone().collect_vec();
-        let mut cmb = it.pair_combinations();
+        let mut cmb = it.tuple_combinations();
         for i in 0..values.len() {
             for j in i+1..values.len() {
                 let pair = (values[i], values[j]);
