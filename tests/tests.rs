@@ -719,9 +719,9 @@ fn combinations() {
         vec![3, 4],
         ]);
 
-    it::assert_equal((0..0).pair_combinations(), <Vec<_>>::new());
-    it::assert_equal((0..1).pair_combinations(), <Vec<_>>::new());
-    it::assert_equal((0..2).pair_combinations(), vec![(0, 1)]);
+    it::assert_equal((0..0).tuple_combinations::<(_, _)>(), <Vec<_>>::new());
+    it::assert_equal((0..1).tuple_combinations::<(_, _)>(), <Vec<_>>::new());
+    it::assert_equal((0..2).tuple_combinations::<(_, _)>(), vec![(0, 1)]);
 
     it::assert_equal((0..0).combinations(2), <Vec<Vec<_>>>::new());
     it::assert_equal((0..1).combinations(1), vec![vec![0]]);

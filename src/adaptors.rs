@@ -9,6 +9,7 @@ use std::ops::Index;
 use std::iter::{Fuse, Peekable};
 use std::collections::HashSet;
 use std::hash::Hash;
+use std::marker::PhantomData;
 use size_hint;
 
 macro_rules! clone_fields {
@@ -926,68 +927,131 @@ impl<I, A> Iterator for WhileSome<I>
     }
 }
 
-/// An iterator to iterate through all the combinations of pairs in a `Clone`-able iterator.
+/// An iterator to iterate through all combinations in a `Clone`-able iterator that produces tuples
+/// of a specific size.
 ///
-/// See [`.pair_combinations()`](../trait.Itertools.html#method.pair_combinations) for more information.
-#[derive(Clone)]
-pub struct PairCombinations<I: Iterator> {
-    iter: I,
-    next_iter: I,
-    val: Option<I::Item>,
+/// See [`.tuple_combinations()`](../trait.Itertools.html#method.tuple_combinations) for more
+/// information.
+pub struct TupleCombinations<I, T>
+    where I: Iterator,
+          T: HasCombination<I>
+{
+    iter: T::Combination,
+    _mi: PhantomData<I>,
+    _mt: PhantomData<T>
 }
 
-/// Create a new `PairCombinations` from a clonable iterator.
-pub fn pair_combinations<I>(iter: I) -> PairCombinations<I>
-    where I: Iterator + Clone
+pub trait HasCombination<I>: Sized {
+    type Combination: From<I> + Iterator<Item = Self>;
+}
+
+/// Create a new `TupleCombinations` from a clonable iterator.
+pub fn tuple_combinations<T, I>(iter: I) -> TupleCombinations<I, T>
+    where I: Iterator + Clone,
+          I::Item: Clone,
+          T: HasCombination<I>,
 {
-    PairCombinations {
-        next_iter: iter.clone(),
-        iter: iter,
-        val: None,
+    TupleCombinations {
+        iter: T::Combination::from(iter),
+        _mi: PhantomData,
+        _mt: PhantomData,
     }
 }
 
-impl<I> Iterator for PairCombinations<I>
-    where I: Iterator + Clone,
-          I::Item: Clone
+impl<I, T> Iterator for TupleCombinations<I, T>
+    where I: Iterator,
+          T: HasCombination<I>,
 {
-    type Item = (I::Item, I::Item);
+    type Item = T;
+
     fn next(&mut self) -> Option<Self::Item> {
-        // not having a value means we iterate once more through the first iterator
-        if self.val.is_none() {
-            self.val = self.iter.next();
-            self.next_iter = self.iter.clone();
+        self.iter.next()
+    }
+}
+
+pub struct Tuple1Combination<I> {
+    iter: I,
+}
+
+impl<I> From<I> for Tuple1Combination<I> {
+    fn from(iter: I) -> Self {
+        Tuple1Combination { iter: iter }
+    }
+}
+
+impl<I: Iterator> Iterator for Tuple1Combination<I> {
+    type Item = (I::Item,);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().map(|x| (x,))
+    }
+}
+
+impl<I: Iterator> HasCombination<I> for (I::Item,) {
+    type Combination = Tuple1Combination<I>;
+}
+
+macro_rules! impl_tuple_combination {
+    ($C:ident $P:ident ; $A:ident, $($I:ident),* ; $($X:ident)*) => (
+        pub struct $C<I: Iterator> {
+            item: Option<I::Item>,
+            iter: I,
+            c: $P<I>,
         }
 
-        // if its still none, we're out of values
-        let elt = match self.val {
-            Some(ref x) => x.clone(),
-            None => return None,
-        };
-
-        match self.next_iter.next() {
-            Some(ref x) => {
-                return Some((elt, x.clone()));
-            },
-            None => {
-                self.val = None;
+        impl<I: Iterator + Clone> From<I> for $C<I> {
+            fn from(mut iter: I) -> Self {
+                $C {
+                    item: iter.next(),
+                    iter: iter.clone(),
+                    c: $P::from(iter),
+                }
             }
         }
-        // try again if we ran out of values in the second iterator
-        self.next()
-    }
 
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let sh = self.iter.size_hint();
-        let (lo, hi) = size_hint::mul(sh, size_hint::sub_scalar(sh, 1));
-        let mut extra = (0, Some(0));
-        if self.val.is_some() {
-            extra = self.next_iter.size_hint();
+        impl<I: Iterator + Clone> From<I> for $C<Fuse<I>> {
+            fn from(iter: I) -> Self {
+                let mut iter = iter.fuse();
+                $C {
+                    item: iter.next(),
+                    iter: iter.clone(),
+                    c: $P::from(iter),
+                }
+            }
         }
-        // won't truncate because x * (x - 1) is guarenteed to be even
-        size_hint::add((lo / 2, hi.map(|hi| hi / 2)), extra)
-    }
+
+        impl<I, $A> Iterator for $C<I>
+            where I: Iterator<Item = $A> + Clone,
+                  I::Item: Clone
+        {
+            type Item = ($($I),*);
+
+            fn next(&mut self) -> Option<Self::Item> {
+                if let Some(($($X),*,)) = self.c.next() {
+                    let z = self.item.clone().unwrap();
+                    Some((z, $($X),*))
+                } else {
+                    self.item = self.iter.next();
+                    self.item.clone().and_then(|z| {
+                        self.c = $P::from(self.iter.clone());
+                        self.c.next().map(|($($X),*,)| (z, $($X),*))
+                    })
+                }
+            }
+        }
+
+        impl<I, $A> HasCombination<I> for ($($I),*)
+            where I: Iterator<Item = $A> + Clone,
+                  I::Item: Clone
+        {
+            type Combination = $C<Fuse<I>>;
+        }
+    )
 }
+
+impl_tuple_combination!(Tuple2Combination Tuple1Combination ; A, A, A ; a);
+impl_tuple_combination!(Tuple3Combination Tuple2Combination ; A, A, A, A ; a b);
+impl_tuple_combination!(Tuple4Combination Tuple3Combination ; A, A, A, A, A; a b c);
 
 struct LazyBuffer<I: Iterator> {
     it: I,

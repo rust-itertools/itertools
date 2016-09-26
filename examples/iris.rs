@@ -4,7 +4,7 @@
 ///
 /// Iterators and itertools functionality are used throughout.
 ///
-/// 
+///
 
 extern crate itertools;
 
@@ -100,8 +100,8 @@ fn main() {
     let n = 30; // plot size
     let mut plot = vec![' '; n * n];
 
-    // using Itertools::pair_combinations
-    for (a, b) in (0..4).pair_combinations() {
+    // using Itertools::tuple_combinations
+    for (a, b) in (0..4).tuple_combinations() {
         println!("Column {} vs {}:", a, b);
 
         // Clear plot
