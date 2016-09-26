@@ -19,7 +19,7 @@ __ https://bluss.github.io/rust-itertools/
 How to use with cargo::
 
     [dependencies]
-    itertools = "0.4"
+    itertools = "0.5"
 
 How to use in your crate:
 
@@ -39,9 +39,9 @@ How to contribute:
 Recent Changes
 --------------
 
-- 0.5.0-alpha.0, 0.5.0-alpha.1
+- 0.5.0
 
-  - Prereleases
+  - `Release announcement <http://bluss.github.io/rust/2016/09/26/itertools-0.5.0/>`_
   - Renamed:
 
     - combinations is now tuple_combinations
