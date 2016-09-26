@@ -39,9 +39,9 @@ How to contribute:
 Recent Changes
 --------------
 
-- 0.5.0-alpha.0
+- 0.5.0-alpha.0, 0.5.0-alpha.1
 
-  - Prerelease
+  - Prereleases
   - Renamed:
 
     - combinations is now tuple_combinations
