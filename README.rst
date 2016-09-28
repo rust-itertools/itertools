@@ -39,6 +39,11 @@ How to contribute:
 Recent Changes
 --------------
 
+- 0.5.1
+
+  - Workaround module/function name clash that made racer crash on completing
+    itertools. Only internal changes needed.
+
 - 0.5.0
 
   - `Release announcement <http://bluss.github.io/rust/2016/09/26/itertools-0.5.0/>`_
