@@ -14,9 +14,9 @@ pub use adaptors::{
     put_back,
     put_back_n,
 };
-pub use kmerge::kmerge;
-pub use zip_eq::zip_eq;
-pub use rciter::rciter;
+pub use kmerge_impl::kmerge;
+pub use zip_eq_impl::zip_eq;
+pub use rciter_impl::rciter;
 
 /// Iterate `iterable` with a running index.
 ///

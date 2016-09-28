@@ -59,22 +59,22 @@ pub mod structs {
         UniqueBy,
         Flatten,
     };
-    pub use cons_tuples::ConsTuples;
+    pub use cons_tuples_impl::ConsTuples;
     pub use format::{Format, FormatWith};
     pub use groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
     pub use intersperse::Intersperse;
-    pub use kmerge::KMerge;
+    pub use kmerge_impl::KMerge;
     pub use pad_tail::PadUsing;
-    pub use rciter::RcIter;
+    pub use rciter_impl::RcIter;
     pub use repeatn::RepeatN;
     pub use sources::{RepeatCall, Unfold};
     pub use tee::Tee;
-    pub use zip_eq::ZipEq;
+    pub use zip_eq_impl::ZipEq;
     pub use zip_longest::ZipLongest;
     pub use ziptuple::Zip;
 }
 pub use structs::*;
-pub use cons_tuples::cons_tuples;
+pub use cons_tuples_impl::cons_tuples;
 pub use diff::diff_with;
 pub use diff::Diff;
 pub use minmax::MinMaxResult;
@@ -86,20 +86,20 @@ mod adaptors;
 pub mod free;
 #[doc(inline)]
 pub use free::*;
-mod cons_tuples;
+mod cons_tuples_impl;
 mod diff;
 mod format;
 mod groupbylazy;
 mod intersperse;
-mod kmerge;
+mod kmerge_impl;
 mod minmax;
 mod pad_tail;
-mod rciter;
+mod rciter_impl;
 mod repeatn;
 mod size_hint;
 mod sources;
 mod tee;
-mod zip_eq;
+mod zip_eq_impl;
 mod zip_longest;
 mod ziptuple;
 
