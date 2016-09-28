@@ -1,5 +1,71 @@
 use std::collections::VecDeque;
 use std::marker::PhantomData;
+use std::ptr;
+
+/// An iterator that groups the items in tuples of a specific size.
+///
+/// See [`.tuples()`](../trait.Itertools.html#method.tuples) for more information.
+pub struct Tuples<I, T>
+    where I: Iterator
+{
+    iter: I,
+    buf: Vec<I::Item>,
+    _marker: PhantomData<T>,
+}
+
+/// Create a new tuples iterator.
+pub fn tuples<I, T>(iter: I) -> Tuples<I, T>
+    where I: Iterator,
+          T: TupleCollect<I>,
+{
+    Tuples {
+        iter: iter,
+        buf: Vec::with_capacity(T::num_items()),
+        _marker: PhantomData
+    }
+}
+
+impl<I, T> Iterator for Tuples<I, T>
+    where I: Iterator,
+          T: TupleCollect<I>
+{
+    type Item = T;
+
+    fn next(&mut self) -> Option<T> {
+        T::try_collect_from_tuples(self)
+    }
+}
+
+impl<I, T> Tuples<I, T>
+    where I: Iterator,
+          T: TupleCollect<I>
+{
+    fn get(&mut self) -> Option<&mut Vec<I::Item>> {
+        for (_, item) in (0..T::num_items()).zip(self.iter.by_ref()) {
+            self.buf.push(item);
+        }
+        if self.buf.len() == T::num_items() {
+            Some(&mut self.buf)
+        } else {
+            None
+        }
+    }
+
+    /// Return a buffer with the produced items that was not enough to be grouped in a tuple.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut iter = (0..5).tuples();
+    /// assert_eq!(Some((0, 1, 2)), iter.next());
+    /// assert_eq!(None, iter.next());
+    /// assert_eq!(vec![3, 4], iter.into_buffer());
+    /// ```
+    pub fn into_buffer(self) -> Vec<I::Item> {
+        self.buf
+    }
+}
+
 
 /// An iterator over all contiguous windows that produces tuples of a specific size.
 ///
@@ -81,6 +147,8 @@ impl<I, T> TupleWindows<I, T>
 pub trait TupleCollect<I>: Sized
     where I: Iterator
 {
+    fn try_collect_from_tuples(iter: &mut Tuples<I, Self>) -> Option<Self>;
+
     fn try_collect_from_iter_windows(iter: &mut TupleWindows<I, Self>) -> Option<Self>
         where I::Item: Clone;
 
@@ -95,6 +163,22 @@ macro_rules! impl_tuple_collect {
         impl<I, $A> TupleCollect<I> for ($A, $($X),*)
             where I: Iterator<Item = $A>
         {
+            #[allow(unused_assignments, non_snake_case, unused_mut)]
+            fn try_collect_from_tuples(iter: &mut Tuples<I, Self>) -> Option<Self> {
+                iter.get().map(|v| {
+                    unsafe {
+                        let mut p = v.as_ptr();
+                        let r = (
+                            ptr::read(p),
+                            // X must be used, so use it as var name
+                            $({p = p.offset(1); let $X = ptr::read(p); $X }),*
+                            );
+                        v.set_len(0);
+                        r
+                    }
+                })
+            }
+
             #[allow(unused_assignments, non_snake_case, unused_mut, unused_variables)]
             fn try_collect_from_iter_windows(iter: &mut TupleWindows<I, Self>) -> Option<Self>
                 where I::Item: Clone,

@@ -69,7 +69,7 @@ pub mod structs {
     pub use repeatn::RepeatN;
     pub use sources::{RepeatCall, Unfold};
     pub use tee::Tee;
-    pub use tuples::TupleWindows;
+    pub use tuples::{Tuples, TupleWindows};
     pub use zip_eq_impl::ZipEq;
     pub use zip_longest::ZipLongest;
     pub use ziptuple::Zip;
@@ -436,6 +436,41 @@ pub trait Itertools : Iterator {
               T: tuples::TupleCollect<Self>
     {
         tuples::tuple_windows(self)
+    }
+
+    /// Return an iterator that groups the items in tuples of a specific size (up to 4).
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// let mut v = Vec::new();
+    /// for (a, b) in (1..5).tuples() {
+    ///     v.push((a, b));
+    /// }
+    /// assert_eq!(v, vec![(1, 2), (3, 4)]);
+    ///
+    /// let mut it = (1..7).tuples();
+    /// assert_eq!(Some((1, 2, 3)), it.next());
+    /// assert_eq!(Some((4, 5, 6)), it.next());
+    /// assert_eq!(None, it.next());
+    ///
+    /// // this requires a type hint
+    /// let it = (1..7).tuples::<(_, _, _)>();
+    /// itertools::assert_equal(it, vec![(1, 2, 3), (4, 5, 6)]);
+    ///
+    /// // you can also specify the complete type
+    /// use itertools::Tuples;
+    /// use std::ops::Range;
+    ///
+    /// let it: Tuples<Range<u32>, (u32, u32, u32)> = (1..7).tuples();
+    /// itertools::assert_equal(it, vec![(1, 2, 3), (4, 5, 6)]);
+    /// ```
+    ///
+    /// See also [`Tuples::into_buffer`](structs/struct.Tuples.html#method.into_buffer).
+    fn tuples<T>(self) -> Tuples<Self, T>
+        where Self: Sized,
+              T: tuples::TupleCollect<Self>
+    {
+        tuples::tuples(self)
     }
 
     /// Split into an iterator pair that both yield all elements from
