@@ -119,7 +119,7 @@ impl<I, T> TupleWindows<I, T>
         }
     }
 
-    /// Return a pair with the inner iterator and the buffer with the already produced items.
+    /// Return a pair with the buffer with the already produced items and the inner iterator.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -133,14 +133,14 @@ impl<I, T> TupleWindows<I, T>
     ///     }
     /// }
     ///
-    /// let (mut iter, buffer) = w.into_parts();
+    /// let (buffer, mut iter) = w.into_parts();
     /// // Items 4 and 5 was already produced
     /// assert_eq!(VecDeque::from(vec![4, 5]), buffer);
     /// // The next unproduced item is 6
     /// assert_eq!(Some(6), iter.next());
     /// ```
-    pub fn into_parts(self) -> (I, VecDeque<I::Item>) {
-        (self.iter, self.buf)
+    pub fn into_parts(self) -> (VecDeque<I::Item>, I) {
+        (self.buf, self.iter)
     }
 }
 
