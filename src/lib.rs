@@ -473,6 +473,33 @@ pub trait Itertools : Iterator {
         tuples::tuples(self)
     }
 
+
+    /// Advances the iterator and returns the next items grouped in a tuple of a specific size (up
+    /// to 4).
+    ///
+    /// If there is enough elements to be grouped in a tuple, then `OK` is returned containing the
+    /// tuple; otherwise `Err` is returned containing the produced items.
+    ///
+    /// Note that this allocates a vector in each call. Use
+    /// [`.tuples()`](trait.Itertools.html#tymethod.tuples) instead of doing a sequence of calls to
+    /// `next_tuple`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut iter = 1..5;
+    ///
+    /// assert_eq!(Ok((1, 2)), iter.next_tuple());
+    /// assert_eq!(Err(vec![3, 4]), iter.next_tuple::<(_, _, _)>());
+    /// ```
+    fn next_tuple<'a, T>(&'a mut self) -> Result<T, Vec<Self::Item>>
+        where Self: Sized,
+              T: tuples::TupleCollect<&'a mut Self>
+    {
+        let mut t = self.tuples();
+        t.next().ok_or_else(|| t.into_buffer())
+    }
+
     /// Split into an iterator pair that both yield all elements from
     /// the original iterator.
     ///
