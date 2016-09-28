@@ -69,6 +69,7 @@ pub mod structs {
     pub use repeatn::RepeatN;
     pub use sources::{RepeatCall, Unfold};
     pub use tee::Tee;
+    pub use tuples::TupleWindows;
     pub use zip_eq_impl::ZipEq;
     pub use zip_longest::ZipLongest;
     pub use ziptuple::Zip;
@@ -99,6 +100,7 @@ mod repeatn;
 mod size_hint;
 mod sources;
 mod tee;
+mod tuples;
 mod zip_eq_impl;
 mod zip_longest;
 mod ziptuple;
@@ -399,6 +401,41 @@ pub trait Itertools : Iterator {
         where Self: Sized,
     {
         self.chunks(size)
+    }
+
+    /// Return an iterator over all contiguous windows producing tuples of a specific size (up
+    /// to 4).
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// let mut v = Vec::new();
+    /// for (a, b) in (1..5).tuple_windows() {
+    ///     v.push((a, b));
+    /// }
+    /// assert_eq!(v, vec![(1, 2), (2, 3), (3, 4)]);
+    ///
+    /// let mut it = (1..5).tuple_windows();
+    /// assert_eq!(Some((1, 2, 3)), it.next());
+    /// assert_eq!(Some((2, 3, 4)), it.next());
+    /// assert_eq!(None, it.next());
+    ///
+    /// // this requires a type hint
+    /// let it = (1..5).tuple_windows::<(_, _, _)>();
+    /// itertools::assert_equal(it, vec![(1, 2, 3), (2, 3, 4)]);
+    ///
+    /// // you can also specify the complete type
+    /// use itertools::TupleWindows;
+    /// use std::ops::Range;
+    ///
+    /// let it: TupleWindows<Range<u32>, (u32, u32, u32)> = (1..5).tuple_windows();
+    /// itertools::assert_equal(it, vec![(1, 2, 3), (2, 3, 4)]);
+    /// ```
+    fn tuple_windows<T>(self) -> TupleWindows<Self, T>
+        where Self: Sized,
+              Self::Item: Clone,
+              T: tuples::TupleCollect<Self>
+    {
+        tuples::tuple_windows(self)
     }
 
     /// Split into an iterator pair that both yield all elements from
