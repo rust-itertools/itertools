@@ -78,16 +78,9 @@ impl<I, J> Iterator for Interleave<I, J>
         }
     }
 
-    fn size_hint(&self) -> size_hint::SizeHint {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         size_hint::add(self.a.size_hint(), self.b.size_hint())
     }
-}
-
-impl<I, J> ExactSizeIterator for Interleave<I, J>
-    where I: ExactSizeIterator,
-          J: ExactSizeIterator + Iterator<Item = I::Item>,
-          I::Item: Clone
-{
 }
 
 /// An iterator adaptor that alternates elements from the two iterators until
