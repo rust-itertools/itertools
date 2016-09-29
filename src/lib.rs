@@ -433,7 +433,7 @@ pub trait Itertools : Iterator {
     fn tuple_windows<T>(self) -> TupleWindows<Self, T>
         where Self: Sized,
               Self::Item: Clone,
-              T: tuples::TupleCollect<Self>
+              T: tuples::TupleCollect<Self::Item>
     {
         tuples::tuple_windows(self)
     }
@@ -468,7 +468,7 @@ pub trait Itertools : Iterator {
     /// See also [`Tuples::into_buffer`](structs/struct.Tuples.html#method.into_buffer).
     fn tuples<T>(self) -> Tuples<Self, T>
         where Self: Sized,
-              T: tuples::TupleCollect<Self>
+              T: tuples::TupleCollect<Self::Item>
     {
         tuples::tuples(self)
     }
@@ -492,9 +492,9 @@ pub trait Itertools : Iterator {
     /// assert_eq!(Ok((1, 2)), iter.next_tuple());
     /// assert_eq!(Err(vec![3, 4]), iter.next_tuple::<(_, _, _)>());
     /// ```
-    fn next_tuple<'a, T>(&'a mut self) -> Result<T, Vec<Self::Item>>
+    fn next_tuple<T>(&mut self) -> Result<T, Vec<Self::Item>>
         where Self: Sized,
-              T: tuples::TupleCollect<&'a mut Self>
+              T: tuples::TupleCollect<Self::Item>
     {
         let mut t = self.tuples();
         t.next().ok_or_else(|| t.into_buffer())

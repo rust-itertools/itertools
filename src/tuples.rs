@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 use std::marker::PhantomData;
-use std::ptr;
+use super::chain;
 
 /// An iterator that groups the items in tuples of a specific size.
 ///
@@ -16,41 +16,37 @@ pub struct Tuples<I, T>
 /// Create a new tuples iterator.
 pub fn tuples<I, T>(iter: I) -> Tuples<I, T>
     where I: Iterator,
-          T: TupleCollect<I>,
+          T: TupleCollect<I::Item>
 {
     Tuples {
         iter: iter,
         buf: Vec::with_capacity(T::num_items()),
-        _marker: PhantomData
+        _marker: PhantomData,
     }
 }
 
 impl<I, T> Iterator for Tuples<I, T>
     where I: Iterator,
-          T: TupleCollect<I>
+          T: TupleCollect<I::Item>
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        T::try_collect_from_tuples(self)
+        for (_, item) in (0..T::num_items()).zip(self.iter.by_ref()) {
+            self.buf.push(item);
+        }
+        if self.buf.len() == T::num_items() {
+            Some(T::collect_from_iter(self.buf.drain(..)))
+        } else {
+            None
+        }
     }
 }
 
 impl<I, T> Tuples<I, T>
     where I: Iterator,
-          T: TupleCollect<I>
+          T: TupleCollect<I::Item>
 {
-    fn get(&mut self) -> Option<&mut Vec<I::Item>> {
-        for (_, item) in (0..T::num_items()).zip(self.iter.by_ref()) {
-            self.buf.push(item);
-        }
-        if self.buf.len() == T::num_items() {
-            Some(&mut self.buf)
-        } else {
-            None
-        }
-    }
-
     /// Return a buffer with the produced items that was not enough to be grouped in a tuple.
     ///
     /// ```
@@ -82,43 +78,41 @@ pub struct TupleWindows<I, T>
 /// Create a new tuple windows iterator.
 pub fn tuple_windows<I, T>(iter: I) -> TupleWindows<I, T>
     where I: Iterator,
-          T: TupleCollect<I>,
+          T: TupleCollect<I::Item>
 {
     TupleWindows {
         iter: iter,
         buf: VecDeque::with_capacity(T::num_items()),
-        _marker: PhantomData
+        _marker: PhantomData,
     }
 }
 
 impl<I, T> Iterator for TupleWindows<I, T>
     where I: Iterator,
           I::Item: Clone,
-          T: TupleCollect<I>
+          T: TupleCollect<I::Item>
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        T::try_collect_from_iter_windows(self)
-    }
-}
-
-impl<I, T> TupleWindows<I, T>
-    where I: Iterator,
-          T: TupleCollect<I>
-{
-    fn get(&mut self) -> Option<&mut VecDeque<I::Item>> {
         let remmaining = T::num_items() - self.buf.len();
         for (_, item) in (0..remmaining).zip(self.iter.by_ref()) {
             self.buf.push_back(item);
         }
         if self.buf.len() == T::num_items() {
-            Some(&mut self.buf)
+            let first = self.buf.pop_front();
+            let rest = self.buf.iter().cloned();
+            Some(T::collect_from_iter(chain(first, rest)))
         } else {
             None
         }
     }
+}
 
+impl<I, T> TupleWindows<I, T>
+    where I: Iterator,
+          T: TupleCollect<I::Item>
+{
     /// Return a pair with the buffer with the already produced items and the inner iterator.
     ///
     /// ```
@@ -144,15 +138,9 @@ impl<I, T> TupleWindows<I, T>
     }
 }
 
-pub trait TupleCollect<I>: Sized
-    where I: Iterator
-{
-    fn try_collect_from_tuples(iter: &mut Tuples<I, Self>) -> Option<Self>;
-
-    fn try_collect_from_iter_windows(iter: &mut TupleWindows<I, Self>) -> Option<Self>
-        where I::Item: Clone;
-
-    fn collect_from_iter(iter: &mut I) -> Self;
+pub trait TupleCollect<Item>: Sized {
+    fn collect_from_iter<I>(iter: I) -> Self
+        where I: IntoIterator<Item = Item>;
 
     fn num_items() -> usize;
 }
@@ -160,43 +148,12 @@ pub trait TupleCollect<I>: Sized
 macro_rules! impl_tuple_collect {
     () => ();
     ($A:ident $($X:ident)*) => (
-        impl<I, $A> TupleCollect<I> for ($A, $($X),*)
-            where I: Iterator<Item = $A>
-        {
-            #[allow(unused_assignments, non_snake_case, unused_mut)]
-            fn try_collect_from_tuples(iter: &mut Tuples<I, Self>) -> Option<Self> {
-                iter.get().map(|v| {
-                    unsafe {
-                        let mut p = v.as_ptr();
-                        let r = (
-                            ptr::read(p),
-                            // X must be used, so use it as var name
-                            $({p = p.offset(1); let $X = ptr::read(p); $X }),*
-                            );
-                        v.set_len(0);
-                        r
-                    }
-                })
-            }
-
-            #[allow(unused_assignments, non_snake_case, unused_mut, unused_variables)]
-            fn try_collect_from_iter_windows(iter: &mut TupleWindows<I, Self>) -> Option<Self>
-                where I::Item: Clone,
-            {
-                iter.get().map(|v| {
-                    let first = v.pop_front().unwrap();
-                    let mut iter = v.iter().cloned();
-                    let r = (
-                        first,
-                        // X must be used, so use it as var name
-                        $({let $X = iter.next().unwrap(); $X }),*
-                    );
-                    r
-                })
-            }
-
+        impl<$A> TupleCollect<$A> for ($A, $($X),*) {
             #[allow(non_snake_case)]
-            fn collect_from_iter(iter: &mut I) -> Self {
+            fn collect_from_iter<I>(iter: I) -> Self
+                where I: IntoIterator<Item = $A>
+            {
+                let mut iter = iter.into_iter();
                 (
                     iter.next().unwrap(),
                     // X must be used, so use it as var name
