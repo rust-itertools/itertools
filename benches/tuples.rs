@@ -5,57 +5,116 @@ extern crate itertools;
 
 use test::{black_box, Bencher};
 use itertools::Itertools;
+use itertools::tuples::TupleCollect;
 
-#[bench]
-fn tuples_2(b: &mut Bencher) {
-    b.iter(|| {
-        for (a, b) in (0..20_000).tuples() {
-            black_box(a + b);
+macro_rules! def_benchs {
+    ($N:expr; $A:ident, $B:ident, $C:ident, $D:ident, $E:ident, $F:ident; $T:ty) => (
+        #[bench]
+        fn $A(b: &mut Bencher) {
+            let v: Vec<u32> = (0.. $N * 10_000).collect();
+            b.iter(|| {
+                for x in v.iter().tuples::<$T>() {
+                    black_box(&x);
+                }
+            });
         }
-    })
+
+        #[bench]
+        fn $B(b: &mut Bencher) {
+            let v: Vec<u32> = (0.. $N * 10_000).collect();
+            b.iter(|| {
+                for x in v.chunks($N) {
+                    black_box(&x);
+                }
+            });
+        }
+
+        #[bench]
+        fn $C(b: &mut Bencher) {
+            let v: Vec<u32> = (0.. $N * 10_000).collect();
+            b.iter(|| {
+                for x in v.chunks($N) {
+                    // create a tuple from the slice
+                    let x = <$T>::collect_from_iter(x);
+                    black_box(&x);
+                }
+            });
+        }
+
+        #[bench]
+        fn $D(b: &mut Bencher) {
+            let v: Vec<u32> = (0..10_000).collect();
+            b.iter(|| {
+                for x in v.iter().tuple_windows::<$T>() {
+                    black_box(&x);
+                }
+            });
+        }
+
+        #[bench]
+        fn $E(b: &mut Bencher) {
+            let v: Vec<u32> = (0..10_000).collect();
+            b.iter(|| {
+                for x in v.windows($N) {
+                    black_box(&x);
+                }
+            });
+        }
+
+        #[bench]
+        fn $F(b: &mut Bencher) {
+            let v: Vec<u32> = (0..10_000).collect();
+            b.iter(|| {
+                for x in v.windows($N) {
+                    // create a tuple from the slice
+                    let x = <$T>::collect_from_iter(x);
+                    black_box(&x);
+                }
+            });
+        }
+    )
 }
 
-#[bench]
-fn tuples_3(b: &mut Bencher) {
-    b.iter(|| {
-        for (a, b, c) in (0..30_000).tuples() {
-            black_box(a + b + c);
-        }
-    })
+def_benchs!{
+    1;
+    chunks_tuple_1,
+    chunks_slice_1,
+    chunks_slice_tuple_1,
+    windows_tuple_1,
+    windows_slice_1,
+    windows_slice_tuple_1;
+    (&u32, )
 }
 
-#[bench]
-fn tuples_4(b: &mut Bencher) {
-    b.iter(|| {
-        for (a, b, c, d) in (0..40_000).tuples() {
-            black_box(a + b + c + d);
-        }
-    })
+def_benchs!{
+    2;
+    chunks_tuple_2,
+    chunks_slice_2,
+    chunks_slice_tuple_2,
+    windows_tuple_2,
+    windows_slice_2,
+    windows_slice_tuple_2;
+    (&u32, &u32)
 }
 
-#[bench]
-fn tuple_windows_2(b: &mut Bencher) {
-    b.iter(|| {
-        for (a, b) in (0..10_000).tuple_windows() {
-            black_box(a + b);
-        }
-    })
+def_benchs!{
+    3;
+    chunks_tuple_3,
+    chunks_slice_3,
+    chunks_slice_tuple_3,
+    windows_tuple_3,
+    windows_slice_3,
+    windows_slice_tuple_3;
+    (&u32, &u32, &u32)
 }
 
-#[bench]
-fn tuple_windows_3(b: &mut Bencher) {
-    b.iter(|| {
-        for (a, b, c) in (0..10_000).tuple_windows() {
-            black_box(a + b + c);
-        }
-    })
-}
-
-#[bench]
-fn tuple_windows_4(b: &mut Bencher) {
-    b.iter(|| {
-        for (a, b, c, d) in (0..10_000).tuple_windows() {
-            black_box(a + b + c + d);
-        }
-    })
+def_benchs!{
+    4;
+    chunks_tuple_4,
+    chunks_slice_4,
+    chunks_slice_tuple_4,
+    windows_tuple_4,
+    windows_slice_4,
+    windows_slice_tuple_4;
+    (&u32, &u32, &u32, &u32)
 }
