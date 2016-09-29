@@ -345,6 +345,9 @@ quickcheck! {
     fn size_interleave(a: Iter<i16>, b: Iter<i16>) -> bool {
         correct_size_hint(a.interleave(b))
     }
+    fn exact_interleave(a: Iter<i16>, b: Iter<i16>) -> bool {
+        exact_size_for_this(a.interleave(b))
+    }
     fn size_interleave_shortest(a: Iter<i16>, b: Iter<i16>) -> bool {
         correct_size_hint(a.interleave_shortest(b))
     }
