@@ -100,7 +100,9 @@ mod repeatn;
 mod size_hint;
 mod sources;
 mod tee;
-mod tuples;
+// tuples mod have to be public so TupleCollect can be used in benchs
+#[doc(hidden)]
+pub mod tuples;
 mod zip_eq_impl;
 mod zip_longest;
 mod ziptuple;
@@ -480,10 +482,6 @@ pub trait Itertools : Iterator {
     /// If there is enough elements to be grouped in a tuple, then `OK` is returned containing the
     /// tuple; otherwise `Err` is returned containing the produced items.
     ///
-    /// Note that this allocates a vector in each call. Use
-    /// [`.tuples()`](trait.Itertools.html#tymethod.tuples) instead of doing a sequence of calls to
-    /// `next_tuple`.
-    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -496,8 +494,7 @@ pub trait Itertools : Iterator {
         where Self: Sized,
               T: tuples::TupleCollect<Self::Item>
     {
-        let mut t = self.tuples();
-        t.next().ok_or_else(|| t.into_buffer())
+        T::try_collect_from_iter(self)
     }
 
     /// Split into an iterator pair that both yield all elements from

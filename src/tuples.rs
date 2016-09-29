@@ -1,6 +1,7 @@
-use std::collections::VecDeque;
+//! Some iterator that produces tuples
+
 use std::marker::PhantomData;
-use super::chain;
+use super::cloned;
 
 /// An iterator that groups the items in tuples of a specific size.
 ///
@@ -9,7 +10,7 @@ pub struct Tuples<I, T>
     where I: Iterator
 {
     iter: I,
-    buf: Vec<I::Item>,
+    buf: Option<Vec<I::Item>>,
     _marker: PhantomData<T>,
 }
 
@@ -20,7 +21,7 @@ pub fn tuples<I, T>(iter: I) -> Tuples<I, T>
 {
     Tuples {
         iter: iter,
-        buf: Vec::with_capacity(T::num_items()),
+        buf: None,
         _marker: PhantomData,
     }
 }
@@ -32,13 +33,14 @@ impl<I, T> Iterator for Tuples<I, T>
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        for (_, item) in (0..T::num_items()).zip(self.iter.by_ref()) {
-            self.buf.push(item);
-        }
-        if self.buf.len() == T::num_items() {
-            Some(T::collect_from_iter(self.buf.drain(..)))
-        } else {
-            None
+        match T::try_collect_from_iter(&mut self.iter) {
+            Ok(v) => Some(v),
+            Err(buf) => {
+                if self.buf.is_none() {
+                    self.buf = Some(buf);
+                }
+                None
+            }
         }
     }
 }
@@ -58,7 +60,7 @@ impl<I, T> Tuples<I, T>
     /// assert_eq!(vec![3, 4], iter.into_buffer());
     /// ```
     pub fn into_buffer(self) -> Vec<I::Item> {
-        self.buf
+        self.buf.unwrap_or_else(|| vec![])
     }
 }
 
@@ -71,7 +73,7 @@ pub struct TupleWindows<I, T>
     where I: Iterator
 {
     iter: I,
-    buf: VecDeque<I::Item>,
+    buf: Vec<I::Item>,
     _marker: PhantomData<T>,
 }
 
@@ -82,7 +84,7 @@ pub fn tuple_windows<I, T>(iter: I) -> TupleWindows<I, T>
 {
     TupleWindows {
         iter: iter,
-        buf: VecDeque::with_capacity(T::num_items()),
+        buf: Vec::with_capacity(T::num_items()),
         _marker: PhantomData,
     }
 }
@@ -96,13 +98,13 @@ impl<I, T> Iterator for TupleWindows<I, T>
 
     fn next(&mut self) -> Option<T> {
         let remmaining = T::num_items() - self.buf.len();
-        for (_, item) in (0..remmaining).zip(self.iter.by_ref()) {
-            self.buf.push_back(item);
+        for item in self.iter.by_ref().take(remmaining) {
+            self.buf.push(item);
         }
         if self.buf.len() == T::num_items() {
-            let first = self.buf.pop_front();
-            let rest = self.buf.iter().cloned();
-            Some(T::collect_from_iter(chain(first, rest)))
+            let r = Some(T::collect_from_iter(cloned(&self.buf)));
+            self.buf.remove(0);
+            r
         } else {
             None
         }
@@ -129,16 +131,19 @@ impl<I, T> TupleWindows<I, T>
     ///
     /// let (buffer, mut iter) = w.into_parts();
     /// // Items 4 and 5 was already produced
-    /// assert_eq!(VecDeque::from(vec![4, 5]), buffer);
+    /// assert_eq!(vec![4, 5], buffer);
     /// // The next unproduced item is 6
     /// assert_eq!(Some(6), iter.next());
     /// ```
-    pub fn into_parts(self) -> (VecDeque<I::Item>, I) {
+    pub fn into_parts(self) -> (Vec<I::Item>, I) {
         (self.buf, self.iter)
     }
 }
 
 pub trait TupleCollect<Item>: Sized {
+    fn try_collect_from_iter<I>(iter: I) -> Result<Self, Vec<Item>>
+        where I: IntoIterator<Item = Item>;
+
     fn collect_from_iter<I>(iter: I) -> Self
         where I: IntoIterator<Item = Item>;
 
@@ -147,29 +152,42 @@ pub trait TupleCollect<Item>: Sized {
 
 macro_rules! impl_tuple_collect {
     () => ();
-    ($A:ident $($X:ident)*) => (
-        impl<$A> TupleCollect<$A> for ($A, $($X),*) {
-            #[allow(non_snake_case)]
+    ($A:ident ; $($X:ident),* ; $($Y:ident),*) => (
+        impl<$A> TupleCollect<$A> for ($($X),*,) {
+            fn try_collect_from_iter<I>(iter: I) -> Result<Self, Vec<$A>>
+                where I: IntoIterator<Item = $A>
+            {
+                let mut iter = iter.into_iter();
+                $(let $Y = iter.next();)*
+
+                if $($Y.is_some())&&* {
+                    Ok(($($Y.unwrap()),*,))
+                } else {
+                    let mut v = vec![];
+                    $(if let Some(x) = $Y {
+                        v.push(x);
+                    })*
+                    Err(v)
+                }
+            }
+
             fn collect_from_iter<I>(iter: I) -> Self
                 where I: IntoIterator<Item = $A>
             {
                 let mut iter = iter.into_iter();
-                (
-                    iter.next().unwrap(),
-                    // X must be used, so use it as var name
-                    $({let $X = iter.next().unwrap(); $X }),*
-                )
+                // Y must be used, so use it as var name
+                ($({let $Y = iter.next().unwrap(); $Y }),*,)
             }
 
-            #[allow(non_snake_case)]
             fn num_items() -> usize {
-                // X must be used, so use it as var name
-                1 $(+ { let $X = 1; $X})*
+                // Y must be used, so use it as var name
+                0 $(+ { let $Y = 1; $Y})*
             }
         }
-
-        impl_tuple_collect!($($X)*);
     )
 }
 
-impl_tuple_collect!(A A A A);
+impl_tuple_collect!(A; A; a);
+impl_tuple_collect!(A; A, A; a, b);
+impl_tuple_collect!(A; A, A, A; a, b, c);
+impl_tuple_collect!(A; A, A, A, A; a, b, c, d);
