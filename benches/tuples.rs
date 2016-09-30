@@ -35,7 +35,7 @@ macro_rules! def_benchs {
             b.iter(|| {
                 for x in v.chunks($N) {
                     // create a tuple from the slice
-                    let x = <$T>::collect_from_iter(x);
+                    let x = <$T>::collect_from_iter_(x);
                     black_box(&x);
                 }
             });
@@ -67,7 +67,7 @@ macro_rules! def_benchs {
             b.iter(|| {
                 for x in v.windows($N) {
                     // create a tuple from the slice
-                    let x = <$T>::collect_from_iter(x);
+                    let x = <$T>::collect_from_iter_(x);
                     black_box(&x);
                 }
             });

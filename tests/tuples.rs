@@ -12,23 +12,23 @@ fn tuples() {
     assert_eq!(Some((4,)), iter.next());
     assert_eq!(Some((5,)), iter.next());
     assert_eq!(None, iter.next());
-    assert_eq!(Vec::<usize>::new(), iter.into_buffer());
+    assert_eq!(None, iter.into_buffer().next());
 
     let mut iter = v.iter().cloned().tuples();
     assert_eq!(Some((1, 2)), iter.next());
     assert_eq!(Some((3, 4)), iter.next());
     assert_eq!(None, iter.next());
-    assert_eq!(vec![5], iter.into_buffer());
+    itertools::assert_equal(vec![5], iter.into_buffer());
 
     let mut iter = v.iter().cloned().tuples();
     assert_eq!(Some((1, 2, 3)), iter.next());
     assert_eq!(None, iter.next());
-    assert_eq!(vec![4, 5], iter.into_buffer());
+    itertools::assert_equal(vec![4, 5], iter.into_buffer());
 
     let mut iter = v.iter().cloned().tuples();
     assert_eq!(Some((1, 2, 3, 4)), iter.next());
     assert_eq!(None, iter.next());
-    assert_eq!(vec![5], iter.into_buffer());
+    itertools::assert_equal(vec![5], iter.into_buffer());
 }
 
 #[test]
@@ -39,10 +39,9 @@ fn tuple_windows() {
     assert_eq!(Some((1,)), iter.next());
     assert_eq!(Some((2,)), iter.next());
     assert_eq!(Some((3,)), iter.next());
-    assert_eq!(Some((4,)), iter.next());
-    assert_eq!(Some((5,)), iter.next());
-    assert_eq!(None, iter.next());
-    assert_eq!(Vec::<usize>::new(), iter.into_parts().0);
+    let (mut buffer, mut it) = iter.into_parts();
+    assert_eq!(None, buffer.next());
+    assert_eq!(Some(4), it.next());
 
     let mut iter = v.iter().cloned().tuple_windows();
     assert_eq!(Some((1, 2)), iter.next());
@@ -50,23 +49,31 @@ fn tuple_windows() {
     assert_eq!(Some((3, 4)), iter.next());
     assert_eq!(Some((4, 5)), iter.next());
     assert_eq!(None, iter.next());
-    assert_eq!(Vec::<usize>::new(), iter.into_parts().0);
+    let (mut buffer, mut it) = iter.into_parts();
+    assert_eq!(None, buffer.next());
+    assert_eq!(None, it.next());
 
     let mut iter = v.iter().cloned().tuple_windows();
     assert_eq!(Some((1, 2, 3)), iter.next());
     assert_eq!(Some((2, 3, 4)), iter.next());
     assert_eq!(Some((3, 4, 5)), iter.next());
     assert_eq!(None, iter.next());
-    assert_eq!(Vec::<usize>::new(), iter.into_parts().0);
+    let (mut buffer, mut it) = iter.into_parts();
+    assert_eq!(None, buffer.next());
+    assert_eq!(None, it.next());
 
     let mut iter = v.iter().cloned().tuple_windows();
     assert_eq!(Some((1, 2, 3, 4)), iter.next());
     assert_eq!(Some((2, 3, 4, 5)), iter.next());
     assert_eq!(None, iter.next());
-    assert_eq!(Vec::<usize>::new(), iter.into_parts().0);
+    let (mut buffer, mut it) = iter.into_parts();
+    assert_eq!(None, buffer.next());
+    assert_eq!(None, it.next());
 
     let v = [1, 2, 3];
     let mut iter = v.iter().cloned().tuple_windows::<(_, _, _, _)>();
     assert_eq!(None, iter.next());
-    assert_eq!(vec![1, 2, 3], iter.into_parts().0);
+    let (buffer, mut it) = iter.into_parts();
+    itertools::assert_equal(vec![1, 2, 3], buffer);
+    assert_eq!(None, it.next());
 }

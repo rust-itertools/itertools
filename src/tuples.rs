@@ -3,15 +3,57 @@
 use std::marker::PhantomData;
 use std::iter::Fuse;
 
+/// An iterator over a incomplete tuple.
+///
+/// See [`.next_tuple()`](../trait.Itertools.html#method.tuples),
+/// [`Tuples::into_buffer()`](struct.Tuples.html#method.into_buffer) and
+/// [`TupleWindows::into_parts()`](struct.TupleWindows.html#method.into_parts) for more
+/// information.
+pub struct TupleBuffer<I, T>
+    where T: TupleCollect<I>
+{
+    cur: usize,
+    buf: T::Buffer,
+    _marker: PhantomData<I>,
+}
+
+impl<I, T> TupleBuffer<I, T>
+    where T: TupleCollect<I>
+{
+    fn new(buf: T::Buffer) -> Self {
+        TupleBuffer {
+            cur: 0,
+            buf: buf,
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<I, T> Iterator for TupleBuffer<I, T>
+    where T: TupleCollect<I>
+{
+    type Item = I;
+
+    fn next(&mut self) -> Option<I> {
+        let s = self.buf.as_mut();
+        if let Some(ref mut item) = s.get_mut(self.cur) {
+            self.cur += 1;
+            item.take()
+        } else {
+            None
+        }
+    }
+}
+
 /// An iterator that groups the items in tuples of a specific size.
 ///
 /// See [`.tuples()`](../trait.Itertools.html#method.tuples) for more information.
 pub struct Tuples<I, T>
-    where I: Iterator
+    where I: Iterator,
+          T: TupleCollect<I::Item>
 {
     iter: Fuse<I>,
-    buf: Option<Vec<I::Item>>,
-    _marker: PhantomData<T>,
+    buf: T::Buffer,
 }
 
 /// Create a new tuples iterator.
@@ -21,8 +63,7 @@ pub fn tuples<I, T>(iter: I) -> Tuples<I, T>
 {
     Tuples {
         iter: iter.fuse(),
-        buf: None,
-        _marker: PhantomData,
+        buf: Default::default(),
     }
 }
 
@@ -33,15 +74,7 @@ impl<I, T> Iterator for Tuples<I, T>
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        match T::try_collect_from_iter(&mut self.iter) {
-            Ok(v) => Some(v),
-            Err(buf) => {
-                if self.buf.is_none() {
-                    self.buf = Some(buf);
-                }
-                None
-            }
-        }
+        T::collect_from_iter(&mut self.iter, &mut self.buf)
     }
 }
 
@@ -57,10 +90,10 @@ impl<I, T> Tuples<I, T>
     /// let mut iter = (0..5).tuples();
     /// assert_eq!(Some((0, 1, 2)), iter.next());
     /// assert_eq!(None, iter.next());
-    /// assert_eq!(vec![3, 4], iter.into_buffer());
+    /// itertools::assert_equal(vec![3, 4], iter.into_buffer());
     /// ```
-    pub fn into_buffer(self) -> Vec<I::Item> {
-        self.buf.unwrap_or_else(|| vec![])
+    pub fn into_buffer(self) -> TupleBuffer<I::Item, T> {
+        TupleBuffer::new(self.buf)
     }
 }
 
@@ -70,11 +103,12 @@ impl<I, T> Tuples<I, T>
 /// See [`.tuple_windows()`](../trait.Itertools.html#method.tuple_windows) for more
 /// information.
 pub struct TupleWindows<I, T>
-    where I: Iterator
+    where I: Iterator,
+          T: TupleCollect<I::Item>
 {
-    iter: Fuse<I>,
+    iter: I,
     last: Option<T>,
-    buf: Option<Vec<I::Item>>,
+    buf: T::Buffer,
     _marker: PhantomData<T>,
 }
 
@@ -84,9 +118,9 @@ pub fn tuple_windows<I, T>(iter: I) -> TupleWindows<I, T>
           T: TupleCollect<I::Item>
 {
     TupleWindows {
-        iter: iter.fuse(),
+        iter: iter,
         last: None,
-        buf: None,
+        buf: Default::default(),
         _marker: PhantomData,
     }
 }
@@ -104,29 +138,18 @@ impl<I, T> Iterator for TupleWindows<I, T>
                 last.left_shift_push(new);
                 Some(last.clone())
             } else {
-                self.buf = Some(vec![]);
                 None
             }
         } else {
-            match T::try_collect_from_iter(&mut self.iter) {
-                Ok(v) => {
-                    self.last = Some(v);
-                    self.last.clone()
-                },
-                Err(buf) => {
-                    if self.buf.is_none() {
-                        self.buf = Some(buf);
-                    }
-                    None
-                }
-            }
+            self.last = T::collect_from_iter(&mut self.iter, &mut self.buf);
+            self.last.clone()
         }
     }
 }
 
 impl<I, T> TupleWindows<I, T>
     where I: Iterator,
-          T: TupleCollect<I::Item> + ::std::fmt::Debug
+          T: TupleCollect<I::Item>
 {
     /// Return a pair with a buffer containing the items that was produced but not consumed and the
     /// inner iterator.
@@ -137,9 +160,9 @@ impl<I, T> TupleWindows<I, T>
     /// let mut w = (0..10).tuple_windows();
     /// assert_eq!(Some((0, 1, 2)), w.next());
     ///
-    /// let (buffer, mut iter) = w.into_parts();
+    /// let (mut buffer, mut iter) = w.into_parts();
     /// // Every produced item was consumed
-    /// assert!(buffer.is_empty());
+    /// assert_eq!(None, buffer.next());
     /// // The next item is 6
     /// assert_eq!(Some(3), iter.next());
     ///
@@ -148,54 +171,80 @@ impl<I, T> TupleWindows<I, T>
     ///
     /// let (buffer, mut iter) = w.into_parts();
     /// // The items 0 and 1 was produced but not consumed
-    /// assert_eq!(vec![0, 1], buffer);
+    /// itertools::assert_equal(vec![0, 1], buffer);
     /// // The is no more items
     /// assert_eq!(None, iter.next());
     /// ```
-    pub fn into_parts(self) -> (Vec<I::Item>, Fuse<I>) {
-        (self.buf.unwrap_or_else(|| vec![]), self.iter)
+    pub fn into_parts(self) -> (TupleBuffer<I::Item, T>, I) {
+        (TupleBuffer::new(self.buf), self.iter)
     }
 }
 
 pub trait TupleCollect<Item>: Sized {
-    fn try_collect_from_iter<I>(iter: I) -> Result<Self, Vec<Item>>
+    type Buffer: Default + AsMut<[Option<Item>]>;
+
+    fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
         where I: IntoIterator<Item = Item>;
 
-    fn collect_from_iter<I>(iter: I) -> Self
+    // used on benchs
+    fn collect_from_iter_<I>(iter: I) -> Self
         where I: IntoIterator<Item = Item>;
+
+    fn try_collect_from_iter<I>(iter: I) -> Result<Self, TupleBuffer<Item, Self>>
+        where I: IntoIterator<Item = Item>
+    {
+        let mut buf = Default::default();
+        if let Some(t) = Self::collect_from_iter(iter, &mut buf) {
+            Ok(t)
+        } else {
+            Err(TupleBuffer::new(buf))
+        }
+    }
 
     fn left_shift_push(&mut self, item: Item);
-
-    fn into_vec(self) -> Vec<Item>;
 }
 
 macro_rules! impl_tuple_collect {
     () => ();
-    ($A:ident ; $($X:ident),* ; $($Y:ident),* ; $($Y_rev:ident),*) => (
+    ($N:expr; $A:ident ; $($X:ident),* ; $($Y:ident),* ; $($Y_rev:ident),*) => (
         impl<$A> TupleCollect<$A> for ($($X),*,) {
-            fn try_collect_from_iter<I>(iter: I) -> Result<Self, Vec<$A>>
+            type Buffer = [Option<$A>; $N - 1];
+
+            #[allow(unused_assignments)]
+            fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
                 where I: IntoIterator<Item = $A>
             {
                 let mut iter = iter.into_iter();
-                $(let $Y = iter.next();)*
+                $(
+                    let mut $Y = None;
+                )*
 
-                if $($Y.is_some())&&* {
-                    Ok(($($Y.unwrap()),*,))
-                } else {
-                    let mut v = vec![];
-                    $(if let Some(x) = $Y {
-                        v.push(x);
-                    })*
-                    Err(v)
+                loop {
+                    $(
+                        $Y = iter.next();
+                        if $Y.is_none() {
+                            break
+                        }
+                    )*
+                    return Some(($($Y.unwrap()),*,))
                 }
+
+                let mut i = 0;
+                let mut s = buf.as_mut();
+                $(
+                    if i < s.len() {
+                        s[i] = $Y;
+                        i += 1;
+                    }
+                )*
+                return None;
             }
 
-            fn collect_from_iter<I>(iter: I) -> Self
+            fn collect_from_iter_<I>(iter: I) -> Self
                 where I: IntoIterator<Item = $A>
             {
                 let mut iter = iter.into_iter();
-                // Y must be used, so use it as var name
-                ($({let $Y = iter.next().unwrap(); $Y }),*,)
+                ($({let $Y = iter.next().unwrap(); $Y}),*,)
             }
 
             fn left_shift_push(&mut self, item: $A) {
@@ -208,20 +257,11 @@ macro_rules! impl_tuple_collect {
                 )*
                 drop(tmp);
             }
-
-            fn into_vec(self) -> Vec<$A> {
-                let ($($Y),*,) = self;
-                let mut v = vec![];
-                $(
-                    v.push($Y);
-                )*
-                v
-            }
         }
     )
 }
 
-impl_tuple_collect!(A; A; a; a);
-impl_tuple_collect!(A; A, A; a, b; b, a);
-impl_tuple_collect!(A; A, A, A; a, b, c; c, b, a);
-impl_tuple_collect!(A; A, A, A, A; a, b, c, d; d, c, b, a);
+impl_tuple_collect!(1; A; A; a; a);
+impl_tuple_collect!(2; A; A, A; a, b; b, a);
+impl_tuple_collect!(3; A; A, A, A; a, b, c; c, b, a);
+impl_tuple_collect!(4; A; A, A, A, A; a, b, c, d; d, c, b, a);

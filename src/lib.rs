@@ -69,7 +69,7 @@ pub mod structs {
     pub use repeatn::RepeatN;
     pub use sources::{RepeatCall, Unfold};
     pub use tee::Tee;
-    pub use tuples::{Tuples, TupleWindows};
+    pub use tuples::{TupleBuffer, TupleWindows, Tuples};
     pub use zip_eq_impl::ZipEq;
     pub use zip_longest::ZipLongest;
     pub use ziptuple::Zip;
@@ -475,7 +475,6 @@ pub trait Itertools : Iterator {
         tuples::tuples(self)
     }
 
-
     /// Advances the iterator and returns the next items grouped in a tuple of a specific size (up
     /// to 4).
     ///
@@ -487,10 +486,11 @@ pub trait Itertools : Iterator {
     ///
     /// let mut iter = 1..5;
     ///
-    /// assert_eq!(Ok((1, 2)), iter.next_tuple());
-    /// assert_eq!(Err(vec![3, 4]), iter.next_tuple::<(_, _, _)>());
+    /// assert_eq!(Some((1, 2)), iter.next_tuple().ok());
+    /// let buf = iter.next_tuple::<(_, _, _)>().unwrap_err();
+    /// itertools::assert_equal(vec![3, 4], buf);
     /// ```
-    fn next_tuple<T>(&mut self) -> Result<T, Vec<Self::Item>>
+    fn next_tuple<T>(&mut self) -> Result<T, TupleBuffer<Self::Item, T>>
         where Self: Sized,
               T: tuples::TupleCollect<Self::Item>
     {
