@@ -106,19 +106,20 @@ pub struct TupleWindows<I, T>
 {
     iter: I,
     last: Option<T>,
-    buf: T::Buffer,
+    done: bool,
     _marker: PhantomData<T>,
 }
 
 /// Create a new tuple windows iterator.
-pub fn tuple_windows<I, T>(iter: I) -> TupleWindows<I, T>
+pub fn tuple_windows<I, T>(mut iter: I) -> TupleWindows<I, T>
     where I: Iterator<Item = T::Item>,
           T: TupleCollect
 {
+    let elt = T::collect_no_buf(&mut iter);
     TupleWindows {
+        done: elt.is_none(),
+        last: elt,
         iter: iter,
-        last: None,
-        buf: Default::default(),
         _marker: PhantomData,
     }
 }
@@ -131,16 +132,20 @@ impl<I, T> Iterator for TupleWindows<I, T>
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        if let Some(ref mut last) = self.last {
-            if let Some(new) = self.iter.next() {
-                last.left_shift_push(new);
-                Some(last.clone())
-            } else {
-                None
+        if self.done {
+            return None;
+        }
+        match self.last {
+            None => return None,
+            Some(ref mut last) => {
+                let ret = Some(last.clone());
+                if let Some(new) = self.iter.next() {
+                    last.left_shift_push(new);
+                } else {
+                    self.done = true;
+                };
+                ret
             }
-        } else {
-            self.last = T::collect_from_iter(&mut self.iter, &mut self.buf);
-            self.last.clone()
         }
     }
 }
@@ -174,7 +179,7 @@ impl<I, T> TupleWindows<I, T>
     /// assert_eq!(None, iter.next());
     /// ```
     pub fn into_parts(self) -> (TupleBuffer<T>, I) {
-        (TupleBuffer::new(self.buf), self.iter)
+        panic!()
     }
 }
 
@@ -182,6 +187,8 @@ pub trait TupleCollect: Sized {
     type Item;
     type Buffer: Default + AsMut<[Option<Self::Item>]>;
 
+    fn collect_no_buf<I>(iter: I) -> Option<Self>
+        where I: IntoIterator<Item = Self::Item>;
     fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
         where I: IntoIterator<Item = Self::Item>;
 
@@ -209,6 +216,25 @@ macro_rules! impl_tuple_collect {
         impl<$A> TupleCollect for ($($X),*,) {
             type Item = $A;
             type Buffer = [Option<$A>; $N - 1];
+
+            #[allow(unused_assignments)]
+            fn collect_no_buf<I>(iter: I) -> Option<Self>
+                where I: IntoIterator<Item = $A>
+            {
+                let mut iter = iter.into_iter();
+
+                loop {
+                    $(
+                        let $Y = match iter.next() {
+                            Some(x) => x,
+                            None => break,
+                        };
+                    )*
+                    return Some(($($Y),*,))
+                }
+
+                return None;
+            }
 
             #[allow(unused_assignments)]
             fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
