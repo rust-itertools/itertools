@@ -1,6 +1,7 @@
 //! Some iterator that produces tuples
 
 use std::marker::PhantomData;
+use std::iter::Fuse;
 
 /// An iterator that groups the items in tuples of a specific size.
 ///
@@ -8,7 +9,7 @@ use std::marker::PhantomData;
 pub struct Tuples<I, T>
     where I: Iterator
 {
-    iter: I,
+    iter: Fuse<I>,
     buf: Option<Vec<I::Item>>,
     _marker: PhantomData<T>,
 }
@@ -19,7 +20,7 @@ pub fn tuples<I, T>(iter: I) -> Tuples<I, T>
           T: TupleCollect<I::Item>
 {
     Tuples {
-        iter: iter,
+        iter: iter.fuse(),
         buf: None,
         _marker: PhantomData,
     }
@@ -71,7 +72,7 @@ impl<I, T> Tuples<I, T>
 pub struct TupleWindows<I, T>
     where I: Iterator
 {
-    iter: I,
+    iter: Fuse<I>,
     last: Option<T>,
     buf: Option<Vec<I::Item>>,
     _marker: PhantomData<T>,
@@ -83,7 +84,7 @@ pub fn tuple_windows<I, T>(iter: I) -> TupleWindows<I, T>
           T: TupleCollect<I::Item>
 {
     TupleWindows {
-        iter: iter,
+        iter: iter.fuse(),
         last: None,
         buf: None,
         _marker: PhantomData,
@@ -151,7 +152,7 @@ impl<I, T> TupleWindows<I, T>
     /// // The is no more items
     /// assert_eq!(None, iter.next());
     /// ```
-    pub fn into_parts(self) -> (Vec<I::Item>, I) {
+    pub fn into_parts(self) -> (Vec<I::Item>, Fuse<I>) {
         (self.buf.unwrap_or_else(|| vec![]), self.iter)
     }
 }
