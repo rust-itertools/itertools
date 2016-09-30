@@ -45,9 +45,11 @@ macro_rules! def_benchs {
         fn $D(b: &mut Bencher) {
             let v: Vec<u32> = (0..10_000).collect();
             b.iter(|| {
+                let mut s = 0;
                 for x in v.iter().tuple_windows::<$T>() {
-                    black_box(&x);
+                    s += *x.0;
                 }
+                s
             });
         }
 
@@ -55,9 +57,11 @@ macro_rules! def_benchs {
         fn $E(b: &mut Bencher) {
             let v: Vec<u32> = (0..10_000).collect();
             b.iter(|| {
+                let mut s = 0;
                 for x in v.windows($N) {
-                    black_box(&x);
+                    s += x[0];
                 }
+                s
             });
         }
 
