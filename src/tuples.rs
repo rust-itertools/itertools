@@ -9,32 +9,30 @@ use std::iter::Fuse;
 /// [`Tuples::into_buffer()`](struct.Tuples.html#method.into_buffer) and
 /// [`TupleWindows::into_parts()`](struct.TupleWindows.html#method.into_parts) for more
 /// information.
-pub struct TupleBuffer<I, T>
-    where T: TupleCollect<I>
+pub struct TupleBuffer<T>
+    where T: TupleCollect
 {
     cur: usize,
     buf: T::Buffer,
-    _marker: PhantomData<I>,
 }
 
-impl<I, T> TupleBuffer<I, T>
-    where T: TupleCollect<I>
+impl<T> TupleBuffer<T>
+    where T: TupleCollect
 {
     fn new(buf: T::Buffer) -> Self {
         TupleBuffer {
             cur: 0,
             buf: buf,
-            _marker: PhantomData,
         }
     }
 }
 
-impl<I, T> Iterator for TupleBuffer<I, T>
-    where T: TupleCollect<I>
+impl<T> Iterator for TupleBuffer<T>
+    where T: TupleCollect
 {
-    type Item = I;
+    type Item = T::Item;
 
-    fn next(&mut self) -> Option<I> {
+    fn next(&mut self) -> Option<Self::Item> {
         let s = self.buf.as_mut();
         if let Some(ref mut item) = s.get_mut(self.cur) {
             self.cur += 1;
@@ -49,8 +47,8 @@ impl<I, T> Iterator for TupleBuffer<I, T>
 ///
 /// See [`.tuples()`](../trait.Itertools.html#method.tuples) for more information.
 pub struct Tuples<I, T>
-    where I: Iterator,
-          T: TupleCollect<I::Item>
+    where I: Iterator<Item = T::Item>,
+          T: TupleCollect
 {
     iter: Fuse<I>,
     buf: T::Buffer,
@@ -58,8 +56,8 @@ pub struct Tuples<I, T>
 
 /// Create a new tuples iterator.
 pub fn tuples<I, T>(iter: I) -> Tuples<I, T>
-    where I: Iterator,
-          T: TupleCollect<I::Item>
+    where I: Iterator<Item = T::Item>,
+          T: TupleCollect
 {
     Tuples {
         iter: iter.fuse(),
@@ -68,8 +66,8 @@ pub fn tuples<I, T>(iter: I) -> Tuples<I, T>
 }
 
 impl<I, T> Iterator for Tuples<I, T>
-    where I: Iterator,
-          T: TupleCollect<I::Item>
+    where I: Iterator<Item = T::Item>,
+          T: TupleCollect
 {
     type Item = T;
 
@@ -79,8 +77,8 @@ impl<I, T> Iterator for Tuples<I, T>
 }
 
 impl<I, T> Tuples<I, T>
-    where I: Iterator,
-          T: TupleCollect<I::Item>
+    where I: Iterator<Item = T::Item>,
+          T: TupleCollect
 {
     /// Return a buffer with the produced items that was not enough to be grouped in a tuple.
     ///
@@ -92,7 +90,7 @@ impl<I, T> Tuples<I, T>
     /// assert_eq!(None, iter.next());
     /// itertools::assert_equal(vec![3, 4], iter.into_buffer());
     /// ```
-    pub fn into_buffer(self) -> TupleBuffer<I::Item, T> {
+    pub fn into_buffer(self) -> TupleBuffer<T> {
         TupleBuffer::new(self.buf)
     }
 }
@@ -103,8 +101,8 @@ impl<I, T> Tuples<I, T>
 /// See [`.tuple_windows()`](../trait.Itertools.html#method.tuple_windows) for more
 /// information.
 pub struct TupleWindows<I, T>
-    where I: Iterator,
-          T: TupleCollect<I::Item>
+    where I: Iterator<Item = T::Item>,
+          T: TupleCollect
 {
     iter: I,
     last: Option<T>,
@@ -114,8 +112,8 @@ pub struct TupleWindows<I, T>
 
 /// Create a new tuple windows iterator.
 pub fn tuple_windows<I, T>(iter: I) -> TupleWindows<I, T>
-    where I: Iterator,
-          T: TupleCollect<I::Item>
+    where I: Iterator<Item = T::Item>,
+          T: TupleCollect
 {
     TupleWindows {
         iter: iter,
@@ -126,9 +124,9 @@ pub fn tuple_windows<I, T>(iter: I) -> TupleWindows<I, T>
 }
 
 impl<I, T> Iterator for TupleWindows<I, T>
-    where I: Iterator,
-          I::Item: Clone,
-          T: TupleCollect<I::Item> + Clone
+    where I: Iterator<Item = T::Item>,
+          T: TupleCollect + Clone,
+          T::Item: Clone
 {
     type Item = T;
 
@@ -148,8 +146,8 @@ impl<I, T> Iterator for TupleWindows<I, T>
 }
 
 impl<I, T> TupleWindows<I, T>
-    where I: Iterator,
-          T: TupleCollect<I::Item>
+    where I: Iterator<Item = T::Item>,
+          T: TupleCollect
 {
     /// Return a pair with a buffer containing the items that was produced but not consumed and the
     /// inner iterator.
@@ -175,23 +173,24 @@ impl<I, T> TupleWindows<I, T>
     /// // The is no more items
     /// assert_eq!(None, iter.next());
     /// ```
-    pub fn into_parts(self) -> (TupleBuffer<I::Item, T>, I) {
+    pub fn into_parts(self) -> (TupleBuffer<T>, I) {
         (TupleBuffer::new(self.buf), self.iter)
     }
 }
 
-pub trait TupleCollect<Item>: Sized {
-    type Buffer: Default + AsMut<[Option<Item>]>;
+pub trait TupleCollect: Sized {
+    type Item;
+    type Buffer: Default + AsMut<[Option<Self::Item>]>;
 
     fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
-        where I: IntoIterator<Item = Item>;
+        where I: IntoIterator<Item = Self::Item>;
 
     // used on benchs
     fn collect_from_iter_<I>(iter: I) -> Self
-        where I: IntoIterator<Item = Item>;
+        where I: IntoIterator<Item = Self::Item>;
 
-    fn try_collect_from_iter<I>(iter: I) -> Result<Self, TupleBuffer<Item, Self>>
-        where I: IntoIterator<Item = Item>
+    fn try_collect_from_iter<I>(iter: I) -> Result<Self, TupleBuffer<Self>>
+        where I: IntoIterator<Item = Self::Item>
     {
         let mut buf = Default::default();
         if let Some(t) = Self::collect_from_iter(iter, &mut buf) {
@@ -201,13 +200,14 @@ pub trait TupleCollect<Item>: Sized {
         }
     }
 
-    fn left_shift_push(&mut self, item: Item);
+    fn left_shift_push(&mut self, item: Self::Item);
 }
 
 macro_rules! impl_tuple_collect {
     () => ();
     ($N:expr; $A:ident ; $($X:ident),* ; $($Y:ident),* ; $($Y_rev:ident),*) => (
-        impl<$A> TupleCollect<$A> for ($($X),*,) {
+        impl<$A> TupleCollect for ($($X),*,) {
+            type Item = $A;
             type Buffer = [Option<$A>; $N - 1];
 
             #[allow(unused_assignments)]
