@@ -213,7 +213,7 @@ pub trait TupleCollect: Sized {
 macro_rules! impl_tuple_collect {
     () => ();
     ($N:expr; $A:ident ; $($X:ident),* ; $($Y:ident),* ; $($Y_rev:ident),*) => (
-        impl<$A> TupleCollect for ($($X),*,) {
+        impl<$A> TupleCollect for ($($X,)*) {
             type Item = $A;
             type Buffer = [Option<$A>; $N - 1];
 
@@ -230,7 +230,7 @@ macro_rules! impl_tuple_collect {
                             None => break,
                         };
                     )*
-                    return Some(($($Y),*,))
+                    return Some(($($Y,)*))
                 }
 
                 return None;
@@ -276,10 +276,10 @@ macro_rules! impl_tuple_collect {
             fn left_shift_push(&mut self, item: $A) {
                 use std::mem::replace;
 
-                let &mut ($(ref mut $Y),*,) = self;
-                let tmp = item;
+                let ($(ref mut $Y,)*) = *self;
+                let mut tmp = item;
                 $(
-                    let tmp = replace($Y_rev, tmp);
+                    tmp = replace($Y_rev, tmp);
                 )*
                 drop(tmp);
             }
