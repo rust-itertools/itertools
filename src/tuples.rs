@@ -115,7 +115,11 @@ pub fn tuple_windows<I, T>(mut iter: I) -> TupleWindows<I, T>
     where I: Iterator<Item = T::Item>,
           T: TupleCollect
 {
-    let elt = T::collect_no_buf(&mut iter);
+    let elt = if T::is_unary() {
+        None
+    } else {
+        T::collect_no_buf(&mut iter)
+    };
     TupleWindows {
         done: elt.is_none(),
         last: elt,
@@ -132,6 +136,9 @@ impl<I, T> Iterator for TupleWindows<I, T>
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
+        if T::is_unary() {
+            return T::collect_no_buf(&mut self.iter);
+        }
         if self.done {
             return None;
         }
@@ -187,6 +194,7 @@ pub trait TupleCollect: Sized {
     type Item;
     type Buffer: Default + AsMut<[Option<Self::Item>]>;
 
+    fn is_unary() -> bool;
     fn collect_no_buf<I>(iter: I) -> Option<Self>
         where I: IntoIterator<Item = Self::Item>;
     fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
@@ -217,6 +225,7 @@ macro_rules! impl_tuple_collect {
             type Item = $A;
             type Buffer = [Option<$A>; $N - 1];
 
+            fn is_unary() -> bool { $N == 1 }
             #[allow(unused_assignments)]
             fn collect_no_buf<I>(iter: I) -> Option<Self>
                 where I: IntoIterator<Item = $A>
