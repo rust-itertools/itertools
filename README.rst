@@ -6,7 +6,7 @@ Extra iterator adaptors, functions and macros. Requires Rust 1.11 or later.
 
 Please read the `API documentation here`__
 
-__ https://bluss.github.io/rust-itertools/
+__ https://docs.rs/itertools/
 
 |build_status|_ |crates|_
 

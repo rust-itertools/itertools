@@ -25,6 +25,7 @@
 //! except according to those terms.
 //!
 //!
+#![doc(html_root_url="https://docs.rs/itertools/")]
 
 extern crate either;
 
