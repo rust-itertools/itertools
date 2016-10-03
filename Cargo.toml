@@ -13,6 +13,7 @@ keywords = ["iterator", "data-structure", "zip", "product", "group-by"]
 
 [lib]
 bench = false
+test = false
 
 [dependencies]
 either = { version = "1.0", default-features = false }
