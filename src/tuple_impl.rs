@@ -115,6 +115,8 @@ pub fn tuple_windows<I, T>(mut iter: I) -> TupleWindows<I, T>
 
     let mut last = None;
     if T::num_items() != 1 {
+        // put in a duplicate item in front of the tuple; this simplifies
+        // .next() function.
         if let Some(item) = iter.next() {
             let iter = once(item.clone()).chain(once(item)).chain(&mut iter);
             last = T::collect_from_iter_no_buf(iter);
@@ -155,18 +157,8 @@ pub trait TupleCollect: Sized {
     fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
         where I: IntoIterator<Item = Self::Item>;
 
-    fn collect_from_iter_no_buf<I>(iter: I) -> Option<Self> where I: IntoIterator<Item = Self::Item>;
-
-    fn try_collect_from_iter<I>(iter: I) -> Result<Self, TupleBuffer<Self>>
-        where I: IntoIterator<Item = Self::Item>
-    {
-        let mut buf = Default::default();
-        if let Some(t) = Self::collect_from_iter(iter, &mut buf) {
-            Ok(t)
-        } else {
-            Err(TupleBuffer::new(buf))
-        }
-    }
+    fn collect_from_iter_no_buf<I>(iter: I) -> Option<Self>
+        where I: IntoIterator<Item = Self::Item>;
 
     fn num_items() -> usize;
 

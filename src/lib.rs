@@ -185,8 +185,9 @@ macro_rules! izip {
 /// of an adaptor is [`.interleave()`](#method.interleave)
 ///
 /// * *Regular methods* are those that don't return iterators and instead
-/// return a regular value of some other kind. [`.find_position()`](#method.find_position)
-/// is an example and the first regular method in the list.
+/// return a regular value of some other kind.
+/// [`.next_tuple()`](#method.next_tuple) is an example and the first regular
+/// method in the list.
 pub trait Itertools : Iterator {
     // adaptors
 
@@ -284,8 +285,9 @@ pub trait Itertools : Iterator {
         zip_eq(self, other)
     }
 
-    /// A “meta iterator adaptor”. Its closure recives a reference to the iterator
-    /// and may pick off as many elements as it likes, to produce the next iterator element.
+    /// A “meta iterator adaptor”. Its closure recives a reference to the
+    /// iterator and may pick off as many elements as it likes, to produce the
+    /// next iterator element.
     ///
     /// Iterator element type is `B`.
     ///
@@ -404,8 +406,8 @@ pub trait Itertools : Iterator {
         self.chunks(size)
     }
 
-    /// Return an iterator over all contiguous windows producing tuples of a specific size (up
-    /// to 4).
+    /// Return an iterator over all contiguous windows producing tuples of
+    /// a specific size (up to 4).
     ///
     /// ```
     /// use itertools::Itertools;
@@ -439,7 +441,10 @@ pub trait Itertools : Iterator {
         tuple_impl::tuple_windows(self)
     }
 
-    /// Return an iterator that groups the items in tuples of a specific size (up to 4).
+    /// Return an iterator that groups the items in tuples of a specific size
+    /// (up to 4).
+    ///
+    /// See also the method [`.next_tuple()`](#method.next_tuple).
     ///
     /// ```
     /// use itertools::Itertools;
@@ -472,28 +477,6 @@ pub trait Itertools : Iterator {
               T: tuple_impl::TupleCollect
     {
         tuple_impl::tuples(self)
-    }
-
-    /// Advances the iterator and returns the next items grouped in a tuple of a specific size (up
-    /// to 4).
-    ///
-    /// If there is enough elements to be grouped in a tuple, then `OK` is returned containing the
-    /// tuple; otherwise `Err` is returned containing the produced items.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// let mut iter = 1..5;
-    ///
-    /// assert_eq!(Some((1, 2)), iter.next_tuple().ok());
-    /// let buf = iter.next_tuple::<(_, _, _)>().unwrap_err();
-    /// itertools::assert_equal(vec![3, 4], buf);
-    /// ```
-    fn next_tuple<T>(&mut self) -> Result<T, TupleBuffer<T>>
-        where Self: Sized + Iterator<Item = T::Item>,
-              T: tuple_impl::TupleCollect
-    {
-        T::try_collect_from_iter(self)
     }
 
     /// Split into an iterator pair that both yield all elements from
@@ -542,8 +525,9 @@ pub trait Itertools : Iterator {
         adaptors::step(self, n)
     }
 
-    /// Return an iterator adaptor that merges the two base iterators in ascending order.
-    /// If both base iterators are sorted (ascending), the result is sorted.
+    /// Return an iterator adaptor that merges the two base iterators in
+    /// ascending order.  If both base iterators are sorted (ascending), the
+    /// result is sorted.
     ///
     /// Iterator element type is `Self::Item`.
     ///
@@ -603,10 +587,10 @@ pub trait Itertools : Iterator {
     /// let it = vec![a, b, c].into_iter().kmerge();
     /// itertools::assert_equal(it, vec![0, 1, 2, 3, 4, 5]);
     /// ```
-    fn kmerge(self) -> KMerge<<<Self as Iterator>::Item as IntoIterator>::IntoIter> where
-        Self: Sized,
-        Self::Item: IntoIterator,
-        <<Self as Iterator>::Item as IntoIterator>::Item: Ord,
+    fn kmerge(self) -> KMerge<<<Self as Iterator>::Item as IntoIterator>::IntoIter>
+        where Self: Sized,
+              Self::Item: IntoIterator,
+              <<Self as Iterator>::Item as IntoIterator>::Item: Ord,
     {
         kmerge(self)
     }
@@ -637,8 +621,8 @@ pub trait Itertools : Iterator {
     /// The closure `f` is passed two elements, `x`, `y` and may return either
     /// (1) `Ok(z)` to merge the two values or (2) `Err((x', y'))` to indicate
     /// they can't be merged. In (2), the value `x'` is emitted by the iterator.
-    /// Coalesce continues with either `z` (1) or `y'` (2), and the next iterator
-    /// element as the next pair of elements to merge.
+    /// Coalesce continues with either `z` (1) or `y'` (2), and the next
+    /// iterator element as the next pair of elements to merge.
     ///
     /// Iterator element type is `Self::Item`.
     ///
@@ -882,6 +866,26 @@ pub trait Itertools : Iterator {
     }
 
     // non-adaptor methods
+    /// Advances the iterator and returns the next items grouped in a tuple of
+    /// a specific size (up to 4).
+    ///
+    /// If there is enough elements to be grouped in a tuple, then the tuple
+    /// is returned inside `Some`, otherwise `None` is returned.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut iter = 1..5;
+    ///
+    /// assert_eq!(Some((1, 2)), iter.next_tuple());
+    /// ```
+    fn next_tuple<T>(&mut self) -> Option<T>
+        where Self: Sized + Iterator<Item = T::Item>,
+              T: tuple_impl::TupleCollect
+    {
+        T::collect_from_iter_no_buf(self)
+    }
+
 
     /// Find the position and value of the first element satisfying a predicate.
     ///

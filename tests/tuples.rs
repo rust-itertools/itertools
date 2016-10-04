@@ -62,3 +62,12 @@ fn tuple_windows() {
     let mut iter = v.iter().cloned().tuple_windows::<(_, _, _, _)>();
     assert_eq!(None, iter.next());
 }
+
+#[test]
+fn next_tuple() {
+    let v = [1, 2, 3, 4, 5];
+    let mut iter = v.iter();
+    assert_eq!(iter.next_tuple().map(|(&x, &y)| (x, y)), Some((1, 2)));
+    assert_eq!(iter.next_tuple().map(|(&x, &y)| (x, y)), Some((3, 4)));
+    assert_eq!(iter.next_tuple::<(_, _)>(), None);
+}
