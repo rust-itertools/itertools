@@ -155,18 +155,8 @@ pub trait TupleCollect: Sized {
     fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
         where I: IntoIterator<Item = Self::Item>;
 
-    fn collect_from_iter_no_buf<I>(iter: I) -> Option<Self> where I: IntoIterator<Item = Self::Item>;
-
-    fn try_collect_from_iter<I>(iter: I) -> Result<Self, TupleBuffer<Self>>
-        where I: IntoIterator<Item = Self::Item>
-    {
-        let mut buf = Default::default();
-        if let Some(t) = Self::collect_from_iter(iter, &mut buf) {
-            Ok(t)
-        } else {
-            Err(TupleBuffer::new(buf))
-        }
-    }
+    fn collect_from_iter_no_buf<I>(iter: I) -> Option<Self>
+        where I: IntoIterator<Item = Self::Item>;
 
     fn num_items() -> usize;
 

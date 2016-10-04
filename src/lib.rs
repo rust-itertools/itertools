@@ -185,8 +185,9 @@ macro_rules! izip {
 /// of an adaptor is [`.interleave()`](#method.interleave)
 ///
 /// * *Regular methods* are those that don't return iterators and instead
-/// return a regular value of some other kind. [`.find_position()`](#method.find_position)
-/// is an example and the first regular method in the list.
+/// return a regular value of some other kind.
+/// [`.next_tuple()`](#method.next_tuple) is an example and the first regular
+/// method in the list.
 pub trait Itertools : Iterator {
     // adaptors
 
@@ -439,7 +440,10 @@ pub trait Itertools : Iterator {
         tuple_impl::tuple_windows(self)
     }
 
-    /// Return an iterator that groups the items in tuples of a specific size (up to 4).
+    /// Return an iterator that groups the items in tuples of a specific size
+    /// (up to 4).
+    ///
+    /// See also the method [`.next_tuple()`](#method.next_tuple).
     ///
     /// ```
     /// use itertools::Itertools;
@@ -472,28 +476,6 @@ pub trait Itertools : Iterator {
               T: tuple_impl::TupleCollect
     {
         tuple_impl::tuples(self)
-    }
-
-    /// Advances the iterator and returns the next items grouped in a tuple of a specific size (up
-    /// to 4).
-    ///
-    /// If there is enough elements to be grouped in a tuple, then `OK` is returned containing the
-    /// tuple; otherwise `Err` is returned containing the produced items.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// let mut iter = 1..5;
-    ///
-    /// assert_eq!(Some((1, 2)), iter.next_tuple().ok());
-    /// let buf = iter.next_tuple::<(_, _, _)>().unwrap_err();
-    /// itertools::assert_equal(vec![3, 4], buf);
-    /// ```
-    fn next_tuple<T>(&mut self) -> Result<T, TupleBuffer<T>>
-        where Self: Sized + Iterator<Item = T::Item>,
-              T: tuple_impl::TupleCollect
-    {
-        T::try_collect_from_iter(self)
     }
 
     /// Split into an iterator pair that both yield all elements from
@@ -882,6 +864,26 @@ pub trait Itertools : Iterator {
     }
 
     // non-adaptor methods
+    /// Advances the iterator and returns the next items grouped in a tuple of
+    /// a specific size (up to 4).
+    ///
+    /// If there is enough elements to be grouped in a tuple, then the tuple
+    /// is returned inside `Some`, otherwise `None` is returned.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut iter = 1..5;
+    ///
+    /// assert_eq!(Some((1, 2)), iter.next_tuple());
+    /// ```
+    fn next_tuple<T>(&mut self) -> Option<T>
+        where Self: Sized + Iterator<Item = T::Item>,
+              T: tuple_impl::TupleCollect
+    {
+        T::collect_from_iter_no_buf(self)
+    }
+
 
     /// Find the position and value of the first element satisfying a predicate.
     ///
