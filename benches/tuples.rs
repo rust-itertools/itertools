@@ -5,70 +5,124 @@ extern crate itertools;
 
 use test::{black_box, Bencher};
 use itertools::Itertools;
-use itertools::tuples::TupleCollect;
+
+fn s1(a: u32) -> u32 {
+    black_box(a)
+}
+
+fn s2(a: u32, b: u32) -> u32 {
+    black_box(a + b)
+}
+
+fn s3(a: u32, b: u32, c: u32) -> u32 {
+    black_box(a + b + c)
+}
+
+fn s4(a: u32, b: u32, c: u32, d: u32) -> u32 {
+    black_box(a + b + c + d)
+}
+
+fn sum_s1(s: &[u32]) -> u32 {
+    s1(s[0])
+}
+
+fn sum_s2(s: &[u32]) -> u32 {
+    s2(s[0], s[1])
+}
+
+fn sum_s3(s: &[u32]) -> u32 {
+    s3(s[0], s[1], s[2])
+}
+
+fn sum_s4(s: &[u32]) -> u32 {
+    s4(s[0], s[1], s[2], s[3])
+}
+
+fn sum_t1(s: &(&u32, )) -> u32 {
+    s1(*s.0)
+}
+
+fn sum_t2(s: &(&u32, &u32)) -> u32 {
+    s2(*s.0, *s.1)
+}
+
+fn sum_t3(s: &(&u32, &u32, &u32)) -> u32 {
+    s3(*s.0, *s.1, *s.2)
+}
+
+fn sum_t4(s: &(&u32, &u32, &u32, &u32)) -> u32 {
+    s4(*s.0, *s.1, *s.2, *s.3)
+}
 
 macro_rules! def_benchs {
-    ($N:expr; $A:ident, $B:ident, $C:ident, $D:ident, $E:ident, $F:ident; $T:ty) => (
+    ($N:expr;
+     $TUPLE_FUN:ident,
+     $TUPLES:ident,
+     $TUPLE_WINDOWS:ident;
+     $SLICE_FUN:ident,
+     $CHUNKS:ident,
+     $WINDOWS:ident;
+     $FOR_CHUNKS:ident,
+     $FOR_WINDOWS:ident
+     ) => (
         #[bench]
-        fn $A(b: &mut Bencher) {
-            let v: Vec<u32> = (0.. $N * 10_000).collect();
+        fn $FOR_CHUNKS(b: &mut Bencher) {
+            let v: Vec<u32> = (0.. $N * 1_000).collect();
             b.iter(|| {
-                for x in v.iter().tuples::<$T>() {
-                    black_box(&x);
+                let mut j = 0;
+                for _ in 0..1_000 {
+                    black_box($SLICE_FUN(&v[j..(j + $N)]));
+                    j += $N;
                 }
             });
         }
 
         #[bench]
-        fn $B(b: &mut Bencher) {
-            let v: Vec<u32> = (0.. $N * 10_000).collect();
+        fn $FOR_WINDOWS(b: &mut Bencher) {
+            let v: Vec<u32> = (0..1_000).collect();
+            b.iter(|| {
+                for i in 0..(1_000 - $N) {
+                    black_box($SLICE_FUN(&v[i..(i + $N)]));
+                }
+            });
+        }
+
+        #[bench]
+        fn $TUPLES(b: &mut Bencher) {
+            let v: Vec<u32> = (0.. $N * 1_000).collect();
+            b.iter(|| {
+                for x in v.iter().tuples() {
+                    black_box($TUPLE_FUN(&x));
+                }
+            });
+        }
+
+        #[bench]
+        fn $CHUNKS(b: &mut Bencher) {
+            let v: Vec<u32> = (0.. $N * 1_000).collect();
             b.iter(|| {
                 for x in v.chunks($N) {
-                    black_box(&x);
+                    black_box($SLICE_FUN(x));
                 }
             });
         }
 
         #[bench]
-        fn $C(b: &mut Bencher) {
-            let v: Vec<u32> = (0.. $N * 10_000).collect();
+        fn $TUPLE_WINDOWS(b: &mut Bencher) {
+            let v: Vec<u32> = (0..1_000).collect();
             b.iter(|| {
-                for x in v.chunks($N) {
-                    // create a tuple from the slice
-                    let x = <$T>::collect_from_iter_(x);
-                    black_box(&x);
+                for x in v.iter().tuple_windows() {
+                    black_box($TUPLE_FUN(&x));
                 }
             });
         }
 
         #[bench]
-        fn $D(b: &mut Bencher) {
-            let v: Vec<u32> = (0..10_000).collect();
-            b.iter(|| {
-                for x in v.iter().tuple_windows::<$T>() {
-                    black_box(&x);
-                }
-            });
-        }
-
-        #[bench]
-        fn $E(b: &mut Bencher) {
-            let v: Vec<u32> = (0..10_000).collect();
+        fn $WINDOWS(b: &mut Bencher) {
+            let v: Vec<u32> = (0..1_000).collect();
             b.iter(|| {
                 for x in v.windows($N) {
-                    black_box(&x);
-                }
-            });
-        }
-
-        #[bench]
-        fn $F(b: &mut Bencher) {
-            let v: Vec<u32> = (0..10_000).collect();
-            b.iter(|| {
-                for x in v.windows($N) {
-                    // create a tuple from the slice
-                    let x = <$T>::collect_from_iter_(x);
-                    black_box(&x);
+                    black_box($SLICE_FUN(x));
                 }
             });
         }
@@ -77,44 +131,48 @@ macro_rules! def_benchs {
 
 def_benchs!{
     1;
-    chunks_tuple_1,
-    chunks_slice_1,
-    chunks_slice_tuple_1,
-    windows_tuple_1,
-    windows_slice_1,
-    windows_slice_tuple_1;
-    (&u32, )
+    sum_t1,
+    tuple_chunks_1,
+    tuple_windows_1;
+    sum_s1,
+    slice_chunks_1,
+    slice_windows_1;
+    for_chunks_1,
+    for_windows_1
 }
 
 def_benchs!{
     2;
-    chunks_tuple_2,
-    chunks_slice_2,
-    chunks_slice_tuple_2,
-    windows_tuple_2,
-    windows_slice_2,
-    windows_slice_tuple_2;
-    (&u32, &u32)
+    sum_t2,
+    tuple_chunks_2,
+    tuple_windows_2;
+    sum_s2,
+    slice_chunks_2,
+    slice_windows_2;
+    for_chunks_2,
+    for_windows_2
 }
 
 def_benchs!{
     3;
-    chunks_tuple_3,
-    chunks_slice_3,
-    chunks_slice_tuple_3,
-    windows_tuple_3,
-    windows_slice_3,
-    windows_slice_tuple_3;
-    (&u32, &u32, &u32)
+    sum_t3,
+    tuple_chunks_3,
+    tuple_windows_3;
+    sum_s3,
+    slice_chunks_3,
+    slice_windows_3;
+    for_chunks_3,
+    for_windows_3
 }
 
 def_benchs!{
     4;
-    chunks_tuple_4,
-    chunks_slice_4,
-    chunks_slice_tuple_4,
-    windows_tuple_4,
-    windows_slice_4,
-    windows_slice_tuple_4;
-    (&u32, &u32, &u32, &u32)
+    sum_t4,
+    tuple_chunks_4,
+    tuple_windows_4;
+    sum_s4,
+    slice_chunks_4,
+    slice_windows_4;
+    for_chunks_4,
+    for_windows_4
 }
