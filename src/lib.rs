@@ -70,7 +70,7 @@ pub mod structs {
     pub use repeatn::RepeatN;
     pub use sources::{RepeatCall, Unfold};
     pub use tee::Tee;
-    pub use tuples::{TupleBuffer, TupleWindows, Tuples};
+    pub use tuple_impl::{TupleBuffer, TupleWindows, Tuples};
     pub use zip_eq_impl::ZipEq;
     pub use zip_longest::ZipLongest;
     pub use ziptuple::Zip;
@@ -101,9 +101,7 @@ mod repeatn;
 mod size_hint;
 mod sources;
 mod tee;
-// tuples mod have to be public so TupleCollect can be used in benchs
-#[doc(hidden)]
-pub mod tuples;
+mod tuple_impl;
 mod zip_eq_impl;
 mod zip_longest;
 mod ziptuple;
@@ -435,10 +433,10 @@ pub trait Itertools : Iterator {
     /// ```
     fn tuple_windows<T>(self) -> TupleWindows<Self, T>
         where Self: Sized + Iterator<Item = T::Item>,
-              T: tuples::TupleCollect,
+              T: tuple_impl::TupleCollect,
               T::Item: Clone
     {
-        tuples::tuple_windows(self)
+        tuple_impl::tuple_windows(self)
     }
 
     /// Return an iterator that groups the items in tuples of a specific size (up to 4).
@@ -471,9 +469,9 @@ pub trait Itertools : Iterator {
     /// See also [`Tuples::into_buffer`](structs/struct.Tuples.html#method.into_buffer).
     fn tuples<T>(self) -> Tuples<Self, T>
         where Self: Sized + Iterator<Item = T::Item>,
-              T: tuples::TupleCollect
+              T: tuple_impl::TupleCollect
     {
-        tuples::tuples(self)
+        tuple_impl::tuples(self)
     }
 
     /// Advances the iterator and returns the next items grouped in a tuple of a specific size (up
@@ -493,7 +491,7 @@ pub trait Itertools : Iterator {
     /// ```
     fn next_tuple<T>(&mut self) -> Result<T, TupleBuffer<T>>
         where Self: Sized + Iterator<Item = T::Item>,
-              T: tuples::TupleCollect
+              T: tuple_impl::TupleCollect
     {
         T::try_collect_from_iter(self)
     }
