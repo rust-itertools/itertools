@@ -1,14 +1,11 @@
 //! Some iterator that produces tuples
 
-use std::marker::PhantomData;
 use std::iter::Fuse;
 
 /// An iterator over a incomplete tuple.
 ///
-/// See [`.next_tuple()`](../trait.Itertools.html#method.tuples),
-/// [`Tuples::into_buffer()`](struct.Tuples.html#method.into_buffer) and
-/// [`TupleWindows::into_parts()`](struct.TupleWindows.html#method.into_parts) for more
-/// information.
+/// See [`.next_tuple()`](../trait.Itertools.html#method.tuples) and
+/// [`Tuples::into_buffer()`](struct.Tuples.html#method.into_buffer).
 pub struct TupleBuffer<T>
     where T: TupleCollect
 {
@@ -106,20 +103,27 @@ pub struct TupleWindows<I, T>
 {
     iter: I,
     last: Option<T>,
-    buf: T::Buffer,
-    _marker: PhantomData<T>,
 }
 
 /// Create a new tuple windows iterator.
-pub fn tuple_windows<I, T>(iter: I) -> TupleWindows<I, T>
+pub fn tuple_windows<I, T>(mut iter: I) -> TupleWindows<I, T>
     where I: Iterator<Item = T::Item>,
-          T: TupleCollect
+          T: TupleCollect,
+          T::Item: Clone
 {
+    use std::iter::once;
+
+    let mut last = None;
+    if T::num_items() != 1 {
+        if let Some(item) = iter.next() {
+            let iter = once(item.clone()).chain(once(item)).chain(&mut iter);
+            last = T::collect_from_iter_no_buf(iter);
+        }
+    }
+
     TupleWindows {
+        last: last,
         iter: iter,
-        last: None,
-        buf: Default::default(),
-        _marker: PhantomData,
     }
 }
 
@@ -131,50 +135,16 @@ impl<I, T> Iterator for TupleWindows<I, T>
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
+        if T::num_items() == 1 {
+            return T::collect_from_iter_no_buf(&mut self.iter)
+        }
         if let Some(ref mut last) = self.last {
             if let Some(new) = self.iter.next() {
                 last.left_shift_push(new);
-                Some(last.clone())
-            } else {
-                None
+                return Some(last.clone());
             }
-        } else {
-            self.last = T::collect_from_iter(&mut self.iter, &mut self.buf);
-            self.last.clone()
         }
-    }
-}
-
-impl<I, T> TupleWindows<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: TupleCollect
-{
-    /// Return a pair with a buffer containing the items that was produced but not consumed and the
-    /// inner iterator.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// let mut w = (0..10).tuple_windows();
-    /// assert_eq!(Some((0, 1, 2)), w.next());
-    ///
-    /// let (mut buffer, mut iter) = w.into_parts();
-    /// // Every produced item was consumed
-    /// assert_eq!(None, buffer.next());
-    /// // The next item is 6
-    /// assert_eq!(Some(3), iter.next());
-    ///
-    /// let mut w = (0..2).tuple_windows::<(_, _, _)>();
-    /// assert_eq!(None, w.next());
-    ///
-    /// let (buffer, mut iter) = w.into_parts();
-    /// // The items 0 and 1 was produced but not consumed
-    /// itertools::assert_equal(vec![0, 1], buffer);
-    /// // The is no more items
-    /// assert_eq!(None, iter.next());
-    /// ```
-    pub fn into_parts(self) -> (TupleBuffer<T>, I) {
-        (TupleBuffer::new(self.buf), self.iter)
+        None
     }
 }
 
@@ -185,9 +155,7 @@ pub trait TupleCollect: Sized {
     fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
         where I: IntoIterator<Item = Self::Item>;
 
-    // used on benchs
-    fn collect_from_iter_<I>(iter: I) -> Self
-        where I: IntoIterator<Item = Self::Item>;
+    fn collect_from_iter_no_buf<I>(iter: I) -> Option<Self> where I: IntoIterator<Item = Self::Item>;
 
     fn try_collect_from_iter<I>(iter: I) -> Result<Self, TupleBuffer<Self>>
         where I: IntoIterator<Item = Self::Item>
@@ -199,6 +167,8 @@ pub trait TupleCollect: Sized {
             Err(TupleBuffer::new(buf))
         }
     }
+
+    fn num_items() -> usize;
 
     fn left_shift_push(&mut self, item: Self::Item);
 }
@@ -240,11 +210,27 @@ macro_rules! impl_tuple_collect {
                 return None;
             }
 
-            fn collect_from_iter_<I>(iter: I) -> Self
+            #[allow(unused_assignments)]
+            fn collect_from_iter_no_buf<I>(iter: I) -> Option<Self>
                 where I: IntoIterator<Item = $A>
             {
                 let mut iter = iter.into_iter();
-                ($({let $Y = iter.next().unwrap(); $Y}),*,)
+                loop {
+                    $(
+                        let $Y = if let Some($Y) = iter.next() {
+                            $Y
+                        } else {
+                            break;
+                        };
+                    )*
+                    return Some(($($Y),*,))
+                }
+
+                return None;
+            }
+
+            fn num_items() -> usize {
+                $N
             }
 
             fn left_shift_push(&mut self, item: $A) {
