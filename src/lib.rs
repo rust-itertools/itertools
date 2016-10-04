@@ -587,10 +587,10 @@ pub trait Itertools : Iterator {
     /// let it = vec![a, b, c].into_iter().kmerge();
     /// itertools::assert_equal(it, vec![0, 1, 2, 3, 4, 5]);
     /// ```
-    fn kmerge(self) -> KMerge<<<Self as Iterator>::Item as IntoIterator>::IntoIter> where
-        Self: Sized,
-        Self::Item: IntoIterator,
-        <<Self as Iterator>::Item as IntoIterator>::Item: Ord,
+    fn kmerge(self) -> KMerge<<<Self as Iterator>::Item as IntoIterator>::IntoIter>
+        where Self: Sized,
+              Self::Item: IntoIterator,
+              <<Self as Iterator>::Item as IntoIterator>::Item: Ord,
     {
         kmerge(self)
     }
