@@ -3,23 +3,23 @@
 extern crate test;
 extern crate itertools;
 
-use test::{black_box, Bencher};
+use test::Bencher;
 use itertools::Itertools;
 
 fn s1(a: u32) -> u32 {
-    black_box(a)
+    a
 }
 
 fn s2(a: u32, b: u32) -> u32 {
-    black_box(a + b)
+    a + b
 }
 
 fn s3(a: u32, b: u32, c: u32) -> u32 {
-    black_box(a + b + c)
+    a + b + c
 }
 
 fn s4(a: u32, b: u32, c: u32, d: u32) -> u32 {
-    black_box(a + b + c + d)
+    a + b + c + d
 }
 
 fn sum_s1(s: &[u32]) -> u32 {
@@ -68,62 +68,74 @@ macro_rules! def_benchs {
         #[bench]
         fn $FOR_CHUNKS(b: &mut Bencher) {
             let v: Vec<u32> = (0.. $N * 1_000).collect();
+            let mut s = 0;
             b.iter(|| {
                 let mut j = 0;
                 for _ in 0..1_000 {
-                    black_box($SLICE_FUN(&v[j..(j + $N)]));
+                    s += $SLICE_FUN(&v[j..(j + $N)]);
                     j += $N;
                 }
+                s
             });
         }
 
         #[bench]
         fn $FOR_WINDOWS(b: &mut Bencher) {
             let v: Vec<u32> = (0..1_000).collect();
+            let mut s = 0;
             b.iter(|| {
                 for i in 0..(1_000 - $N) {
-                    black_box($SLICE_FUN(&v[i..(i + $N)]));
+                    s += $SLICE_FUN(&v[i..(i + $N)]);
                 }
+                s
             });
         }
 
         #[bench]
         fn $TUPLES(b: &mut Bencher) {
             let v: Vec<u32> = (0.. $N * 1_000).collect();
+            let mut s = 0;
             b.iter(|| {
                 for x in v.iter().tuples() {
-                    black_box($TUPLE_FUN(&x));
+                    s += $TUPLE_FUN(&x);
                 }
+                s
             });
         }
 
         #[bench]
         fn $CHUNKS(b: &mut Bencher) {
             let v: Vec<u32> = (0.. $N * 1_000).collect();
+            let mut s = 0;
             b.iter(|| {
                 for x in v.chunks($N) {
-                    black_box($SLICE_FUN(x));
+                    s += $SLICE_FUN(x);
                 }
+                s
             });
         }
 
         #[bench]
         fn $TUPLE_WINDOWS(b: &mut Bencher) {
             let v: Vec<u32> = (0..1_000).collect();
+            let mut s = 0;
             b.iter(|| {
                 for x in v.iter().tuple_windows() {
-                    black_box($TUPLE_FUN(&x));
+                    s += $TUPLE_FUN(&x);
                 }
+                s
             });
         }
 
         #[bench]
         fn $WINDOWS(b: &mut Bencher) {
             let v: Vec<u32> = (0..1_000).collect();
+            let mut s = 0;
             b.iter(|| {
                 for x in v.windows($N) {
-                    black_box($SLICE_FUN(x));
+                    s += $SLICE_FUN(x);
                 }
+                s
             });
         }
     )
