@@ -285,8 +285,9 @@ pub trait Itertools : Iterator {
         zip_eq(self, other)
     }
 
-    /// A “meta iterator adaptor”. Its closure recives a reference to the iterator
-    /// and may pick off as many elements as it likes, to produce the next iterator element.
+    /// A “meta iterator adaptor”. Its closure recives a reference to the
+    /// iterator and may pick off as many elements as it likes, to produce the
+    /// next iterator element.
     ///
     /// Iterator element type is `B`.
     ///
@@ -405,8 +406,8 @@ pub trait Itertools : Iterator {
         self.chunks(size)
     }
 
-    /// Return an iterator over all contiguous windows producing tuples of a specific size (up
-    /// to 4).
+    /// Return an iterator over all contiguous windows producing tuples of
+    /// a specific size (up to 4).
     ///
     /// ```
     /// use itertools::Itertools;
@@ -524,8 +525,9 @@ pub trait Itertools : Iterator {
         adaptors::step(self, n)
     }
 
-    /// Return an iterator adaptor that merges the two base iterators in ascending order.
-    /// If both base iterators are sorted (ascending), the result is sorted.
+    /// Return an iterator adaptor that merges the two base iterators in
+    /// ascending order.  If both base iterators are sorted (ascending), the
+    /// result is sorted.
     ///
     /// Iterator element type is `Self::Item`.
     ///
@@ -619,8 +621,8 @@ pub trait Itertools : Iterator {
     /// The closure `f` is passed two elements, `x`, `y` and may return either
     /// (1) `Ok(z)` to merge the two values or (2) `Err((x', y'))` to indicate
     /// they can't be merged. In (2), the value `x'` is emitted by the iterator.
-    /// Coalesce continues with either `z` (1) or `y'` (2), and the next iterator
-    /// element as the next pair of elements to merge.
+    /// Coalesce continues with either `z` (1) or `y'` (2), and the next
+    /// iterator element as the next pair of elements to merge.
     ///
     /// Iterator element type is `Self::Item`.
     ///
