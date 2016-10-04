@@ -596,3 +596,52 @@ quickcheck! {
     }
 }
 
+quickcheck! {
+    fn equal_tuple_windows_1(a: Vec<u8>) -> bool {
+        let x = a.windows(1).map(|s| (&s[0], ));
+        let y = a.iter().tuple_windows::<(_,)>();
+        itertools::equal(x, y)
+    }
+
+    fn equal_tuple_windows_2(a: Vec<u8>) -> bool {
+        let x = a.windows(2).map(|s| (&s[0], &s[1]));
+        let y = a.iter().tuple_windows::<(_, _)>();
+        itertools::equal(x, y)
+    }
+
+    fn equal_tuple_windows_3(a: Vec<u8>) -> bool {
+        let x = a.windows(3).map(|s| (&s[0], &s[1], &s[2]));
+        let y = a.iter().tuple_windows::<(_, _, _)>();
+        itertools::equal(x, y)
+    }
+
+    fn equal_tuple_windows_4(a: Vec<u8>) -> bool {
+        let x = a.windows(4).map(|s| (&s[0], &s[1], &s[2], &s[3]));
+        let y = a.iter().tuple_windows::<(_, _, _, _)>();
+        itertools::equal(x, y)
+    }
+
+    fn equal_tuples_1(a: Vec<u8>) -> bool {
+        let x = a.chunks(1).map(|s| (&s[0], ));
+        let y = a.iter().tuples::<(_,)>();
+        itertools::equal(x, y)
+    }
+
+    fn equal_tuples_2(a: Vec<u8>) -> bool {
+        let x = a.chunks(2).filter(|s| s.len() == 2).map(|s| (&s[0], &s[1]));
+        let y = a.iter().tuples::<(_, _)>();
+        itertools::equal(x, y)
+    }
+
+    fn equal_tuples_3(a: Vec<u8>) -> bool {
+        let x = a.chunks(3).filter(|s| s.len() == 3).map(|s| (&s[0], &s[1], &s[2]));
+        let y = a.iter().tuples::<(_, _, _)>();
+        itertools::equal(x, y)
+    }
+
+    fn equal_tuples_4(a: Vec<u8>) -> bool {
+        let x = a.chunks(4).filter(|s| s.len() == 4).map(|s| (&s[0], &s[1], &s[2], &s[3]));
+        let y = a.iter().tuples::<(_, _, _, _)>();
+        itertools::equal(x, y)
+    }
+}
