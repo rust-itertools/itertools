@@ -4,7 +4,7 @@ use std::iter::Fuse;
 
 /// An iterator over a incomplete tuple.
 ///
-/// See [`.next_tuple()`](../trait.Itertools.html#method.tuples) and
+/// See [`.tuples()`](../trait.Itertools.html#method.tuples) and
 /// [`Tuples::into_buffer()`](struct.Tuples.html#method.into_buffer).
 pub struct TupleBuffer<T>
     where T: TupleCollect
