@@ -19,7 +19,7 @@ __ https://docs.rs/itertools/
 How to use with cargo::
 
     [dependencies]
-    itertools = "0.5"
+    itertools = "0.5.2"
 
 How to use in your crate:
 
@@ -38,6 +38,16 @@ How to contribute:
 
 Recent Changes
 --------------
+
+- 0.5.2
+
+  - Add ``.tuples::<T>()`` that iterates by two, three or four elements at
+    a time (where ``T`` is a tuple type).
+  - Add ``.tuple_windows::<T>()`` that iterates using a window of the
+    two, three or four most recent elements.
+  - Add ``.next_tuple::<T>()`` method, that picks the next two, three or four
+    elements in one go.
+  - ``.interleave()`` now has an accurate size hint.
 
 - 0.5.1
 

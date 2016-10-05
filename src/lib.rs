@@ -409,6 +409,10 @@ pub trait Itertools : Iterator {
     /// Return an iterator over all contiguous windows producing tuples of
     /// a specific size (up to 4).
     ///
+    /// `tuple_windows` clones the iterator elements so that they can be
+    /// part of successive windows, this makes it most suited for iterators
+    /// of references and other values that are cheap to copy.
+    ///
     /// ```
     /// use itertools::Itertools;
     /// let mut v = Vec::new();
@@ -869,8 +873,8 @@ pub trait Itertools : Iterator {
     /// Advances the iterator and returns the next items grouped in a tuple of
     /// a specific size (up to 4).
     ///
-    /// If there is enough elements to be grouped in a tuple, then the tuple
-    /// is returned inside `Some`, otherwise `None` is returned.
+    /// If there are enough elements to be grouped in a tuple, then the tuple is
+    /// returned inside `Some`, otherwise `None` is returned.
     ///
     /// ```
     /// use itertools::Itertools;
