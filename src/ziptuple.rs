@@ -1,6 +1,6 @@
 use super::size_hint;
 
-/// See [`multizip`](fn.multizip.html) for more information.
+/// See [`multizip`](../fn.multizip.html) for more information.
 #[derive(Clone)]
 pub struct Zip<T> {
     t: T,
