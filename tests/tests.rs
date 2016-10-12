@@ -729,6 +729,12 @@ fn combinations() {
     it::assert_equal((0..2).combinations(2), vec![vec![0, 1]]);
 }
 
+#[should_panic]
+#[test]
+fn combinations_zero() {
+    (1..3).combinations(0);
+}
+
 #[test]
 fn diff_mismatch() {
     let a = vec![1, 2, 3, 4];

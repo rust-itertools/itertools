@@ -1131,9 +1131,12 @@ pub struct Combinations<I: Iterator> {
 }
 
 /// Create a new `Combinations` from a clonable iterator.
+///
+/// **Panics** if `n` is zero.
 pub fn combinations<I>(iter: I, n: usize) -> Combinations<I>
     where I: Iterator
 {
+    assert!(n != 0);
     let mut indices: Vec<usize> = Vec::with_capacity(n);
     for i in 0..n {
         indices.push(i);
