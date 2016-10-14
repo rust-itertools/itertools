@@ -68,7 +68,7 @@ pub mod structs {
     pub use pad_tail::PadUsing;
     pub use rciter_impl::RcIter;
     pub use repeatn::RepeatN;
-    pub use sources::{RepeatCall, Unfold};
+    pub use sources::{RepeatCall, Unfold, Iterate};
     pub use tee::Tee;
     pub use tuple_impl::{TupleBuffer, TupleWindows, Tuples};
     pub use zip_eq_impl::ZipEq;
@@ -80,7 +80,7 @@ pub use cons_tuples_impl::cons_tuples;
 pub use diff::diff_with;
 pub use diff::Diff;
 pub use minmax::MinMaxResult;
-pub use sources::{repeat_call, unfold};
+pub use sources::{repeat_call, unfold, iterate};
 pub use zip_longest::EitherOrBoth;
 pub use ziptuple::multizip;
 mod adaptors;
