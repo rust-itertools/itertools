@@ -1,6 +1,8 @@
 //! Iterators that are sources (produce elements from parameters,
 //! not from another iterator).
 
+use std::mem;
+
 /// See [`repeat_call`](../fn.repeat_call.html) for more information.
 pub struct RepeatCall<F> {
     f: F,
@@ -117,5 +119,49 @@ impl<A, St, F> Iterator for Unfold<St, F>
     fn size_hint(&self) -> (usize, Option<usize>) {
         // no possible known bounds at this point
         (0, None)
+    }
+}
+
+/// An iterator that infinitely applies function to value and yields results.
+///
+/// This `struct` is created by the [`iterate()`] function. See its documentation for more.
+///
+/// [`iterate()`]: ../fn.iterate.html
+#[derive(Clone)]
+pub struct Iterate<St, F> {
+    state: St,
+    f: F,
+}
+
+impl<St, F> Iterator for Iterate<St, F>
+    where F: FnMut(&St) -> St
+{
+    type Item = St;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        let next_state = (self.f)(&self.state);
+        Some(mem::replace(&mut self.state, next_state))
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (usize::max_value(), None)
+    }
+}
+
+/// Creates a new iterator that infinitely applies function to value and yields results.
+///
+/// ```
+/// use itertools::iterate;
+///
+/// itertools::assert_equal(iterate(1, |&i| i * 3).take(5), vec![1, 3, 9, 27, 81]);
+/// ```
+pub fn iterate<St, F>(initial_value: St, f: F) -> Iterate<St, F>
+    where F: FnMut(&St) -> St
+{
+    Iterate {
+        state: initial_value,
+        f: f,
     }
 }
