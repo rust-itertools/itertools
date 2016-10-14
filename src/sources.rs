@@ -122,7 +122,7 @@ impl<A, St, F> Iterator for Unfold<St, F>
     }
 }
 
-/// An iterator that infinitely applies function to state and yields results.
+/// An iterator that infinitely applies function to value and yields results.
 ///
 /// This `struct` is created by the [`iterate()`] function. See its documentation for more.
 ///
@@ -150,18 +150,18 @@ impl<St, F> Iterator for Iterate<St, F>
     }
 }
 
-/// Creates a new iterator that infinitely applies function to state and yields results.
+/// Creates a new iterator that infinitely applies function to value and yields results.
 ///
 /// ```
 /// use itertools::iterate;
 ///
 /// itertools::assert_equal(iterate(1, |&i| i * 3).take(5), vec![1, 3, 9, 27, 81]);
 /// ```
-pub fn iterate<St, F>(initial_state: St, f: F) -> Iterate<St, F>
+pub fn iterate<St, F>(initial_value: St, f: F) -> Iterate<St, F>
     where F: FnMut(&St) -> St
 {
     Iterate {
-        state: initial_state,
+        state: initial_value,
         f: f,
     }
 }
