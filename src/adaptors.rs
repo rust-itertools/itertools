@@ -1357,6 +1357,23 @@ impl<I, J> Iterator for Flatten<I, J>
         }
         None
     }
+
+    // special case to convert segmented iterator into consecutive loops
+    fn fold<Acc, G>(self, init: Acc, mut f: G) -> Acc
+        where G: FnMut(Acc, Self::Item) -> Acc,
+    {
+        let mut accum = init;
+        if let Some(iter) = self.front {
+            accum = iter.fold(accum, &mut f);
+        }
+        for iter in self.iter {
+            accum = iter.into_iter().fold(accum, &mut f);
+        }
+        if let Some(iter) = self.back {
+            accum = iter.fold(accum, &mut f);
+        }
+        accum
+    }
 }
 
 impl<I, J> DoubleEndedIterator for Flatten<I, J>
