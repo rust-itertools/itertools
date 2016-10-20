@@ -39,6 +39,14 @@ How to contribute:
 Recent Changes
 --------------
 
+- 0.5.3
+
+  - Special-cased ``.fold()`` for flatten and put back. ``.foreach()``
+    now uses fold on the iterator, to pick up any iterator specific loop
+    implementation.
+  - ``.combinations(n)`` asserts up front that ``n != 0``, instead of
+    running into an error on the second iterator element.
+
 - 0.5.2
 
   - Add ``.tuples::<T>()`` that iterates by two, three or four elements at

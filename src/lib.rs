@@ -985,9 +985,8 @@ pub trait Itertools : Iterator {
     fn foreach<F>(&mut self, mut f: F)
         where F: FnMut(Self::Item)
     {
-        for elt in self {
-            f(elt)
-        }
+        // use fold to exploit iterator-specific implementations
+        self.fold((), move |(), element| f(element))
     }
 
     /// `.collect_vec()` is simply a type specialization of `.collect()`,
