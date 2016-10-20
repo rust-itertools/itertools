@@ -19,7 +19,7 @@ __ https://docs.rs/itertools/
 How to use with cargo::
 
     [dependencies]
-    itertools = "0.5.2"
+    itertools = "0.5.4"
 
 How to use in your crate:
 
@@ -38,6 +38,11 @@ How to contribute:
 
 Recent Changes
 --------------
+
+- 0.5.4
+
+  - Add infinite generator function ``iterate``, that takes a seed and a
+    closure.
 
 - 0.5.3
 
