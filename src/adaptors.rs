@@ -234,6 +234,27 @@ impl<I> Iterator for PutBack<I>
         // Not ExactSizeIterator because size may be larger than usize
         size_hint::add_scalar(self.iter.size_hint(), self.top.is_some() as usize)
     }
+
+    fn all<G>(&mut self, mut f: G) -> bool
+        where G: FnMut(Self::Item) -> bool
+    {
+        if let Some(elt) = self.top.take() {
+            if !f(elt) {
+                return false;
+            }
+        }
+        self.iter.all(f)
+    }
+
+    fn fold<Acc, G>(mut self, init: Acc, mut f: G) -> Acc
+        where G: FnMut(Acc, Self::Item) -> Acc,
+    {
+        let mut accum = init;
+        if let Some(elt) = self.top.take() {
+            accum = f(accum, elt);
+        }
+        self.iter.fold(accum, f)
+    }
 }
 
 /// An iterator adaptor that allows putting multiple
