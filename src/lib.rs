@@ -37,6 +37,9 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::hash::Hash;
 
+#[macro_use]
+mod impl_macros;
+
 /// The concrete iterator types.
 pub mod structs {
     pub use adaptors::{

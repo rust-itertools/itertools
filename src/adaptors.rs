@@ -5,6 +5,7 @@
 //! except according to those terms.
 
 use std::cmp;
+use std::fmt;
 use std::ops::Index;
 use std::iter::{Fuse, Peekable};
 use std::collections::HashSet;
@@ -23,13 +24,14 @@ macro_rules! clone_fields {
     );
 }
 
+
 /// An iterator adaptor that alternates elements from two iterators until both
 /// run out.
 ///
 /// This iterator is *fused*.
 ///
 /// See [`.interleave()`](../trait.Itertools.html#method.interleave) for more information.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Interleave<I, J> {
     a: Fuse<I>,
     b: Fuse<J>,
@@ -91,7 +93,7 @@ impl<I, J> Iterator for Interleave<I, J>
 ///
 /// See [`.interleave_shortest()`](../trait.Itertools.html#method.interleave_shortest)
 /// for more information.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct InterleaveShortest<I, J>
     where I: Iterator,
           J: Iterator<Item = I::Item>
@@ -162,7 +164,7 @@ impl<I, J> Iterator for InterleaveShortest<I, J>
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 /// An iterator adaptor that allows putting back a single
 /// item to the front of the iterator.
 ///
@@ -262,6 +264,7 @@ impl<I> Iterator for PutBack<I>
 /// items in front of the iterator.
 ///
 /// Iterator element type is `I::Item`.
+#[derive(Debug, Clone)]
 pub struct PutBackN<I: Iterator> {
     top: Vec<I::Item>,
     iter: I,
@@ -325,16 +328,7 @@ impl<I: Iterator> Iterator for PutBackN<I> {
     }
 }
 
-impl<I: Iterator> Clone for PutBackN<I>
-    where I: Clone,
-          I::Item: Clone
-{
-    fn clone(&self) -> Self {
-        clone_fields!(PutBackN, self, top, iter)
-    }
-}
-
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 /// An iterator adaptor that iterates over the cartesian product of
 /// the element sets of two iterators `I` and `J`.
 ///
@@ -419,6 +413,10 @@ pub struct Batching<I, F> {
     iter: I,
 }
 
+impl<I, F> fmt::Debug for Batching<I, F> where I: fmt::Debug {
+    debug_fmt_fields!(Batching, iter);
+}
+
 /// Create a new Batching iterator.
 pub fn batching<I, F>(iter: I, f: F) -> Batching<I, F> {
     Batching { f: f, iter: iter }
@@ -448,7 +446,7 @@ impl<B, F, I> Iterator for Batching<I, F>
 /// then skipping forward *n-1* elements.
 ///
 /// See [`.step()`](../trait.Itertools.html#method.step) for more information.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Step<I> {
     iter: Fuse<I>,
     skip: usize,
@@ -580,6 +578,13 @@ impl<I, J> Clone for Merge<I, J>
     }
 }
 
+impl<I, J> fmt::Debug for Merge<I, J>
+    where I: Iterator + fmt::Debug, J: Iterator<Item = I::Item> + fmt::Debug,
+          I::Item: fmt::Debug,
+{
+    debug_fmt_fields!(Merge, merge.a, merge.b);
+}
+
 /// Create an iterator that merges elements in `i` and `j`.
 ///
 /// `IntoIterator` enabled version of `i.merge(j)`.
@@ -635,6 +640,13 @@ pub struct MergeBy<I, J, F>
     cmp: F,
 }
 
+impl<I, J, F> fmt::Debug for MergeBy<I, J, F>
+    where I: Iterator + fmt::Debug, J: Iterator<Item = I::Item> + fmt::Debug,
+          I::Item: fmt::Debug,
+{
+    debug_fmt_fields!(MergeBy, merge.a, merge.b);
+}
+
 /// Create a `MergeBy` iterator.
 pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I, J, F>
     where I: Iterator,
@@ -679,7 +691,7 @@ impl<I, J, F> Iterator for MergeBy<I, J, F>
 }
 
 /// See [`multipeek()`](../fn.multipeek.html) for more information.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct MultiPeek<I>
     where I: Iterator
 {
@@ -746,7 +758,7 @@ impl<I> ExactSizeIterator for MultiPeek<I>
     where I: ExactSizeIterator
 {}
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct CoalesceCore<I>
     where I: Iterator
 {
@@ -802,6 +814,13 @@ impl<I: Clone, F: Clone> Clone for Coalesce<I, F>
     fn clone(&self) -> Self {
         clone_fields!(Coalesce, self, iter, f)
     }
+}
+
+impl<I, F> fmt::Debug for Coalesce<I, F>
+    where I: Iterator + fmt::Debug,
+          I::Item: fmt::Debug,
+{
+    debug_fmt_fields!(Coalesce, iter);
 }
 
 /// Create a new `Coalesce`.
@@ -862,6 +881,13 @@ pub fn dedup<I>(mut iter: I) -> Dedup<I>
     }
 }
 
+impl<I> fmt::Debug for Dedup<I>
+    where I: Iterator + fmt::Debug,
+          I::Item: fmt::Debug,
+{
+    debug_fmt_fields!(Dedup, iter);
+}
+
 impl<I> Iterator for Dedup<I>
     where I: Iterator,
           I::Item: PartialEq
@@ -886,6 +912,12 @@ impl<I> Iterator for Dedup<I>
 pub struct TakeWhileRef<'a, I: 'a, F> {
     iter: &'a mut I,
     f: F,
+}
+
+impl<'a, I, F> fmt::Debug for TakeWhileRef<'a, I, F>
+    where I: Iterator + fmt::Debug,
+{
+    debug_fmt_fields!(TakeWhileRef, iter);
 }
 
 /// Create a new `TakeWhileRef` from a reference to clonable iterator.
@@ -926,7 +958,7 @@ impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F>
 /// and produces `A`. Stops on the first `None` encountered.
 ///
 /// See [`.while_some()`](../trait.Itertools.html#method.while_some) for more information.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct WhileSome<I> {
     iter: I,
 }
@@ -959,6 +991,7 @@ impl<I, A> Iterator for WhileSome<I>
 ///
 /// See [`.tuple_combinations()`](../trait.Itertools.html#method.tuple_combinations) for more
 /// information.
+#[derive(Debug)]
 pub struct TupleCombinations<I, T>
     where I: Iterator,
           T: HasCombination<I>
@@ -996,6 +1029,7 @@ impl<I, T> Iterator for TupleCombinations<I, T>
     }
 }
 
+#[derive(Debug)]
 pub struct Tuple1Combination<I> {
     iter: I,
 }
@@ -1020,6 +1054,7 @@ impl<I: Iterator> HasCombination<I> for (I::Item,) {
 
 macro_rules! impl_tuple_combination {
     ($C:ident $P:ident ; $A:ident, $($I:ident),* ; $($X:ident)*) => (
+        #[derive(Debug)]
         pub struct $C<I: Iterator> {
             item: Option<I::Item>,
             iter: I,
@@ -1080,6 +1115,7 @@ impl_tuple_combination!(Tuple2Combination Tuple1Combination ; A, A, A ; a);
 impl_tuple_combination!(Tuple3Combination Tuple2Combination ; A, A, A, A ; a b);
 impl_tuple_combination!(Tuple4Combination Tuple3Combination ; A, A, A, A, A; a b c);
 
+#[derive(Debug)]
 struct LazyBuffer<I: Iterator> {
     it: I,
     done: bool,
@@ -1151,6 +1187,13 @@ pub struct Combinations<I: Iterator> {
     indices: Vec<usize>,
     pool: LazyBuffer<I>,
     first: bool,
+}
+
+impl<I> fmt::Debug for Combinations<I>
+    where I: Iterator + fmt::Debug,
+          I::Item: fmt::Debug,
+{
+    debug_fmt_fields!(Combinations, n, indices, pool, first);
 }
 
 /// Create a new `Combinations` from a clonable iterator.
@@ -1243,6 +1286,13 @@ pub struct UniqueBy<I: Iterator, V, F> {
     f: F,
 }
 
+impl<I, V, F> fmt::Debug for UniqueBy<I, V, F>
+    where I: Iterator + fmt::Debug,
+          V: fmt::Debug + Hash + Eq,
+{
+    debug_fmt_fields!(UniqueBy, iter, used);
+}
+
 /// Create a new `UniqueBy` iterator.
 pub fn unique_by<I, V, F>(iter: I, f: F) -> UniqueBy<I, V, F>
     where V: Eq + Hash,
@@ -1320,6 +1370,13 @@ pub struct Unique<I: Iterator> {
     iter: UniqueBy<I, I::Item, ()>,
 }
 
+impl<I> fmt::Debug for Unique<I>
+    where I: Iterator + fmt::Debug,
+          I::Item: Hash + Eq + fmt::Debug,
+{
+    debug_fmt_fields!(Unique, iter);
+}
+
 pub fn unique<I>(iter: I) -> Unique<I>
     where I: Iterator,
           I::Item: Eq + Hash,
@@ -1336,7 +1393,7 @@ pub fn unique<I>(iter: I) -> Unique<I>
 /// An iterator adapter to simply flatten a structure.
 ///
 /// See [`.flatten()`](../trait.Itertools.html#method.flatten) for more information.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Flatten<I, J> {
     iter: I,
     front: Option<J>,
