@@ -1238,7 +1238,7 @@ pub trait Itertools : Iterator {
         }
     }
 
-    /// An iterator adaptor that applies a function, producing a single, final value.
+    /// An iterator method that applies a function, producing a single, final value.
     ///
     /// `fold_while()` is basically equivalent to `fold()` but with additional support for
     /// early exit via short-circuiting.
