@@ -11,6 +11,7 @@ use std::collections::HashSet;
 use std::hash::Hash;
 use std::marker::PhantomData;
 use size_hint;
+use fold;
 
 macro_rules! clone_fields {
     ($name:ident, $base:expr, $($field:ident),+) => (
@@ -1385,13 +1386,13 @@ impl<I, J> Iterator for Flatten<I, J>
     {
         let mut accum = init;
         if let Some(iter) = self.front {
-            accum = iter.fold(accum, &mut f);
+            accum = fold(iter, accum, &mut f);
         }
         for iter in self.iter {
-            accum = iter.into_iter().fold(accum, &mut f);
+            accum = fold(iter, accum, &mut f);
         }
         if let Some(iter) = self.back {
-            accum = iter.fold(accum, &mut f);
+            accum = fold(iter, accum, &mut f);
         }
         accum
     }
