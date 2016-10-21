@@ -1,11 +1,17 @@
 //! Iterators that are sources (produce elements from parameters,
 //! not from another iterator).
 
+use std::fmt;
 use std::mem;
 
 /// See [`repeat_call`](../fn.repeat_call.html) for more information.
 pub struct RepeatCall<F> {
     f: F,
+}
+
+impl<F> fmt::Debug for RepeatCall<F>
+{
+    debug_fmt_fields!(RepeatCall, );
 }
 
 /// An iterator source that produces elements indefinitely by calling
@@ -96,6 +102,11 @@ pub fn unfold<A, St, F>(initial_state: St, f: F) -> Unfold<St, F>
     }
 }
 
+impl<St, F> fmt::Debug for Unfold<St, F>
+    where St: fmt::Debug,
+{
+    debug_fmt_fields!(Unfold, state);
+}
 
 /// See [`unfold`](../fn.unfold.html) for more information.
 #[derive(Clone)]
@@ -131,6 +142,12 @@ impl<A, St, F> Iterator for Unfold<St, F>
 pub struct Iterate<St, F> {
     state: St,
     f: F,
+}
+
+impl<St, F> fmt::Debug for Iterate<St, F>
+    where St: fmt::Debug,
+{
+    debug_fmt_fields!(Iterate, state);
 }
 
 impl<St, F> Iterator for Iterate<St, F>
