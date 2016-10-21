@@ -80,6 +80,7 @@ pub use cons_tuples_impl::cons_tuples;
 pub use diff::diff_with;
 pub use diff::Diff;
 pub use minmax::MinMaxResult;
+pub use repeatn::repeat_n;
 pub use sources::{repeat_call, unfold, iterate};
 pub use zip_longest::EitherOrBoth;
 pub use ziptuple::multizip;

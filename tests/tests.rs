@@ -430,7 +430,7 @@ fn test_multipeek() {
 #[test]
 fn repeatn() {
     let s = "α";
-    let mut it = it::RepeatN::new(s, 3);
+    let mut it = it::repeat_n(s, 3);
     assert_eq!(it.len(), 3);
     assert_eq!(it.next(), Some(s));
     assert_eq!(it.next(), Some(s));
@@ -462,7 +462,7 @@ fn count_clones() {
 
     for n in 0..10 {
         let f = Foo{n: Cell::new(0)};
-        let it = it::RepeatN::new(f, n);
+        let it = it::repeat_n(f, n);
         // drain it
         let last = it.last();
         if n == 0 {
