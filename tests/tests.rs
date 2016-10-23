@@ -176,6 +176,12 @@ fn dedup() {
     let xs = [0, 0, 0, 0, 0];
     let ys = [0];
     it::assert_equal(ys.iter(), xs.iter().dedup());
+
+    let xs = [0, 1, 1, 1, 2, 1, 3, 3];
+    let ys = [0, 1, 2, 1, 3];
+    let mut xs_d = Vec::new();
+    xs.iter().dedup().fold((), |(), &elt| xs_d.push(elt));
+    assert_eq!(&xs_d, &ys);
 }
 
 #[test]

@@ -6,6 +6,7 @@
 
 use std::cmp;
 use std::fmt;
+use std::mem::replace;
 use std::ops::Index;
 use std::iter::{Fuse, Peekable};
 use std::collections::HashSet;
@@ -902,6 +903,23 @@ impl<I> Iterator for Dedup<I>
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.iter.size_hint()
+    }
+
+    fn fold<Acc, G>(self, mut accum: Acc, mut f: G) -> Acc
+        where G: FnMut(Acc, Self::Item) -> Acc,
+    {
+        if let Some(mut last) = self.iter.last {
+            accum = self.iter.iter.fold(accum, |acc, elt| {
+                if elt == last {
+                    acc
+                } else {
+                    f(acc, replace(&mut last, elt))
+                }
+            });
+            f(accum, last)
+        } else {
+            accum
+        }
     }
 }
 
