@@ -413,7 +413,7 @@ quickcheck! {
 
 quickcheck! {
     fn exact_repeatn((n, x): (usize, i32)) -> bool {
-        let it = itertools::RepeatN::new(x, n);
+        let it = itertools::repeat_n(x, n);
         exact_size(it)
     }
 }
