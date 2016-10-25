@@ -707,6 +707,17 @@ fn flatten_clone() {
 }
 
 #[test]
+fn flatten_fold() {
+    let xs = [0, 1, 1, 1, 2, 1, 3, 3];
+    let ch = xs.iter().chunks(3);
+    let mut iter = ch.into_iter().flatten();
+    iter.next();
+    let mut xs_d = Vec::new();
+    iter.fold((), |(), &elt| xs_d.push(elt));
+    assert_eq!(&xs_d[..], &xs[1..]);
+}
+
+#[test]
 fn combinations() {
     assert!((1..3).combinations(5).next().is_none());
 
