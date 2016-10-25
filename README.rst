@@ -39,6 +39,12 @@ How to contribute:
 Recent Changes
 --------------
 
+- 0.5.5
+
+  - Many more adaptors now implement ``Debug``
+  - Add free function constructor ``repeat_n``. ``RepeatN::new`` is now
+    deprecated.
+
 - 0.5.4
 
   - Add infinite generator function ``iterate``, that takes a seed and a
