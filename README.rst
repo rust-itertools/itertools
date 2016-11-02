@@ -16,7 +16,9 @@ __ https://docs.rs/itertools/
 .. |crates| image:: http://meritbadge.herokuapp.com/itertools
 .. _crates: https://crates.io/crates/itertools
 
-How to use with cargo::
+How to use with cargo:
+
+.. code:: toml
 
     [dependencies]
     itertools = "0.5.4"
@@ -140,7 +142,7 @@ Recent Changes
 
   - Only changes related to the "unstable" crate feature. This feature is more
     or less deprecated.
-    
+
     - Use deprecated warnings when unstable is enabled. .enumerate_from() will
       be removed imminently since it's using a deprecated libstd trait.
 
