@@ -51,6 +51,7 @@ pub mod structs {
         PutBackN,
         Batching,
         Step,
+        MapResults,
         Merge,
         MergeBy,
         MultiPeek,
@@ -531,6 +532,24 @@ pub trait Itertools : Iterator {
         where Self: Sized
     {
         adaptors::step(self, n)
+    }
+
+    /// Return an iterator adaptor that applies the provided closure
+    /// to every `Result::Ok` value. `Result::Err` values are
+    /// unchanged.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let input = vec![Ok(41), Err(false), Ok(11)];
+    /// let it = input.into_iter().map_results(|i| i + 1);
+    /// itertools::assert_equal(it, vec![Ok(42), Err(false), Ok(12)]);
+    /// ```
+    fn map_results<F, T, U, E>(self, f: F) -> MapResults<Self, F>
+        where Self: Iterator<Item = Result<T, E>> + Sized,
+              F: FnMut(T) -> U,
+    {
+        adaptors::map_results(self, f)
     }
 
     /// Return an iterator adaptor that merges the two base iterators in
