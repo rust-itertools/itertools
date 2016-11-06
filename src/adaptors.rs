@@ -1502,3 +1502,37 @@ impl<I, J> DoubleEndedIterator for Flatten<I, J>
         None
     }
 }
+
+/// An iterator adapter to apply a transformation within a nested `Result`.
+///
+/// See [`.map_results()`](../trait.Itertools.html#method.map_results) for more information.
+pub struct MapResults<I, F> {
+    iter: I,
+    f: F
+}
+
+/// Create a new `MapResults` iterator.
+pub fn map_results<I, F, T, U, E>(iter: I, f: F) -> MapResults<I, F>
+    where I: Iterator<Item = Result<T, E>>,
+          F: FnMut(T) -> U,
+{
+    MapResults {
+        iter: iter,
+        f: f,
+    }
+}
+
+impl<I, F, T, U, E> Iterator for MapResults<I, F>
+    where I: Iterator<Item = Result<T, E>>,
+          F: FnMut(T) -> U,
+{
+    type Item = Result<U, E>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().map(|v| v.map(&mut self.f))
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+}
