@@ -3,17 +3,10 @@ sudo: false
 matrix:
   include:
     - rust: 1.11.0
-      env:
-       - FEATURES='quickcheck'
     - rust: stable
-      env:
-       - FEATURES='quickcheck'
     - rust: beta
-      env:
-       - FEATURES='quickcheck'
     - rust: nightly
       env:
-       - FEATURES='quickcheck'
        - BENCH=1
 branches:
   only:

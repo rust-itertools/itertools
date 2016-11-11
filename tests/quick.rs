@@ -1,5 +1,3 @@
-#![cfg(feature = "quickcheck")]
-
 //! The purpose of these tests is to cover corner cases of iterators
 //! and adaptors.
 //!

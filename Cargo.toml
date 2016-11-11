@@ -18,9 +18,9 @@ test = false
 [dependencies]
 either = { version = "1.0", default-features = false }
 
-[dependencies.quickcheck]
-version = "0.2.21"
-optional = true
+[dev-dependencies.quickcheck]
+version = "0.4"
+default-features = false
 
 [dev-dependencies.permutohedron]
 version = "0.2"
