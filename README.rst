@@ -41,6 +41,10 @@ How to contribute:
 Recent Changes
 --------------
 
+- 0.5.6
+
+  - Add ``.map_results()``
+
 - 0.5.5
 
   - Many more adaptors now implement ``Debug``
