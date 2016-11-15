@@ -70,6 +70,7 @@ pub mod structs {
     pub use intersperse::Intersperse;
     pub use kmerge_impl::KMerge;
     pub use pad_tail::PadUsing;
+    pub use note_position::NotePosition;
     pub use rciter_impl::RcIter;
     pub use repeatn::RepeatN;
     pub use sources::{RepeatCall, Unfold, Iterate};
@@ -84,6 +85,7 @@ pub use cons_tuples_impl::cons_tuples;
 pub use diff::diff_with;
 pub use diff::Diff;
 pub use minmax::MinMaxResult;
+pub use note_position::Position;
 pub use repeatn::repeat_n;
 pub use sources::{repeat_call, unfold, iterate};
 pub use zip_longest::EitherOrBoth;
@@ -100,6 +102,7 @@ mod groupbylazy;
 mod intersperse;
 mod kmerge_impl;
 mod minmax;
+mod note_position;
 mod pad_tail;
 mod rciter_impl;
 mod repeatn;
@@ -892,6 +895,27 @@ pub trait Itertools : Iterator {
               Self::Item: IntoIterator
     {
         adaptors::flatten(self)
+    }
+
+    /// Return an iterator adaptor that wraps each element in a `Position` to
+    /// ease special-case handling of the first or last elements.
+    ///
+    /// Iterator element type is
+    /// [`Position<Self::Item>`](enum.Position.html)
+    ///
+    /// ```
+    /// use itertools::{Itertools, Position};
+    ///
+    /// let it = (0..4).note_position();
+    /// itertools::assert_equal(it, vec![Position::First(0), Position::Middle(1), Position::Middle(2), Position::Last(3)]);
+    ///
+    /// let it = (0..1).note_position();
+    /// itertools::assert_equal(it, vec![Position::Only(0)]);
+    /// ```
+    fn note_position(self) -> NotePosition<Self>
+        where Self: Sized,
+    {
+        note_position::note_position(self)
     }
 
     // non-adaptor methods
