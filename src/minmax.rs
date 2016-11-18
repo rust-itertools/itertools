@@ -17,9 +17,9 @@ pub enum MinMaxResult<T> {
 impl<T: Clone> MinMaxResult<T> {
     /// `into_option` creates an `Option` of type `(T, T)`. The returned `Option`
     /// has variant `None` if and only if the `MinMaxResult` has variant
-    /// `NoElements`. Otherwise variant `Some(x, y)` is returned where `x <= y`.
-    /// If `MinMaxResult` has variant `OneElement(x)`, performing this operation
-    /// will make one clone of `x`.
+    /// `NoElements`. Otherwise `Some((x, y))` is returned where `x <= y`.
+    /// If the `MinMaxResult` has variant `OneElement(x)`, performing this
+    /// operation will make one clone of `x`.
     ///
     /// # Examples
     ///
