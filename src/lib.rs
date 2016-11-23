@@ -1008,7 +1008,8 @@ pub trait Itertools : Iterator {
     fn foreach<F>(&mut self, mut f: F)
         where F: FnMut(Self::Item)
     {
-        // use fold to exploit iterator-specific implementations
+        // FIXME: This use of fold doesn't actually do any iterator
+        // specific traversal (fold requries `self`)
         self.fold((), move |(), element| f(element))
     }
 
