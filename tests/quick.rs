@@ -643,3 +643,13 @@ quickcheck! {
         itertools::equal(x, y)
     }
 }
+
+// with_position
+quickcheck! {
+    fn with_position_exact_size_1(a: Vec<u8>) -> bool {
+        exact_size_for_this(a.iter().with_position())
+    }
+    fn with_position_exact_size_2(a: Iter<u8>) -> bool {
+        exact_size_for_this(a.with_position())
+    }
+}

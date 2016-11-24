@@ -83,3 +83,7 @@ impl<I: Iterator> Iterator for WithPosition<I> {
         self.peekable.size_hint()
     }
 }
+
+impl<I> ExactSizeIterator for WithPosition<I>
+    where I: ExactSizeIterator,
+{ }
