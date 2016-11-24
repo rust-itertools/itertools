@@ -75,6 +75,7 @@ pub mod structs {
     pub use sources::{RepeatCall, Unfold, Iterate};
     pub use tee::Tee;
     pub use tuple_impl::{TupleBuffer, TupleWindows, Tuples};
+    pub use with_position::WithPosition;
     pub use zip_eq_impl::ZipEq;
     pub use zip_longest::ZipLongest;
     pub use ziptuple::Zip;
@@ -86,6 +87,7 @@ pub use diff::Diff;
 pub use minmax::MinMaxResult;
 pub use repeatn::repeat_n;
 pub use sources::{repeat_call, unfold, iterate};
+pub use with_position::Position;
 pub use zip_longest::EitherOrBoth;
 pub use ziptuple::multizip;
 mod adaptors;
@@ -107,6 +109,7 @@ mod size_hint;
 mod sources;
 mod tee;
 mod tuple_impl;
+mod with_position;
 mod zip_eq_impl;
 mod zip_longest;
 mod ziptuple;
@@ -892,6 +895,31 @@ pub trait Itertools : Iterator {
               Self::Item: IntoIterator
     {
         adaptors::flatten(self)
+    }
+
+    /// Return an iterator adaptor that wraps each element in a `Position` to
+    /// ease special-case handling of the first or last elements.
+    ///
+    /// Iterator element type is
+    /// [`Position<Self::Item>`](enum.Position.html)
+    ///
+    /// ```
+    /// use itertools::{Itertools, Position};
+    ///
+    /// let it = (0..4).with_position();
+    /// itertools::assert_equal(it,
+    ///                         vec![Position::First(0),
+    ///                              Position::Middle(1),
+    ///                              Position::Middle(2),
+    ///                              Position::Last(3)]);
+    ///
+    /// let it = (0..1).with_position();
+    /// itertools::assert_equal(it, vec![Position::Only(0)]);
+    /// ```
+    fn with_position(self) -> WithPosition<Self>
+        where Self: Sized,
+    {
+        with_position::with_position(self)
     }
 
     // non-adaptor methods
