@@ -38,6 +38,18 @@ pub enum Position<T> {
     Only(T),
 }
 
+impl<T> Position<T> {
+    /// Return the inner value.
+    pub fn into_inner(self) -> T {
+        match self {
+            Position::First(x) |
+            Position::Middle(x) |
+            Position::Last(x) |
+            Position::Only(x) => x,
+        }
+    }
+}
+
 impl<I: Iterator> Iterator for WithPosition<I> {
     type Item = Position<I::Item>;
 
