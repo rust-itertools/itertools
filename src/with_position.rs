@@ -3,7 +3,6 @@ use std::iter::{Fuse,Peekable};
 /// An iterator adaptor that wraps each element in an [`Position`](../enum.Position.html).
 ///
 /// Iterator element type is `Position<I::Item>`.
-/// This iterator is *fused*.
 ///
 /// See [`.with_position()`](../trait.Itertools.html#method.with_position) for more information.
 pub struct WithPosition<I>
