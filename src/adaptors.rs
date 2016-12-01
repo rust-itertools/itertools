@@ -9,7 +9,7 @@ use std::fmt;
 use std::mem::replace;
 use std::ops::Index;
 use std::iter::{Fuse, Peekable};
-use std::collections::HashSet;
+use std::collections::{HashSet, VecDeque};
 use std::hash::Hash;
 use std::marker::PhantomData;
 use size_hint;
@@ -697,7 +697,7 @@ pub struct MultiPeek<I>
     where I: Iterator
 {
     iter: Fuse<I>,
-    buf: Vec<I::Item>,
+    buf: VecDeque<I::Item>,
     index: usize,
 }
 
@@ -708,7 +708,7 @@ pub fn multipeek<I>(iterable: I) -> MultiPeek<I::IntoIter>
 {
     MultiPeek {
         iter: iterable.into_iter().fuse(),
-        buf: Vec::new(),
+        buf: VecDeque::new(),
         index: 0,
     }
 }
@@ -723,7 +723,7 @@ impl<I: Iterator> MultiPeek<I> {
         } else {
             match self.iter.next() {
                 Some(x) => {
-                    self.buf.push(x);
+                    self.buf.push_back(x);
                     Some(&self.buf[self.index])
                 }
                 None => return None,
@@ -745,7 +745,7 @@ impl<I> Iterator for MultiPeek<I>
         if self.buf.is_empty() {
             self.iter.next()
         } else {
-            Some(self.buf.remove(0))
+            self.buf.pop_front()
         }
     }
 
