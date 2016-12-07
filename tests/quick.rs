@@ -642,6 +642,14 @@ quickcheck! {
         let y = a.iter().tuples::<(_, _, _, _)>();
         itertools::equal(x, y)
     }
+
+    fn exact_tuple_buffer(a: Vec<u8>) -> bool {
+        let mut iter = a.iter().tuples::<(_, _, _, _)>();
+        (&mut iter).last();
+        let buffer = iter.into_buffer();
+        assert_eq!(buffer.len(), a.len() % 4);
+        exact_size(buffer)
+    }
 }
 
 // with_position

@@ -38,6 +38,23 @@ impl<T> Iterator for TupleBuffer<T>
             None
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let buffer = &self.buf.as_ref()[self.cur..];
+        let len = if buffer.len() == 0 {
+            0
+        } else {
+            buffer.iter()
+                  .position(|x| x.is_none())
+                  .unwrap_or(buffer.len())
+        };
+        (len, Some(len))
+    }
+}
+
+impl<T> ExactSizeIterator for TupleBuffer<T>
+    where T: TupleCollect
+{
 }
 
 /// An iterator that groups the items in tuples of a specific size.
@@ -152,7 +169,7 @@ impl<I, T> Iterator for TupleWindows<I, T>
 
 pub trait TupleCollect: Sized {
     type Item;
-    type Buffer: Default + AsMut<[Option<Self::Item>]>;
+    type Buffer: Default + AsRef<[Option<Self::Item>]> + AsMut<[Option<Self::Item>]>;
 
     fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
         where I: IntoIterator<Item = Self::Item>;
