@@ -746,6 +746,15 @@ fn combinations() {
     it::assert_equal((0..2).combinations(2), vec![vec![0, 1]]);
 }
 
+#[test]
+fn combinations_of_too_short() {
+    for i in 1..10 {
+        assert!((0..0).combinations(i).next().is_none());
+        assert!((0..i - 1).combinations(i).next().is_none());
+    }
+}
+
+
 #[should_panic]
 #[test]
 fn combinations_zero() {
