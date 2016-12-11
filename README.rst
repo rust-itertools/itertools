@@ -41,6 +41,11 @@ How to contribute:
 Recent Changes
 --------------
 
+- 0.5.7
+
+  - Add iterator adaptor ``.with_position()``
+  - Fix multipeek's performance for long peeks by using ``VecDeque``.
+
 - 0.5.6
 
   - Add ``.map_results()``
