@@ -70,6 +70,7 @@ pub mod structs {
     pub use intersperse::Intersperse;
     pub use kmerge_impl::KMerge;
     pub use pad_tail::PadUsing;
+    pub use peeking_take_while::PeekingTakeWhile;
     pub use rciter_impl::RcIter;
     pub use repeatn::RepeatN;
     pub use sources::{RepeatCall, Unfold, Iterate};
@@ -85,6 +86,7 @@ pub use cons_tuples_impl::cons_tuples;
 pub use diff::diff_with;
 pub use diff::Diff;
 pub use minmax::MinMaxResult;
+pub use peeking_take_while::PeekingNext;
 pub use repeatn::repeat_n;
 pub use sources::{repeat_call, unfold, iterate};
 pub use with_position::Position;
@@ -103,6 +105,7 @@ mod intersperse;
 mod kmerge_impl;
 mod minmax;
 mod pad_tail;
+mod peeking_take_while;
 mod rciter_impl;
 mod repeatn;
 mod size_hint;
@@ -743,11 +746,31 @@ pub trait Itertools : Iterator {
         adaptors::unique_by(self, f)
     }
 
-    /// Return an iterator adaptor that borrows from a `Clone`-able iterator
-    /// to only pick off elements while the predicate `f` returns `true`.
+    /// Return an iterator adaptor that borrows from this iterator and 
+    /// takes items while the closure `accept` returns `true`.
     ///
-    /// It uses the `Clone` trait to restore the original iterator so that the last
-    /// and rejected element is still available when `TakeWhileRef` is done.
+    /// This adaptor can only be used on iterators that implement `PeekingNext`
+    /// like `.peekable()`, `put_back` and a few other collection iterators.
+    ///
+    /// The last and rejected element (first `false`) is still available when
+    /// `peeking_take_while` is done.
+    ///
+    ///
+    /// See also [`.take_while_ref()`](#method.take_while_ref)
+    /// which is a similar adaptor.
+    fn peeking_take_while<F>(&mut self, accept: F) -> PeekingTakeWhile<Self, F>
+        where Self: Sized + PeekingNext,
+              F: FnMut(&Self::Item) -> bool,
+    {
+        peeking_take_while::peeking_take_while(self, accept)
+    }
+
+    /// Return an iterator adaptor that borrows from a `Clone`-able iterator
+    /// to only pick off elements while the predicate `accept` returns `true`.
+    ///
+    /// It uses the `Clone` trait to restore the original iterator so that the
+    /// last and rejected element (first `false`) is still available when
+    /// `take_while_ref` is done.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -760,11 +783,11 @@ pub trait Itertools : Iterator {
     /// assert_eq!(hexadecimals.next(), Some('a'));
     ///
     /// ```
-    fn take_while_ref<'a, F>(&'a mut self, f: F) -> TakeWhileRef<'a, Self, F>
+    fn take_while_ref<F>(&mut self, accept: F) -> TakeWhileRef<Self, F>
         where Self: Clone,
               F: FnMut(&Self::Item) -> bool
     {
-        adaptors::take_while_ref(self, f)
+        adaptors::take_while_ref(self, accept)
     }
 
     /// Return an iterator adaptor that filters `Option<A>` iterator elements
