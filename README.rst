@@ -41,6 +41,10 @@ How to contribute:
 Recent Changes
 --------------
 
+- 0.5.8
+
+  - Add iterator adaptor ``.peeking_take_while()`` and its trait ``PeekingNext``.
+
 - 0.5.7
 
   - Add iterator adaptor ``.with_position()``
