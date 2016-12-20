@@ -369,23 +369,23 @@ impl<I, J> Iterator for Product<I, J>
 {
     type Item = (I::Item, J::Item);
     fn next(&mut self) -> Option<(I::Item, J::Item)> {
-        let elt_b = match self.b.next() {
-            None => {
-                self.b = self.b_orig.clone();
-                match self.b.next() {
-                    None => return None,
-                    Some(x) => {
-                        self.a_cur = self.a.next();
-                        x
-                    }
-                }
-            }
-            Some(x) => x
-        };
+		let get_next_b = || match self.b.next() {
+				None => {
+					self.b = self.b_orig.clone();
+					match self.b.next() {
+						None => return None,
+						Some(x) => {
+							self.a_cur = self.a.next();
+							x
+						}
+					}
+				}
+				Some(x) => x
+			};
         match self.a_cur {
             None => None,
             Some(ref a) => {
-                Some((a.clone(), elt_b))
+                Some((a.clone(), get_next_b()))
             }
         }
     }
