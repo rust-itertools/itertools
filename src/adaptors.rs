@@ -369,25 +369,35 @@ impl<I, J> Iterator for Product<I, J>
 {
     type Item = (I::Item, J::Item);
     fn next(&mut self) -> Option<(I::Item, J::Item)> {
-        let elt_b = match self.b.next() {
-            None => {
-                self.b = self.b_orig.clone();
-                match self.b.next() {
-                    None => return None,
-                    Some(x) => {
-                        self.a_cur = self.a.next();
-                        x
-                    }
-                }
-            }
-            Some(x) => x
-        };
+		let mut advance_a = false;
+		let mut res = None;
         match self.a_cur {
-            None => None,
+            None => return None,
             Some(ref a) => {
-                Some((a.clone(), elt_b))
+                res = Some((a.clone(),
+					 match self.b.next() {
+						None => {
+							self.b = self.b_orig.clone();
+							match self.b.next() {
+								None => return None,
+								Some(x) => {
+									advance_a = true;
+									x
+								}
+							}
+						}
+						Some(x) => {
+							advance_a = true; 
+							x
+						}
+					}
+                ))
             }
+        };
+        if advance_a {
+        	self.a_cur = self.a.next();
         }
+        res
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
