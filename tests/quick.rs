@@ -11,6 +11,7 @@ use std::default::Default;
 
 use quickcheck as qc;
 use std::ops::Range;
+use std::cmp::Ordering;
 use itertools::Itertools;
 use itertools::{
     multizip,
@@ -659,5 +660,48 @@ quickcheck! {
     }
     fn with_position_exact_size_2(a: Iter<u8>) -> bool {
         exact_size_for_this(a.with_position())
+    }
+}
+
+/// A peculiar type: Equality compares both tuple items, but ordering only the
+/// first item.  This is so we can check the stability property easily.
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Val(u32, u32);
+
+impl PartialOrd<Val> for Val {
+    fn partial_cmp(&self, other: &Val) -> Option<Ordering> {
+        self.0.partial_cmp(&other.0)
+    }
+}
+
+impl Ord for Val {
+    fn cmp(&self, other: &Val) -> Ordering {
+        self.0.cmp(&other.0)
+    }
+}
+
+impl qc::Arbitrary for Val {
+    fn arbitrary<G: qc::Gen>(g: &mut G) -> Self {
+        let (x, y) = <(u32, u32)>::arbitrary(g);
+        Val(x, y)
+    }
+    fn shrink(&self) -> Box<Iterator<Item = Self>> {
+        Box::new((self.0, self.1).shrink().map(|(x, y)| Val(x, y)))
+    }
+}
+
+quickcheck! {
+    fn minmax(a: Vec<Val>) -> bool {
+        use itertools::MinMaxResult;
+
+
+        let minmax = a.iter().minmax();
+        let expected = match a.len() {
+            0 => MinMaxResult::NoElements,
+            1 => MinMaxResult::OneElement(&a[0]),
+            _ => MinMaxResult::MinMax(a.iter().min().unwrap(),
+                                      a.iter().max().unwrap()),
+        };
+        minmax == expected
     }
 }
