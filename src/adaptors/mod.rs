@@ -9,11 +9,14 @@ use std::fmt;
 use std::mem::replace;
 use std::ops::Index;
 use std::iter::{Fuse, Peekable};
-use std::collections::{HashSet, VecDeque};
+use std::collections::HashSet;
 use std::hash::Hash;
 use std::marker::PhantomData;
 use size_hint;
 use fold;
+
+pub mod multipeek;
+pub use self::multipeek::MultiPeek;
 
 macro_rules! clone_fields {
     ($name:ident, $base:expr, $($field:ident),+) => (
@@ -690,74 +693,6 @@ impl<I, J, F> Iterator for MergeBy<I, J, F>
         self.merge.size_hint()
     }
 }
-
-/// See [`multipeek()`](../fn.multipeek.html) for more information.
-#[derive(Clone, Debug)]
-pub struct MultiPeek<I>
-    where I: Iterator
-{
-    iter: Fuse<I>,
-    buf: VecDeque<I::Item>,
-    index: usize,
-}
-
-/// An iterator adaptor that allows the user to peek at multiple `.next()`
-/// values without advancing the base iterator.
-pub fn multipeek<I>(iterable: I) -> MultiPeek<I::IntoIter>
-    where I: IntoIterator
-{
-    MultiPeek {
-        iter: iterable.into_iter().fuse(),
-        buf: VecDeque::new(),
-        index: 0,
-    }
-}
-
-impl<I: Iterator> MultiPeek<I> {
-    /// Works exactly like `.next()` with the only difference that it doesn't
-    /// advance itself. `.peek()` can be called multiple times, to peek
-    /// further ahead.
-    pub fn peek(&mut self) -> Option<&I::Item> {
-        let ret = if self.index < self.buf.len() {
-            Some(&self.buf[self.index])
-        } else {
-            match self.iter.next() {
-                Some(x) => {
-                    self.buf.push_back(x);
-                    Some(&self.buf[self.index])
-                }
-                None => return None,
-            }
-        };
-
-        self.index += 1;
-        ret
-    }
-}
-
-impl<I> Iterator for MultiPeek<I>
-    where I: Iterator
-{
-    type Item = I::Item;
-
-    fn next(&mut self) -> Option<I::Item> {
-        self.index = 0;
-        if self.buf.is_empty() {
-            self.iter.next()
-        } else {
-            self.buf.pop_front()
-        }
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        size_hint::add_scalar(self.iter.size_hint(), self.buf.len())
-    }
-}
-
-// Same size
-impl<I> ExactSizeIterator for MultiPeek<I>
-    where I: ExactSizeIterator
-{}
 
 #[derive(Clone, Debug)]
 pub struct CoalesceCore<I>
