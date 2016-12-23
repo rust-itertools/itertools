@@ -10,10 +10,10 @@ use Itertools;
 pub use adaptors::{
     interleave,
     merge,
-    multipeek,
     put_back,
     put_back_n,
 };
+pub use adaptors::multipeek::multipeek;
 pub use kmerge_impl::kmerge;
 pub use zip_eq_impl::zip_eq;
 pub use rciter_impl::rciter;

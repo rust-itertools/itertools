@@ -15,6 +15,7 @@ use it::FoldWhile;
 use it::free::rciter;
 use it::free::put_back;
 use it::free::put_back_n;
+use it::cloned;
 
 #[test]
 fn product2() {
@@ -431,6 +432,20 @@ fn test_multipeek() {
     assert_eq!(mp.next(), None);
     assert_eq!(mp.peek(), None);
 
+}
+
+#[test]
+fn test_multipeek_reset() {
+    let data = [1, 2, 3, 4];
+
+    let mut mp = multipeek(cloned(&data));
+    assert_eq!(mp.peek(), Some(&1));
+    assert_eq!(mp.next(), Some(1));
+    assert_eq!(mp.peek(), Some(&2));
+    assert_eq!(mp.peek(), Some(&3));
+    mp.reset_peek();
+    assert_eq!(mp.peek(), Some(&2));
+    assert_eq!(mp.next(), Some(2));
 }
 
 #[test]
