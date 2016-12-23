@@ -26,6 +26,15 @@ pub fn multipeek<I>(iterable: I) -> MultiPeek<I::IntoIter>
     }
 }
 
+impl<I> MultiPeek<I>
+    where I: Iterator
+{
+    /// Reset the peeking “cursor”
+    pub fn reset_peek(&mut self) {
+        self.index = 0;
+    }
+}
+
 impl<I: Iterator> MultiPeek<I> {
     /// Works exactly like `.next()` with the only difference that it doesn't
     /// advance itself. `.peek()` can be called multiple times, to peek
