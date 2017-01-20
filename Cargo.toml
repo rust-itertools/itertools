@@ -10,6 +10,7 @@ authors = ["bluss"]
 description = "Extra iterator adaptors, iterator methods, free functions, and macros."
 
 keywords = ["iterator", "data-structure", "zip", "product", "group-by"]
+categories = ["algorithms", "rust-patterns"]
 
 [lib]
 bench = false
