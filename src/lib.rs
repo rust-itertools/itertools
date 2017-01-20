@@ -1,5 +1,6 @@
 #![warn(missing_docs)]
 #![crate_name="itertools"]
+#![cfg_attr(feature = "nightly", feature(binary_heap_peek_mut_pop))]
 
 //! Itertools — extra iterator adaptors, functions and macros.
 //!
