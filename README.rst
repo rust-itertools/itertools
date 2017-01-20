@@ -21,7 +21,7 @@ How to use with cargo:
 .. code:: toml
 
     [dependencies]
-    itertools = "0.5.4"
+    itertools = "0.5.9"
 
 How to use in your crate:
 
@@ -40,6 +40,11 @@ How to contribute:
 
 Recent Changes
 --------------
+
+- 0.5.9
+
+  - Add multipeek method ``.reset_peek()``
+  - Add categories
 
 - 0.5.8
 
