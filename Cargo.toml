@@ -18,6 +18,7 @@ test = false
 
 [dependencies]
 either = { version = "1.0", default-features = false }
+nodrop = "0.1.8"
 
 [dev-dependencies.quickcheck]
 version = "0.4"

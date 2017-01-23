@@ -2,7 +2,65 @@
 //! not from another iterator).
 
 use std::fmt;
+use std::marker::PhantomData;
 use std::mem;
+use std::ptr;
+use nodrop::NoDrop;
+
+#[doc(hidden)]
+pub unsafe trait FixedSizeArray<T>: AsRef<[T]> {}
+
+macro_rules! impl_fixed_size_array {
+    ($($N:expr),*) => (
+        $(unsafe impl<T> FixedSizeArray<T> for [T; $N] {})*
+    )
+}
+
+impl_fixed_size_array!(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+                       18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32);
+
+/// Create an iterator over a fixed number of elements. See [`iter!`](../macro.iter.html)
+/// for more information.
+pub struct ListIterator<T, A: FixedSizeArray<T>> {
+    array: NoDrop<A>,
+    cur: usize,
+    _marker: PhantomData<T>,
+}
+
+#[doc(hidden)]
+pub fn list_iterator<T, A: FixedSizeArray<T>>(a: A) -> ListIterator<T, A> {
+    ListIterator {
+        array: NoDrop::new(a),
+        cur: 0,
+        _marker: PhantomData,
+    }
+}
+
+impl<T, A: FixedSizeArray<T>> Iterator for ListIterator<T, A> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let cur = &mut self.cur;
+        self.array.as_ref().get(*cur).map(|v| {
+            *cur += 1;
+            unsafe { ptr::read(v) }
+        })
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let s = self.array.as_ref().len() - self.cur;
+        (s, Some(s))
+    }
+}
+
+impl<T, A: FixedSizeArray<T>> ExactSizeIterator for ListIterator<T, A> {}
+
+impl<T, A: FixedSizeArray<T>> Drop for ListIterator<T, A> {
+    fn drop(&mut self) {
+        for _ in self {}
+    }
+}
+
 
 /// See [`repeat_call`](../fn.repeat_call.html) for more information.
 pub struct RepeatCall<F> {
