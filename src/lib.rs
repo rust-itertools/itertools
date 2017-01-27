@@ -1535,7 +1535,7 @@ pub trait Itertools : Iterator {
     fn exhaust(self)
         where Self: Sized,
     {
-        self.count();
+        for _ in self { }
     }
 }
 
