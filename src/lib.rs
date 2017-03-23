@@ -1493,8 +1493,11 @@ pub trait Itertools : Iterator {
     /// let a = [1, 1, 1, 1];
     /// assert_eq!(a.iter().minmax(), MinMax(&1, &1));
     /// ```
+    ///
+    /// The elements can be floats but no particular result is guaranteed
+    /// if an element is NaN.
     fn minmax(self) -> MinMaxResult<Self::Item>
-        where Self: Sized, Self::Item: Ord
+        where Self: Sized, Self::Item: PartialOrd
     {
         minmax::minmax_impl(self, |_| (), |x, y, _, _| x < y)
     }
@@ -1507,8 +1510,11 @@ pub trait Itertools : Iterator {
     /// For the minimum, the first minimal element is returned.  For the maximum,
     /// the last maximal element wins.  This matches the behavior of the standard
     /// `Iterator::min()` and `Iterator::max()` methods.
+    ///
+    /// The keys can be floats but no particular result is guaranteed
+    /// if a key is NaN.
     fn minmax_by_key<K, F>(self, key: F) -> MinMaxResult<Self::Item>
-        where Self: Sized, K: Ord, F: FnMut(&Self::Item) -> K
+        where Self: Sized, K: PartialOrd, F: FnMut(&Self::Item) -> K
     {
         minmax::minmax_impl(self, key, |_, _, xk, yk| xk < yk)
     }
