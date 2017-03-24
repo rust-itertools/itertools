@@ -28,6 +28,8 @@ use itertools::free::{
     zip_eq,
 };
 
+use qc::TestResult;
+
 /// Our base iterator that we can impl Arbitrary for
 ///
 /// NOTE: Iter is tricky and is not fused, to help catch bugs.
@@ -703,5 +705,26 @@ quickcheck! {
                                       a.iter().max().unwrap()),
         };
         minmax == expected
+    }
+}
+
+quickcheck! {
+    fn minmax_f64(a: Vec<f64>) -> TestResult {
+        use itertools::MinMaxResult;
+
+        if a.iter().any(|x| x.is_nan()) {
+            return TestResult::discard();
+        }
+
+        let min = cloned(&a).fold1(f64::min);
+        let max = cloned(&a).fold1(f64::max);
+
+        let minmax = cloned(&a).minmax();
+        let expected = match a.len() {
+            0 => MinMaxResult::NoElements,
+            1 => MinMaxResult::OneElement(min.unwrap()),
+            _ => MinMaxResult::MinMax(min.unwrap(), max.unwrap()),
+        };
+        TestResult::from_bool(minmax == expected)
     }
 }
