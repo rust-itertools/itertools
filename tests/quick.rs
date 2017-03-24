@@ -28,7 +28,7 @@ use itertools::free::{
     zip_eq,
 };
 
-use qc::TestResult;
+use quickcheck::TestResult;
 
 /// Our base iterator that we can impl Arbitrary for
 ///
