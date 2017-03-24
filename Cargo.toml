@@ -27,6 +27,7 @@ default-features = false
 version = "0.2"
 
 [features]
+nightly = []
 
 [profile]
 bench = { debug = true }

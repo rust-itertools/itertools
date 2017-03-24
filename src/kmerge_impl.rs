@@ -4,6 +4,9 @@ use Itertools;
 
 use std::cmp::Ordering;
 use std::mem::replace;
+use std::collections::BinaryHeap;
+#[cfg(feature = "nightly")]
+use std::collections::binary_heap::PeekMut;
 
 macro_rules! clone_fields {
     ($name:ident, $base:expr, $($field:ident),+) => (
@@ -117,37 +120,6 @@ impl<I> Ord for HeadTail<I>
     }
 }
 
-/// Make `data` a heap (max-heap w.r.t T's Ord).
-fn heapify<T: Ord>(data: &mut [T]) {
-    for i in (0..data.len() / 2).rev() {
-        sift_down(data, i);
-    }
-}
-
-/// Sift down element at `index` (`heap` is a max-heap wrt T's Ord).
-fn sift_down<T: Ord>(heap: &mut [T], index: usize) {
-    debug_assert!(index <= heap.len());
-    let mut pos = index;
-    let mut child = 2 * pos + 1;
-    // the `pos` conditional is to avoid a bounds check
-    while pos < heap.len() && child < heap.len() {
-        let right = child + 1;
-
-        // pick the bigger of the two children
-        if right < heap.len() && heap[child] < heap[right] {
-            child = right;
-        }
-
-        // sift down is done if we are already in order
-        if heap[pos] >= heap[child] {
-            return;
-        }
-        heap.swap(pos, child);
-        pos = child;
-        child = 2 * pos + 1;
-    }
-}
-
 /// An iterator adaptor that merges an abitrary number of base iterators in ascending order.
 /// If all base iterators are sorted (ascending), the result is sorted.
 ///
@@ -157,7 +129,7 @@ fn sift_down<T: Ord>(heap: &mut [T], index: usize) {
 pub struct KMerge<I>
     where I: Iterator
 {
-    heap: Vec<HeadTail<I>>,
+    heap: BinaryHeap<HeadTail<I>>,
 }
 
 /// Create an iterator that merges elements of the contained iterators.
@@ -178,9 +150,8 @@ pub fn kmerge<I>(iterable: I) -> KMerge<<I::Item as IntoIterator>::IntoIter>
 {
     let iter = iterable.into_iter();
     let (lower, _) = iter.size_hint();
-    let mut heap = Vec::with_capacity(lower);
+    let mut heap = BinaryHeap::with_capacity(lower);
     heap.extend(iter.filter_map(|it| HeadTail::new(it.into_iter())));
-    heapify(&mut heap);
     KMerge { heap: heap }
 }
 
@@ -199,17 +170,28 @@ impl<I> Iterator for KMerge<I>
 {
     type Item = I::Item;
 
+    #[cfg(feature = "nightly")]
     fn next(&mut self) -> Option<Self::Item> {
-        if self.heap.is_empty() {
-            return None;
+        self.heap.peek_mut().and_then(|mut iter| {
+            iter.next().or_else(|| {
+                Some(PeekMut::pop(iter).head)
+            })
+        })
+    }
+
+    #[cfg(not(feature = "nightly"))]
+    fn next(&mut self) -> Option<Self::Item> {
+        let mut pop_it = false;
+        let mut val = self.heap.peek_mut().and_then(|mut iter| {
+            iter.next().or_else(|| {
+                pop_it = true;
+                None // place holder
+            })
+        });
+        if pop_it {
+            val = Some(self.heap.pop().unwrap().head);
         }
-        let result = if let Some(next) = self.heap[0].next() {
-            next
-        } else {
-            self.heap.swap_remove(0).head
-        };
-        sift_down(&mut self.heap, 0);
-        Some(result)
+        val
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
