@@ -41,6 +41,11 @@ How to contribute:
 Recent Changes
 --------------
 
+- 0.5.10
+
+  - Add itertools method ``.kmerge_by()`` (and corresponding free function)
+  - Relaxed trait requirement of ``.kmerge()`` and ``.minmax()`` to PartialOrd.
+
 - 0.5.9
 
   - Add multipeek method ``.reset_peek()``
