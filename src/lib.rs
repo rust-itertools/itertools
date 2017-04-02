@@ -85,6 +85,7 @@ pub use structs::*;
 pub use cons_tuples_impl::cons_tuples;
 pub use diff::diff_with;
 pub use diff::Diff;
+pub use kmerge_impl::{kmerge_by};
 pub use minmax::MinMaxResult;
 pub use peeking_take_while::PeekingNext;
 pub use repeatn::repeat_n;
@@ -655,7 +656,7 @@ pub trait Itertools : Iterator {
               F: FnMut(&<<Self as Iterator>::Item as IntoIterator>::Item,
                        &<<Self as Iterator>::Item as IntoIterator>::Item) -> bool
     {
-        kmerge_impl::kmerge_by(self, first)
+        kmerge_by(self, first)
     }
 
     /// Return an iterator adaptor that iterates over the cartesian product of

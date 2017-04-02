@@ -115,9 +115,10 @@ pub struct KMerge<I>
     heap: Vec<HeadTail<I>>,
 }
 
-/// Create an iterator that merges elements of the contained iterators.
+/// Create an iterator that merges elements of the contained iterators using
+/// the ordering function.
 ///
-/// Equivalent to `i.into_iter().kmerge()`.
+/// Equivalent to `iterable.into_iter().kmerge()`.
 ///
 /// ```
 /// use itertools::kmerge;
@@ -189,6 +190,8 @@ pub struct KMergeBy<I, F>
 }
 
 /// Create an iterator that merges elements of the contained iterators.
+///
+/// Equivalent to `iterable.into_iter().kmerge_by(less_than)`.
 pub fn kmerge_by<I, F>(iterable: I, mut less_than: F)
     -> KMergeBy<<I::Item as IntoIterator>::IntoIter, F>
     where I: IntoIterator,
