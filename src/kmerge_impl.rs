@@ -176,12 +176,13 @@ impl<I> Iterator for KMerge<I>
     }
 }
 
-/// An iterator adaptor that merges an abitrary number of base iterators in ascending order.
-/// If all base iterators are sorted (ascending), the result is sorted.
+/// An iterator adaptor that merges an abitrary number of base iterators
+/// according to an ordering function.
 ///
 /// Iterator element type is `I::Item`.
 ///
-/// See [`.kmerge()`](../trait.Itertools.html#method.kmerge) for more information.
+/// See [`.kmerge_by()`](../trait.Itertools.html#method.kmerge_by) for more
+/// information.
 pub struct KMergeBy<I, F>
     where I: Iterator,
 {

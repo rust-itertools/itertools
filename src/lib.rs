@@ -630,10 +630,10 @@ pub trait Itertools : Iterator {
     }
 
     /// Return an iterator adaptor that flattens an iterator of iterators by
-    /// merging them in according to the given closure.
+    /// merging them according to the given closure.
     ///
     /// The closure `first` is called with two elements *a*, *b* and should
-    /// return `true` if a is ordered before b.
+    /// return `true` if *a* is ordered before *b*.
     ///
     /// If all base iterators are sorted according to `first`, the result is
     /// sorted.
