@@ -2,7 +2,6 @@
 use size_hint;
 use Itertools;
 
-use std::cmp::Ordering;
 use std::mem::replace;
 
 macro_rules! clone_fields {
@@ -69,63 +68,19 @@ impl<I> Clone for HeadTail<I>
     }
 }
 
-impl<I> PartialEq for HeadTail<I>
-    where I: Iterator,
-          I::Item: PartialEq
+/// Make `data` a heap (min-heap w.r.t the sorting).
+fn heapify<T, S>(data: &mut [T], mut less_than: S)
+    where S: FnMut(&T, &T) -> bool
 {
-    fn eq(&self, other: &HeadTail<I>) -> bool {
-        self.head.eq(&other.head)
-    }
-}
-
-impl<I> Eq for HeadTail<I>
-    where I: Iterator,
-          I::Item: Eq
-{}
-
-impl<I> PartialOrd for HeadTail<I>
-    where I: Iterator,
-          I::Item: PartialOrd
-{
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        other.head.partial_cmp(&self.head)
-    }
-
-    fn lt(&self, other: &Self) -> bool {
-        other.head.lt(&self.head)
-    }
-
-    fn le(&self, other: &Self) -> bool {
-        other.head.le(&self.head)
-    }
-
-    fn gt(&self, other: &Self) -> bool {
-        other.head.gt(&self.head)
-    }
-
-    fn ge(&self, other: &Self) -> bool {
-        other.head.ge(&self.head)
-    }
-}
-
-impl<I> Ord for HeadTail<I>
-    where I: Iterator,
-          I::Item: Ord
-{
-    fn cmp(&self, other: &Self) -> Ordering {
-        other.head.cmp(&self.head)
-    }
-}
-
-/// Make `data` a heap (max-heap w.r.t T's Ord).
-fn heapify<T: Ord>(data: &mut [T]) {
     for i in (0..data.len() / 2).rev() {
-        sift_down(data, i);
+        sift_down(data, i, &mut less_than);
     }
 }
 
-/// Sift down element at `index` (`heap` is a max-heap wrt T's Ord).
-fn sift_down<T: Ord>(heap: &mut [T], index: usize) {
+/// Sift down element at `index` (`heap` is a min-heap wrt the ordering)
+fn sift_down<T, S>(heap: &mut [T], index: usize, mut less_than: S)
+    where S: FnMut(&T, &T) -> bool
+{
     debug_assert!(index <= heap.len());
     let mut pos = index;
     let mut child = 2 * pos + 1;
@@ -133,13 +88,13 @@ fn sift_down<T: Ord>(heap: &mut [T], index: usize) {
     while pos < heap.len() && child < heap.len() {
         let right = child + 1;
 
-        // pick the bigger of the two children
-        if right < heap.len() && heap[child] < heap[right] {
+        // pick the smaller of the two children
+        if right < heap.len() && less_than(&heap[right], &heap[child]) {
             child = right;
         }
 
         // sift down is done if we are already in order
-        if heap[pos] >= heap[child] {
+        if !less_than(&heap[child], &heap[pos]) {
             return;
         }
         heap.swap(pos, child);
@@ -174,13 +129,13 @@ pub struct KMerge<I>
 pub fn kmerge<I>(iterable: I) -> KMerge<<I::Item as IntoIterator>::IntoIter>
     where I: IntoIterator,
           I::Item: IntoIterator,
-          <<I as IntoIterator>::Item as IntoIterator>::Item: Ord
+          <<I as IntoIterator>::Item as IntoIterator>::Item: PartialOrd
 {
     let iter = iterable.into_iter();
     let (lower, _) = iter.size_hint();
     let mut heap = Vec::with_capacity(lower);
     heap.extend(iter.filter_map(|it| HeadTail::new(it.into_iter())));
-    heapify(&mut heap);
+    heapify(&mut heap, |a, b| a.head < b.head);
     KMerge { heap: heap }
 }
 
@@ -195,7 +150,7 @@ impl<I> Clone for KMerge<I>
 
 impl<I> Iterator for KMerge<I>
     where I: Iterator,
-          I::Item: Ord
+          I::Item: PartialOrd
 {
     type Item = I::Item;
 
@@ -208,7 +163,7 @@ impl<I> Iterator for KMerge<I>
         } else {
             self.heap.swap_remove(0).head
         };
-        sift_down(&mut self.heap, 0);
+        sift_down(&mut self.heap, 0, |a, b| a.head < b.head);
         Some(result)
     }
 
@@ -220,3 +175,60 @@ impl<I> Iterator for KMerge<I>
     }
 }
 
+/// An iterator adaptor that merges an abitrary number of base iterators in ascending order.
+/// If all base iterators are sorted (ascending), the result is sorted.
+///
+/// Iterator element type is `I::Item`.
+///
+/// See [`.kmerge()`](../trait.Itertools.html#method.kmerge) for more information.
+pub struct KMergeBy<I, F>
+    where I: Iterator,
+{
+    heap: Vec<HeadTail<I>>,
+    less_than: F,
+}
+
+/// Create an iterator that merges elements of the contained iterators.
+pub fn kmerge_by<I, F>(iterable: I, mut less_than: F)
+    -> KMergeBy<<I::Item as IntoIterator>::IntoIter, F>
+    where I: IntoIterator,
+          I::Item: IntoIterator,
+          F: FnMut(&<<I as IntoIterator>::Item as IntoIterator>::Item,
+                   &<<I as IntoIterator>::Item as IntoIterator>::Item) -> bool
+{
+    let iter = iterable.into_iter();
+    let (lower, _) = iter.size_hint();
+    let mut heap: Vec<_> = Vec::with_capacity(lower);
+    heap.extend(iter.filter_map(|it| HeadTail::new(it.into_iter())));
+    heapify(&mut heap, |a, b| less_than(&a.head, &b.head));
+    KMergeBy { heap: heap, less_than: less_than }
+}
+
+
+impl<I, F> Iterator for KMergeBy<I, F>
+    where I: Iterator,
+          F: FnMut(&I::Item, &I::Item) -> bool
+{
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.heap.is_empty() {
+            return None;
+        }
+        let result = if let Some(next) = self.heap[0].next() {
+            next
+        } else {
+            self.heap.swap_remove(0).head
+        };
+        let less_than = &mut self.less_than;
+        sift_down(&mut self.heap, 0, |a, b| less_than(&a.head, &b.head));
+        Some(result)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.heap.iter()
+                 .map(|i| i.size_hint())
+                 .fold1(size_hint::add)
+                 .unwrap_or((0, Some(0)))
+    }
+}

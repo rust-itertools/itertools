@@ -68,7 +68,7 @@ pub mod structs {
     pub use format::{Format, FormatWith};
     pub use groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
     pub use intersperse::Intersperse;
-    pub use kmerge_impl::KMerge;
+    pub use kmerge_impl::{KMerge, KMergeBy};
     pub use pad_tail::PadUsing;
     pub use peeking_take_while::PeekingTakeWhile;
     pub use rciter_impl::RcIter;
@@ -623,9 +623,39 @@ pub trait Itertools : Iterator {
     fn kmerge(self) -> KMerge<<<Self as Iterator>::Item as IntoIterator>::IntoIter>
         where Self: Sized,
               Self::Item: IntoIterator,
-              <<Self as Iterator>::Item as IntoIterator>::Item: Ord,
+              <<Self as Iterator>::Item as IntoIterator>::Item: PartialOrd,
     {
         kmerge(self)
+    }
+
+    /// Return an iterator adaptor that flattens an iterator of iterators by
+    /// merging them in according to the given closure.
+    ///
+    /// The closure `first` is called with two elements *a*, *b* and should
+    /// return `true` if a is ordered before b.
+    ///
+    /// If all base iterators are sorted according to `first`, the result is
+    /// sorted.
+    ///
+    /// Iterator element type is `Self::Item`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let a = vec![-1f64, 2., 3., -5., 6., -7.];
+    /// let b = vec![0., 2., -4.];
+    /// let mut it = vec![a, b].into_iter().kmerge_by(|a, b| a.abs() < b.abs());
+    /// assert_eq!(it.next(), Some(0.));
+    /// assert_eq!(it.last(), Some(-7.));
+    /// ```
+    fn kmerge_by<F>(self, first: F)
+        -> KMergeBy<<<Self as Iterator>::Item as IntoIterator>::IntoIter, F>
+        where Self: Sized,
+              Self::Item: IntoIterator,
+              F: FnMut(&<<Self as Iterator>::Item as IntoIterator>::Item,
+                       &<<Self as Iterator>::Item as IntoIterator>::Item) -> bool
+    {
+        kmerge_impl::kmerge_by(self, first)
     }
 
     /// Return an iterator adaptor that iterates over the cartesian product of
