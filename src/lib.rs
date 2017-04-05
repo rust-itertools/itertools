@@ -621,10 +621,10 @@ pub trait Itertools : Iterator {
     /// let it = vec![a, b, c].into_iter().kmerge();
     /// itertools::assert_equal(it, vec![0, 1, 2, 3, 4, 5]);
     /// ```
-    fn kmerge(self) -> KMerge<<<Self as Iterator>::Item as IntoIterator>::IntoIter>
+    fn kmerge(self) -> KMerge<<Self::Item as IntoIterator>::IntoIter>
         where Self: Sized,
               Self::Item: IntoIterator,
-              <<Self as Iterator>::Item as IntoIterator>::Item: PartialOrd,
+              <Self::Item as IntoIterator>::Item: PartialOrd,
     {
         kmerge(self)
     }
@@ -650,11 +650,11 @@ pub trait Itertools : Iterator {
     /// assert_eq!(it.last(), Some(-7.));
     /// ```
     fn kmerge_by<F>(self, first: F)
-        -> KMergeBy<<<Self as Iterator>::Item as IntoIterator>::IntoIter, F>
+        -> KMergeBy<<Self::Item as IntoIterator>::IntoIter, F>
         where Self: Sized,
               Self::Item: IntoIterator,
-              F: FnMut(&<<Self as Iterator>::Item as IntoIterator>::Item,
-                       &<<Self as Iterator>::Item as IntoIterator>::Item) -> bool
+              F: FnMut(&<Self::Item as IntoIterator>::Item,
+                       &<Self::Item as IntoIterator>::Item) -> bool
     {
         kmerge_by(self, first)
     }
