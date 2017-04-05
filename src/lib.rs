@@ -909,17 +909,18 @@ pub trait Itertools : Iterator {
 
     /// Unravel a nested iterator.
     ///
-    /// This is a shortcut for `it.flat_map(|x| x)`.
+    /// This is more or less equivalent to `.flat_map` with an identity
+    /// function.
     ///
     /// ```
     /// use itertools::Itertools;
     ///
     /// let data = vec![vec![1, 2, 3], vec![4, 5, 6]];
-    /// let flattened = data.into_iter().flatten();
+    /// let flattened = data.iter().flatten();
     ///
-    /// itertools::assert_equal(flattened, vec![1, 2, 3, 4, 5, 6]);
+    /// itertools::assert_equal(flattened, &[1, 2, 3, 4, 5, 6]);
     /// ```
-    fn flatten(self) -> Flatten<Self, <<Self as Iterator>::Item as IntoIterator>::IntoIter>
+    fn flatten(self) -> Flatten<Self, <Self::Item as IntoIterator>::IntoIter>
         where Self: Sized,
               Self::Item: IntoIterator
     {
