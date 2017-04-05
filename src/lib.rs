@@ -361,15 +361,6 @@ pub trait Itertools : Iterator {
         groupbylazy::new(self, key)
     }
 
-    ///
-    #[deprecated(note = "renamed to .group_by()")]
-    fn group_by_lazy<K, F>(self, key: F) -> GroupBy<K, Self, F>
-        where Self: Sized,
-              F: FnMut(&Self::Item) -> K,
-    {
-        self.group_by(key)
-    }
-
     /// Return an *iterable* that can chunk the iterator.
     ///
     /// Yield subiterators (chunks) that each yield a fixed number elements,
@@ -402,14 +393,6 @@ pub trait Itertools : Iterator {
     {
         assert!(size != 0);
         groupbylazy::new_chunks(self, size)
-    }
-
-    ///
-    #[deprecated(note = "renamed to .chunks()")]
-    fn chunks_lazy(self, size: usize) -> IntoChunks<Self>
-        where Self: Sized,
-    {
-        self.chunks(size)
     }
 
     /// Return an iterator over all contiguous windows producing tuples of
@@ -1170,14 +1153,6 @@ pub trait Itertools : Iterator {
     ///            "1.10, 2.72, -3.00");
     /// ```
     fn format(self, sep: &str) -> Format<Self>
-        where Self: Sized,
-    {
-        format::new_format_default(self, sep)
-    }
-
-    ///
-    #[deprecated(note = "renamed to .format()")]
-    fn format_default(self, sep: &str) -> Format<Self>
         where Self: Sized,
     {
         format::new_format_default(self, sep)
