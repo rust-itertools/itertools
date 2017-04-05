@@ -2,7 +2,7 @@
 Itertools
 =========
 
-Extra iterator adaptors, functions and macros. Requires Rust 1.11 or later.
+Extra iterator adaptors, functions and macros.
 
 Please read the `API documentation here`__
 
