@@ -112,8 +112,6 @@ impl<'a, I, F> Iterator for PeekingTakeWhile<'a, I, F>
 macro_rules! peeking_next_by_clone {
     (@as_item $x:item) => ($x);
     ([$($typarm:tt)*] $type_:ty) => {
-        // FIXME: Ast coercion is dead as soon as we can dep on Rust 1.12
-        peeking_next_by_clone! { @as_item
         impl<$($typarm)*> PeekingNext for $type_ {
             fn peeking_next<F>(&mut self, accept: F) -> Option<Self::Item>
                 where F: FnOnce(&Self::Item) -> bool
@@ -128,7 +126,6 @@ macro_rules! peeking_next_by_clone {
                 }
                 None
             }
-        }
         }
     }
 }
