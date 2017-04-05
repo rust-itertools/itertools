@@ -1363,7 +1363,7 @@ pub trait Itertools : Iterator {
     /// // fold_while:
     /// let result3 = numbers.iter().fold_while(0, |acc, x| {
     ///     if *x > 5 { Done(acc) } else { Continue(acc + x) }
-    /// });
+    /// }).into_inner();
     ///
     /// // they're the same
     /// assert_eq!(result, result2);
@@ -1373,23 +1373,18 @@ pub trait Itertools : Iterator {
     /// The big difference between the computations of `result2` and `result3` is that while
     /// `fold()` called the provided closure for every item of the callee iterator,
     /// `fold_while()` actually stopped iterating as soon as it encountered `Fold::Done(_)`.
-    fn fold_while<B, F>(self, init: B, mut f: F) -> B
+    fn fold_while<B, F>(&mut self, init: B, mut f: F) -> FoldWhile<B>
         where Self: Sized,
               F: FnMut(B, Self::Item) -> FoldWhile<B>
     {
-        let mut accum = init;
-        for item in self {
-            match f(accum, item) {
-                FoldWhile::Continue(res) => {
-                    accum = res;
-                }
-                FoldWhile::Done(res) => {
-                    accum = res;
-                    break;
-                }
+        let mut acc = init;
+        while let Some(item) = self.next() {
+            match f(acc, item) {
+                FoldWhile::Continue(res) => acc = res,
+                res @ FoldWhile::Done(_) => return res,
             }
         }
-        accum
+        FoldWhile::Continue(acc)
     }
 
     /// Collect all iterator elements into a sorted vector in ascending order.
@@ -1669,10 +1664,28 @@ pub fn partition<'a, A: 'a, I, F>(iter: I, mut pred: F) -> usize
 /// An enum used for controlling the execution of `.fold_while()`.
 ///
 /// See [`.fold_while()`](trait.Itertools.html#method.fold_while) for more information.
+#[derive(Copy, Clone, Debug)]
 pub enum FoldWhile<T> {
     /// Continue folding with this value
     Continue(T),
     /// Fold is complete and will return this value
     Done(T),
+}
+
+impl<T> FoldWhile<T> {
+    /// Return the value in the continue or done.
+    pub fn into_inner(self) -> T {
+        match self {
+            FoldWhile::Continue(x) | FoldWhile::Done(x) => x,
+        }
+    }
+
+    /// Return true if `self` is `Done`, false if it is `Continue`.
+    pub fn is_done(&self) -> bool {
+        match *self {
+            FoldWhile::Continue(_) => false,
+            FoldWhile::Done(_) => true,
+        }
+    }
 }
 

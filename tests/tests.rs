@@ -828,7 +828,7 @@ fn fold_while() {
         } else {
             FoldWhile::Done(acc)
         }
-    });
+    }).into_inner();
     assert_eq!(iterations, 6);
     assert_eq!(sum, 15);
 }
