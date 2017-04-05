@@ -702,13 +702,6 @@ fn flatten_iter() {
 }
 
 #[test]
-fn flatten_rev() {
-    let data = vec![vec![1,2,3].into_iter(), vec![4,5,6].into_iter()];
-    let flattened = data.into_iter().flatten().rev();
-    it::assert_equal(flattened, vec![6,5,4,3,2,1]);
-}
-
-#[test]
 fn flatten_clone() {
     let data = &[
         &[1,2,3],

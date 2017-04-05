@@ -420,10 +420,6 @@ quickcheck! {
         itertools::equal(a.iter().flatten(),
                          a.iter().flat_map(|x| x))
     }
-    fn equal_flatten_vec_rev(a: Vec<Vec<u8>>) -> bool {
-        itertools::equal(a.iter().flatten().rev(),
-                         a.iter().flat_map(|x| x).rev())
-    }
 
     fn equal_combinations_2(a: Vec<u8>) -> bool {
         let mut v = Vec::new();

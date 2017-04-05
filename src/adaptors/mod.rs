@@ -1334,7 +1334,6 @@ pub fn unique<I>(iter: I) -> Unique<I>
 pub struct Flatten<I, J> {
     iter: I,
     front: Option<J>,
-    back: Option<J>,
 }
 
 /// Create a new `Flatten` iterator.
@@ -1342,7 +1341,6 @@ pub fn flatten<I, J>(iter: I) -> Flatten<I, J> {
     Flatten {
         iter: iter,
         front: None,
-        back: None,
     }
 }
 
@@ -1366,12 +1364,6 @@ impl<I, J> Iterator for Flatten<I, J>
                 break;
             }
         }
-        if let Some(ref mut b) = self.back {
-            match b.next() {
-                elt @ Some(_) => return elt,
-                None => { }
-            }
-        }
         None
     }
 
@@ -1383,42 +1375,7 @@ impl<I, J> Iterator for Flatten<I, J>
         if let Some(iter) = self.front {
             accum = fold(iter, accum, &mut f);
         }
-        for iter in self.iter {
-            accum = fold(iter, accum, &mut f);
-        }
-        if let Some(iter) = self.back {
-            accum = fold(iter, accum, &mut f);
-        }
-        accum
-    }
-}
-
-impl<I, J> DoubleEndedIterator for Flatten<I, J>
-    where I: DoubleEndedIterator,
-          I::Item: IntoIterator<IntoIter=J, Item=J::Item>,
-          J: DoubleEndedIterator,
-{
-    fn next_back(&mut self) -> Option<Self::Item> {
-        loop {
-            if let Some(ref mut b) = self.back {
-                match b.next_back() {
-                    elt @ Some(_) => return elt,
-                    None => { }
-                }
-            }
-            if let Some(next_back) = self.iter.next_back() {
-                self.back = Some(next_back.into_iter());
-            } else {
-                break;
-            }
-        }
-        if let Some(ref mut f) = self.front {
-            match f.next_back() {
-                elt @ Some(_) => return elt,
-                None => { }
-            }
-        }
-        None
+        self.iter.fold(accum, move |accum, iter| fold(iter, accum, &mut f))
     }
 }
 
