@@ -770,10 +770,9 @@ fn combinations_of_too_short() {
 }
 
 
-#[should_panic]
 #[test]
 fn combinations_zero() {
-    (1..3).combinations(0);
+    it::assert_equal((1..3).combinations(0), vec![vec![]]);
 }
 
 #[test]

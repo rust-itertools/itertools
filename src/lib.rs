@@ -888,8 +888,6 @@ pub trait Itertools : Iterator {
     /// Iterator element type is `Vec<Self::Item>`. The iterator produces a new Vec per iteration,
     /// and clones the iterator elements.
     ///
-    /// **Panics** if `n` is zero.
-    ///
     /// ```
     /// use itertools::Itertools;
     ///

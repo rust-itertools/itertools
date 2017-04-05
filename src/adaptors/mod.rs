@@ -1155,7 +1155,6 @@ impl<I> fmt::Debug for Combinations<I>
 pub fn combinations<I>(iter: I, n: usize) -> Combinations<I>
     where I: Iterator
 {
-    assert!(n != 0);
     let mut indices: Vec<usize> = Vec::with_capacity(n);
     for i in 0..n {
         indices.push(i);
@@ -1191,6 +1190,8 @@ impl<I> Iterator for Combinations<I>
 
         if self.first {
             self.first = false;
+        } else if self.n == 0 {
+            return None;
         } else {
             // Scan from the end, looking for an index to increment
             let mut i: usize = self.n - 1;
