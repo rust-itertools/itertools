@@ -21,7 +21,7 @@ How to use with cargo:
 .. code:: toml
 
     [dependencies]
-    itertools = "0.5.9"
+    itertools = "0.6.0"
 
 How to use in your crate:
 
@@ -40,6 +40,15 @@ How to contribute:
 
 Recent Changes
 --------------
+
+- 0.6.0
+
+  - Deprecated names were removed in favour of their replacements
+  - ``.flatten()`` does not implement double ended iteration anymore
+  - ``.fold_while()`` uses ``&mut self`` and returns ``FoldWhile<T>``, for
+    composability (#168)
+  - ``.foreach()`` and ``.fold1()`` use ``self``, like ``.fold()`` does.
+  - ``.combinations(0)`` now produces a single empty vector. (#174)
 
 - 0.5.10
 
