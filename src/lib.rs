@@ -1087,11 +1087,10 @@ pub trait Itertools : Iterator {
     ///
     /// itertools::assert_equal(rx.iter(), vec![1, 3, 5, 7, 9]);
     /// ```
-    fn foreach<F>(&mut self, mut f: F)
-        where F: FnMut(Self::Item)
+    fn foreach<F>(self, mut f: F)
+        where F: FnMut(Self::Item),
+              Self: Sized,
     {
-        // FIXME: This use of fold doesn't actually do any iterator
-        // specific traversal (fold requries `self`)
         self.fold((), move |(), element| f(element))
     }
 
