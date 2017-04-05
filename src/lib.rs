@@ -1330,18 +1330,11 @@ pub trait Itertools : Iterator {
     /// assert_eq!((0..10).fold1(|x, y| x + y).unwrap_or(0), 45);
     /// assert_eq!((0..0).fold1(|x, y| x * y), None);
     /// ```
-    fn fold1<F>(&mut self, mut f: F) -> Option<Self::Item>
-        where F: FnMut(Self::Item, Self::Item) -> Self::Item
+    fn fold1<F>(mut self, f: F) -> Option<Self::Item>
+        where F: FnMut(Self::Item, Self::Item) -> Self::Item,
+              Self: Sized,
     {
-        match self.next() {
-            None => None,
-            Some(mut x) => {
-                for y in self {
-                    x = f(x, y);
-                }
-                Some(x)
-            }
-        }
+        self.next().map(move |x| self.fold(x, f))
     }
 
     /// An iterator method that applies a function, producing a single, final value.
