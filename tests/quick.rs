@@ -179,7 +179,6 @@ macro_rules! quickcheck {
     // The property functions can use pattern matching and `mut` as usual
     // in the function arguments, but the functions can not be generic.
     {$($(#$attr:tt)* fn $fn_name:ident($($arg:tt)*) -> $ret:ty { $($code:tt)* })*} => (
-        quickcheck!{@as_items
         $(
             #[test]
             $(#$attr)*
@@ -190,11 +189,10 @@ macro_rules! quickcheck {
                 ::quickcheck::quickcheck(quickcheck!(@fn prop [] $($arg)*));
             }
         )*
-        }
     );
     // parse argument list (with patterns allowed) into prop as fn(_, _) -> _
     (@fn $f:ident [$($t:tt)*]) => {
-        quickcheck!(@as_expr $f as fn($($t),*) -> _)
+        $f as fn($($t),*) -> _
     };
     (@fn $f:ident [$($p:tt)*] : $($tail:tt)*) => {
         quickcheck!(@fn $f [$($p)* _] $($tail)*)
@@ -202,8 +200,6 @@ macro_rules! quickcheck {
     (@fn $f:ident [$($p:tt)*] $t:tt $($tail:tt)*) => {
         quickcheck!(@fn $f [$($p)*] $($tail)*)
     };
-    (@as_items $($i:item)*) => ($($i)*);
-    (@as_expr $i:expr) => ($i);
 }
 
 quickcheck! {
@@ -419,10 +415,6 @@ quickcheck! {
     fn equal_flatten_vec(a: Vec<Vec<u8>>) -> bool {
         itertools::equal(a.iter().flatten(),
                          a.iter().flat_map(|x| x))
-    }
-    fn equal_flatten_vec_rev(a: Vec<Vec<u8>>) -> bool {
-        itertools::equal(a.iter().flatten().rev(),
-                         a.iter().flat_map(|x| x).rev())
     }
 
     fn equal_combinations_2(a: Vec<u8>) -> bool {

@@ -193,16 +193,6 @@ pub fn put_back<I>(iterable: I) -> PutBack<I::IntoIter>
 impl<I> PutBack<I>
     where I: Iterator
 {
-    #[doc(hidden)]
-    #[deprecated(note = "replaced by put_back")]
-    #[inline]
-    pub fn new(it: I) -> Self {
-        PutBack {
-            top: None,
-            iter: it,
-        }
-    }
-
     /// put back value `value` (builder method)
     pub fn with_value(mut self, value: I::Item) -> Self {
         self.put_back(value);
@@ -288,21 +278,14 @@ pub fn put_back_n<I>(iterable: I) -> PutBackN<I::IntoIter>
 }
 
 impl<I: Iterator> PutBackN<I> {
-    #[doc(hidden)]
-    #[deprecated(note = "replaced by put_back_n")]
-    #[inline]
-    pub fn new(it: I) -> Self {
-        put_back_n(it)
-    }
-
     /// Puts x in front of the iterator.
     /// The values are yielded in order of the most recently put back
     /// values first.
     ///
     /// ```rust
-    /// use itertools::PutBackN;
+    /// use itertools::put_back_n;
     ///
-    /// let mut it = PutBackN::new(1..5);
+    /// let mut it = put_back_n(1..5);
     /// it.next();
     /// it.put_back(1);
     /// it.put_back(0);
@@ -1155,7 +1138,6 @@ impl<I> fmt::Debug for Combinations<I>
 pub fn combinations<I>(iter: I, n: usize) -> Combinations<I>
     where I: Iterator
 {
-    assert!(n != 0);
     let mut indices: Vec<usize> = Vec::with_capacity(n);
     for i in 0..n {
         indices.push(i);
@@ -1191,6 +1173,8 @@ impl<I> Iterator for Combinations<I>
 
         if self.first {
             self.first = false;
+        } else if self.n == 0 {
+            return None;
         } else {
             // Scan from the end, looking for an index to increment
             let mut i: usize = self.n - 1;
@@ -1350,7 +1334,6 @@ pub fn unique<I>(iter: I) -> Unique<I>
 pub struct Flatten<I, J> {
     iter: I,
     front: Option<J>,
-    back: Option<J>,
 }
 
 /// Create a new `Flatten` iterator.
@@ -1358,7 +1341,6 @@ pub fn flatten<I, J>(iter: I) -> Flatten<I, J> {
     Flatten {
         iter: iter,
         front: None,
-        back: None,
     }
 }
 
@@ -1382,12 +1364,6 @@ impl<I, J> Iterator for Flatten<I, J>
                 break;
             }
         }
-        if let Some(ref mut b) = self.back {
-            match b.next() {
-                elt @ Some(_) => return elt,
-                None => { }
-            }
-        }
         None
     }
 
@@ -1399,42 +1375,7 @@ impl<I, J> Iterator for Flatten<I, J>
         if let Some(iter) = self.front {
             accum = fold(iter, accum, &mut f);
         }
-        for iter in self.iter {
-            accum = fold(iter, accum, &mut f);
-        }
-        if let Some(iter) = self.back {
-            accum = fold(iter, accum, &mut f);
-        }
-        accum
-    }
-}
-
-impl<I, J> DoubleEndedIterator for Flatten<I, J>
-    where I: DoubleEndedIterator,
-          I::Item: IntoIterator<IntoIter=J, Item=J::Item>,
-          J: DoubleEndedIterator,
-{
-    fn next_back(&mut self) -> Option<Self::Item> {
-        loop {
-            if let Some(ref mut b) = self.back {
-                match b.next_back() {
-                    elt @ Some(_) => return elt,
-                    None => { }
-                }
-            }
-            if let Some(next_back) = self.iter.next_back() {
-                self.back = Some(next_back.into_iter());
-            } else {
-                break;
-            }
-        }
-        if let Some(ref mut f) = self.front {
-            match f.next_back() {
-                elt @ Some(_) => return elt,
-                None => { }
-            }
-        }
-        None
+        self.iter.fold(accum, move |accum, iter| fold(iter, accum, &mut f))
     }
 }
 

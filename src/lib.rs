@@ -15,15 +15,9 @@
 //! #[macro_use] extern crate itertools;
 //! ```
 //!
-//! ## License
-//! Dual-licensed to be compatible with the Rust project.
+//! ## Rust Version
 //!
-//! Licensed under the Apache License, Version 2.0
-//! http://www.apache.org/licenses/LICENSE-2.0 or the MIT license
-//! http://opensource.org/licenses/MIT, at your
-//! option. This file may not be copied, modified, or distributed
-//! except according to those terms.
-//!
+//! This version of itertools requires Rust 1.12 or later.
 //!
 #![doc(html_root_url="https://docs.rs/itertools/")]
 
@@ -367,15 +361,6 @@ pub trait Itertools : Iterator {
         groupbylazy::new(self, key)
     }
 
-    ///
-    #[deprecated(note = "renamed to .group_by()")]
-    fn group_by_lazy<K, F>(self, key: F) -> GroupBy<K, Self, F>
-        where Self: Sized,
-              F: FnMut(&Self::Item) -> K,
-    {
-        self.group_by(key)
-    }
-
     /// Return an *iterable* that can chunk the iterator.
     ///
     /// Yield subiterators (chunks) that each yield a fixed number elements,
@@ -408,14 +393,6 @@ pub trait Itertools : Iterator {
     {
         assert!(size != 0);
         groupbylazy::new_chunks(self, size)
-    }
-
-    ///
-    #[deprecated(note = "renamed to .chunks()")]
-    fn chunks_lazy(self, size: usize) -> IntoChunks<Self>
-        where Self: Sized,
-    {
-        self.chunks(size)
     }
 
     /// Return an iterator over all contiguous windows producing tuples of
@@ -621,10 +598,10 @@ pub trait Itertools : Iterator {
     /// let it = vec![a, b, c].into_iter().kmerge();
     /// itertools::assert_equal(it, vec![0, 1, 2, 3, 4, 5]);
     /// ```
-    fn kmerge(self) -> KMerge<<<Self as Iterator>::Item as IntoIterator>::IntoIter>
+    fn kmerge(self) -> KMerge<<Self::Item as IntoIterator>::IntoIter>
         where Self: Sized,
               Self::Item: IntoIterator,
-              <<Self as Iterator>::Item as IntoIterator>::Item: PartialOrd,
+              <Self::Item as IntoIterator>::Item: PartialOrd,
     {
         kmerge(self)
     }
@@ -650,11 +627,11 @@ pub trait Itertools : Iterator {
     /// assert_eq!(it.last(), Some(-7.));
     /// ```
     fn kmerge_by<F>(self, first: F)
-        -> KMergeBy<<<Self as Iterator>::Item as IntoIterator>::IntoIter, F>
+        -> KMergeBy<<Self::Item as IntoIterator>::IntoIter, F>
         where Self: Sized,
               Self::Item: IntoIterator,
-              F: FnMut(&<<Self as Iterator>::Item as IntoIterator>::Item,
-                       &<<Self as Iterator>::Item as IntoIterator>::Item) -> bool
+              F: FnMut(&<Self::Item as IntoIterator>::Item,
+                       &<Self::Item as IntoIterator>::Item) -> bool
     {
         kmerge_by(self, first)
     }
@@ -888,8 +865,6 @@ pub trait Itertools : Iterator {
     /// Iterator element type is `Vec<Self::Item>`. The iterator produces a new Vec per iteration,
     /// and clones the iterator elements.
     ///
-    /// **Panics** if `n` is zero.
-    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -934,17 +909,18 @@ pub trait Itertools : Iterator {
 
     /// Unravel a nested iterator.
     ///
-    /// This is a shortcut for `it.flat_map(|x| x)`.
+    /// This is more or less equivalent to `.flat_map` with an identity
+    /// function.
     ///
     /// ```
     /// use itertools::Itertools;
     ///
     /// let data = vec![vec![1, 2, 3], vec![4, 5, 6]];
-    /// let flattened = data.into_iter().flatten();
+    /// let flattened = data.iter().flatten();
     ///
-    /// itertools::assert_equal(flattened, vec![1, 2, 3, 4, 5, 6]);
+    /// itertools::assert_equal(flattened, &[1, 2, 3, 4, 5, 6]);
     /// ```
-    fn flatten(self) -> Flatten<Self, <<Self as Iterator>::Item as IntoIterator>::IntoIter>
+    fn flatten(self) -> Flatten<Self, <Self::Item as IntoIterator>::IntoIter>
         where Self: Sized,
               Self::Item: IntoIterator
     {
@@ -1087,11 +1063,10 @@ pub trait Itertools : Iterator {
     ///
     /// itertools::assert_equal(rx.iter(), vec![1, 3, 5, 7, 9]);
     /// ```
-    fn foreach<F>(&mut self, mut f: F)
-        where F: FnMut(Self::Item)
+    fn foreach<F>(self, mut f: F)
+        where F: FnMut(Self::Item),
+              Self: Sized,
     {
-        // FIXME: This use of fold doesn't actually do any iterator
-        // specific traversal (fold requries `self`)
         self.fold((), move |(), element| f(element))
     }
 
@@ -1179,14 +1154,6 @@ pub trait Itertools : Iterator {
     ///            "1.10, 2.72, -3.00");
     /// ```
     fn format(self, sep: &str) -> Format<Self>
-        where Self: Sized,
-    {
-        format::new_format_default(self, sep)
-    }
-
-    ///
-    #[deprecated(note = "renamed to .format()")]
-    fn format_default(self, sep: &str) -> Format<Self>
         where Self: Sized,
     {
         format::new_format_default(self, sep)
@@ -1330,18 +1297,11 @@ pub trait Itertools : Iterator {
     /// assert_eq!((0..10).fold1(|x, y| x + y).unwrap_or(0), 45);
     /// assert_eq!((0..0).fold1(|x, y| x * y), None);
     /// ```
-    fn fold1<F>(&mut self, mut f: F) -> Option<Self::Item>
-        where F: FnMut(Self::Item, Self::Item) -> Self::Item
+    fn fold1<F>(mut self, f: F) -> Option<Self::Item>
+        where F: FnMut(Self::Item, Self::Item) -> Self::Item,
+              Self: Sized,
     {
-        match self.next() {
-            None => None,
-            Some(mut x) => {
-                for y in self {
-                    x = f(x, y);
-                }
-                Some(x)
-            }
-        }
+        self.next().map(move |x| self.fold(x, f))
     }
 
     /// An iterator method that applies a function, producing a single, final value.
@@ -1373,7 +1333,7 @@ pub trait Itertools : Iterator {
     /// // fold_while:
     /// let result3 = numbers.iter().fold_while(0, |acc, x| {
     ///     if *x > 5 { Done(acc) } else { Continue(acc + x) }
-    /// });
+    /// }).into_inner();
     ///
     /// // they're the same
     /// assert_eq!(result, result2);
@@ -1383,23 +1343,18 @@ pub trait Itertools : Iterator {
     /// The big difference between the computations of `result2` and `result3` is that while
     /// `fold()` called the provided closure for every item of the callee iterator,
     /// `fold_while()` actually stopped iterating as soon as it encountered `Fold::Done(_)`.
-    fn fold_while<B, F>(self, init: B, mut f: F) -> B
+    fn fold_while<B, F>(&mut self, init: B, mut f: F) -> FoldWhile<B>
         where Self: Sized,
               F: FnMut(B, Self::Item) -> FoldWhile<B>
     {
-        let mut accum = init;
-        for item in self {
-            match f(accum, item) {
-                FoldWhile::Continue(res) => {
-                    accum = res;
-                }
-                FoldWhile::Done(res) => {
-                    accum = res;
-                    break;
-                }
+        let mut acc = init;
+        while let Some(item) = self.next() {
+            match f(acc, item) {
+                FoldWhile::Continue(res) => acc = res,
+                res @ FoldWhile::Done(_) => return res,
             }
         }
-        accum
+        FoldWhile::Continue(acc)
     }
 
     /// Collect all iterator elements into a sorted vector in ascending order.
@@ -1679,10 +1634,28 @@ pub fn partition<'a, A: 'a, I, F>(iter: I, mut pred: F) -> usize
 /// An enum used for controlling the execution of `.fold_while()`.
 ///
 /// See [`.fold_while()`](trait.Itertools.html#method.fold_while) for more information.
+#[derive(Copy, Clone, Debug)]
 pub enum FoldWhile<T> {
     /// Continue folding with this value
     Continue(T),
     /// Fold is complete and will return this value
     Done(T),
+}
+
+impl<T> FoldWhile<T> {
+    /// Return the value in the continue or done.
+    pub fn into_inner(self) -> T {
+        match self {
+            FoldWhile::Continue(x) | FoldWhile::Done(x) => x,
+        }
+    }
+
+    /// Return true if `self` is `Done`, false if it is `Continue`.
+    pub fn is_done(&self) -> bool {
+        match *self {
+            FoldWhile::Continue(_) => false,
+            FoldWhile::Done(_) => true,
+        }
+    }
 }
 

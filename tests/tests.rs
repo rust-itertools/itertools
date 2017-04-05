@@ -702,13 +702,6 @@ fn flatten_iter() {
 }
 
 #[test]
-fn flatten_rev() {
-    let data = vec![vec![1,2,3].into_iter(), vec![4,5,6].into_iter()];
-    let flattened = data.into_iter().flatten().rev();
-    it::assert_equal(flattened, vec![6,5,4,3,2,1]);
-}
-
-#[test]
 fn flatten_clone() {
     let data = &[
         &[1,2,3],
@@ -770,10 +763,9 @@ fn combinations_of_too_short() {
 }
 
 
-#[should_panic]
 #[test]
 fn combinations_zero() {
-    (1..3).combinations(0);
+    it::assert_equal((1..3).combinations(0), vec![vec![]]);
 }
 
 #[test]
@@ -829,7 +821,7 @@ fn fold_while() {
         } else {
             FoldWhile::Done(acc)
         }
-    });
+    }).into_inner();
     assert_eq!(iterations, 6);
     assert_eq!(sum, 15);
 }

@@ -18,23 +18,6 @@ pub fn repeat_n<A>(element: A, n: usize) -> RepeatN<A>
     }
 }
 
-impl<A> RepeatN<A> {
-    #[deprecated(note = "The ::new constructor is deprecated. Use `repeat_n`")]
-    ///
-    pub fn new(elt: A, n: usize) -> Self {
-        // The code is duplicated here because the new version uses
-        // the proper A: Clone bound.
-        if n == 0 {
-            RepeatN { elt: None, n: n }
-        } else {
-            RepeatN {
-                elt: Some(elt),
-                n: n,
-            }
-        }
-    }
-}
-
 impl<A> Iterator for RepeatN<A>
     where A: Clone
 {
