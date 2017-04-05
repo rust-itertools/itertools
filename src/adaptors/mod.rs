@@ -193,16 +193,6 @@ pub fn put_back<I>(iterable: I) -> PutBack<I::IntoIter>
 impl<I> PutBack<I>
     where I: Iterator
 {
-    #[doc(hidden)]
-    #[deprecated(note = "replaced by put_back")]
-    #[inline]
-    pub fn new(it: I) -> Self {
-        PutBack {
-            top: None,
-            iter: it,
-        }
-    }
-
     /// put back value `value` (builder method)
     pub fn with_value(mut self, value: I::Item) -> Self {
         self.put_back(value);
@@ -288,21 +278,14 @@ pub fn put_back_n<I>(iterable: I) -> PutBackN<I::IntoIter>
 }
 
 impl<I: Iterator> PutBackN<I> {
-    #[doc(hidden)]
-    #[deprecated(note = "replaced by put_back_n")]
-    #[inline]
-    pub fn new(it: I) -> Self {
-        put_back_n(it)
-    }
-
     /// Puts x in front of the iterator.
     /// The values are yielded in order of the most recently put back
     /// values first.
     ///
     /// ```rust
-    /// use itertools::PutBackN;
+    /// use itertools::put_back_n;
     ///
-    /// let mut it = PutBackN::new(1..5);
+    /// let mut it = put_back_n(1..5);
     /// it.next();
     /// it.put_back(1);
     /// it.put_back(0);
