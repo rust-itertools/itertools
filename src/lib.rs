@@ -997,6 +997,28 @@ pub trait Itertools : Iterator {
         None
     }
 
+    /// Check whether all elements compare equal.
+    ///
+    /// Empty iterators are considered to have equal elements:
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![1, 1, 1, 2, 2, 3, 3, 3, 4, 5, 5];
+    /// assert!(!data.iter().all_equal());
+    /// assert!(data[0..3].iter().all_equal());
+    /// assert!(data[3..5].iter().all_equal());
+    /// assert!(data[5..8].iter().all_equal());
+    ///
+    /// let data : Option<usize> = None;
+    /// assert!(data.into_iter().all_equal());
+    /// ```
+    fn all_equal(&mut self) -> bool 
+        where Self::Item: PartialEq,
+    {
+        self.dedup().nth(1).is_none()
+    }
+
     /// Consume the first `n` elements from the iterator eagerly,
     /// and return the same iterator again.
     ///
