@@ -70,19 +70,18 @@ impl<A, F> Iterator for RepeatCall<F>
 ///
 /// use itertools::unfold;
 ///
-/// let mut fibonacci = unfold((1_u32, 1_u32), |state| {
-///     let (ref mut x1, ref mut x2) = *state;
-///
+/// let (mut x1, mut x2) = (1u32, 1u32);
+/// let mut fibonacci = unfold((), move |_| {
 ///     // Attempt to get the next Fibonacci number
-///     let next = x1.saturating_add(*x2);
+///     let next = x1.saturating_add(x2);
 ///
 ///     // Shift left: ret <- x1 <- x2 <- next
-///     let ret = *x1;
-///     *x1 = *x2;
-///     *x2 = next;
+///     let ret = x1;
+///     x1 = x2;
+///     x2 = next;
 ///
 ///     // If addition has saturated at the maximum, we are finished
-///     if ret == *x1 && ret > 1 {
+///     if ret == x1 && ret > 1 {
 ///         return None;
 ///     }
 ///
