@@ -186,6 +186,15 @@ fn dedup() {
 }
 
 #[test]
+fn all_equal() {
+    assert!(!"AABBCCC".chars().all_equal());
+    assert!("AAAAAAA".chars().all_equal());
+    for (_key, mut sub) in &"AABBCCC".chars().group_by(|&x| x) {
+        assert!(sub.all_equal());
+    }
+}
+
+#[test]
 fn unique_by() {
     let xs = ["aaa", "bbbbb", "aa", "ccc", "bbbb", "aaaaa", "cccc"];
     let ys = ["aaa", "bbbbb", "ccc"];
