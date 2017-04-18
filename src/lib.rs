@@ -1025,6 +1025,11 @@ pub trait Itertools : Iterator {
     /// It works similarly to *.skip(* `n` *)* except it is eager and
     /// preserves the iterator type.
     ///
+    /// This can produce incorrect results if the iterator is not *fused*: The
+    /// function will call `next` `n` times or until it stops returning `Some`,
+    /// in the `None` case the final `None` of a non-fused iterator is already
+    /// consumed, so calling `next` after that can yield incorrect results.
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
