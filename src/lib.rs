@@ -1100,6 +1100,24 @@ pub trait Itertools : Iterator {
         self.collect()
     }
 
+    /// Assign to each reference in `self` a clone of `element`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut xs = [0; 4];
+    /// xs.iter_mut().fill_with(2);
+    /// assert_eq!(xs, [2, 2, 2, 2]);
+    /// ```
+    fn fill_with<'a, A: 'a>(&mut self, element: A)
+        where Self: Iterator<Item = &'a mut A>,
+              A: Clone,
+    {
+        for elt in self {
+            *elt = element.clone();
+        }
+    }
+
     /// Assign to each reference in `self` from the `from` iterator,
     /// stopping at the shortest of the two iterators.
     ///
