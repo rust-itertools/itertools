@@ -22,6 +22,7 @@
 #![doc(html_root_url="https://docs.rs/itertools/")]
 
 extern crate either;
+extern crate nodrop;
 
 pub use either::Either;
 
@@ -67,7 +68,7 @@ pub mod structs {
     pub use peeking_take_while::PeekingTakeWhile;
     pub use rciter_impl::RcIter;
     pub use repeatn::RepeatN;
-    pub use sources::{RepeatCall, Unfold, Iterate};
+    pub use sources::{RepeatCall, Unfold, Iterate, ListIterator};
     pub use tee::Tee;
     pub use tuple_impl::{TupleBuffer, TupleWindows, Tuples};
     pub use with_position::WithPosition;
@@ -83,7 +84,7 @@ pub use kmerge_impl::{kmerge_by};
 pub use minmax::MinMaxResult;
 pub use peeking_take_while::PeekingNext;
 pub use repeatn::repeat_n;
-pub use sources::{repeat_call, unfold, iterate};
+pub use sources::{repeat_call, unfold, iterate, list_iterator};
 pub use with_position::Position;
 pub use zip_longest::EitherOrBoth;
 pub use ziptuple::multizip;
@@ -143,6 +144,30 @@ macro_rules! iproduct {
     );
     ($I:expr, $J:expr, $($K:expr),+) => (
         iproduct!(@flatten iproduct!($I, $J), $($K,)+)
+    );
+}
+
+#[macro_export]
+/// Create an iterator over the specified items.
+///
+/// ```
+/// #[macro_use] extern crate itertools;
+/// # fn main() {
+/// let mut it = iter![5, 3];
+/// assert_eq!(Some(5), it.next());
+/// assert_eq!(Some(3), it.next());
+/// assert_eq!(None, it.next());
+///
+/// assert_eq!(Some(10), itertools::max(iter![2, 10, 5, 1, 3]));
+///
+/// for x in iter![4, 10, 12] {
+///     // do stuff
+/// }
+/// # }
+/// ```
+macro_rules! iter {
+    ($($X:expr),*) => (
+        $crate::list_iterator([$($X),*])
     );
 }
 
