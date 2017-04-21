@@ -59,6 +59,7 @@ pub mod structs {
         Flatten,
     };
     pub use cons_tuples_impl::ConsTuples;
+    pub use feedback::Feedback;
     pub use format::{Format, FormatWith};
     pub use groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
     pub use intersperse::Intersperse;
@@ -79,6 +80,7 @@ pub use structs::*;
 pub use cons_tuples_impl::cons_tuples;
 pub use diff::diff_with;
 pub use diff::Diff;
+pub use feedback::feedback;
 pub use kmerge_impl::{kmerge_by};
 pub use minmax::MinMaxResult;
 pub use peeking_take_while::PeekingNext;
@@ -94,6 +96,7 @@ pub mod free;
 pub use free::*;
 mod cons_tuples_impl;
 mod diff;
+mod feedback;
 mod format;
 mod groupbylazy;
 mod intersperse;
