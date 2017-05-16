@@ -889,4 +889,10 @@ fn format() {
     let dataf = [1.1, 2.71828, -22.];
     let t3 = format!("{:.2e}", dataf.iter().format(", "));
     assert_eq!(t3, "1.10e0, 2.72e0, -2.20e1");
+
+    let f = data.iter().format(", ");
+    let t4c = format!("{}", f.clone());
+    let t4 = format!("{}", f);
+    assert_eq!(t4c, ans1);
+    assert_eq!(t4, ans1);
 }
