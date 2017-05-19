@@ -876,6 +876,20 @@ fn minmax() {
 }
 
 #[test]
+fn minmax_maxn() {
+    let data = vec![1,2,3,4,5,6,7,8,9];
+    assert_eq!(data.iter().map(|i| *i).maxn(1), vec![9]);
+    assert_eq!(data.iter().map(|i| *i).maxn(3), vec![9,8,7]);
+}
+
+#[test]
+fn minmax_minn() {
+    let data = vec![1,2,3,4,5,6,7,8,9];
+    assert_eq!( data.iter().map(|i| *i).minn(1), vec![1]);
+    assert_eq!( data.iter().map(|i| *i).minn(3), vec![1,2,3]);
+}
+
+#[test]
 fn format() {
     let data = [0, 1, 2, 3];
     let ans1 = "0, 1, 2, 3";
