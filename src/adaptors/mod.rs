@@ -379,12 +379,12 @@ impl<I, J> Iterator for Product<I, J>
     fn size_hint(&self) -> (usize, Option<usize>) {
         let has_cur = self.a_cur.is_some() as usize;
         // Not ExactSizeIterator because size may be larger than usize
-        let (b, _) = self.b.size_hint();
+        let (b_min, b_max) = self.b.size_hint();
 
         // Compute a * b_orig + b for both lower and upper bound
-        size_hint::add_scalar(
+        size_hint::add(
             size_hint::mul(self.a.size_hint(), self.b_orig.size_hint()),
-            b * has_cur)
+            (b_min * has_cur, b_max.map(move |x| x * has_cur)))
     }
 }
 
