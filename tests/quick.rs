@@ -30,34 +30,115 @@ use itertools::free::{
 
 use quickcheck::TestResult;
 
+/// Trait for size hint modifier types
+trait HintKind: Copy + Send + qc::Arbitrary {
+    fn loosen_bounds(&self, org_hint: (usize, Option<usize>)) -> (usize, Option<usize>);
+}
+
+/// Exact size hint variant that leaves hints unchanged
+#[derive(Clone, Copy, Debug)]
+struct Exact {}
+
+impl HintKind for Exact {
+    fn loosen_bounds(&self, org_hint: (usize, Option<usize>)) -> (usize, Option<usize>) {
+        org_hint
+    }
+}
+
+impl qc::Arbitrary for Exact {
+    fn arbitrary<G: qc::Gen>(_: &mut G) -> Self {
+        Exact {}
+    }
+}
+
+/// Inexact size hint variant to simulate imprecise (but valid) size hints
+///
+/// Will always decrease the lower bound and increase the upper bound
+/// of the size hint by set amounts.
+#[derive(Clone, Copy, Debug)]
+struct Inexact {
+    underestimate: usize,
+    overestimate: usize,
+}
+
+impl HintKind for Inexact {
+    fn loosen_bounds(&self, org_hint: (usize, Option<usize>)) -> (usize, Option<usize>) {
+        let (org_lower, org_upper) = org_hint;
+        (org_lower.saturating_sub(self.underestimate),
+         org_upper.and_then(move |x| x.checked_add(self.overestimate)))
+    }
+}
+
+impl qc::Arbitrary for Inexact {
+    fn arbitrary<G: qc::Gen>(g: &mut G) -> Self {
+        let ue_value = usize::arbitrary(g);
+        let oe_value = usize::arbitrary(g);
+        // Compensate for quickcheck using extreme values too rarely
+        let ue_choices = &[0, ue_value, usize::max_value()];
+        let oe_choices = &[0, oe_value, usize::max_value()];
+        Inexact {
+            underestimate: *g.choose(ue_choices).unwrap(),
+            overestimate: *g.choose(oe_choices).unwrap(),
+        }
+    }
+
+    fn shrink(&self) -> Box<Iterator<Item=Self>> {
+        let underestimate_value = self.underestimate;
+        let overestimate_value = self.overestimate;
+        Box::new(
+            underestimate_value.shrink().flat_map(move |ue_value|
+                overestimate_value.shrink().map(move |oe_value|
+                    Inexact {
+                        underestimate: ue_value,
+                        overestimate: oe_value,
+                    }
+                )
+            )
+        )
+    }
+}
+
 /// Our base iterator that we can impl Arbitrary for
+///
+/// By default we'll return inexact bounds estimates for size_hint
+/// to make tests harder ro pass.
 ///
 /// NOTE: Iter is tricky and is not fused, to help catch bugs.
 /// At the end it will return None once, then return Some(0),
 /// then return None again.
 #[derive(Clone, Debug)]
-struct Iter<T>(Range<T>, i32); // with fuse/done flag
+struct Iter<T, SK: HintKind = Exact> {
+    iterator: Range<T>,
+    // fuse/done flag
+    fuse_flag: i32,
+    hint_kind: SK,
+}
 
-impl<T> Iter<T>
+impl<T, HK> Iter<T, HK> where HK: HintKind
 {
-    fn new(it: Range<T>) -> Self
-    {
-        Iter(it, 0)
+    fn new(it: Range<T>, hint_kind: HK) -> Self {
+        Iter {
+            iterator: it,
+            fuse_flag: 0,
+            hint_kind: hint_kind
+        }
     }
 }
 
-impl<T> Iterator for Iter<T> where Range<T>: Iterator,
-    <Range<T> as Iterator>::Item: Default,
+impl<T, HK> Iterator for Iter<T, HK>
+    where Range<T>: Iterator,
+          <Range<T> as Iterator>::Item: Default,
+          HK: HintKind,
 {
     type Item = <Range<T> as Iterator>::Item;
 
     fn next(&mut self) -> Option<Self::Item>
     {
-        let elt = self.0.next();
+        let elt = self.iterator.next();
         if elt.is_none() {
-            self.1 += 1;
+            self.fuse_flag += 1;
             // check fuse flag
-            if self.1 == 2 {
+            if self.fuse_flag == 2 {
                 return Some(Default::default())
             }
         }
@@ -66,35 +147,42 @@ impl<T> Iterator for Iter<T> where Range<T>: Iterator,
 
     fn size_hint(&self) -> (usize, Option<usize>)
     {
-        self.0.size_hint()
+        let org_hint = self.iterator.size_hint();
+        self.hint_kind.loosen_bounds(org_hint)
     }
 }
 
-impl<T> DoubleEndedIterator for Iter<T> where Range<T>: DoubleEndedIterator,
-    <Range<T> as Iterator>::Item: Default,
+impl<T, HK> DoubleEndedIterator for Iter<T, HK>
+    where Range<T>: DoubleEndedIterator,
+          <Range<T> as Iterator>::Item: Default,
+          HK: HintKind
 {
-    fn next_back(&mut self) -> Option<Self::Item> { self.0.next_back() }
+    fn next_back(&mut self) -> Option<Self::Item> { self.iterator.next_back() }
 }
 
-impl<T> ExactSizeIterator for Iter<T> where Range<T>: ExactSizeIterator,
+impl<T> ExactSizeIterator for Iter<T, Exact> where Range<T>: ExactSizeIterator,
     <Range<T> as Iterator>::Item: Default,
 { }
 
-impl<T> qc::Arbitrary for Iter<T> where T: qc::Arbitrary
+impl<T, HK> qc::Arbitrary for Iter<T, HK>
+    where T: qc::Arbitrary,
+          HK: HintKind,
 {
     fn arbitrary<G: qc::Gen>(g: &mut G) -> Self
     {
-        Iter::new(T::arbitrary(g)..T::arbitrary(g))
+        Iter::new(T::arbitrary(g)..T::arbitrary(g), HK::arbitrary(g))
     }
 
-    fn shrink(&self) -> Box<Iterator<Item=Iter<T>>>
+    fn shrink(&self) -> Box<Iterator<Item=Iter<T, HK>>>
     {
-        let r = self.0.clone();
+        let r = self.iterator.clone();
+        let hint_kind = self.hint_kind;
         Box::new(
-            r.start.shrink().flat_map(move |x| {
-                r.end.shrink().map(move |y| (x.clone(), y))
-            })
-            .map(|(a, b)| Iter::new(a..b))
+            r.start.shrink().flat_map(move |a|
+                r.end.shrink().map(move |b|
+                    Iter::new(a.clone()..b, hint_kind)
+                )
+            )
         )
     }
 }
