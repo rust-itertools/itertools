@@ -107,7 +107,7 @@ impl qc::Arbitrary for Inexact {
 /// At the end it will return None once, then return Some(0),
 /// then return None again.
 #[derive(Clone, Debug)]
-struct Iter<T, SK: HintKind = Exact> {
+struct Iter<T, SK: HintKind = Inexact> {
     iterator: Range<T>,
     // fuse/done flag
     fuse_flag: i32,
@@ -299,7 +299,7 @@ quickcheck! {
         correct_size_hint(iproduct!(a, b, c))
     }
 
-    fn size_step(a: Iter<i16>, s: usize) -> bool {
+    fn size_step(a: Iter<i16, Exact>, s: usize) -> bool {
         let mut s = s;
         if s == 0 {
             s += 1; // never zero
@@ -333,7 +333,7 @@ quickcheck! {
         }))
     }
 
-    fn size_multipeek(a: Iter<u16>, s: u8) -> bool {
+    fn size_multipeek(a: Iter<u16, Exact>, s: u8) -> bool {
         let mut it = multipeek(a);
         // peek a few times
         for _ in 0..s {
@@ -355,7 +355,7 @@ quickcheck! {
     fn size_merge(a: Iter<u16>, b: Iter<u16>) -> bool {
         correct_size_hint(a.merge(b))
     }
-    fn size_zip(a: Iter<i16>, b: Iter<i16>, c: Iter<i16>) -> bool {
+    fn size_zip(a: Iter<i16, Exact>, b: Iter<i16, Exact>, c: Iter<i16, Exact>) -> bool {
         let filt = a.clone().dedup();
         correct_size_hint(multizip((filt, b.clone(), c.clone()))) &&
             exact_size(multizip((a, b, c)))
@@ -439,7 +439,7 @@ quickcheck! {
         let b = &b[..len];
         itertools::equal(zip_eq(a, b), zip(a, b))
     }
-    fn size_zip_longest(a: Iter<i16>, b: Iter<i16>) -> bool {
+    fn size_zip_longest(a: Iter<i16, Exact>, b: Iter<i16, Exact>) -> bool {
         let filt = a.clone().dedup();
         let filt2 = b.clone().dedup();
         correct_size_hint(filt.zip_longest(b.clone())) &&
@@ -468,7 +468,7 @@ quickcheck! {
     fn size_interleave(a: Iter<i16>, b: Iter<i16>) -> bool {
         correct_size_hint(a.interleave(b))
     }
-    fn exact_interleave(a: Iter<i16>, b: Iter<i16>) -> bool {
+    fn exact_interleave(a: Iter<i16, Exact>, b: Iter<i16, Exact>) -> bool {
         exact_size_for_this(a.interleave(b))
     }
     fn size_interleave_shortest(a: Iter<i16>, b: Iter<i16>) -> bool {
@@ -778,7 +778,7 @@ quickcheck! {
     fn with_position_exact_size_1(a: Vec<u8>) -> bool {
         exact_size_for_this(a.iter().with_position())
     }
-    fn with_position_exact_size_2(a: Iter<u8>) -> bool {
+    fn with_position_exact_size_2(a: Iter<u8, Exact>) -> bool {
         exact_size_for_this(a.with_position())
     }
 }
