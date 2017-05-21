@@ -77,6 +77,6 @@ impl<I, F> DoubleEndedIterator for PadUsing<I, F>
 }
 
 impl<I, F> ExactSizeIterator for PadUsing<I, F>
-    where I: Iterator,
+    where I: ExactSizeIterator,
           F: FnMut(usize) -> I::Item
 {}

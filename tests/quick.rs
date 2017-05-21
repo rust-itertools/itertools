@@ -628,7 +628,7 @@ quickcheck! {
 }
 
 quickcheck! {
-    fn size_pad_tail2(it: Iter<i8>, pad: u8) -> bool {
+    fn size_pad_tail2(it: Iter<i8, Exact>, pad: u8) -> bool {
         exact_size(it.pad_using(pad as usize, |_| 0))
     }
 }
