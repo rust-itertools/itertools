@@ -4,7 +4,6 @@
 //! option. This file may not be copied, modified, or distributed
 //! except according to those terms.
 
-use std::cmp;
 use std::fmt;
 use std::mem::replace;
 use std::ops::Index;
@@ -147,24 +146,38 @@ impl<I, J> Iterator for InterleaveShortest<I, J>
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let bound = |a: usize, b: usize| -> Option<usize> {
-            use std::cmp::min;
-            2usize.checked_mul(min(a, b))
-                .and_then(|lhs| lhs.checked_add(if  !self.phase && a > b || (self.phase && a < b)  { 1 } else { 0 }))
+        let (curr_hint, next_hint) = {
+            let it0_hint = self.it0.size_hint();
+            let it1_hint = self.it1.size_hint();
+            if self.phase {
+                (it1_hint, it0_hint)
+            } else {
+                (it0_hint, it1_hint)
+            }
         };
-
-        let (l0, u0) = self.it0.size_hint();
-        let (l1, u1) = self.it1.size_hint();
-        let lb = bound(l0, l1).unwrap_or(usize::max_value());
-        let ub = match (u0, u1) {
-            (None, None) => None,
-            (Some(u0), None) => Some(u0 * 2 + self.phase as usize),
-            (None, Some(u1)) => Some(u1 * 2 + !self.phase as usize),
-            (Some(u0), Some(u1)) => Some(cmp::min(u0, u1) * 2 +
-                                         (u0 > u1 && !self.phase ||
-                                          (u0 < u1 && self.phase)) as usize),
+        let (curr_lower, curr_upper) = curr_hint;
+        let (next_lower, next_upper) = next_hint;
+        let (combined_lower, combined_upper) =
+            size_hint::mul_scalar(size_hint::min(curr_hint, next_hint), 2);
+        let lower =
+            if curr_lower > next_lower {
+                combined_lower + 1
+            } else {
+                combined_lower
+            };
+        let upper = {
+            let extra_elem = match (curr_upper, next_upper) {
+                (_, None) => false,
+                (None, Some(_)) => true,
+                (Some(curr_max), Some(next_max)) => curr_max > next_max,
+            };
+            if extra_elem {
+                combined_upper.and_then(|x| x.checked_add(1))
+            } else {
+                combined_upper
+            }
         };
-        (lb, ub)
+        (lower, upper)
     }
 }
 
