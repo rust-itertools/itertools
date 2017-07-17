@@ -41,6 +41,12 @@ How to contribute:
 Recent Changes
 --------------
 
+- 0.6.1
+
+  - Better size hint testing and subsequent size hint bugfixes by @rkarp.
+    Fixes bugs in product, interleave_shortest size hints.
+  - New iterator method ``.all_equal()`` by @phimuemue
+
 - 0.6.0
 
   - Deprecated names were removed in favour of their replacements
