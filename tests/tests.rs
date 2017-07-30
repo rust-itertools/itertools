@@ -703,6 +703,18 @@ fn chunks() {
 }
 
 #[test]
+fn concat_empty() {
+    let data: Vec<Vec<()>> = Vec::new();
+    assert_eq!(data.into_iter().concat(), Vec::new())
+}
+
+#[test]
+fn concat_non_empty() {
+    let data = vec![vec![1,2,3], vec![4,5,6], vec![7,8,9]];
+    assert_eq!(data.into_iter().concat(), vec![1,2,3,4,5,6,7,8,9])
+}
+
+#[test]
 fn flatten_iter() {
     let data = vec![vec![1,2,3], vec![4,5,6]];
     let flattened = data.into_iter().flatten();

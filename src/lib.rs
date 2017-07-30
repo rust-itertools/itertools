@@ -58,6 +58,7 @@ pub mod structs {
         UniqueBy,
         Flatten,
     };
+    pub use concat_impl::concat;
     pub use cons_tuples_impl::ConsTuples;
     pub use format::{Format, FormatWith};
     pub use groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
@@ -92,6 +93,7 @@ mod adaptors;
 pub mod free;
 #[doc(inline)]
 pub use free::*;
+mod concat_impl;
 mod cons_tuples_impl;
 mod diff;
 mod format;
@@ -1090,6 +1092,18 @@ pub trait Itertools : Iterator {
               Self: Sized,
     {
         self.fold((), move |(), element| f(element))
+    }
+
+    /// Concatenate all items of the iterator into a single extendable destination.
+    ///
+    /// This combinator will extend the first item with the contents of the rest
+    /// of the items of the iterator. If the iterator is empty, the default value
+    /// will be returned.
+    fn concat(self) -> Self::Item
+        where Self: Sized,
+              Self::Item: Extend<<<Self as Iterator>::Item as IntoIterator>::Item> + IntoIterator + Default
+    {
+        concat(self)
     }
 
     /// `.collect_vec()` is simply a type specialization of `.collect()`,
