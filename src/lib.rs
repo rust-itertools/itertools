@@ -58,7 +58,6 @@ pub mod structs {
         UniqueBy,
         Flatten,
     };
-    pub use concat_impl::concat;
     pub use cons_tuples_impl::ConsTuples;
     pub use format::{Format, FormatWith};
     pub use groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
@@ -77,6 +76,7 @@ pub mod structs {
     pub use ziptuple::Zip;
 }
 pub use structs::*;
+pub use concat_impl::concat;
 pub use cons_tuples_impl::cons_tuples;
 pub use diff::diff_with;
 pub use diff::Diff;
@@ -1094,11 +1094,19 @@ pub trait Itertools : Iterator {
         self.fold((), move |(), element| f(element))
     }
 
-    /// Concatenate all items of the iterator into a single extendable destination.
+    /// Combine all an iterator's elements into one element by using `Extend`.
     ///
-    /// This combinator will extend the first item with the contents of the rest
-    /// of the items of the iterator. If the iterator is empty, the default value
-    /// will be returned.
+    /// This combinator will extend the first item with each of the rest of the
+    /// items of the iterator. If the iterator is empty, the default value of
+    /// `I::Item` is returned.
+    ///
+    /// ```rust
+    /// use itertools::Itertools;
+    /// 
+    /// let input = vec![vec![1], vec![2, 3], vec![4, 5, 6]];
+    /// assert_eq!(input.into_iter().concat(),
+    ///            vec![1, 2, 3, 4, 5, 6]);
+    /// ```
     fn concat(self) -> Self::Item
         where Self: Sized,
               Self::Item: Extend<<<Self as Iterator>::Item as IntoIterator>::Item> + IntoIterator + Default

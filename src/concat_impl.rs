@@ -1,13 +1,22 @@
 use Itertools;
 
-/// Concatenate all items of the iterator into a single extendable destination.
+/// Combine all an iterator's elements into one element by using `Extend`.
 ///
-/// This combinator will extend the first item with the contents of the rest
-/// of the items of the iterator. If the iterator is empty, the default value
-/// will be returned.
-pub fn concat<I: Iterator>(iter: I) -> I::Item
-    where I: Iterator,
-          I::Item: Extend<<<I as Iterator>::Item as IntoIterator>::Item> + IntoIterator + Default
+/// `IntoIterator`-enabled version of `.concat()`
+///
+/// This combinator will extend the first item with each of the rest of the
+/// items of the iterator. If the iterator is empty, the default value of
+/// `I::Item` is returned.
+///
+/// ```rust
+/// use itertools::concat;
+/// 
+/// let input = vec![vec![1], vec![2, 3], vec![4, 5, 6]];
+/// assert_eq!(concat(input), vec![1, 2, 3, 4, 5, 6]);
+/// ```
+pub fn concat<I>(iterable: I) -> I::Item
+    where I: IntoIterator,
+          I::Item: Extend<<<I as IntoIterator>::Item as IntoIterator>::Item> + IntoIterator + Default
 {
-    iter.fold1(|mut a, b| { a.extend(b); a }).unwrap_or_else(|| <_>::default())
+    iterable.into_iter().fold1(|mut a, b| { a.extend(b); a }).unwrap_or_else(|| <_>::default())
 }
