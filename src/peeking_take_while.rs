@@ -110,7 +110,6 @@ impl<'a, I, F> Iterator for PeekingTakeWhile<'a, I, F>
 // Some iterators are so lightweight we can simply clone them to save their
 // state and use that for peeking.
 macro_rules! peeking_next_by_clone {
-    (@as_item $x:item) => ($x);
     ([$($typarm:tt)*] $type_:ty) => {
         impl<$($typarm)*> PeekingNext for $type_ {
             fn peeking_next<F>(&mut self, accept: F) -> Option<Self::Item>
