@@ -1146,8 +1146,6 @@ impl<I> fmt::Debug for Combinations<I>
 }
 
 /// Create a new `Combinations` from a clonable iterator.
-///
-/// **Panics** if `n` is zero.
 pub fn combinations<I>(iter: I, n: usize) -> Combinations<I>
     where I: Iterator
 {
