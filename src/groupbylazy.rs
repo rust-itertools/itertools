@@ -82,10 +82,12 @@ impl<K, I, F> GroupInner<K, I, F>
     /// `client`: Index of group that requests next element
     #[inline(always)]
     fn step(&mut self, client: usize) -> Option<I::Item> {
+        /*
         println!("client={}, bottom_group={}, oldest_buffered_group={}, top_group={}, buffers=[{}]",
                  client, self.bottom_group, self.oldest_buffered_group,
                  self.top_group,
                  self.buffer.iter().map(|elt| elt.len()).format(", "));
+        */
         if client < self.oldest_buffered_group {
             None
         } else if client < self.top_group ||
