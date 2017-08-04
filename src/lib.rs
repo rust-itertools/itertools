@@ -302,7 +302,7 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// // An adaptor that gathers elements up in pairs
+    /// // An adaptor that gathers elements in pairs
     /// let pit = (0..4).batching(|mut it| {
     ///            match it.next() {
     ///                None => None,
