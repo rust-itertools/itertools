@@ -199,8 +199,7 @@ macro_rules! izip {
 pub trait Itertools : Iterator {
     // adaptors
 
-    /// Alternate elements from two iterators until both
-    /// run out.
+    /// Alternate elements from two iterators until both have run out.
     ///
     /// Iterator element type is `Self::Item`.
     ///
@@ -209,8 +208,8 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let it = (0..3).interleave(vec![7, 8]);
-    /// itertools::assert_equal(it, vec![0, 7, 1, 8, 2]);
+    /// let it = (1..7).interleave(vec![-1, -2]);
+    /// itertools::assert_equal(it, vec![1, -1, 2, -2, 3, 4, 5, 6]);
     /// ```
     fn interleave<J>(self, other: J) -> Interleave<Self, J::IntoIter>
         where J: IntoIterator<Item = Self::Item>,
@@ -219,15 +218,16 @@ pub trait Itertools : Iterator {
         interleave(self, other)
     }
 
-    /// Alternate elements from two iterators until one of them runs out.
+    /// Alternate elements from two iterators until at least one of them has run
+    /// out.
     ///
     /// Iterator element type is `Self::Item`.
     ///
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let it = (0..5).interleave_shortest(vec![7, 8]);
-    /// itertools::assert_equal(it, vec![0, 7, 1, 8, 2]);
+    /// let it = (1..7).interleave_shortest(vec![-1, -2]);
+    /// itertools::assert_equal(it, vec![1, -1, 2, -2, 3]);
     /// ```
     fn interleave_shortest<J>(self, other: J) -> InterleaveShortest<Self, J::IntoIter>
         where J: IntoIterator<Item = Self::Item>,
