@@ -9,12 +9,6 @@
 //! use itertools::Itertools;
 //! ```
 //!
-//! To enable the macros in this crate, use the `#[macro_use]` attribute:
-//!
-//! ```ignore
-//! #[macro_use] extern crate itertools;
-//! ```
-//!
 //! ## Rust Version
 //!
 //! This version of itertools requires Rust 1.12 or later.
@@ -133,6 +127,13 @@ mod ziptuple;
 /// }
 /// # }
 /// ```
+///
+/// Note: To enable the macros in this crate, use the `#[macro_use]` attribute
+/// when importing the crate.
+///
+/// ```ignore
+/// #[macro_use] extern crate itertools;
+/// ```
 macro_rules! iproduct {
     (@flatten $I:expr,) => (
         $I
@@ -175,6 +176,13 @@ macro_rules! iproduct {
 ///
 /// assert_eq!(xs, [69, 106, 103]);
 /// # }
+/// ```
+///
+/// Note: To enable the macros in this crate, use the `#[macro_use]` attribute
+/// when importing the crate.
+///
+/// ```ignore
+/// #[macro_use] extern crate itertools;
 /// ```
 macro_rules! izip {
     ($I:expr) => (
