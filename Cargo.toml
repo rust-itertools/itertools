@@ -27,6 +27,8 @@ default-features = false
 version = "0.2"
 
 [features]
+default = ["use_std"]
+use_std = []
 
 [profile]
 bench = { debug = true }
