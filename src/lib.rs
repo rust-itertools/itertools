@@ -155,8 +155,8 @@ macro_rules! iproduct {
 /// returns `None`.
 ///
 /// Iterator element type is like `(A, B, ..., E)` if formed
-/// from iterators `(I, J, ..., M)` implementing `I: Iterator<A>`,
-/// `J: Iterator<B>`, ..., `M: Iterator<E>`
+/// from iterators `(I, J, ..., M)` implementing `I: IntoIterator<Item=A>`,
+/// `J: IntoIterator<Item=B>`, ..., `M: IntoIterator<Item=E>`
 ///
 /// ```
 /// #[macro_use] extern crate itertools;
