@@ -60,6 +60,10 @@ fn product_temporary() {
 
 #[test]
 fn izip_macro() {
+    let mut zip = izip!(2..3);
+    assert!(zip.next() == Some(2));
+    assert!(zip.next().is_none());
+
     let mut zip = izip!(0..3, 0..2, 0..2i8);
     for i in 0..2 {
         assert!((i as usize, i, i as i8) == zip.next().unwrap());
