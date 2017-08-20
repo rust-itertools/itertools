@@ -189,7 +189,7 @@ macro_rules! impl_tuple_collect {
             type Item = $A;
             type Buffer = [Option<$A>; $N - 1];
 
-            #[allow(unused_assignments)]
+            #[allow(unused_assignments, unused_mut)]
             fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
                 where I: IntoIterator<Item = $A>
             {
