@@ -217,7 +217,7 @@ fn batching() {
     let ys = [(0, 1), (2, 1)];
 
     // An iterator that gathers elements up in pairs
-    let pit = xs.iter().cloned().batching(|mut it| {
+    let pit = xs.iter().cloned().batching(|it| {
                match it.next() {
                    None => None,
                    Some(x) => match it.next() {
@@ -323,7 +323,7 @@ fn trait_pointers() {
 
     {
         /* make sure foreach works on non-Sized */
-        let mut jt: &mut Iterator<Item=i32> = &mut *it;
+        let jt: &mut Iterator<Item = i32> = &mut *it;
         assert_eq!(jt.next(), Some(1));
 
         {
