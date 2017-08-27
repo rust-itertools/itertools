@@ -65,6 +65,7 @@ pub mod structs {
     pub use kmerge_impl::{KMerge, KMergeBy};
     pub use pad_tail::PadUsing;
     pub use peeking_take_while::PeekingTakeWhile;
+    pub use process_results_impl::ProcessResults;
     pub use rciter_impl::RcIter;
     pub use repeatn::RepeatN;
     pub use sources::{RepeatCall, Unfold, Iterate};
@@ -83,6 +84,7 @@ pub use diff::Diff;
 pub use kmerge_impl::{kmerge_by};
 pub use minmax::MinMaxResult;
 pub use peeking_take_while::PeekingNext;
+pub use process_results_impl::process_results;
 pub use repeatn::repeat_n;
 pub use sources::{repeat_call, unfold, iterate};
 pub use with_position::Position;
@@ -103,6 +105,7 @@ mod kmerge_impl;
 mod minmax;
 mod pad_tail;
 mod peeking_take_while;
+mod process_results_impl;
 mod rciter_impl;
 mod repeatn;
 mod size_hint;
@@ -1703,76 +1706,3 @@ impl<T> FoldWhile<T> {
     }
 }
 
-pub struct ProcessResults<'a, I, E: 'a> {
-    error: &'a mut Result<(), E>,
-    iter: I,
-}
-
-impl<'a, I, T, E> Iterator for ProcessResults<'a, I, E>
-    where I: Iterator<Item = Result<T, E>>
-{
-    type Item = T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.iter.next() {
-            Some(Ok(x)) => Some(x),
-            Some(Err(e)) => {
-                *self.error = Err(e);
-                None
-            }
-            None => None,
-        }
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let (_, hi) = self.iter.size_hint();
-        (0, hi)
-    }
-}
-
-/// “Lift” a function of the values of an iterator so that it can process
-/// an iterator of `Result` values instead.
-///
-/// `iterable` is an iterator or iterable with `Result<T, E>` elements, where
-/// `T` is the value type and `E` the error type.
-///
-/// `processor` is a closure that receives an adapted version of the iterable
-/// as the only argument — the adapted iterator produces elements of type `T`,
-/// as long as the original iterator produces `Ok` values.
-///
-/// If the original iterable produces an error at any point, the adapted
-/// iterator ends and the `process_results` function will return the
-/// error iself.
-///
-/// Otherwise, the return value from the closure is returned wrapped
-/// inside `Ok`.
-///
-/// # Example
-///
-/// ```
-/// use itertools::process_results;
-///
-/// type R = Result<i32, &'static str>;
-///
-/// let first_values: Vec<R> = vec![Ok(1), Ok(0), Ok(3)];
-/// let second_values: Vec<R> = vec![Ok(2), Ok(1), Err("overflow")];
-///
-/// // “Lift” the iterator .max() method to work on the values in Results using process_results
-///
-/// let first_max = process_results(first_values, |iter| iter.max().unwrap_or(0));
-/// let second_max = process_results(second_values, |iter| iter.max().unwrap_or(0));
-///
-/// assert_eq!(first_max, Ok(3));
-/// assert!(second_max.is_err());
-/// ```
-pub fn process_results<I, F, T, E, R>(iterable: I, processor: F) -> Result<R, E>
-    where I: IntoIterator<Item = Result<T, E>>,
-          F: FnOnce(ProcessResults<I::IntoIter, E>) -> R
-{
-    let iter = iterable.into_iter();
-    let mut error = Ok(());
-
-    let result = processor(ProcessResults { error: &mut error, iter: iter });
-
-    error.map(|_| result)
-}
