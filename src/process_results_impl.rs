@@ -1,4 +1,9 @@
 
+/// An iterator that produces only the `T` values as long as the
+/// inner iterator produces `Ok(T)`.
+///
+/// Used by [`process_results`](../fn.process_results.html), see its docs
+/// for more information.
 pub struct ProcessResults<'a, I, E: 'a> {
     error: &'a mut Result<(), E>,
     iter: I,
