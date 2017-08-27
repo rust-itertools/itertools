@@ -21,7 +21,7 @@ How to use with cargo:
 .. code:: toml
 
     [dependencies]
-    itertools = "0.6.0"
+    itertools = "0.6.2"
 
 How to use in your crate:
 
@@ -40,6 +40,14 @@ How to contribute:
 
 Recent Changes
 --------------
+
+- 0.6.2
+
+  - Add function ``process_results`` which can “lift” a function of the regular
+    values of an iterator so that it can process the ``Ok`` values from an
+    iterator of ``Results`` instead, by @shepmaster
+  - Add iterator method ``.concat()`` which combines all iterator elements
+    into a single collection using the ``Extend`` trait, by @srijs
 
 - 0.6.1
 
