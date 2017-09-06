@@ -142,7 +142,7 @@ macro_rules! iproduct {
         iproduct!(@flatten $crate::cons_tuples(iproduct!($I, $J)), $($K,)*)
     );
     ($I:expr) => (
-        (::std::iter::IntoIterator::into_iter($I))
+        ::std::iter::IntoIterator::into_iter($I)
     );
     ($I:expr, $J:expr) => (
         $crate::Itertools::cartesian_product(iproduct!($I), iproduct!($J))
@@ -186,7 +186,7 @@ macro_rules! iproduct {
 /// ```
 macro_rules! izip {
     ($I:expr) => (
-        (::std::iter::IntoIterator::into_iter($I))
+        ::std::iter::IntoIterator::into_iter($I)
     );
     ($($I:expr),*) => (
         {
@@ -767,7 +767,7 @@ pub trait Itertools : Iterator {
         adaptors::unique_by(self, f)
     }
 
-    /// Return an iterator adaptor that borrows from this iterator and 
+    /// Return an iterator adaptor that borrows from this iterator and
     /// takes items while the closure `accept` returns `true`.
     ///
     /// This adaptor can only be used on iterators that implement `PeekingNext`
@@ -1026,7 +1026,7 @@ pub trait Itertools : Iterator {
     /// let data : Option<usize> = None;
     /// assert!(data.into_iter().all_equal());
     /// ```
-    fn all_equal(&mut self) -> bool 
+    fn all_equal(&mut self) -> bool
         where Self::Item: PartialEq,
     {
         self.dedup().nth(1).is_none()
@@ -1113,7 +1113,7 @@ pub trait Itertools : Iterator {
     ///
     /// ```rust
     /// use itertools::Itertools;
-    /// 
+    ///
     /// let input = vec![vec![1], vec![2, 3], vec![4, 5, 6]];
     /// assert_eq!(input.into_iter().concat(),
     ///            vec![1, 2, 3, 4, 5, 6]);
@@ -1713,4 +1713,3 @@ impl<T> FoldWhile<T> {
         }
     }
 }
-
