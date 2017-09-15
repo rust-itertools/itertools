@@ -22,13 +22,19 @@ pub struct RcIter<I> {
 ///
 /// ```
 /// use itertools::rciter;
+/// use itertools::zip;
 ///
-/// let mut rit = rciter(0..9);
-/// let mut z = rit.clone().zip(rit.clone());
+/// // In this example a range iterator is created and we iterate it using
+/// // three separate handles (two of them given to zip).
+/// // We also use the IntoIterator implementation for `&RcIter`.
+///
+/// let mut iter = rciter(0..9);
+/// let mut z = zip(&iter, &iter);
+///
 /// assert_eq!(z.next(), Some((0, 1)));
 /// assert_eq!(z.next(), Some((2, 3)));
 /// assert_eq!(z.next(), Some((4, 5)));
-/// assert_eq!(rit.next(), Some(6));
+/// assert_eq!(iter.next(), Some(6));
 /// assert_eq!(z.next(), Some((7, 8)));
 /// assert_eq!(z.next(), None);
 /// ```
