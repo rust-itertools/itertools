@@ -15,8 +15,8 @@ pub struct RcIter<I> {
 /// same original iterator.
 ///
 /// `RcIter` allows doing interesting things like using `.zip()` on an iterator with
-/// itself, at the cost of runtime borrow checking.
-/// (If it is not obvious: this has a performance penalty.)
+/// itself, at the cost of runtime borrow checking which may have a performance
+/// penalty.
 ///
 /// Iterator element type is `Self::Item`.
 ///
@@ -33,9 +33,10 @@ pub struct RcIter<I> {
 /// assert_eq!(z.next(), None);
 /// ```
 ///
-/// **Panics** in iterator methods if a borrow error is encountered,
-/// but it can only happen if the `RcIter` is reentered in for example `.next()`,
-/// i.e. if it somehow participates in an “iterator knot” where it is an adaptor of itself.
+/// **Panics** in iterator methods if a borrow error is encountered in the
+/// iterator methods. It can only happen if the `RcIter` is reentered in
+/// `.next()`, i.e. if it somehow participates in an “iterator knot”
+/// where it is an adaptor of itself.
 pub fn rciter<I>(iterable: I) -> RcIter<I::IntoIter>
     where I: IntoIterator
 {
@@ -76,6 +77,7 @@ impl<I> DoubleEndedIterator for RcIter<I>
         self.rciter.borrow_mut().next_back()
     }
 }
+
 /// Return an iterator from `&RcIter<I>` (by simply cloning it).
 impl<'a, I> IntoIterator for &'a RcIter<I>
     where I: Iterator
