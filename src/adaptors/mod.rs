@@ -1502,7 +1502,6 @@ impl<I, F> Iterator for RPositions<I, F>
                 return Some(self.count);
             }
         }
-        assert_eq!(self.count, 0);
         None
     }
 

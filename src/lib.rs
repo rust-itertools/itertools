@@ -1012,9 +1012,10 @@ pub trait Itertools : Iterator {
         None
     }
 
-    /// Find the positions of each element satisfying a predicate.
+    /// Find the positions of each element satisfying a predicate, counted from the start of the
+    /// iterator.
     ///
-    /// Equivalent to `iter.filter(|(_,v)| pred(v)).map(|(i,_)| i)`.
+    /// Equivalent to `iter.enumerate().filter(|(_,v)| pred(v)).map(|(i,_)| i)`.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -1029,9 +1030,10 @@ pub trait Itertools : Iterator {
         adaptors::positions(self, pred)
     }
 
-    /// Find the positions of each element satisfying a predicate in reverse order.
+    /// Find the positions of each element satisfying a predicate, counted from the start of the
+    /// iterator with the last position first (and first position last).
     ///
-    /// Equivalent to `iter.rev().filter(|(_,v)| pred(v)).map(|(i,_)| i)`.
+    /// Equivalent to `iter.enumerate().rev().filter(|(_,v)| pred(v)).map(|(i,_)| i)`.
     ///
     /// ```
     /// use itertools::Itertools;
