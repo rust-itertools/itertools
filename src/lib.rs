@@ -51,6 +51,8 @@ pub mod structs {
         Unique,
         UniqueBy,
         Flatten,
+        Positions,
+        RPositions,
     };
     pub use cons_tuples_impl::ConsTuples;
     pub use format::{Format, FormatWith};
@@ -1008,6 +1010,42 @@ pub trait Itertools : Iterator {
             index += 1;
         }
         None
+    }
+
+    /// Find the positions of each element satisfying a predicate.
+    ///
+    /// Equivalent to `iter.filter(|(_,v)| pred(v)).map(|(i,_)| i)`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![1, 2, 3, 3, 4, 6, 7, 9];
+    /// itertools::assert_equal(data.iter().positions(|v| v % 2 == 0), vec![1, 4, 5]);
+    /// ```
+    fn positions<P>(self, pred: P) -> Positions<Self, P>
+        where Self: Sized,
+              P: FnMut(Self::Item) -> bool,
+    {
+        adaptors::positions(self, pred)
+    }
+
+    /// Find the positions of each element satisfying a predicate in reverse order.
+    ///
+    /// Equivalent to `iter.rev().filter(|(_,v)| pred(v)).map(|(i,_)| i)`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![1, 2, 3, 3, 4, 6, 7, 9];
+    /// itertools::assert_equal(data.iter().rpositions(|v| v % 2 == 0), vec![5, 4, 1]);
+    /// ```
+    fn rpositions<P>(self, pred: P) -> RPositions<Self, P>
+        where Self: Sized,
+              Self: ExactSizeIterator + DoubleEndedIterator,
+              P: FnMut(Self::Item) -> bool,
+
+    {
+        adaptors::rpositions(self, pred)
     }
 
     /// Check whether all elements compare equal.

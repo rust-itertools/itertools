@@ -1423,3 +1423,90 @@ impl<I, F, T, U, E> Iterator for MapResults<I, F>
         self.iter.size_hint()
     }
 }
+
+/// An iterator adapter to get the positions of each element that matches a predicate.
+///
+/// See [`.positions()`](../trait.Itertools.html#method.positions) for more information.
+pub struct Positions<I, F> {
+    iter: I,
+    f: F,
+    count: usize
+}
+
+/// Create a new `Positions` iterator.
+pub fn positions<I, F>(iter: I, f: F) -> Positions<I, F>
+    where I: Iterator,
+          F: FnMut(I::Item) -> bool,
+{
+    Positions {
+        iter: iter,
+        f: f,
+        count: 0
+    }
+}
+
+impl<I, F, T> Iterator for Positions<I, F>
+    where I: Iterator<Item = T>,
+          F: FnMut(I::Item) -> bool,
+{
+    type Item = usize;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while let Some(v) = self.iter.next() {
+            let i = self.count;
+            self.count = i + 1;
+            if (self.f)(v) {
+                return Some(i);
+            }
+        }
+        None
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, self.iter.size_hint().1)
+    }
+}
+
+/// An iterator adaptor to get the positions of each element that matches a predicate in reverse.
+///
+/// See [`.positions()`](../trait.Itertools.html#method.rpositions) for more information.
+pub struct RPositions<I, F> {
+    iter: I,
+    f: F,
+    count: usize
+}
+
+/// Create a new `RPositions` iterator.
+pub fn rpositions<I, F>(iter: I, f: F) -> RPositions<I, F>
+    where I: ExactSizeIterator + DoubleEndedIterator,
+          F: FnMut(I::Item) -> bool,
+{
+    let size = iter.len();
+    RPositions {
+        iter: iter,
+        f: f,
+        count: size
+    }
+}
+
+impl<I, F> Iterator for RPositions<I, F>
+    where I: DoubleEndedIterator,
+          F: FnMut(I::Item) -> bool,
+{
+    type Item = usize;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while let Some(v) = self.iter.next_back() {
+            self.count -= 1;
+            if (self.f)(v) {
+                return Some(self.count);
+            }
+        }
+        assert_eq!(self.count, 0);
+        None
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, self.iter.size_hint().1)
+    }
+}
