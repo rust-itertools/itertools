@@ -1423,3 +1423,61 @@ impl<I, F, T, U, E> Iterator for MapResults<I, F>
         self.iter.size_hint()
     }
 }
+
+/// An iterator adapter to get the positions of each element that matches a predicate.
+///
+/// See [`.positions()`](../trait.Itertools.html#method.positions) for more information.
+pub struct Positions<I, F> {
+    iter: I,
+    f: F,
+    count: usize,
+}
+
+/// Create a new `Positions` iterator.
+pub fn positions<I, F>(iter: I, f: F) -> Positions<I, F>
+    where I: Iterator,
+          F: FnMut(I::Item) -> bool,
+{
+    Positions {
+        iter: iter,
+        f: f,
+        count: 0
+    }
+}
+
+impl<I, F> Iterator for Positions<I, F>
+    where I: Iterator,
+          F: FnMut(I::Item) -> bool,
+{
+    type Item = usize;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while let Some(v) = self.iter.next() {
+            let i = self.count;
+            self.count = i + 1;
+            if (self.f)(v) {
+                return Some(i);
+            }
+        }
+        None
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, self.iter.size_hint().1)
+    }
+}
+
+impl<I, F> DoubleEndedIterator for Positions<I, F>
+    where I: DoubleEndedIterator + ExactSizeIterator,
+          F: FnMut(I::Item) -> bool,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        while let Some(v) = self.iter.next_back() {
+            if (self.f)(v) {
+                return Some(self.count + self.iter.len())
+            }
+        }
+        None
+    }
+}
+

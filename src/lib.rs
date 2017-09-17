@@ -51,6 +51,7 @@ pub mod structs {
         Unique,
         UniqueBy,
         Flatten,
+        Positions,
     };
     pub use cons_tuples_impl::ConsTuples;
     pub use format::{Format, FormatWith};
@@ -963,6 +964,26 @@ pub trait Itertools : Iterator {
         where Self: Sized,
     {
         with_position::with_position(self)
+    }
+
+    /// Find the positions of each element satisfying a predicate, counted from the start of the
+    /// iterator.
+    ///
+    /// Equivalent to `iter.enumerate().filter(|(_,v)| pred(v)).map(|(i,_)| i)`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![1, 2, 3, 3, 4, 6, 7, 9];
+    /// itertools::assert_equal(data.iter().positions(|v| v % 2 == 0), vec![1, 4, 5]);
+    ///
+    /// itertools::assert_equal(data.iter().positions(|v| v % 2 == 1).rev(), vec![7, 6, 3, 2, 0]);
+    /// ```
+    fn positions<P>(self, pred: P) -> Positions<Self, P>
+        where Self: Sized,
+              P: FnMut(Self::Item) -> bool,
+    {
+        adaptors::positions(self, pred)
     }
 
     // non-adaptor methods
