@@ -1430,7 +1430,7 @@ impl<I, F, T, U, E> Iterator for MapResults<I, F>
 pub struct Positions<I, F> {
     iter: I,
     f: F,
-    count: usize
+    count: usize,
 }
 
 /// Create a new `Positions` iterator.
@@ -1445,8 +1445,8 @@ pub fn positions<I, F>(iter: I, f: F) -> Positions<I, F>
     }
 }
 
-impl<I, F, T> Iterator for Positions<I, F>
-    where I: Iterator<Item = T>,
+impl<I, F> Iterator for Positions<I, F>
+    where I: Iterator,
           F: FnMut(I::Item) -> bool,
 {
     type Item = usize;
@@ -1467,45 +1467,17 @@ impl<I, F, T> Iterator for Positions<I, F>
     }
 }
 
-/// An iterator adaptor to get the positions of each element that matches a predicate in reverse.
-///
-/// See [`.positions()`](../trait.Itertools.html#method.rpositions) for more information.
-pub struct RPositions<I, F> {
-    iter: I,
-    f: F,
-    count: usize
-}
-
-/// Create a new `RPositions` iterator.
-pub fn rpositions<I, F>(iter: I, f: F) -> RPositions<I, F>
-    where I: ExactSizeIterator + DoubleEndedIterator,
+impl<I, F> DoubleEndedIterator for Positions<I, F>
+    where I: DoubleEndedIterator + ExactSizeIterator,
           F: FnMut(I::Item) -> bool,
 {
-    let size = iter.len();
-    RPositions {
-        iter: iter,
-        f: f,
-        count: size
-    }
-}
-
-impl<I, F> Iterator for RPositions<I, F>
-    where I: DoubleEndedIterator,
-          F: FnMut(I::Item) -> bool,
-{
-    type Item = usize;
-
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next_back(&mut self) -> Option<Self::Item> {
         while let Some(v) = self.iter.next_back() {
-            self.count -= 1;
             if (self.f)(v) {
-                return Some(self.count);
+                return Some(self.count + self.iter.len())
             }
         }
         None
     }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        (0, self.iter.size_hint().1)
-    }
 }
+
