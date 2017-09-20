@@ -673,11 +673,13 @@ pub trait Itertools : Iterator {
     /// Return an iterator adaptor that uses the passed-in closure to
     /// optionally merge together consecutive elements.
     ///
-    /// The closure `f` is passed two elements, `x`, `y` and may return either
-    /// (1) `Ok(z)` to merge the two values or (2) `Err((x', y'))` to indicate
-    /// they can't be merged. In (2), the value `x'` is emitted by the iterator.
-    /// Coalesce continues with either `z` (1) or `y'` (2), and the next
-    /// iterator element as the next pair of elements to merge.
+    /// The closure `f` is passed two elements, `previous` and `current` and may
+    /// return either (1) `Ok(combined)` to merge the two values or
+    /// (2) `Err((previous', current'))` to indicate they can't be merged.
+    /// In (2), the value `previous'` is emitted by the iterator.
+    /// Either (1) `combined` or (2) `current'` becomes the previous value
+    /// when coalesce continues with the next pair of elements to merge. The
+    /// value that remains at the end is also emitted by the iterator.
     ///
     /// Iterator element type is `Self::Item`.
     ///
