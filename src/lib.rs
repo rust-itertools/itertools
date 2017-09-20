@@ -968,10 +968,10 @@ pub trait Itertools : Iterator {
         with_position::with_position(self)
     }
 
-    /// Find the positions of each element satisfying a predicate, counted from the start of the
-    /// iterator.
+    /// Return an iterator adaptor that yields the indices of all elements
+    /// satisfying a predicate, counted from the start of the iterator.
     ///
-    /// Equivalent to `iter.enumerate().filter(|(_,v)| pred(v)).map(|(i,_)| i)`.
+    /// Equivalent to `iter.enumerate().filter(|(_, v)| predicate(v)).map(|(i, _)| i)`.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -981,11 +981,11 @@ pub trait Itertools : Iterator {
     ///
     /// itertools::assert_equal(data.iter().positions(|v| v % 2 == 1).rev(), vec![7, 6, 3, 2, 0]);
     /// ```
-    fn positions<P>(self, pred: P) -> Positions<Self, P>
+    fn positions<P>(self, predicate: P) -> Positions<Self, P>
         where Self: Sized,
               P: FnMut(Self::Item) -> bool,
     {
-        adaptors::positions(self, pred)
+        adaptors::positions(self, predicate)
     }
 
     // non-adaptor methods
