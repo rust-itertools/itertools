@@ -21,7 +21,7 @@ How to use with cargo:
 .. code:: toml
 
     [dependencies]
-    itertools = "0.6.2"
+    itertools = "0.6.3"
 
 How to use in your crate:
 
@@ -40,6 +40,10 @@ How to contribute:
 
 Recent Changes
 --------------
+
+- 0.6.3
+
+  - Add iterator adaptor ``.positions(predicate)`` by @tmccombs
 
 - 0.6.2
 
