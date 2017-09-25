@@ -299,6 +299,25 @@ quickcheck! {
         correct_size_hint(iproduct!(a, b, c))
     }
 
+    fn correct_cartesian_product3(a: Iter<u16>, b: Iter<u16>, c: Iter<u16>,
+                                  take_manual: usize) -> ()
+    {
+        // test correctness of iproduct through regular iteration (take)
+        // and through fold.
+        let ac = a.clone();
+        let br = &b.clone();
+        let cr = &c.clone();
+        let answer: Vec<_> = ac.flat_map(move |ea| br.clone().flat_map(move |eb| cr.clone().map(move |ec| (ea, eb, ec)))).collect();
+        let mut product_iter = iproduct!(a, b, c);
+        let mut actual = Vec::new();
+
+        actual.extend((&mut product_iter).take(take_manual));
+        if actual.len() == take_manual {
+            product_iter.fold((), |(), elt| actual.push(elt));
+        }
+        assert_eq!(answer, actual);
+    }
+
     fn size_step(a: Iter<i16, Exact>, s: usize) -> bool {
         let mut s = s;
         if s == 0 {
