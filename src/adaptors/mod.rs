@@ -399,6 +399,28 @@ impl<I, J> Iterator for Product<I, J>
             size_hint::mul(self.a.size_hint(), self.b_orig.size_hint()),
             (b_min * has_cur, b_max.map(move |x| x * has_cur)))
     }
+
+    fn fold<Acc, G>(mut self, mut accum: Acc, mut f: G) -> Acc
+        where G: FnMut(Acc, Self::Item) -> Acc,
+    {
+        // use a split loop to handle the loose a_cur as well as avoiding to
+        // clone b_orig at the end.
+        if let Some(mut a) = self.a_cur.take().or_else(|| self.a.next()) {
+            let mut b = self.b;
+            loop {
+                accum = b.fold(accum, |acc, elt| f(acc, (a.clone(), elt)));
+
+                // we can only continue iterating a if we had a first element;
+                if let Some(next_a) = self.a.next() {
+                    b = self.b_orig.clone();
+                    a = next_a;
+                } else {
+                    break;
+                }
+            }
+        }
+        accum
+    }
 }
 
 /// A “meta iterator adaptor”. Its closure recives a reference to the iterator
