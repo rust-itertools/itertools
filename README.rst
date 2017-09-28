@@ -41,6 +41,12 @@ How to contribute:
 Recent Changes
 --------------
 
+- 0.6.4
+
+  - Add specific ``fold`` implementations for ``.cartesian_product()`` and
+    ``cons_tuples()``, which improves their performance in fold, foreach, and
+    iterator consumers derived from them.
+
 - 0.6.3
 
   - Add iterator adaptor ``.positions(predicate)`` by @tmccombs
