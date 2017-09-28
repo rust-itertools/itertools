@@ -371,6 +371,7 @@ pub trait Itertools : Iterator {
     fn group_by<K, F>(self, key: F) -> GroupBy<K, Self, F>
         where Self: Sized,
               F: FnMut(&Self::Item) -> K,
+	      K: PartialEq,
     {
         groupbylazy::new(self, key)
     }
