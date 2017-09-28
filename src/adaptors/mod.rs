@@ -405,7 +405,7 @@ impl<I, J> Iterator for Product<I, J>
     {
         // use a split loop to handle the loose a_cur as well as avoiding to
         // clone b_orig at the end.
-        if let Some(mut a) = self.a_cur.take().or_else(|| self.a.next()) {
+        if let Some(mut a) = self.a_cur.take() {
             let mut b = self.b;
             loop {
                 accum = b.fold(accum, |acc, elt| f(acc, (a.clone(), elt)));
