@@ -5,7 +5,7 @@
 //!
 //! To use the iterator methods in this crate, import the [`Itertools` trait](./trait.Itertools.html):
 //!
-//! ```ignore
+//! ```
 //! use itertools::Itertools;
 //! ```
 //!
