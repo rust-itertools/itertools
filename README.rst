@@ -41,6 +41,11 @@ How to contribute:
 Recent Changes
 --------------
 
+- 0.6.5
+
+  - Fix bug in ``.cartesian_product()``'s fold (which only was visible for
+    unfused iterators).
+
 - 0.6.4
 
   - Add specific ``fold`` implementations for ``.cartesian_product()`` and
