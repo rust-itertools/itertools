@@ -1604,12 +1604,12 @@ pub trait Itertools : Iterator {
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }
 
-/// Return `true` if both iterators produce equal sequences
+/// Return `true` if both iterables produce equal sequences
 /// (elements pairwise equal and sequences of the same length),
 /// `false` otherwise.
 ///
-/// **Note:** the standard library method `Iterator::eq` now provides
-/// the same functionality.
+/// This is an `IntoIterator` enabled function that is similar to the standard
+/// library method `Iterator::eq`.
 ///
 /// ```
 /// assert!(itertools::equal(vec![1, 2, 3], 1..4));
@@ -1633,7 +1633,7 @@ pub fn equal<I, J>(a: I, b: J) -> bool
     }
 }
 
-/// Assert that two iterators produce equal sequences, with the same
+/// Assert that two iterables produce equal sequences, with the same
 /// semantics as *equal(a, b)*.
 ///
 /// **Panics** on assertion failure with a message that shows the
