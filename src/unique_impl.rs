@@ -1,5 +1,6 @@
 
-use std::collections::HashSet;
+use std::collections::HashMap;
+use std::collections::hash_map::{Entry};
 use std::hash::Hash;
 use std::fmt;
 
@@ -9,7 +10,8 @@ use std::fmt;
 #[derive(Clone)]
 pub struct UniqueBy<I: Iterator, V, F> {
     iter: I,
-    used: HashSet<V>,
+    // Use a hashmap for the entry API
+    used: HashMap<V, ()>,
     f: F,
 }
 
@@ -28,7 +30,7 @@ pub fn unique_by<I, V, F>(iter: I, f: F) -> UniqueBy<I, V, F>
 {
     UniqueBy {
         iter: iter,
-        used: HashSet::new(),
+        used: HashMap::new(),
         f: f,
     }
 }
@@ -46,7 +48,7 @@ impl<I, V, F> Iterator for UniqueBy<I, V, F>
                 None => return None,
                 Some(v) => {
                     let key = (self.f)(&v);
-                    if self.used.insert(key) {
+                    if self.used.insert(key, ()).is_none() {
                         return Some(v);
                     }
                 }
@@ -72,10 +74,13 @@ impl<I> Iterator for Unique<I>
             match self.iter.iter.next() {
                 None => return None,
                 Some(v) => {
-                    if !self.iter.used.contains(&v) {
-                        // FIXME: Avoid this double lookup when the entry api allows
-                        self.iter.used.insert(v.clone());
-                        return Some(v);
+                    match self.iter.used.entry(v) {
+                        Entry::Occupied(_) => { }
+                        Entry::Vacant(entry) => {
+                            let elt = entry.key().clone();
+                            entry.insert(());
+                            return Some(elt);
+                        }
                     }
                 }
             }
@@ -111,7 +116,7 @@ pub fn unique<I>(iter: I) -> Unique<I>
     Unique {
         iter: UniqueBy {
             iter: iter,
-            used: HashSet::new(),
+            used: HashMap::new(),
             f: (),
         }
     }
