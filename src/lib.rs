@@ -1624,8 +1624,8 @@ pub fn equal<I, J>(a: I, b: J) -> bool
     let mut ib = b.into_iter();
     loop {
         match ia.next() {
-            Some(ref x) => match ib.next() {
-                Some(ref y) => if x != y { return false; },
+            Some(x) => match ib.next() {
+                Some(y) => if x != y { return false; },
                 None => return false,
             },
             None => return ib.next().is_none()
