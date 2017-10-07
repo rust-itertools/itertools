@@ -1,6 +1,7 @@
 
 use std::iter::Peekable;
 use PutBack;
+#[cfg(feature = "use_std")]
 use PutBackN;
 
 /// An iterator that allows peeking at an element before deciding to accept it.
@@ -52,6 +53,7 @@ impl<I> PeekingNext for PutBack<I>
     }
 }
 
+#[cfg(feature = "use_std")]
 impl<I> PeekingNext for PutBackN<I>
     where I: Iterator,
 {
@@ -136,7 +138,9 @@ peeking_next_by_clone! { ['a] ::std::str::Bytes<'a> }
 peeking_next_by_clone! { ['a, T] ::std::option::Iter<'a, T> }
 peeking_next_by_clone! { ['a, T] ::std::result::Iter<'a, T> }
 peeking_next_by_clone! { [T] ::std::iter::Empty<T> }
+#[cfg(feature = "use_std")]
 peeking_next_by_clone! { ['a, T] ::std::collections::linked_list::Iter<'a, T> }
+#[cfg(feature = "use_std")]
 peeking_next_by_clone! { ['a, T] ::std::collections::vec_deque::Iter<'a, T> }
 
 // cloning a Rev has no extra overhead; peekable and put backs are never DEI.
