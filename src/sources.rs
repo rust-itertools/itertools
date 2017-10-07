@@ -36,7 +36,9 @@ impl<F> fmt::Debug for RepeatCall<F>
 ///     vec![1, 1, 1, 1, 1]
 /// );
 /// ```
-pub fn repeat_call<F>(function: F) -> RepeatCall<F> {
+pub fn repeat_call<F, A>(function: F) -> RepeatCall<F>
+    where F: FnMut() -> A
+{
     RepeatCall { f: function }
 }
 
