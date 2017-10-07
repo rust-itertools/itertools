@@ -1,3 +1,4 @@
+use std::cmp::Ord;
 
 /// `MinMaxResult` is an enum returned by `minmax`. See `Itertools::minmax()` for
 /// more detail.
@@ -111,4 +112,112 @@ pub fn minmax_impl<I, K, F, L>(mut it: I, mut key_for: F,
     }
 
     MinMaxResult::MinMax(min, max)
+}
+
+fn find_all_lt_idx<T>(data: &Vec<T>, item: &T) -> usize
+    where T:Ord
+{
+    //given that data is sorted in descending order
+    //and data.len() > 0 and item > data[data.len()-1],
+    //find the index at which all elements on left side are >= item
+    //and all elements on right side are <= item
+    let mut min_idx = data.len()-1;
+    let mut max_idx = 0;
+
+    while min_idx != max_idx {
+        let mid_idx = (min_idx + max_idx )/2;
+        if data[mid_idx] > *item {
+            max_idx = mid_idx +1 ;
+        } else {
+            min_idx = mid_idx;
+        }
+    }
+    min_idx
+}
+
+fn find_all_gt_idx<T>(data: &Vec<T>, item: &T) -> usize
+    where T:Ord
+{
+    //given that data is sorted in ascending order
+    //and data.len() > 0 and item < data[data.len()-1],
+    //find the index at which all elements on left side are <= item
+    //and all elements on right side are >= item
+    let mut min_idx = 0;
+    let mut max_idx = data.len()-1;
+
+    while min_idx != max_idx {
+        let mid_idx = (min_idx + max_idx )/2;
+        if data[mid_idx] < *item {
+            max_idx = mid_idx +1 ;
+        } else {
+            min_idx = mid_idx;
+        }
+    }
+    min_idx
+}
+
+///Return vector of up to n largest items in the iterator
+///in descending order
+pub fn maxn<I>(iterable: I, n: usize) -> Vec<I::Item>
+    where I: Iterator, I::Item: Ord + Clone
+{
+    let mut result:Vec<I::Item> = Vec::with_capacity(n);
+    let mut cnt = 0;
+    let mut i = iterable.into_iter();
+    loop {
+        match i.next() {
+            Some(value) => {
+                if cnt == n {
+                    break
+                };
+                result.push(value);
+                cnt += 1;
+            },
+            None => { break }
+        }
+    }
+
+    result.sort_by(|a, b| b.cmp(a));
+
+    for item in i {
+         if item > result[cnt-1] {
+             let idx = find_all_lt_idx(&result, &item); //find right place to insert item
+             result.pop();
+             result.insert(idx, item.clone());
+        }
+    }
+    result
+}
+
+///Return vector of up to n smallest items in the iterator
+///in ascending order
+pub fn minn<I>(iterable: I, n: usize) -> Vec<I::Item>
+    where I: Iterator, I::Item: Ord + Clone
+{
+    let mut result:Vec<I::Item> = Vec::with_capacity(n);
+    let mut cnt = 0;
+    let mut i = iterable.into_iter();
+    loop {
+        match i.next() {
+            Some(value) => {
+                if cnt == n {
+                    break
+                };
+                result.push(value);
+                cnt += 1;
+            },
+            None => { break }
+        }
+    }
+
+    result.sort();
+
+    for item in i {
+         if item < result[cnt-1] {
+             let idx = find_all_gt_idx(&result, &item); //find right place to insert item
+             result.pop();
+             result.insert(idx, item.clone());
+        }
+    }
+    result
 }

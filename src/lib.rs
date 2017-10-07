@@ -1295,6 +1295,33 @@ pub trait Itertools : Iterator {
         format::new_format_default(self, sep)
     }
 
+    /// Return vector of n largest iterator elements
+    ///
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![1,2,3,4,5,6,7,8,9];
+    /// assert_eq!(data.into_iter().map(|i| *i).maxn(3), vec![9,8,7]);
+
+    fn maxn(self, n: usize) -> Vec<Self::Item>
+        where Self: Sized, Self::Item: Ord + Clone
+    {
+        minmax::maxn(self, n)
+    }
+
+    /// Return vector of n smallest iterator elements
+    ///
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![1,2,3,4,5,6,7,8,9];
+    /// assert_eq!(data.into_iter().map(|i| *i).minn(3), vec![1,2,3]);
+
+    fn minn(self, n: usize) -> Vec<Self::Item>
+        where Self: Sized, Self::Item: Ord + Clone
+    {
+        minmax::minn(self, n)
+    }
+
+
     /// Format all iterator elements, separated by `sep`.
     ///
     /// This is a customizable version of `.format()`.
