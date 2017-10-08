@@ -42,6 +42,9 @@ use std::fmt::Write;
 #[macro_use]
 mod impl_macros;
 
+// for compatibility with no std and macros
+pub use std::iter as __std_iter;
+
 /// The concrete iterator types.
 pub mod structs {
     pub use adaptors::{
@@ -177,7 +180,7 @@ macro_rules! iproduct {
         iproduct!(@flatten $crate::cons_tuples(iproduct!($I, $J)), $($K,)*)
     );
     ($I:expr) => (
-        ::std::iter::IntoIterator::into_iter($I)
+        $crate::__std_iter::IntoIterator::into_iter($I)
     );
     ($I:expr, $J:expr) => (
         $crate::Itertools::cartesian_product(iproduct!($I), iproduct!($J))
@@ -233,7 +236,7 @@ macro_rules! izip {
     };
 
     ( $first:expr $( , $rest:expr )* $(,)* ) => {
-        ::std::iter::IntoIterator::into_iter($first)
+        $crate::__std_iter::IntoIterator::into_iter($first)
             $(
                 .zip($rest)
             )*
