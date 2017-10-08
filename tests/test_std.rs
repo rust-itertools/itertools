@@ -1,33 +1,14 @@
-//! Licensed under the Apache License, Version 2.0
-//! http://www.apache.org/licenses/LICENSE-2.0 or the MIT license
-//! http://opensource.org/licenses/MIT, at your
-//! option. This file may not be copied, modified, or distributed
-//! except according to those terms.
 
 #[macro_use] extern crate itertools as it;
 extern crate permutohedron;
 
 use it::Itertools;
-use it::interleave;
 use it::multizip;
 use it::multipeek;
-use it::FoldWhile;
 use it::free::rciter;
-use it::free::put_back;
 use it::free::put_back_n;
+use it::FoldWhile;
 use it::cloned;
-
-#[test]
-fn product2() {
-    let s = "αβ";
-
-    let mut prod = iproduct!(s.chars(), 0..2);
-    assert!(prod.next() == Some(('α', 0)));
-    assert!(prod.next() == Some(('α', 1)));
-    assert!(prod.next() == Some(('β', 0)));
-    assert!(prod.next() == Some(('β', 1)));
-    assert!(prod.next() == None);
-}
 
 #[test]
 fn product3() {
@@ -46,77 +27,6 @@ fn product3() {
     }
 }
 
-#[test]
-fn product_temporary() {
-    for (_x, _y, _z) in iproduct!(
-        [0, 1, 2].iter().cloned(),
-        [0, 1, 2].iter().cloned(),
-        [0, 1, 2].iter().cloned())
-    {
-        // ok
-    }
-}
-
-
-#[test]
-fn izip_macro() {
-    let mut zip = izip!(2..3);
-    assert!(zip.next() == Some(2));
-    assert!(zip.next().is_none());
-
-    let mut zip = izip!(0..3, 0..2, 0..2i8);
-    for i in 0..2 {
-        assert!((i as usize, i, i as i8) == zip.next().unwrap());
-    }
-    assert!(zip.next().is_none());
-
-    let xs: [isize; 0] = [];
-    let mut zip = izip!(0..3, 0..2, 0..2i8, &xs);
-    assert!(zip.next().is_none());
-}
-
-#[test]
-fn izip3() {
-    let mut zip = multizip((0..3, 0..2, 0..2i8));
-    for i in 0..2 {
-        assert!((i as usize, i, i as i8) == zip.next().unwrap());
-    }
-    assert!(zip.next().is_none());
-
-    let xs: [isize; 0] = [];
-    let mut zip = multizip((0..3, 0..2, 0..2i8, xs.iter()));
-    assert!(zip.next().is_none());
-
-    for (_, _, _, _, _) in multizip((0..3, 0..2, xs.iter(), &xs, xs.to_vec())) {
-        /* test compiles */
-    }
-}
-
-#[test]
-fn write_to() {
-    let xs = [7, 9, 8];
-    let mut ys = [0; 5];
-    let cnt = ys.iter_mut().set_from(xs.iter().map(|x| *x));
-    assert!(cnt == xs.len());
-    assert!(ys == [7, 9, 8, 0, 0]);
-
-    let cnt = ys.iter_mut().set_from(0..10);
-    assert!(cnt == ys.len());
-    assert!(ys == [0, 1, 2, 3, 4]);
-}
-
-#[test]
-fn test_interleave() {
-    let xs: [u8; 0]  = [];
-    let ys = [7u8, 9, 8, 10];
-    let zs = [2u8, 77];
-    let it = interleave(xs.iter(), ys.iter());
-    it::assert_equal(it, ys.iter());
-
-    let rs = [7u8, 2, 9, 77, 8, 10];
-    let it = interleave(ys.iter(), zs.iter());
-    it::assert_equal(it, rs.iter());
-}
 
 #[test]
 fn interleave_shortest() {
@@ -143,22 +53,22 @@ fn interleave_shortest() {
     assert_eq!(it.size_hint(), (6, Some(6)));
 }
 
+
 #[test]
-fn foreach() {
-    let xs = [1i32, 2, 3];
-    let mut sum = 0;
-    xs.iter().foreach(|elt| sum += *elt);
-    assert!(sum == 6);
+fn unique_by() {
+    let xs = ["aaa", "bbbbb", "aa", "ccc", "bbbb", "aaaaa", "cccc"];
+    let ys = ["aaa", "bbbbb", "ccc"];
+    it::assert_equal(ys.iter(), xs.iter().unique_by(|x| x[..2].to_string()));
 }
 
 #[test]
-fn dropping() {
-    let xs = [1, 2, 3];
-    let mut it = xs.iter().dropping(2);
-    assert_eq!(it.next(), Some(&3));
-    assert!(it.next().is_none());
-    let mut it = xs.iter().dropping(5);
-    assert!(it.next().is_none());
+fn unique() {
+    let xs = [0, 1, 2, 3, 2, 1, 3];
+    let ys = [0, 1, 2, 3];
+    it::assert_equal(ys.iter(), xs.iter().unique());
+    let xs = [0, 1];
+    let ys = [0, 1];
+    it::assert_equal(ys.iter(), xs.iter().unique());
 }
 
 #[test]
@@ -196,51 +106,6 @@ fn all_equal() {
     for (_key, mut sub) in &"AABBCCC".chars().group_by(|&x| x) {
         assert!(sub.all_equal());
     }
-}
-
-#[test]
-fn unique_by() {
-    let xs = ["aaa", "bbbbb", "aa", "ccc", "bbbb", "aaaaa", "cccc"];
-    let ys = ["aaa", "bbbbb", "ccc"];
-    it::assert_equal(ys.iter(), xs.iter().unique_by(|x| x[..2].to_string()));
-}
-
-#[test]
-fn unique() {
-    let xs = [0, 1, 2, 3, 2, 1, 3];
-    let ys = [0, 1, 2, 3];
-    it::assert_equal(ys.iter(), xs.iter().unique());
-    let xs = [0, 1];
-    let ys = [0, 1];
-    it::assert_equal(ys.iter(), xs.iter().unique());
-}
-
-#[test]
-fn batching() {
-    let xs = [0, 1, 2, 1, 3];
-    let ys = [(0, 1), (2, 1)];
-
-    // An iterator that gathers elements up in pairs
-    let pit = xs.iter().cloned().batching(|it| {
-               match it.next() {
-                   None => None,
-                   Some(x) => match it.next() {
-                       None => None,
-                       Some(y) => Some((x, y)),
-                   }
-               }
-           });
-    it::assert_equal(pit, ys.iter().cloned());
-}
-
-#[test]
-fn test_put_back() {
-    let xs = [0, 1, 1, 1, 2, 1, 3, 3];
-    let mut pb = put_back(xs.iter().cloned());
-    pb.next();
-    pb.put_back(1);
-    pb.put_back(0);
-    it::assert_equal(pb, xs.iter().cloned());
 }
 
 #[test]
@@ -302,13 +167,6 @@ fn test_rciter() {
 }
 
 #[test]
-fn step() {
-    it::assert_equal((0..10).step(1), (0..10));
-    it::assert_equal((0..10).step(2), (0..10).filter(|x: &i32| *x % 2 == 0));
-    it::assert_equal((0..10).step(10), 0..1);
-}
-
-#[test]
 fn trait_pointers() {
     struct ByRef<'r, I: ?Sized>(&'r mut I) where I: 'r;
 
@@ -338,11 +196,6 @@ fn trait_pointers() {
         assert_eq!(jt.find_position(|x| *x == 4), Some((1, 4)));
         jt.foreach(|_| ());
     }
-}
-
-#[test]
-fn merge() {
-    it::assert_equal((0..10).step(2).merge((1..10).step(2)), (0..10));
 }
 
 #[test]
@@ -462,69 +315,6 @@ fn test_multipeek_reset() {
 }
 
 #[test]
-fn repeatn() {
-    let s = "α";
-    let mut it = it::repeat_n(s, 3);
-    assert_eq!(it.len(), 3);
-    assert_eq!(it.next(), Some(s));
-    assert_eq!(it.next(), Some(s));
-    assert_eq!(it.next(), Some(s));
-    assert_eq!(it.next(), None);
-    assert_eq!(it.next(), None);
-}
-
-#[test]
-fn count_clones() {
-    // Check that RepeatN only clones N - 1 times.
-
-    use std::cell::Cell;
-    #[derive(PartialEq, Debug)]
-    struct Foo {
-        n: Cell<usize>
-    }
-
-    impl Clone for Foo
-    {
-        fn clone(&self) -> Self
-        {
-            let n = self.n.get();
-            self.n.set(n + 1);
-            Foo { n: Cell::new(n + 1) }
-        }
-    }
-
-
-    for n in 0..10 {
-        let f = Foo{n: Cell::new(0)};
-        let it = it::repeat_n(f, n);
-        // drain it
-        let last = it.last();
-        if n == 0 {
-            assert_eq!(last, None);
-        } else {
-            assert_eq!(last, Some(Foo{n: Cell::new(n - 1)}));
-        }
-    }
-}
-
-#[test]
-fn part() {
-    let mut data = [7, 1, 1, 9, 1, 1, 3];
-    let i = it::partition(&mut data, |elt| *elt >= 3);
-    assert_eq!(i, 3);
-    assert_eq!(data, [7, 3, 9, 1, 1, 1, 1]);
-
-    let i = it::partition(&mut data, |elt| *elt == 1);
-    assert_eq!(i, 4);
-    assert_eq!(data, [1, 1, 1, 1, 9, 3, 7]);
-
-    let mut data = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-    let i = it::partition(&mut data, |elt| *elt % 3 == 0);
-    assert_eq!(i, 3);
-    assert_eq!(data, [9, 6, 3, 4, 5, 2, 7, 8, 1]);
-}
-
-#[test]
 fn pad_using() {
     it::assert_equal((0..0).pad_using(1, |_| 1), (1..2));
 
@@ -535,13 +325,6 @@ fn pad_using() {
     let v: Vec<usize> = vec![0, 1, 2];
     let r = v.into_iter().pad_using(1, |_| panic!());
     it::assert_equal(r, vec![0, 1, 2]);
-}
-
-#[test]
-fn while_some() {
-    let ns = (1..10).map(|x| if x % 5 != 0 { Some(x) } else { None })
-                    .while_some();
-    it::assert_equal(ns, vec![1, 2, 3, 4]);
 }
 
 #[test]
@@ -727,19 +510,6 @@ fn flatten_iter() {
 }
 
 #[test]
-fn flatten_clone() {
-    let data = &[
-        &[1,2,3],
-        &[4,5,6]
-    ];
-    let flattened1 = data.into_iter().cloned().flatten();
-    let flattened2 = flattened1.clone();
-
-    it::assert_equal(flattened1, &[1,2,3,4,5,6]);
-    it::assert_equal(flattened2, &[1,2,3,4,5,6]);
-}
-
-#[test]
 fn flatten_fold() {
     let xs = [0, 1, 1, 1, 2, 1, 3, 3];
     let ch = xs.iter().chunks(3);
@@ -835,23 +605,6 @@ fn diff_shorter() {
 }
 
 #[test]
-fn fold_while() {
-    let mut iterations = 0;
-    let vec = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    let sum = vec.into_iter().fold_while(0, |acc, item| {
-        iterations += 1;
-        let new_sum = acc.clone() + item;
-        if new_sum <= 20 {
-            FoldWhile::Continue(new_sum)
-        } else {
-            FoldWhile::Done(acc)
-        }
-    }).into_inner();
-    assert_eq!(iterations, 6);
-    assert_eq!(sum, 15);
-}
-
-#[test]
 fn minmax() {
     use std::cmp::Ordering;
     use it::MinMaxResult;
@@ -906,3 +659,28 @@ fn format() {
     let t3 = format!("{:.2e}", dataf.iter().format(", "));
     assert_eq!(t3, "1.10e0, 2.72e0, -2.20e1");
 }
+
+#[test]
+fn while_some() {
+    let ns = (1..10).map(|x| if x % 5 != 0 { Some(x) } else { None })
+                    .while_some();
+    it::assert_equal(ns, vec![1, 2, 3, 4]);
+}
+
+#[test]
+fn fold_while() {
+    let mut iterations = 0;
+    let vec = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    let sum = vec.into_iter().fold_while(0, |acc, item| {
+        iterations += 1;
+        let new_sum = acc.clone() + item;
+        if new_sum <= 20 {
+            FoldWhile::Continue(new_sum)
+        } else {
+            FoldWhile::Done(acc)
+        }
+    }).into_inner();
+    assert_eq!(iterations, 6);
+    assert_eq!(sum, 15);
+}
+
