@@ -177,7 +177,7 @@ macro_rules! iproduct {
         iproduct!(@flatten $crate::cons_tuples(iproduct!($I, $J)), $($K,)*)
     );
     ($I:expr) => (
-        (::std::iter::IntoIterator::into_iter($I))
+        ::std::iter::IntoIterator::into_iter($I)
     );
     ($I:expr, $J:expr) => (
         $crate::Itertools::cartesian_product(iproduct!($I), iproduct!($J))
