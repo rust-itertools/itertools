@@ -43,6 +43,7 @@ use std::fmt::Write;
 mod impl_macros;
 
 // for compatibility with no std and macros
+#[doc(hidden)]
 pub use std::iter as __std_iter;
 
 /// The concrete iterator types.
