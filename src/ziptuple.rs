@@ -6,17 +6,6 @@ pub struct Zip<T> {
     t: T,
 }
 
-impl<T> Zip<T> {
-    /// Deprecated: renamed to multizip
-    #[deprecated(note = "Renamed to multizip")]
-    pub fn new<U>(t: U) -> Zip<T>
-        where Zip<T>: From<U>,
-              Zip<T>: Iterator,
-    {
-        multizip(t)
-    }
-}
-
 /// An iterator that generalizes *.zip()* and allows running multiple iterators in lockstep.
 ///
 /// The iterator `Zip<(I, J, ..., M)>` is formed from a tuple of iterators (or values that
