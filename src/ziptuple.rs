@@ -35,19 +35,18 @@ impl<T> Zip<T> {
 ///
 /// [`izip!()`]: macro.izip.html
 ///
-///
 /// ```
 /// use itertools::multizip;
 ///
-/// // Iterate over three sequences side-by-side
-/// let mut xs = [0, 0, 0];
-/// let ys = [69, 107, 101];
+/// // iterate over three sequences side-by-side
+/// let mut results = [0, 0, 0, 0];
+/// let inputs = [3, 7, 9, 6];
 ///
-/// for (i, a, b) in multizip((0..100, &mut xs, &ys)) {
-///    *a = i ^ *b;
+/// for (r, index, input) in multizip((&mut results, 0..10, &inputs)) {
+///     *r = index * 10 + input;
 /// }
 ///
-/// assert_eq!(xs, [69, 106, 103]);
+/// assert_eq!(results, [0 + 3, 10 + 7, 29, 36]);
 /// ```
 pub fn multizip<T, U>(t: U) -> Zip<T>
     where Zip<T>: From<U>,

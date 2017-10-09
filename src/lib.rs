@@ -198,9 +198,10 @@ macro_rules! iproduct {
 /// The `izip!` iterator yields elements until any subiterator
 /// returns `None`.
 ///
-/// Iterator element type is like `(A, B, ..., E)` if formed
-/// from iterators `(I, J, ..., M)` implementing `I: IntoIterator<Item=A>`,
-/// `J: IntoIterator<Item=B>`, ..., `M: IntoIterator<Item=E>`
+/// This is a version of the standard ``.zip()`` that's supporting more than
+/// two iterators. The iterator elment type is a tuple with one element
+/// from each of the input iterators. Just like ``.zip()``, the iteration stops
+/// when the shortest of the inputs reaches its end.
 ///
 /// **Note:** The result of this macro is an iterator composed of
 /// repeated `.zip()` and a `.map()`; it has an anonymous type.
@@ -213,15 +214,15 @@ macro_rules! iproduct {
 /// #[macro_use] extern crate itertools;
 /// # fn main() {
 ///
-/// // Iterate over three sequences side-by-side
-/// let mut xs = [0, 0, 0];
-/// let ys = [69, 107, 101];
+/// // iterate over three sequences side-by-side
+/// let mut results = [0, 0, 0, 0];
+/// let inputs = [3, 7, 9, 6];
 ///
-/// for (i, a, b) in izip!(0..100, &mut xs, &ys) {
-///    *a = i ^ *b;
+/// for (r, index, input) in izip!(&mut results, 0..10, &inputs) {
+///     *r = index * 10 + input;
 /// }
 ///
-/// assert_eq!(xs, [69, 106, 103]);
+/// assert_eq!(results, [0 + 3, 10 + 7, 29, 36]);
 /// # }
 /// ```
 ///
