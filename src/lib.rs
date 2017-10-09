@@ -167,11 +167,12 @@ mod ziptuple;
 /// # }
 /// ```
 ///
-/// Note: To enable the macros in this crate, use the `#[macro_use]` attribute
-/// when importing the crate.
+/// **Note:** To enable the macros in this crate, use the `#[macro_use]`
+/// attribute when importing the crate:
 ///
-/// ```ignore
+/// ```
 /// #[macro_use] extern crate itertools;
+/// # fn main() { }
 /// ```
 macro_rules! iproduct {
     (@flatten $I:expr,) => (
@@ -194,12 +195,19 @@ macro_rules! iproduct {
 #[macro_export]
 /// Create an iterator running multiple iterators in lockstep.
 ///
-/// The izip! iterator yields elements until any subiterator
+/// The `izip!` iterator yields elements until any subiterator
 /// returns `None`.
 ///
 /// Iterator element type is like `(A, B, ..., E)` if formed
 /// from iterators `(I, J, ..., M)` implementing `I: IntoIterator<Item=A>`,
 /// `J: IntoIterator<Item=B>`, ..., `M: IntoIterator<Item=E>`
+///
+/// **Note:** The result of this macro is an iterator composed of
+/// repeated `.zip()` and a `.map()`; it has an anonymous type.
+/// Prefer this macro `izip!()` over [`multizip`] for the performance benefits
+/// of using the standard library `.zip()`.
+///
+/// [`multizip`]: fn.multizip.html
 ///
 /// ```
 /// #[macro_use] extern crate itertools;
@@ -217,11 +225,12 @@ macro_rules! iproduct {
 /// # }
 /// ```
 ///
-/// Note: To enable the macros in this crate, use the `#[macro_use]` attribute
-/// when importing the crate.
+/// **Note:** To enable the macros in this crate, use the `#[macro_use]`
+/// attribute when importing the crate:
 ///
-/// ```ignore
+/// ```
 /// #[macro_use] extern crate itertools;
+/// # fn main() { }
 /// ```
 macro_rules! izip {
     // @closure creates a tuple-flattening closure for .map() call. usage:
