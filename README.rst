@@ -21,7 +21,7 @@ How to use with cargo:
 .. code:: toml
 
     [dependencies]
-    itertools = "0.6.3"
+    itertools = "0.7.0"
 
 How to use in your crate:
 
@@ -40,6 +40,28 @@ How to contribute:
 
 Recent Changes
 --------------
+
+- 0.7.0
+
+  - Faster ``izip!()`` by @krdln
+
+    - ``izip!()`` is now a wrapper for repeated regular ``.zip()`` and
+      a single ``.map()``. This means it optimizes as well as the standard
+      library ``.zip()`` it uses.
+      **Note:** ``multizip`` and ``izip!()`` are now different! The former
+      has a named type but the latter optimizes better.
+
+  - Faster ``.unique()``
+
+  - ``no_std`` support, which is opt-in!
+
+    - Many lovable features are still there without std, like ``izip!()``
+      or ``.format()`` or ``.merge()``, but not those that use collections.
+
+  - Trait bounds were required up front instead of just on the type:
+    ``group_by``'s ``PartialEq`` by @Phlosioneer and ``repeat_call``'s
+    ``FnMut``.
+  - Removed deprecated constructor ``Zip::new`` — use ``izip!()`` or ``multizip()``
 
 - 0.6.5
 
