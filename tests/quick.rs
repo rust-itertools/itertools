@@ -384,6 +384,11 @@ quickcheck! {
         correct_size_hint(multizip((&rc, &rc, b)))
     }
 
+    fn size_zip_macro(a: Iter<i16, Exact>, b: Iter<i16, Exact>, c: Iter<i16, Exact>) -> bool {
+        let filt = a.clone().dedup();
+        correct_size_hint(izip!(filt, b.clone(), c.clone())) &&
+            exact_size(izip!(a, b, c))
+    }
     fn equal_kmerge(a: Vec<i16>, b: Vec<i16>, c: Vec<i16>) -> bool {
         use itertools::free::kmerge;
         let mut sa = a.clone();
