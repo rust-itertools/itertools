@@ -60,6 +60,7 @@ impl<T> ExactSizeIterator for TupleBuffer<T>
 /// An iterator that groups the items in tuples of a specific size.
 ///
 /// See [`.tuples()`](../trait.Itertools.html#method.tuples) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Tuples<I, T>
     where I: Iterator<Item = T::Item>,
           T: TupleCollect
@@ -114,6 +115,7 @@ impl<I, T> Tuples<I, T>
 ///
 /// See [`.tuple_windows()`](../trait.Itertools.html#method.tuple_windows) for more
 /// information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct TupleWindows<I, T>
     where I: Iterator<Item = T::Item>,
           T: TupleCollect

@@ -8,6 +8,7 @@ use size_hint;
 ///
 /// See [`.pad_using()`](../trait.Itertools.html#method.pad_using) for more information.
 #[derive(Clone)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct PadUsing<I, F> {
     iter: Fuse<I>,
     min: usize,
