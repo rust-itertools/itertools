@@ -284,6 +284,7 @@ impl<K, I, F> GroupInner<K, I, F>
 /// iterated.
 ///
 /// See [`.group_by()`](../trait.Itertools.html#method.group_by) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct GroupBy<K, I, F>
     where I: Iterator,
 {
@@ -458,6 +459,7 @@ pub fn new_chunks<J>(iter: J, size: usize) -> IntoChunks<J::IntoIter>
 /// Iterator element type is `Chunk`, each chunk's iterator.
 ///
 /// See [`.chunks()`](../trait.Itertools.html#method.chunks) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct IntoChunks<I>
     where I: Iterator,
 {

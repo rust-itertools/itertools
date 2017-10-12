@@ -76,6 +76,7 @@ impl<I> PeekingNext for PutBackN<I>
 ///
 /// See [`.peeking_take_while()`](../trait.Itertools.html#method.peeking_take_while)
 /// for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct PeekingTakeWhile<'a, I: 'a, F>
     where I: Iterator,
 {

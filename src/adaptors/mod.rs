@@ -28,6 +28,7 @@ macro_rules! clone_fields {
 ///
 /// See [`.interleave()`](../trait.Itertools.html#method.interleave) for more information.
 #[derive(Clone, Debug)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Interleave<I, J> {
     a: Fuse<I>,
     b: Fuse<J>,
@@ -90,6 +91,7 @@ impl<I, J> Iterator for Interleave<I, J>
 /// See [`.interleave_shortest()`](../trait.Itertools.html#method.interleave_shortest)
 /// for more information.
 #[derive(Clone, Debug)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct InterleaveShortest<I, J>
     where I: Iterator,
           J: Iterator<Item = I::Item>
@@ -267,6 +269,7 @@ impl<I> Iterator for PutBack<I>
 /// Iterator element type is `(I::Item, J::Item)`.
 ///
 /// See [`.cartesian_product()`](../trait.Itertools.html#method.cartesian_product) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Product<I, J>
     where I: Iterator
 {
@@ -362,6 +365,7 @@ impl<I, J> Iterator for Product<I, J>
 ///
 /// See [`.batching()`](../trait.Itertools.html#method.batching) for more information.
 #[derive(Clone)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Batching<I, F> {
     f: F,
     iter: I,
@@ -401,6 +405,7 @@ impl<B, F, I> Iterator for Batching<I, F>
 ///
 /// See [`.step()`](../trait.Itertools.html#method.step) for more information.
 #[derive(Clone, Debug)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Step<I> {
     iter: Fuse<I>,
     skip: usize,
@@ -514,6 +519,7 @@ impl<I, J> MergeCore<I, J>
 /// Iterator element type is `I::Item`.
 ///
 /// See [`.merge()`](../trait.Itertools.html#method.merge_by) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Merge<I, J>
     where I: Iterator,
           J: Iterator<Item = I::Item>
@@ -586,6 +592,7 @@ impl<I, J> Iterator for Merge<I, J>
 /// Iterator element type is `I::Item`.
 ///
 /// See [`.merge_by()`](../trait.Itertools.html#method.merge_by) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct MergeBy<I, J, F>
     where I: Iterator,
           J: Iterator<Item = I::Item>
@@ -686,6 +693,7 @@ impl<I> CoalesceCore<I>
 /// An iterator adaptor that may join together adjacent elements.
 ///
 /// See [`.coalesce()`](../trait.Itertools.html#method.coalesce) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Coalesce<I, F>
     where I: Iterator
 {
@@ -740,6 +748,7 @@ impl<I, F> Iterator for Coalesce<I, F>
 /// An iterator adaptor that removes repeated duplicates.
 ///
 /// See [`.dedup()`](../trait.Itertools.html#method.dedup) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Dedup<I>
     where I: Iterator
 {
@@ -812,6 +821,7 @@ impl<I> Iterator for Dedup<I>
 /// to only pick off elements while the predicate returns `true`.
 ///
 /// See [`.take_while_ref()`](../trait.Itertools.html#method.take_while_ref) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct TakeWhileRef<'a, I: 'a, F> {
     iter: &'a mut I,
     f: F,
@@ -862,6 +872,7 @@ impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F>
 ///
 /// See [`.while_some()`](../trait.Itertools.html#method.while_some) for more information.
 #[derive(Clone, Debug)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct WhileSome<I> {
     iter: I,
 }
@@ -895,6 +906,7 @@ impl<I, A> Iterator for WhileSome<I>
 /// See [`.tuple_combinations()`](../trait.Itertools.html#method.tuple_combinations) for more
 /// information.
 #[derive(Debug)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct TupleCombinations<I, T>
     where I: Iterator,
           T: HasCombination<I>
@@ -1023,6 +1035,7 @@ impl_tuple_combination!(Tuple4Combination Tuple3Combination ; A, A, A, A, A; a b
 ///
 /// See [`.flatten()`](../trait.Itertools.html#method.flatten) for more information.
 #[derive(Clone, Debug)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Flatten<I, J> {
     iter: I,
     front: Option<J>,
@@ -1074,6 +1087,7 @@ impl<I, J> Iterator for Flatten<I, J>
 /// An iterator adapter to apply a transformation within a nested `Result`.
 ///
 /// See [`.map_results()`](../trait.Itertools.html#method.map_results) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct MapResults<I, F> {
     iter: I,
     f: F
@@ -1108,6 +1122,7 @@ impl<I, F, T, U, E> Iterator for MapResults<I, F>
 /// An iterator adapter to get the positions of each element that matches a predicate.
 ///
 /// See [`.positions()`](../trait.Itertools.html#method.positions) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Positions<I, F> {
     iter: I,
     f: F,
