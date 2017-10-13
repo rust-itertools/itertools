@@ -21,7 +21,7 @@ How to use with cargo:
 .. code:: toml
 
     [dependencies]
-    itertools = "0.7.0"
+    itertools = "0.7.1"
 
 How to use in your crate:
 
@@ -40,6 +40,12 @@ How to contribute:
 
 Recent Changes
 --------------
+
+- 0.7.1
+
+  - Iterator adaptors and iterators in itertools now use the same ``must_use``
+    reminder that the standard library adaptors do, by @matematikaedit and @bluss
+    *“iterator adaptors are lazy and do nothing unless consumed”*.
 
 - 0.7.0
 

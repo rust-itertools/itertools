@@ -22,7 +22,7 @@
 //!
 //! This version of itertools requires Rust 1.12 or later.
 //!
-#![doc(html_root_url="https://docs.rs/itertools/")]
+#![doc(html_root_url="https://docs.rs/itertools/0.7/")]
 
 extern crate either;
 
