@@ -2,6 +2,7 @@ use super::size_hint;
 
 /// See [`multizip`](../fn.multizip.html) for more information.
 #[derive(Clone)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Zip<T> {
     t: T,
 }

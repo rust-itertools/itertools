@@ -354,6 +354,7 @@ impl<'a, K, I, F> IntoIterator for &'a GroupBy<K, I, F>
 /// the group's key `K` and the group's iterator.
 ///
 /// See [`.group_by()`](../trait.Itertools.html#method.group_by) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Groups<'a, K: 'a, I: 'a, F: 'a>
     where I: Iterator,
           I::Item: 'a
@@ -504,6 +505,7 @@ impl<'a, I> IntoIterator for &'a IntoChunks<I>
 /// Iterator element type is `Chunk`.
 ///
 /// See [`.chunks()`](../trait.Itertools.html#method.chunks) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Chunks<'a, I: 'a>
     where I: Iterator,
           I::Item: 'a,

@@ -41,6 +41,7 @@ impl_cons_iter!(A, B, C, D, E, F, G, H,);
 /// `((A, B), C)` to an iterator of `(A, B, C)`.
 ///
 /// Used by the `iproduct!()` macro.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct ConsTuples<I, J>
     where I: Iterator<Item=J>,
 {
