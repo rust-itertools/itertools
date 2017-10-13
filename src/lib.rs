@@ -1403,6 +1403,34 @@ pub trait Itertools : Iterator {
         Ok(start)
     }
 
+    /// Fold using a mutable reference to the accumulator.
+    ///
+    /// Rather than having to mutate the accumulator and then return it,
+    /// this function allows simple, direct mutations.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// #[derive(Debug, PartialEq)]
+    /// struct State(i32);
+    ///
+    /// impl State {
+    ///     fn mutate(&mut self, x: i32) {
+    ///         self.0 += x;
+    ///     }
+    /// }
+    ///
+    /// let s = (0..10).fold_mut(State(0), |s_mut, x| s_mut.mutate(x));
+    /// assert_eq!(s, State(45));
+    /// ```
+    fn fold_mut<ACC, F>(self, mut acc: ACC, mut f: F) -> ACC
+        where F: FnMut(&mut ACC, Self::Item),
+              Self: Sized
+    {
+        Self::foreach(self, |item| f(&mut acc, item));
+        acc
+    }
+
     /// Fold `Option` values from an iterator.
     ///
     /// Only `Some` values are folded. If no `None` is encountered, the folded
