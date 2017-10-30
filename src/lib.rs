@@ -394,20 +394,20 @@ pub trait Itertools : Iterator {
     ///   and remove both `i` and `j` from their respective source iterators
     ///
     /// ```
-    /// use itertools::{Itertools};
+    /// use itertools::Itertools;
     /// use itertools::EitherOrBoth::{Left, Right, Both};
     ///
-    /// let fizz = (0..10).step(3);
-    /// let buzz = (0..10).step(5);
-    /// let fizz_buzz = fizz.merge_join_by(buzz, |i, j| i.cmp(j)).map(|either| {
+    /// let ki = (0..10).step(3);
+    /// let ku = (0..10).step(5);
+    /// let ki_ku = ki.merge_join_by(ku, |i, j| i.cmp(j)).map(|either| {
     ///     match either {
-    ///         Left(_) => "Fizz",
-    ///         Right(_) => "Buzz",
-    ///         Both(_, _) => "FizzBuzz"
+    ///         Left(_) => "Ki",
+    ///         Right(_) => "Ku",
+    ///         Both(_, _) => "KiKu"
     ///     }
     /// });
     ///
-    /// itertools::assert_equal(fizz_buzz, vec!["FizzBuzz", "Fizz", "Buzz", "Fizz", "Fizz"]);
+    /// itertools::assert_equal(ki_ku, vec!["KiKu", "Ki", "Ku", "Ki", "Ki"]);
     /// ```
     #[inline]
     fn merge_join_by<J, F>(self, other: J, cmp_fn: F) -> MergeJoinBy<Self, J, F>
