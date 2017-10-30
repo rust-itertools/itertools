@@ -378,46 +378,6 @@ pub trait Itertools : Iterator {
         zip_eq(self, other)
     }
 
-    /// Create an iterator that merges items from both this and the specified
-    /// iterator in ascending order.
-    ///
-    /// It chooses whether to pair elements based on the `Ordering` returned by the
-    /// specified compare function. At any point, inspecting the tip of the
-    /// iterators `I` and `J` as items `i` of type `I::Item` and `j` of type
-    /// `J::Item` respectively, the resulting iterator will:
-    ///
-    /// - Emit `EitherOrBoth::Left(i)` when `i < j`,
-    ///   and remove `i` from its source iterator
-    /// - Emit `EitherOrBoth::Right(j)` when `i > j`,
-    ///   and remove `j` from its source iterator
-    /// - Emit `EitherOrBoth::Both(i, j)` when  `i == j`,
-    ///   and remove both `i` and `j` from their respective source iterators
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    /// use itertools::EitherOrBoth::{Left, Right, Both};
-    ///
-    /// let ki = (0..10).step(3);
-    /// let ku = (0..10).step(5);
-    /// let ki_ku = ki.merge_join_by(ku, |i, j| i.cmp(j)).map(|either| {
-    ///     match either {
-    ///         Left(_) => "Ki",
-    ///         Right(_) => "Ku",
-    ///         Both(_, _) => "KiKu"
-    ///     }
-    /// });
-    ///
-    /// itertools::assert_equal(ki_ku, vec!["KiKu", "Ki", "Ku", "Ki", "Ki"]);
-    /// ```
-    #[inline]
-    fn merge_join_by<J, F>(self, other: J, cmp_fn: F) -> MergeJoinBy<Self, J, F>
-        where J: IntoIterator,
-              F: FnMut(&Self::Item, &J::Item) -> std::cmp::Ordering,
-              Self: Sized
-    {
-        merge_join_by(self, other, cmp_fn)
-    }
-
     /// A “meta iterator adaptor”. Its closure recives a reference to the
     /// iterator and may pick off as many elements as it likes, to produce the
     /// next iterator element.
@@ -712,6 +672,47 @@ pub trait Itertools : Iterator {
     {
         adaptors::merge_by_new(self, other.into_iter(), is_first)
     }
+
+    /// Create an iterator that merges items from both this and the specified
+    /// iterator in ascending order.
+    ///
+    /// It chooses whether to pair elements based on the `Ordering` returned by the
+    /// specified compare function. At any point, inspecting the tip of the
+    /// iterators `I` and `J` as items `i` of type `I::Item` and `j` of type
+    /// `J::Item` respectively, the resulting iterator will:
+    ///
+    /// - Emit `EitherOrBoth::Left(i)` when `i < j`,
+    ///   and remove `i` from its source iterator
+    /// - Emit `EitherOrBoth::Right(j)` when `i > j`,
+    ///   and remove `j` from its source iterator
+    /// - Emit `EitherOrBoth::Both(i, j)` when  `i == j`,
+    ///   and remove both `i` and `j` from their respective source iterators
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::EitherOrBoth::{Left, Right, Both};
+    ///
+    /// let ki = (0..10).step(3);
+    /// let ku = (0..10).step(5);
+    /// let ki_ku = ki.merge_join_by(ku, |i, j| i.cmp(j)).map(|either| {
+    ///     match either {
+    ///         Left(_) => "Ki",
+    ///         Right(_) => "Ku",
+    ///         Both(_, _) => "KiKu"
+    ///     }
+    /// });
+    ///
+    /// itertools::assert_equal(ki_ku, vec!["KiKu", "Ki", "Ku", "Ki", "Ki"]);
+    /// ```
+    #[inline]
+    fn merge_join_by<J, F>(self, other: J, cmp_fn: F) -> MergeJoinBy<Self, J, F>
+        where J: IntoIterator,
+              F: FnMut(&Self::Item, &J::Item) -> std::cmp::Ordering,
+              Self: Sized
+    {
+        merge_join_by(self, other, cmp_fn)
+    }
+
 
     /// Return an iterator adaptor that flattens an iterator of iterators by
     /// merging them in ascending order.
