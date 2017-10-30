@@ -41,6 +41,11 @@ How to contribute:
 Recent Changes
 --------------
 
+- 0.7.2
+
+  - Add new adaptor ``.merge_join_by`` by @srijs; a heterogeneous merge join
+    for two ordered sequences.
+
 - 0.7.1
 
   - Iterator adaptors and iterators in itertools now use the same ``must_use``
