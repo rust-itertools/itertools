@@ -22,6 +22,7 @@ pub fn merge_join_by<I, J, F>(left: I, right: J, cmp_fn: F) -> MergeJoinBy<I, J,
 /// An iterator adaptor that merge-joins items from the two base iterators in ascending order.
 ///
 /// See [`.merge_join_by()`](../trait.Itertools.html#method.merge_join_by) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct MergeJoinBy<I: IntoIterator, J: IntoIterator, F> {
     left: PutBack<Fuse<I::IntoIter>>,
     right: PutBack<Fuse<J::IntoIter>>,
