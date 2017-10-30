@@ -7,7 +7,8 @@ use either_or_both::EitherOrBoth;
 /// Return an iterator adaptor that merge-joins items from the two base iterators in ascending order.
 ///
 /// See [`.merge_join_by()`](trait.Itertools.html#method.merge_join_by) for more information.
-pub fn merge_join_by<I, J, F>(left: I, right: J, cmp_fn: F) -> MergeJoinBy<I, J, F>
+pub fn merge_join_by<I, J, F>(left: I, right: J, cmp_fn: F)
+    -> MergeJoinBy<I::IntoIter, J::IntoIter, F>
     where I: IntoIterator,
           J: IntoIterator,
           F: FnMut(&I::Item, &J::Item) -> Ordering
@@ -23,15 +24,15 @@ pub fn merge_join_by<I, J, F>(left: I, right: J, cmp_fn: F) -> MergeJoinBy<I, J,
 ///
 /// See [`.merge_join_by()`](../trait.Itertools.html#method.merge_join_by) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct MergeJoinBy<I: IntoIterator, J: IntoIterator, F> {
-    left: PutBack<Fuse<I::IntoIter>>,
-    right: PutBack<Fuse<J::IntoIter>>,
+pub struct MergeJoinBy<I: Iterator, J: Iterator, F> {
+    left: PutBack<Fuse<I>>,
+    right: PutBack<Fuse<J>>,
     cmp_fn: F
 }
 
 impl<I, J, F> Iterator for MergeJoinBy<I, J, F>
-    where I: IntoIterator,
-          J: IntoIterator,
+    where I: Iterator,
+          J: Iterator,
           F: FnMut(&I::Item, &J::Item) -> Ordering
 {
     type Item = EitherOrBoth<I::Item, J::Item>;

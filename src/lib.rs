@@ -705,7 +705,7 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(ki_ku, vec!["KiKu", "Ki", "Ku", "Ki", "Ki"]);
     /// ```
     #[inline]
-    fn merge_join_by<J, F>(self, other: J, cmp_fn: F) -> MergeJoinBy<Self, J, F>
+    fn merge_join_by<J, F>(self, other: J, cmp_fn: F) -> MergeJoinBy<Self, J::IntoIter, F>
         where J: IntoIterator,
               F: FnMut(&Self::Item, &J::Item) -> std::cmp::Ordering,
               Self: Sized
