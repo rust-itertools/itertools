@@ -75,6 +75,7 @@ pub mod structs {
     pub use intersperse::Intersperse;
     #[cfg(feature = "use_std")]
     pub use kmerge_impl::{KMerge, KMergeBy};
+    pub use merge_join::MergeJoinBy;
     #[cfg(feature = "use_std")]
     pub use multipeek_impl::MultiPeek;
     pub use pad_tail::PadUsing;
@@ -109,9 +110,10 @@ pub use process_results_impl::process_results;
 pub use repeatn::repeat_n;
 pub use sources::{repeat_call, unfold, iterate};
 pub use with_position::Position;
-pub use zip_longest::EitherOrBoth;
 pub use ziptuple::multizip;
 mod adaptors;
+mod either_or_both;
+pub use either_or_both::EitherOrBoth;
 #[doc(hidden)]
 pub mod free;
 #[doc(inline)]
@@ -127,6 +129,7 @@ mod groupbylazy;
 mod intersperse;
 #[cfg(feature = "use_std")]
 mod kmerge_impl;
+mod merge_join;
 mod minmax;
 #[cfg(feature = "use_std")]
 mod multipeek_impl;
@@ -333,6 +336,15 @@ pub trait Itertools : Iterator {
     ///
     /// This iterator is *fused*.
     ///
+    /// As long as neither input iterator is exhausted yet, it yields two values
+    /// via `EitherOrBoth::Both`.
+    ///
+    /// When the parameter iterator is exhausted, it only yields a value from the
+    /// `self` iterator via `EitherOrBoth::Left`.
+    ///
+    /// When the `self` iterator is exhausted, it only yields a value from the
+    /// parameter iterator via `EitherOrBoth::Right`.
+    ///
     /// When both iterators return `None`, all further invocations of `.next()`
     /// will return `None`.
     ///
@@ -364,6 +376,46 @@ pub trait Itertools : Iterator {
               Self: Sized
     {
         zip_eq(self, other)
+    }
+
+    /// Create an iterator that merges items from both this and the specified
+    /// iterator in ascending order.
+    ///
+    /// It chooses whether to pair elements based on the `Ordering` returned by the
+    /// specified compare function. At any point, inspecting the tip of the
+    /// iterators `I` and `J` as items `i` of type `I::Item` and `j` of type
+    /// `J::Item` respectively, the resulting iterator will:
+    ///
+    /// - Emit `EitherOrBoth::Left(i)` when `i < j`,
+    ///   and remove `i` from its source iterator
+    /// - Emit `EitherOrBoth::Right(j)` when `i > j`,
+    ///   and remove `j` from its source iterator
+    /// - Emit `EitherOrBoth::Both(i, j)` when  `i == j`,
+    ///   and remove both `i` and `j` from their respective source iterators
+    ///
+    /// ```
+    /// use itertools::{Itertools};
+    /// use itertools::EitherOrBoth::{Left, Right, Both};
+    ///
+    /// let fizz = (0..10).step(3);
+    /// let buzz = (0..10).step(5);
+    /// let fizz_buzz = fizz.merge_join_by(buzz, |i, j| i.cmp(j)).map(|either| {
+    ///     match either {
+    ///         Left(_) => "Fizz",
+    ///         Right(_) => "Buzz",
+    ///         Both(_, _) => "FizzBuzz"
+    ///     }
+    /// });
+    ///
+    /// itertools::assert_equal(fizz_buzz, vec!["FizzBuzz", "Fizz", "Buzz", "Fizz", "Fizz"]);
+    /// ```
+    #[inline]
+    fn merge_join_by<J, F>(self, other: J, cmp_fn: F) -> MergeJoinBy<Self, J, F>
+        where J: IntoIterator,
+              F: FnMut(&Self::Item, &J::Item) -> std::cmp::Ordering,
+              Self: Sized
+    {
+        merge_join_by(self, other, cmp_fn)
     }
 
     /// A “meta iterator adaptor”. Its closure recives a reference to the

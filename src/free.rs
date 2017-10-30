@@ -21,6 +21,7 @@ pub use multipeek_impl::multipeek;
 #[cfg(feature = "use_std")]
 pub use kmerge_impl::kmerge;
 pub use zip_eq_impl::zip_eq;
+pub use merge_join::merge_join_by;
 #[cfg(feature = "use_std")]
 pub use rciter_impl::rciter;
 
