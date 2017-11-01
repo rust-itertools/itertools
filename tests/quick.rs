@@ -187,6 +187,64 @@ impl<T, HK> qc::Arbitrary for Iter<T, HK>
     }
 }
 
+/// A meta-iterator which yields `Iter<i32>`s whose start/endpoints are
+/// increased or decreased linearly on each iteration.
+#[derive(Clone, Debug)]
+struct ShiftRange<HK = Inexact> {
+    range_start: i32,
+    range_end: i32,
+    start_step: i32,
+    end_step: i32,
+    iter_count: u32,
+    hint_kind: HK,
+}
+
+impl<HK> Iterator for ShiftRange<HK> where HK: HintKind {
+    type Item = Iter<i32, HK>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.iter_count == 0 {
+            return None;
+        }
+
+        let iter = Iter::new(self.range_start..self.range_end, self.hint_kind);
+
+        self.range_start += self.start_step;
+        self.range_end += self.end_step;
+        self.iter_count -= 1;
+
+        Some(iter)
+    }
+}
+
+impl ExactSizeIterator for ShiftRange<Exact> { }
+
+impl<HK> qc::Arbitrary for ShiftRange<HK>
+    where HK: HintKind
+{
+    fn arbitrary<G: qc::Gen>(g: &mut G) -> Self {
+        const MAX_STARTING_RANGE_DIFF: i32 = 32;
+        const MAX_STEP_MODULO: i32 = 8;
+        const MAX_ITER_COUNT: u32 = 3;
+
+        let range_start = qc::Arbitrary::arbitrary(g);
+        let range_end = range_start + g.gen_range(0, MAX_STARTING_RANGE_DIFF + 1);
+        let start_step = g.gen_range(-MAX_STEP_MODULO, MAX_STEP_MODULO + 1);
+        let end_step = g.gen_range(-MAX_STEP_MODULO, MAX_STEP_MODULO + 1);
+        let iter_count = g.gen_range(0, MAX_ITER_COUNT + 1);
+        let hint_kind = qc::Arbitrary::arbitrary(g);
+
+        ShiftRange {
+            range_start: range_start,
+            range_end: range_end,
+            start_step: start_step,
+            end_step: end_step,
+            iter_count: iter_count,
+            hint_kind: hint_kind
+        }
+    }
+}
+
 fn correct_size_hint<I: Iterator>(mut it: I) -> bool {
     // record size hint at each iteration
     let initial_hint = it.size_hint();
@@ -316,6 +374,32 @@ quickcheck! {
             product_iter.fold((), |(), elt| actual.push(elt));
         }
         assert_eq!(answer, actual);
+    }
+
+    fn size_multi_product(a: ShiftRange) -> bool {
+        correct_size_hint(a.multi_cartesian_product())
+    }
+    fn correct_multi_product3(a: ShiftRange, take_manual: usize) -> () {
+        // Fix no. of iterators at 3
+        let a = ShiftRange { iter_count: 3, ..a };
+
+        // test correctness of MultiProduct through regular iteration (take)
+        // and through fold.
+        let mut iters = a.clone();
+        let i0 = iters.next().unwrap();
+        let i1r = &iters.next().unwrap();
+        let i2r = &iters.next().unwrap();
+        let answer: Vec<_> = i0.flat_map(move |ei0| i1r.clone().flat_map(move |ei1| i2r.clone().map(move |ei2| vec![ei0, ei1, ei2]))).collect();
+        let mut multi_product = a.clone().multi_cartesian_product();
+        let mut actual = Vec::new();
+
+        actual.extend((&mut multi_product).take(take_manual));
+        if actual.len() == take_manual {
+            multi_product.fold((), |(), elt| actual.push(elt));
+        }
+        assert_eq!(answer, actual);
+
+        assert_eq!(answer.into_iter().last(), a.clone().multi_cartesian_product().last());
     }
 
     fn size_step(a: Iter<i16, Exact>, s: usize) -> bool {
