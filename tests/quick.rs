@@ -101,7 +101,7 @@ impl qc::Arbitrary for Inexact {
 /// Our base iterator that we can impl Arbitrary for
 ///
 /// By default we'll return inexact bounds estimates for size_hint
-/// to make tests harder ro pass.
+/// to make tests harder to pass.
 ///
 /// NOTE: Iter is tricky and is not fused, to help catch bugs.
 /// At the end it will return None once, then return Some(0),
@@ -537,6 +537,11 @@ quickcheck! {
             }
         }
         itertools::equal(cloned(&a).tuple_combinations::<(_, _)>(), cloned(&v))
+    }
+
+    fn collect_tuple_matches_size(a: Iter<i16>) -> bool {
+        let size = a.clone().count();
+        a.collect_tuple::<(_, _, _)>().is_some() == (size == 3)
     }
 }
 

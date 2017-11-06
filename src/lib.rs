@@ -1132,6 +1132,37 @@ pub trait Itertools : Iterator {
         T::collect_from_iter_no_buf(self)
     }
 
+    /// Collects all items from the iterator into a tuple of
+    /// a specific size (up to 4).
+    ///
+    /// If number of elements inside iterator is exactly equal to the
+    /// tuple size, then the tuple is returned inside `Some`, otherwise
+    /// `None` is returned.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let iter = 1..3;
+    ///
+    /// if let Some((x, y)) = iter.collect_tuple() {
+    ///     assert_eq!((x, y), (1, 2))
+    /// } else {
+    ///     panic!("Expected two elements")
+    /// }
+    /// ```
+    fn collect_tuple<T>(mut self) -> Option<T>
+        where Self: Sized + Iterator<Item = T::Item>,
+              T: tuple_impl::TupleCollect
+    {
+        match self.next_tuple() {
+            Some(tuple) => match self.next() {
+                Some(_) => None,
+                None => Some(tuple),
+            },
+            _ => None
+        }
+    }
+
 
     /// Find the position and value of the first element satisfying a predicate.
     ///
