@@ -6,7 +6,7 @@
 
 use std::fmt;
 use std::mem::replace;
-use std::iter::{Fuse, Peekable};
+use std::iter::{Fuse, Peekable, FromIterator};
 use std::marker::PhantomData;
 use size_hint;
 use fold;
@@ -1082,6 +1082,7 @@ impl<I, J> Iterator for Flatten<I, J>
         }
         self.iter.fold(accum, move |accum, iter| fold(iter, accum, &mut f))
     }
+
 }
 
 /// An iterator adapter to apply a transformation within a nested `Result`.
@@ -1116,6 +1117,20 @@ impl<I, F, T, U, E> Iterator for MapResults<I, F>
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.iter.size_hint()
+    }
+
+    fn fold<Acc, Fold>(self, init: Acc, mut fold_f: Fold) -> Acc
+        where Fold: FnMut(Acc, Self::Item) -> Acc,
+    {
+        let mut f = self.f;
+        self.iter.fold(init, move |acc, v| fold_f(acc, v.map(&mut f)))
+    }
+
+    fn collect<C>(self) -> C
+        where C: FromIterator<Self::Item>
+    {
+        let mut f = self.f;
+        self.iter.map(move |v| v.map(&mut f)).collect()
     }
 }
 
