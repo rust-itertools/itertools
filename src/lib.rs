@@ -1135,7 +1135,7 @@ pub trait Itertools : Iterator {
     /// Collects all items from the iterator into a tuple of
     /// a specific size (up to 4).
     ///
-    /// If number of elements inside iterator is exactly equal to the
+    /// If number of elements inside iterator is **exactly** equal to the
     /// tuple size, then the tuple is returned inside `Some`, otherwise
     /// `None` is returned.
     ///
