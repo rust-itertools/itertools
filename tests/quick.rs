@@ -531,12 +531,12 @@ quickcheck! {
 
     fn equal_combinations_2(a: Vec<u8>) -> bool {
         let mut v = Vec::new();
-        for (i, &x) in enumerate(&a) {
-            for &y in &a[i + 1..] {
+        for (i, x) in enumerate(&a) {
+            for y in &a[i + 1..] {
                 v.push((x, y));
             }
         }
-        itertools::equal(cloned(&a).tuple_combinations::<(_, _)>(), cloned(&v))
+        itertools::equal(a.iter().tuple_combinations::<(_, _)>(), v)
     }
 
     fn collect_tuple_matches_size(a: Iter<i16>) -> bool {
