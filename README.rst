@@ -21,7 +21,7 @@ How to use with cargo:
 .. code:: toml
 
     [dependencies]
-    itertools = "0.7.1"
+    itertools = "0.7.3"
 
 How to use in your crate:
 
@@ -40,6 +40,13 @@ How to contribute:
 
 Recent Changes
 --------------
+
+- 0.7.3
+
+  - Add new method ``.collect_tuple()`` by @matklad; it makes a tuple out of
+    the iterator's elements if the number of them matches **exactly**.
+  - Implement ``fold`` and ``collect`` for ``.map_results()`` which means
+    it reuses the code of the standard ``.map()`` for these methods.
 
 - 0.7.2
 
