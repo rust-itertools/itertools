@@ -65,6 +65,7 @@ pub mod structs {
         TupleCombinations,
         Flatten,
         Positions,
+        Update,
     };
     #[cfg(feature = "use_std")]
     pub use combinations::Combinations;
@@ -1109,6 +1110,23 @@ pub trait Itertools : Iterator {
               P: FnMut(Self::Item) -> bool,
     {
         adaptors::positions(self, predicate)
+    }
+
+    /// Return an iterator adaptor that applies a mutating function
+    /// to each element before yielding it.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let input = vec![vec![1], vec![3, 2, 1]];
+    /// let it = input.into_iter().update(|mut v| v.push(0));
+    /// itertools::assert_equal(it, vec![vec![1, 0], vec![3, 2, 1, 0]]);
+    /// ```
+    fn update<F>(self, updater: F) -> Update<Self, F>
+        where Self: Sized,
+              F: FnMut(&mut Self::Item),
+    {
+        adaptors::update(self, updater)
     }
 
     // non-adaptor methods

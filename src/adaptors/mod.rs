@@ -1192,3 +1192,62 @@ impl<I, F> DoubleEndedIterator for Positions<I, F>
     }
 }
 
+/// An iterator adapter to apply a mutating function to each element before yielding it.
+///
+/// See [`.update()`](../trait.Itertools.html#method.update) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+pub struct Update<I, F> {
+    iter: I,
+    f: F,
+}
+
+/// Create a new `Update` iterator.
+pub fn update<I, F>(iter: I, f: F) -> Update<I, F>
+where
+    I: Iterator,
+    F: FnMut(&mut I::Item),
+{
+    Update { iter: iter, f: f }
+}
+
+impl<I, F> Iterator for Update<I, F>
+where
+    I: Iterator,
+    F: FnMut(&mut I::Item),
+{
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(mut v) = self.iter.next() {
+            (self.f)(&mut v);
+            Some(v)
+        } else {
+            None
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+}
+
+impl<I, F> ExactSizeIterator for Update<I, F>
+where
+    I: ExactSizeIterator,
+    F: FnMut(&mut I::Item),
+{}
+
+impl<I, F> DoubleEndedIterator for Update<I, F>
+where
+    I: DoubleEndedIterator,
+    F: FnMut(&mut I::Item),
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if let Some(mut v) = self.iter.next_back() {
+            (self.f)(&mut v);
+            Some(v)
+        } else {
+            None
+        }
+    }
+}
