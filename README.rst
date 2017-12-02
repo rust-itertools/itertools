@@ -41,6 +41,11 @@ How to contribute:
 Recent Changes
 --------------
 
+- 0.7.4
+
+  - Add new adaptor ``.update()`` by @lucasem; this adaptor is used
+    to modify an element before passing it on in an iterator chain.
+
 - 0.7.3
 
   - Add new method ``.collect_tuple()`` by @matklad; it makes a tuple out of
