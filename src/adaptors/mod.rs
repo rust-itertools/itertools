@@ -1229,6 +1229,21 @@ where
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.iter.size_hint()
     }
+
+    fn fold<Acc, G>(self, init: Acc, mut g: G) -> Acc
+        where G: FnMut(Acc, Self::Item) -> Acc,
+    {
+        let mut f = self.f;
+        self.iter.fold(init, move |acc, mut v| { f(&mut v); g(acc, v) })
+    }
+
+    // if possible, re-use inner iterator specializations in collect
+    fn collect<C>(self) -> C
+        where C: FromIterator<Self::Item>
+    {
+        let mut f = self.f;
+        self.iter.map(move |mut v| { f(&mut v); v }).collect()
+    }
 }
 
 impl<I, F> ExactSizeIterator for Update<I, F>
