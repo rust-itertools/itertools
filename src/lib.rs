@@ -66,6 +66,8 @@ use std::iter::{IntoIterator, once};
 use std::cmp::Ordering;
 use std::fmt;
 #[cfg(feature = "use_std")]
+use std::collections::HashSet;
+#[cfg(feature = "use_std")]
 use std::hash::Hash;
 #[cfg(feature = "use_alloc")]
 use std::fmt::Write;
@@ -1669,6 +1671,30 @@ pub trait Itertools : Iterator {
             None => true,
             Some(a) => self.all(|x| a == x),
         }
+    }
+
+    /// Check whether all elements are unique (non equal).
+    ///
+    /// Empty iterators are considered to have unique elements:
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![1, 2, 3, 4, 1, 5];
+    /// assert!(!data.iter().all_unique());
+    /// assert!(data[0..4].iter().all_unique());
+    /// assert!(data[1..6].iter().all_unique());
+    ///
+    /// let data : Option<usize> = None;
+    /// assert!(data.into_iter().all_unique());
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn all_unique(&mut self) -> bool
+        where Self: Sized,
+              Self::Item: Eq + Hash
+    {
+        let mut used = HashSet::new();
+        self.all(move |elt| used.insert(elt))
     }
 
     /// Consume the first `n` elements from the iterator eagerly,

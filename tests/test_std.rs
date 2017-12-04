@@ -190,6 +190,13 @@ fn all_equal() {
 }
 
 #[test]
+fn all_unique() {
+    assert!("ABCDEFGH".chars().all_unique());
+    assert!(!"ABCDEFGA".chars().all_unique());
+    assert!(::std::iter::empty::<usize>().all_unique());
+}
+
+#[test]
 fn test_put_back_n() {
     let xs = [0, 1, 1, 1, 2, 1, 3, 3];
     let mut pb = put_back_n(xs.iter().cloned());
