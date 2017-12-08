@@ -31,7 +31,7 @@ extern crate core as std;
 
 pub use either::Either;
 
-use std::iter::{IntoIterator};
+use std::iter::{FromIterator, IntoIterator};
 use std::cmp::Ordering;
 use std::fmt;
 #[cfg(feature = "use_std")]
@@ -1910,5 +1910,23 @@ impl<T> FoldWhile<T> {
             FoldWhile::Continue(_) => false,
             FoldWhile::Done(_) => true,
         }
+    }
+}
+
+/// A type that can be used to call `collect` on an iterator, discarding any
+/// items that are produced.
+///
+/// It implements `FromIterator` by exhausting the iterator and returning
+/// only the zero-sized `Null`.
+///
+/// This can be useful when dealing with a function that generically produces
+/// a result using `collect` into anything that implements `FromIterator`, but
+/// the iterator should only be exhausted for its side effect.
+pub struct Null;
+
+impl<T> FromIterator<T> for Null {
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        for _ in iter.into_iter() { } // Need to exhaust the iterator.
+        Null
     }
 }

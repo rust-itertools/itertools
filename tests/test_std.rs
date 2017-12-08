@@ -684,3 +684,12 @@ fn fold_while() {
     assert_eq!(sum, 15);
 }
 
+#[test]
+fn null_side_effect() {
+    let mut v = vec![];
+    {
+        let iter = (0..5).map(|i| v.push(i));
+        let _ = iter.collect::<it::Null>();
+    }
+    assert_eq!(v, [0, 1, 2, 3, 4]);
+}
