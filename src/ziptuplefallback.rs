@@ -5,14 +5,14 @@ use super::size_hint;
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct ZipAll<T, X> {
     t: T,
-    def: X
+    def: X,
 }
 /// An iterator that allows running multiple iterators in lockstep while extending depleted
 /// iterators with fallback values.
 ///
 /// The iterator `ZipAll<(A, C, ..., M), (B, D, ..., N)>` is formed from a tuple of tuples where
 /// the inner tuples contains an Iterator (or values that implement `IntoIterator`) and a fallback
-/// value. The iterator yields elements until all of the subiterators returns None. If any 
+/// value. The iterator yields elements until all of the subiterators returns None. If any
 /// subiterator returns None before they all do, its fallback value will be used.
 ///
 /// The iterator element type is a tuple like `(B, D, ..., N)` where `B` to `N` are the
@@ -37,8 +37,9 @@ pub struct ZipAll<T, X> {
 /// assert_eq!(multiples, vec![2*5*10, 8*6*2, 5*2*20, 7*2*1]);
 /// ```
 pub fn multizip_fallback<T, U, X>(t: U) -> ZipAll<T, X>
-    where ZipAll<T, X>: From<U>,
-          ZipAll<T, X>: Iterator,
+where
+    ZipAll<T, X>: From<U>,
+    ZipAll<T, X>: Iterator,
 {
     ZipAll::from(t)
 }
@@ -46,7 +47,8 @@ pub fn multizip_fallback<T, U, X>(t: U) -> ZipAll<T, X>
 macro_rules! impl_zip_all_iter {
     ($(($B:ident, $C:ident)),*) => (
         #[allow(non_snake_case)]
-        impl<$($B: IntoIterator<Item = $C>),*, $($C: Clone),*> From<($(($B,$C),)*)> for ZipAll<($($B::IntoIter,)*), ($($C,)*)> {
+        impl<$($B: IntoIterator<Item = $C>),*, $($C: Clone),*>
+        From<($(($B,$C),)*)> for ZipAll<($($B::IntoIter,)*), ($($C,)*)> {
             fn from(t: ($(($B,$C),)*)) -> Self {
                 let ($(($B,$C),)*)= t;
                 ZipAll {
