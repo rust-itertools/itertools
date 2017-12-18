@@ -80,11 +80,13 @@ fn izip_fallback() {
     assert!((2, 12, 13) == zip.next().unwrap());
 
     let xs: [isize; 0] = [];
-    let mut zip = multizip_fallback(((0..3, 11), (0..2, 12), (0..2i8, 13), (xs.iter(), &14)));
+    let default_int = 14;
+    let mut zip = multizip_fallback(((0..3, 11), (0..2, 12), (0..2i8, 13), (xs.iter(), &default_int)));
     assert!((0, 0, 0, &14) == zip.next().unwrap());
 
     let st: [&str; 1] = ["te"];
-    let mut zip = multizip_fallback(((0..1, 11), (0..1, 12), (0..1, 13), (st.iter(), &"ing")));
+    let default_str = "ing";
+    let mut zip = multizip_fallback(((0..1, 11), (0..1, 12), (0..1, 13), (st.iter(), &default_str)));
     assert!((0, 0, 0, &"te") == zip.next().unwrap());
     assert!(zip.next().is_none());
 }
