@@ -97,6 +97,7 @@ pub mod structs {
     pub use zip_eq_impl::ZipEq;
     pub use zip_longest::ZipLongest;
     pub use ziptuple::Zip;
+    pub use ziptuplefallback::ZipAll;
 }
 pub use structs::*;
 pub use concat_impl::concat;
@@ -112,6 +113,7 @@ pub use repeatn::repeat_n;
 pub use sources::{repeat_call, unfold, iterate};
 pub use with_position::Position;
 pub use ziptuple::multizip;
+pub use ziptuplefallback::multizip_fallback;
 mod adaptors;
 mod either_or_both;
 pub use either_or_both::EitherOrBoth;
@@ -153,6 +155,7 @@ mod with_position;
 mod zip_eq_impl;
 mod zip_longest;
 mod ziptuple;
+mod ziptuplefallback;
 
 #[macro_export]
 /// Create an iterator over the “cartesian product” of iterators.
