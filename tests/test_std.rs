@@ -231,7 +231,7 @@ fn kmerge() {
 #[test]
 fn kmerge_2() {
     let its = vec![3, 2, 1, 0].into_iter().map(|s| (s..10).step(4));
-    
+
     it::assert_equal(its.kmerge(), (0..10));
 }
 
@@ -294,6 +294,8 @@ fn test_multipeek() {
     assert_eq!(mp.peek(), None);
     assert_eq!(mp.next(), Some(3));
     assert_eq!(mp.next(), Some(4));
+    assert_eq!(mp.peek(), Some(&5));
+    assert_eq!(mp.peek(), None);
     assert_eq!(mp.next(), Some(5));
     assert_eq!(mp.next(), None);
     assert_eq!(mp.peek(), None);
@@ -312,6 +314,32 @@ fn test_multipeek_reset() {
     mp.reset_peek();
     assert_eq!(mp.peek(), Some(&2));
     assert_eq!(mp.next(), Some(2));
+}
+
+#[test]
+fn test_multipeek_peeking_next() {
+    use it::PeekingNext;
+    let nums = vec![1u8,2,3,4,5,6,7];
+
+    let mut mp = multipeek(nums.iter().map(|&x| x));
+    assert_eq!(mp.peeking_next(|&x| x != 0), Some(1));
+    assert_eq!(mp.next(), Some(2));
+    assert_eq!(mp.peek(), Some(&3));
+    assert_eq!(mp.peek(), Some(&4));
+    assert_eq!(mp.peeking_next(|&x| x == 3), Some(3));
+    assert_eq!(mp.peek(), Some(&4));
+    assert_eq!(mp.peeking_next(|&x| x != 4), None);
+    assert_eq!(mp.peeking_next(|&x| x == 4), Some(4));
+    assert_eq!(mp.peek(), Some(&5));
+    assert_eq!(mp.peek(), Some(&6));
+    assert_eq!(mp.peeking_next(|&x| x != 5), None);
+    assert_eq!(mp.peek(), Some(&7));
+    assert_eq!(mp.peeking_next(|&x| x == 5), Some(5));
+    assert_eq!(mp.peeking_next(|&x| x == 6), Some(6));
+    assert_eq!(mp.peek(), Some(&7));
+    assert_eq!(mp.peek(), None);
+    assert_eq!(mp.next(), Some(7));
+    assert_eq!(mp.peek(), None);
 }
 
 #[test]
