@@ -95,7 +95,7 @@ macro_rules! impl_zip_all_iter {
                 let sh = (::std::usize::MAX, None);
                 let ($(ref $B,)*) = self.t;
                 $(
-                    let sh = size_hint::min($B.size_hint(), sh);
+                    let sh = size_hint::max($B.size_hint(), sh);
                 )*
                 sh
             }
