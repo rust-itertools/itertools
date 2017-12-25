@@ -276,6 +276,15 @@ fn sorted_by() {
 }
 
 #[test]
+fn sorted_by_key() {
+    let sc = [3, 4, 1, 2].iter().cloned().sorted_by_key(|&x| x);
+    assert_eq!(sc, vec![1, 2, 3, 4]);
+
+    let v = (0..5).sorted_by_key(|&x| -x);
+    assert_eq!(v, vec![4, 3, 2, 1, 0]);
+}
+
+#[test]
 fn test_multipeek() {
     let nums = vec![1u8,2,3,4,5];
 
