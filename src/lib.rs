@@ -1173,9 +1173,9 @@ pub trait Itertools : Iterator {
               T: tuple_impl::TupleCollect
     {
         match self.next_tuple() {
-            Some(tuple) => match self.next() {
+            elt @ Some(_) => match self.next() {
                 Some(_) => None,
-                None => Some(tuple),
+                None => elt,
             },
             _ => None
         }
