@@ -41,6 +41,10 @@ How to contribute:
 Recent Changes
 --------------
 
+- 0.7.5
+
+  - ``.multipeek()`` now implements ``PeekingNext``, by @nicopap.
+
 - 0.7.4
 
   - Add new adaptor ``.update()`` by @lucasem; this adaptor is used
