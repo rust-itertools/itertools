@@ -1661,6 +1661,38 @@ pub trait Itertools : Iterator {
         v
     }
 
+    /// Collect all iterator elements into a sorted vector.
+    ///
+    /// **Note:** This consumes the entire iterator, uses the
+    /// `slice::sort_by_key()` method and returns the sorted vector.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // sort people in descending order by age
+    /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 27)];
+    ///
+    /// let oldest_people_first = people
+    ///     .into_iter()
+    ///     .sorted_by_key(|x| -x.1)
+    ///     .into_iter()
+    ///     .map(|(person, _age)| person);
+    ///
+    /// itertools::assert_equal(oldest_people_first,
+    ///                         vec!["Jill", "Jack", "Jane", "John"]);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn sorted_by_key<K, F>(self, f: F) -> Vec<Self::Item>
+        where Self: Sized,
+              K: Ord,
+              F: FnMut(&Self::Item) -> K,
+    {
+        let mut v: Vec<Self::Item> = self.collect();
+
+        v.sort_by_key(f);
+        v
+    }
+
     /// Collect all iterator elements into one of two
     /// partitions. Unlike `Iterator::partition`, each partition may
     /// have a distinct type.
