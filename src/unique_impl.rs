@@ -36,6 +36,17 @@ pub fn unique_by<I, V, F>(iter: I, f: F) -> UniqueBy<I, V, F>
     }
 }
 
+// count the number of new unique keys in iterable (`used` is the set already seen)
+fn count_new_keys<I, K>(mut used: HashMap<K, ()>, iterable: I) -> usize
+    where I: IntoIterator<Item=K>,
+          K: Hash + Eq,
+{
+    let iter = iterable.into_iter();
+    let current_used = used.len();
+    used.extend(iter.map(|key| (key, ())));
+    used.len() - current_used
+}
+
 impl<I, V, F> Iterator for UniqueBy<I, V, F>
     where I: Iterator,
           V: Eq + Hash,
@@ -61,6 +72,11 @@ impl<I, V, F> Iterator for UniqueBy<I, V, F>
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (low, hi) = self.iter.size_hint();
         ((low > 0 && self.used.is_empty()) as usize, hi)
+    }
+
+    fn count(self) -> usize {
+        let mut key_f = self.f;
+        count_new_keys(self.used, self.iter.map(move |elt| key_f(&elt)))
     }
 }
 
@@ -92,6 +108,10 @@ impl<I> Iterator for Unique<I>
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (low, hi) = self.iter.iter.size_hint();
         ((low > 0 && self.iter.used.is_empty()) as usize, hi)
+    }
+
+    fn count(self) -> usize {
+        count_new_keys(self.iter.used, self.iter.iter)
     }
 }
 
