@@ -1776,6 +1776,13 @@ pub trait Itertools : Iterator {
             |x, y, _, _| Ordering::Less == compare(x, y)
         )
     }
+
+    /// Exhaust the iterator by repeatedly calling `next()`.
+    fn exhaust(self)
+        where Self: Sized,
+    {
+        for _ in self { }
+    }
 }
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }
