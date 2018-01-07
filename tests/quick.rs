@@ -666,6 +666,18 @@ quickcheck! {
     fn size_unique(it: Iter<i8>) -> bool {
         correct_size_hint(it.unique())
     }
+
+    fn count_unique(it: Vec<i8>, take_first: u8) -> () {
+        let answer = {
+            let mut v = it.clone();
+            v.sort(); v.dedup();
+            v.len()
+        };
+        let mut iter = cloned(&it).unique();
+        let first_count = (&mut iter).take(take_first as usize).count();
+        let rest_count = iter.count();
+        assert_eq!(answer, first_count + rest_count);
+    }
 }
 
 quickcheck! {
