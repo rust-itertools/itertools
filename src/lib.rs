@@ -794,14 +794,15 @@ pub trait Itertools : Iterator {
     }
 
     /// Return an iterator adaptor that iterates over the cartesian product of
-    /// all sub-iterators returned by meta-iterator `self`.
+    /// all subiterators returned by meta-iterator `self`.
     ///
     /// All provided iterators must yield the same `Item` type. To generate
     /// the product of iterators yielding multiple types, use the
-    /// [`iproduct`](macro.iproduct.html) macro.
+    /// [`iproduct`](macro.iproduct.html) macro instead.
     ///
     ///
-    /// An iterator element type is `Vec<I>`.
+    /// The iterator element type is `Vec<T>`, where `T` is the iterator element
+    /// of the subiterators.
     ///
     /// ```
     /// use itertools::Itertools;
