@@ -68,6 +68,8 @@ pub mod structs {
         Update,
     };
     #[cfg(feature = "use_std")]
+    pub use adaptors::MultiProduct;
+    #[cfg(feature = "use_std")]
     pub use combinations::Combinations;
     pub use cons_tuples_impl::ConsTuples;
     pub use format::{Format, FormatWith};
@@ -789,6 +791,40 @@ pub trait Itertools : Iterator {
               J::IntoIter: Clone
     {
         adaptors::cartesian_product(self, other.into_iter())
+    }
+
+    /// Return an iterator adaptor that iterates over the cartesian product of
+    /// all sub-iterators returned by meta-iterator `self`.
+    ///
+    /// All provided iterators must yield the same `Item` type. To generate
+    /// the product of iterators yielding multiple types, use the
+    /// [`iproduct`](macro.iproduct.html) macro.
+    ///
+    ///
+    /// An iterator element type is `Vec<I>`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// let mut multi_prod = (0..3).map(|i| (i * 2)..(i * 2 + 2))
+    ///     .multi_cartesian_product();
+    /// assert_eq!(multi_prod.next(), Some(vec![0, 2, 4]));
+    /// assert_eq!(multi_prod.next(), Some(vec![0, 2, 5]));
+    /// assert_eq!(multi_prod.next(), Some(vec![0, 3, 4]));
+    /// assert_eq!(multi_prod.next(), Some(vec![0, 3, 5]));
+    /// assert_eq!(multi_prod.next(), Some(vec![1, 2, 4]));
+    /// assert_eq!(multi_prod.next(), Some(vec![1, 2, 5]));
+    /// assert_eq!(multi_prod.next(), Some(vec![1, 3, 4]));
+    /// assert_eq!(multi_prod.next(), Some(vec![1, 3, 5]));
+    /// assert_eq!(multi_prod.next(), None);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn multi_cartesian_product(self) -> MultiProduct<<Self::Item as IntoIterator>::IntoIter>
+        where Self: Iterator + Sized,
+              Self::Item: IntoIterator,
+              <Self::Item as IntoIterator>::IntoIter: Clone,
+              <Self::Item as IntoIterator>::Item: Clone
+    {
+        adaptors::multi_cartesian_product(self)
     }
 
     /// Return an iterator adaptor that uses the passed-in closure to

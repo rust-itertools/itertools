@@ -27,7 +27,6 @@ fn product3() {
     }
 }
 
-
 #[test]
 fn interleave_shortest() {
     let v0: Vec<i32> = vec![0, 2, 4];

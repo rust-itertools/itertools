@@ -4,6 +4,10 @@
 //! option. This file may not be copied, modified, or distributed
 //! except according to those terms.
 
+mod multi_product;
+#[cfg(feature = "use_std")]
+pub use self::multi_product::*;
+
 use std::fmt;
 use std::mem::replace;
 use std::iter::{Fuse, Peekable, FromIterator};
