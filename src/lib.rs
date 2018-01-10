@@ -257,6 +257,11 @@ macro_rules! izip {
         izip!(@closure ($p, b) => ( $($tup)*, b ) $( , $tail )*)
     };
 
+    ($first:expr, $second:expr $(,)*) => {
+        $crate::__std_iter::IntoIterator::into_iter($first)
+            .zip($second)
+    };
+
     ( $first:expr $( , $rest:expr )* $(,)* ) => {
         $crate::__std_iter::IntoIterator::into_iter($first)
             $(
