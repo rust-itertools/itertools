@@ -41,6 +41,13 @@ How to contribute:
 Recent Changes
 --------------
 
+- 0.7.6
+
+  - Add new adaptor ``.multi_cartesian_product()`` which is an n-ary product
+    iterator by @tobz1000
+  - Add new method ``.sorted_by_key()`` by @Xion
+  - Provide simpler and faster ``.count()`` for ``.unique()`` and ``.unique_by()``
+
 - 0.7.5
 
   - ``.multipeek()`` now implements ``PeekingNext``, by @nicopap.
