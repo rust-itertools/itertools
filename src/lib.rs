@@ -257,13 +257,20 @@ macro_rules! izip {
         izip!(@closure ($p, b) => ( $($tup)*, b ) $( , $tail )*)
     };
 
-    ($first:expr, $second:expr $(,)*) => {
+    // unary
+    ($first:expr $(,)*) => {
         $crate::__std_iter::IntoIterator::into_iter($first)
+    };
+
+    // binary
+    ($first:expr, $second:expr $(,)*) => {
+        izip!($first)
             .zip($second)
     };
 
+    // n-ary where n > 2
     ( $first:expr $( , $rest:expr )* $(,)* ) => {
-        $crate::__std_iter::IntoIterator::into_iter($first)
+        izip!($first)
             $(
                 .zip($rest)
             )*
