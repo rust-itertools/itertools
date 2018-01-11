@@ -4,7 +4,7 @@ pub fn replace<T, I, R>(iter: I, needle: T, replacement: R) -> Replace<T, I, R>
         I: Iterator<Item=T>,
         R: Iterator<Item=T> + Clone,
 {
-    Replace { needle, iter, with_orig: replacement, with: None }
+    Replace { needle: needle, iter: iter, with_orig: replacement, with: None }
 }
 
 /// An iterator adaptor that replaces occurrences of an item with a different sequence of items.
@@ -48,12 +48,14 @@ impl<T, I, R> Iterator for Replace<T, I, R>
                     }
                 }
                 None => {
-                    let item = self.iter.next()?;
-                    if item == self.needle {
-                        // emit the replacement iterator once
-                        Some(self.with_orig.clone())
-                    } else {
-                        return Some(item);
+                    match self.iter.next() {
+                        None => return None,
+                        Some(item) => if item == self.needle {
+                            // emit the replacement iterator once
+                            Some(self.with_orig.clone())
+                        } else {
+                            return Some(item);
+                        }
                     }
                 }
             }
