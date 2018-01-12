@@ -31,6 +31,8 @@ extern crate core as std;
 
 pub use either::Either;
 
+#[cfg(feature = "use_std")]
+use std::collections::HashMap;
 use std::iter::{IntoIterator};
 use std::cmp::Ordering;
 use std::fmt;
@@ -132,6 +134,8 @@ mod groupbylazy;
 mod intersperse;
 #[cfg(feature = "use_std")]
 mod kmerge_impl;
+#[cfg(feature = "use_std")]
+mod lookup;
 mod merge_join;
 mod minmax;
 #[cfg(feature = "use_std")]
@@ -486,6 +490,29 @@ pub trait Itertools : Iterator {
     {
         assert!(size != 0);
         groupbylazy::new_chunks(self, size)
+    }
+
+    /// Return a `HashMap` whose keys are determined by a function applied to
+    /// each iterator item. The values of the HashMap are `Vec`s containing
+    /// the items which produced the corresponding key.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let data = vec![10, 12, 13, 20, 33, 42];
+    /// let lookup = data.into_iter().to_lookup(|&i| i % 10);
+    /// 
+    /// assert_eq!(lookup[&0], vec![10, 20]);
+    /// assert_eq!(lookup.get(&1), None);
+    /// assert_eq!(lookup[&2], vec![12, 42]);
+    /// assert_eq!(lookup[&3], vec![13, 33]);
+    /// ```
+    fn to_lookup<K, F>(self, get_key: F) -> HashMap<K, Vec<Self::Item>>
+        where Self: Iterator + Sized,
+              K: Hash + Eq,
+              F: Fn(&Self::Item) -> K
+    {
+        lookup::to_lookup(self, get_key)
     }
 
     /// Return an iterator over all contiguous windows producing tuples of
