@@ -507,6 +507,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!(lookup[&2], vec![12, 42]);
     /// assert_eq!(lookup[&3], vec![13, 33]);
     /// ```
+    #[cfg(feature = "use_std")]
     fn to_lookup<K, F>(self, get_key: F) -> HashMap<K, Vec<Self::Item>>
         where Self: Iterator + Sized,
               K: Hash + Eq,
