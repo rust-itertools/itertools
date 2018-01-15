@@ -844,7 +844,7 @@ quickcheck! {
     fn correct_lookup_modulo_key(a: Vec<u8>, modulo: u8) -> () {
         let modulo = if modulo == 0 { 1 } else { modulo }; // Avoid `% 0`
         let count = a.len();
-        let lookup = a.into_iter().to_lookup(|&i| i % modulo);
+        let lookup = a.into_iter().map(|i| (i % modulo, i)).to_group_lookup();
 
         assert_eq!(lookup.values().flat_map(|vals| vals.iter()).count(), count);
 

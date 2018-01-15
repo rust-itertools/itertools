@@ -4,22 +4,18 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::iter::Iterator;
 
-/// Return a `HashMap` of keys mapped to a list of their corresponding values,
-/// as determined by the specified function.
+/// Return a `HashMap` of keys mapped to a list of their corresponding values.
 ///
-/// See [`.to_lookup()`](../trait.Itertools.html#method.to_lookup)
+/// See [`.to_group_lookup()`](../trait.Itertools.html#method.to_group_lookup)
 /// for more information.
-pub fn to_lookup<I, K, F>(iter: I, get_key: F) -> HashMap<K, Vec<I::Item>>
-    where I: Iterator,
+pub fn to_group_lookup<I, K, V>(iter: I) -> HashMap<K, Vec<V>>
+    where I: Iterator<Item=(K, V)>,
           K: Hash + Eq,
-          F: Fn(&I::Item) -> K
 {
     let mut lookup = HashMap::new();
 
-    for val in iter {
-        let key = get_key(&val);
-        let slot = lookup.entry(key).or_insert(Vec::new());
-        slot.push(val);
+    for (key, val) in iter {
+        lookup.entry(key).or_insert(Vec::new()).push(val);
     }
 
     lookup
