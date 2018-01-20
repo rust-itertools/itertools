@@ -97,7 +97,7 @@ pub mod structs {
     pub use zip_eq_impl::ZipEq;
     pub use zip_longest::ZipLongest;
     pub use ziptuple::Zip;
-    pub use ziptuplefallback::ZipAll;
+    pub use ziptuplefallback::MultizipFallback;
 }
 pub use structs::*;
 pub use concat_impl::concat;

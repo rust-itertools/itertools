@@ -72,7 +72,7 @@ fn izip3() {
 }
 
 #[test]
-fn izip_fallback() {
+fn zip_fallback() {
     let mut zip = multizip_fallback(((0..3, 11), (0..2, 12), (0..2i8, 13)));
     for i in 0..2 {
         assert!((i as usize, i, i as i8) == zip.next().unwrap());
