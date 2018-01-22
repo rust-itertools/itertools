@@ -908,6 +908,20 @@ quickcheck! {
     }
 }
 
+quickcheck! {
+    fn correct_group_map_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+        let modulo = if modulo == 0 { 1 } else { modulo }; // Avoid `% 0`
+        let count = a.len();
+        let lookup = a.into_iter().map(|i| (i % modulo, i)).into_group_map();
+
+        assert_eq!(lookup.values().flat_map(|vals| vals.iter()).count(), count);
+
+        for (&key, vals) in lookup.iter() {
+            assert!(vals.iter().all(|&val| val % modulo == key));
+        }
+    }
+}
+
 /// A peculiar type: Equality compares both tuple items, but ordering only the
 /// first item.  This is so we can check the stability property easily.
 #[derive(Clone, Debug, PartialEq, Eq)]
