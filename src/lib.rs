@@ -350,11 +350,10 @@ pub trait Itertools : Iterator {
     /// );
     /// ```
     fn replace<R>(self, needle: Self::Item, with: R) -> Replace<Self::Item, Self, R::IntoIter>
-        where
-            Self::Item: Eq,
-            R: IntoIterator<Item=Self::Item>,
-            R::IntoIter: Clone,
-            Self: Sized,
+        where Self::Item: Eq,
+              R: IntoIterator<Item=Self::Item>,
+              R::IntoIter: Clone,
+              Self: Sized,
     {
         replace::replace(self, needle, with.into_iter())
     }

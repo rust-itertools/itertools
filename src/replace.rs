@@ -1,8 +1,7 @@
 pub fn replace<T, I, R>(iter: I, needle: T, replacement: R) -> Replace<T, I, R>
-    where
-        T: Eq,
-        I: Iterator<Item=T>,
-        R: Iterator<Item=T> + Clone,
+    where T: Eq,
+          I: Iterator<Item=T>,
+          R: Iterator<Item=T> + Clone,
 {
     Replace { needle: needle, iter: iter, with_orig: replacement, with: None }
 }
@@ -13,10 +12,9 @@ pub fn replace<T, I, R>(iter: I, needle: T, replacement: R) -> Replace<T, I, R>
 ///
 /// [`Itertools::replace`]: ../trait.Itertools.html#method.replace
 pub struct Replace<T, I, R>
-    where
-        T: Eq,
-        I: Iterator<Item=T>,
-        R: Iterator<Item=T> + Clone
+    where T: Eq,
+          I: Iterator<Item=T>,
+          R: Iterator<Item=T> + Clone
 {
     needle: I::Item,
     iter: I,
@@ -25,10 +23,9 @@ pub struct Replace<T, I, R>
 }
 
 impl<T, I, R> Iterator for Replace<T, I, R>
-    where
-        T: Eq,
-        I: Iterator<Item=T>,
-        R: Iterator<Item=T> + Clone,
+    where T: Eq,
+          I: Iterator<Item=T>,
+          R: Iterator<Item=T> + Clone,
 {
     type Item = I::Item;
 
