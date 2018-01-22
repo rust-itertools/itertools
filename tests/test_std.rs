@@ -720,3 +720,17 @@ fn fold_while() {
     assert_eq!(sum, 15);
 }
 
+#[test]
+fn replace() {
+    it::assert_equal((0..4).replace(|&i| i == 2, vec![2, 2]), vec![0, 1, 2, 2, 3]);
+
+    it::assert_equal(vec![0, 1, 2, 2].into_iter().replace(|&i| i == 2, vec![]), (0..2));
+    it::assert_equal(vec![2, 2, 0, 1, 2, 2].into_iter().replace(|&i| i == 2, vec![]), (0..2));
+
+    // and now, for my final trick, I will make this iterator *disappear*!
+    it::assert_equal((0..3)
+                         .replace(|&i| i == 0, vec![])
+                         .replace(|&i| i == 1, vec![])
+                         .replace(|&i| i == 2, vec![]),
+                     vec![]);
+}

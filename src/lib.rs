@@ -91,6 +91,7 @@ pub mod structs {
     #[cfg(feature = "use_std")]
     pub use rciter_impl::RcIter;
     pub use repeatn::RepeatN;
+    pub use replace::Replace;
     pub use sources::{RepeatCall, Unfold, Iterate};
     #[cfg(feature = "use_std")]
     pub use tee::Tee;
@@ -148,6 +149,7 @@ mod put_back_n_impl;
 #[cfg(feature = "use_std")]
 mod rciter_impl;
 mod repeatn;
+mod replace;
 mod size_hint;
 mod sources;
 #[cfg(feature = "use_std")]
@@ -336,6 +338,28 @@ pub trait Itertools : Iterator {
               Self::Item: Clone
     {
         intersperse::intersperse(self, element)
+    }
+
+    /// An iterator adaptor that replaces items that satisfy a predicate with other
+    /// items.
+    ///
+    /// For every item satisfying `cond`, the contents of the `with` iterator are yielded.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// itertools::assert_equal(
+    ///     [0, 1, 2, 1, 3].iter().replace(|&&i| i == 1, &[-4, -3]).collect_vec(),
+    ///     &[0, -4, -3, 2, -4, -3, 3]
+    /// );
+    /// ```
+    fn replace<C, R>(self, cond: C, with: R) -> Replace<C, Self, R::IntoIter>
+        where C: FnMut(&Self::Item) -> bool,
+              R: IntoIterator<Item=Self::Item>,
+              R::IntoIter: Clone,
+              Self: Sized
+    {
+        replace::replace(self, cond, with.into_iter())
     }
 
     /// Create an iterator which iterates over both this and the specified
