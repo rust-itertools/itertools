@@ -130,12 +130,12 @@ mod combinations;
 mod diff;
 mod format;
 #[cfg(feature = "use_std")]
+mod group_map;
+#[cfg(feature = "use_std")]
 mod groupbylazy;
 mod intersperse;
 #[cfg(feature = "use_std")]
 mod kmerge_impl;
-#[cfg(feature = "use_std")]
-mod lookup;
 mod merge_join;
 mod minmax;
 #[cfg(feature = "use_std")]
@@ -490,28 +490,6 @@ pub trait Itertools : Iterator {
     {
         assert!(size != 0);
         groupbylazy::new_chunks(self, size)
-    }
-
-    /// Return a `HashMap` of keys mapped to `Vec`s of values. Keys and values
-    /// are taken from `(Key, Value)` tuple pairs yielded by the input iterator.
-    /// 
-    /// ```
-    /// use itertools::Itertools;
-    /// 
-    /// let data = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
-    /// let lookup = data.into_iter().to_group_lookup();
-    /// 
-    /// assert_eq!(lookup[&0], vec![10, 20]);
-    /// assert_eq!(lookup.get(&1), None);
-    /// assert_eq!(lookup[&2], vec![12, 42]);
-    /// assert_eq!(lookup[&3], vec![13, 33]);
-    /// ```
-    #[cfg(feature = "use_std")]
-    fn to_group_lookup<K, V>(self) -> HashMap<K, Vec<V>>
-        where Self: Iterator<Item=(K, V)> + Sized,
-              K: Hash + Eq,
-    {
-        lookup::to_group_lookup(self)
     }
 
     /// Return an iterator over all contiguous windows producing tuples of
@@ -1794,6 +1772,28 @@ pub trait Itertools : Iterator {
         }
 
         (left, right)
+    }
+
+    /// Return a `HashMap` of keys mapped to `Vec`s of values. Keys and values
+    /// are taken from `(Key, Value)` tuple pairs yielded by the input iterator.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let data = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
+    /// let lookup = data.into_iter().into_group_map();
+    /// 
+    /// assert_eq!(lookup[&0], vec![10, 20]);
+    /// assert_eq!(lookup.get(&1), None);
+    /// assert_eq!(lookup[&2], vec![12, 42]);
+    /// assert_eq!(lookup[&3], vec![13, 33]);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn into_group_map<K, V>(self) -> HashMap<K, Vec<V>>
+        where Self: Iterator<Item=(K, V)> + Sized,
+              K: Hash + Eq,
+    {
+        group_map::into_group_map(self)
     }
 
     /// Return the minimum and maximum elements in the iterator.

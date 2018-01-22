@@ -6,9 +6,9 @@ use std::iter::Iterator;
 
 /// Return a `HashMap` of keys mapped to a list of their corresponding values.
 ///
-/// See [`.to_group_lookup()`](../trait.Itertools.html#method.to_group_lookup)
+/// See [`.into_group_map()`](../trait.Itertools.html#method.into_group_map)
 /// for more information.
-pub fn to_group_lookup<I, K, V>(iter: I) -> HashMap<K, Vec<V>>
+pub fn into_group_map<I, K, V>(iter: I) -> HashMap<K, Vec<V>>
     where I: Iterator<Item=(K, V)>,
           K: Hash + Eq,
 {
