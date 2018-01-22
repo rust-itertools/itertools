@@ -1,9 +1,9 @@
-pub fn replace<T, I, R>(iter: I, needle: T, replacement: R) -> Replace<T, I, R>
-    where T: Eq,
-          I: Iterator<Item=T>,
-          R: Iterator<Item=T> + Clone,
+pub fn replace<C, I, R>(iter: I, cond: C, replacement: R) -> Replace<C, I, R>
+    where C: FnMut(&I::Item) -> bool,
+          I: Iterator,
+          R: Iterator<Item=I::Item> + Clone
 {
-    Replace { needle: needle, iter: iter, with_orig: replacement, with: None }
+    Replace { cond: cond, iter: iter, with_orig: replacement, with: None }
 }
 
 /// An iterator adaptor that replaces occurrences of an item with a different sequence of items.
@@ -11,21 +11,21 @@ pub fn replace<T, I, R>(iter: I, needle: T, replacement: R) -> Replace<T, I, R>
 /// It is returned by [`Itertools::replace`].
 ///
 /// [`Itertools::replace`]: ../trait.Itertools.html#method.replace
-pub struct Replace<T, I, R>
-    where T: Eq,
-          I: Iterator<Item=T>,
-          R: Iterator<Item=T> + Clone
+pub struct Replace<C, I, R>
+    where C: FnMut(&I::Item) -> bool,
+          I: Iterator,
+          R: Iterator<Item=I::Item> + Clone
 {
-    needle: I::Item,
+    cond: C,
     iter: I,
     with: Option<R>,
     with_orig: R,
 }
 
-impl<T, I, R> Iterator for Replace<T, I, R>
-    where T: Eq,
-          I: Iterator<Item=T>,
-          R: Iterator<Item=T> + Clone,
+impl<C, I, R> Iterator for Replace<C, I, R>
+    where C: FnMut(&I::Item) -> bool,
+          I: Iterator,
+          R: Iterator<Item=I::Item> + Clone,
 {
     type Item = I::Item;
 
@@ -47,7 +47,7 @@ impl<T, I, R> Iterator for Replace<T, I, R>
                 None => {
                     match self.iter.next() {
                         None => return None,
-                        Some(item) => if item == self.needle {
+                        Some(item) => if (self.cond)(&item) {
                             // emit the replacement iterator once
                             Some(self.with_orig.clone())
                         } else {
