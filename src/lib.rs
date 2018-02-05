@@ -953,6 +953,77 @@ pub trait Itertools : Iterator {
         peeking_take_while::peeking_take_while(self, accept)
     }
 
+    /// Returns `true` if the elements of the iterator are sorted
+    /// in increasing order.
+    ///
+    /// ```
+    /// # use itertools::Itertools;
+    /// let v = vec![0, 1, 2 , 3];
+    /// assert!(v.iter().is_sorted());
+    ///
+    /// let v = vec![0, 1, 2 , -1];
+    /// assert!(!v.iter().is_sorted());
+    /// ```
+    fn is_sorted(self) -> bool
+        where Self: Sized,
+              Self::Item: Ord,
+    {
+        self.is_sorted_by(|a, b| Ord::cmp(&a, &b))
+    }
+
+    /// Returns `true` if the elements of the iterator
+    /// are sorted according to the `comparison` function.
+    ///
+    /// ```
+    /// # use itertools::Itertools;
+    /// # use std::cmp::Ordering;
+    /// // Is an iterator sorted in decreasing order?
+    /// fn decr<T: Ord>(a: &T, b: &T) -> Ordering {
+    ///     a.cmp(b).reverse()
+    /// }
+    ///
+    /// let v = vec![3, 2, 1 , 0];
+    /// assert!(v.iter().is_sorted_by(decr));
+    ///
+    /// let v = vec![3, 2, 1 , 4];
+    /// assert!(!v.iter().is_sorted_by(decr));
+    /// ```
+    fn is_sorted_by<F>(mut self, mut compare: F) -> bool
+        where Self: Sized,
+              Self::Item: Ord,
+              F: FnMut(&Self::Item, &Self::Item) -> Ordering, 
+    {
+        let first = self.next();
+        if let Some(mut first) = first {
+            while let Some(second) = self.next() {
+                if compare(&first, &second) == Ordering::Greater {
+                    return false;
+                }
+                first = second;
+            }
+        }
+        true
+    }
+
+    /// Returns `true` if the elements of the iterator
+    /// are sorted according to the `key` extraction function.
+    ///
+    /// ```
+    /// # use itertools::Itertools;
+    /// let v = vec![0_i32, -1, 2, -3];
+    /// assert!(v.iter().is_sorted_by_key(|v| v.abs()));
+    ///
+    /// let v = vec![0_i32, -1, 2, 0];
+    /// assert!(!v.iter().is_sorted_by_key(|v| v.abs()));
+    /// ```
+    fn is_sorted_by_key<F, B>(self, mut key: F) -> bool
+        where Self: Sized,
+              B: Ord,
+              F: FnMut(&Self::Item) -> B, 
+    {
+        self.map(|v| key(&v)).is_sorted()
+    }
+
     /// Return an iterator adaptor that borrows from a `Clone`-able iterator
     /// to only pick off elements while the predicate `accept` returns `true`.
     ///
