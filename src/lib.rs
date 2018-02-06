@@ -995,15 +995,13 @@ pub trait Itertools : Iterator {
     {
         let first = self.next();
         if let Some(mut first) = first {
-            if !self.all(|second| {
+            return self.all(|second| {
                 if compare(&first, &second) == Ordering::Greater {
                     return false;
                 }
                 first = second;
                 true
-            }) {
-                return false;
-            }
+            });
         }
         true
     }
