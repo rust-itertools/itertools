@@ -964,7 +964,7 @@ pub trait Itertools : Iterator {
     /// let v = vec![0, 1, 2 , -1];
     /// assert!(!v.iter().is_sorted());
     /// ```
-    fn is_sorted(self) -> bool
+    fn is_sorted(&mut self) -> bool
         where Self: Sized,
               Self::Item: Ord,
     {
@@ -988,18 +988,21 @@ pub trait Itertools : Iterator {
     /// let v = vec![3, 2, 1 , 4];
     /// assert!(!v.iter().is_sorted_by(decr));
     /// ```
-    fn is_sorted_by<F>(mut self, mut compare: F) -> bool
+    fn is_sorted_by<F>(&mut self, mut compare: F) -> bool
         where Self: Sized,
               Self::Item: Ord,
-              F: FnMut(&Self::Item, &Self::Item) -> Ordering, 
+              F: FnMut(&Self::Item, &Self::Item) -> Ordering,
     {
         let first = self.next();
         if let Some(mut first) = first {
-            while let Some(second) = self.next() {
+            if !self.all(|second| {
                 if compare(&first, &second) == Ordering::Greater {
                     return false;
                 }
                 first = second;
+                true
+            }) {
+                return false;
             }
         }
         true
@@ -1016,10 +1019,10 @@ pub trait Itertools : Iterator {
     /// let v = vec![0_i32, -1, 2, 0];
     /// assert!(!v.iter().is_sorted_by_key(|v| v.abs()));
     /// ```
-    fn is_sorted_by_key<F, B>(self, mut key: F) -> bool
+    fn is_sorted_by_key<F, B>(&mut self, mut key: F) -> bool
         where Self: Sized,
               B: Ord,
-              F: FnMut(&Self::Item) -> B, 
+              F: FnMut(&Self::Item) -> B,
     {
         self.map(|v| key(&v)).is_sorted()
     }
