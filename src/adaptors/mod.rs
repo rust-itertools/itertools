@@ -1045,10 +1045,31 @@ pub struct Flatten<I, J> {
     front: Option<J>,
 }
 
-/// Create a new `Flatten` iterator.
-pub fn flatten<I, J>(iter: I) -> Flatten<I, J> {
+/// Flatten an iteratble of iterables into a single iteration of all
+/// elements in the iterables.
+///
+/// This is more or less equivalent to `.flat_map` with an identity
+/// function.
+///
+/// This is an `IntoIterator`-enabled version of the [`.flatten()`][1] adaptor.
+///
+/// [1]: trait.Itertools.html#method.flatten.
+///
+/// ```
+/// use itertools::flatten;
+///
+/// let data = vec![vec![1, 2, 3], vec![4, 5, 6]];
+///
+/// itertools::assert_equal(flatten(&data),
+///                         &[1, 2, 3, 4, 5, 6]);
+/// ```
+pub fn flatten<I, J>(iter: I) -> Flatten<I::IntoIter, J>
+    where I: IntoIterator,
+          I::Item: IntoIterator<IntoIter=J, Item=J::Item>,
+          J: Iterator,
+{
     Flatten {
-        iter: iter,
+        iter: iter.into_iter(),
         front: None,
     }
 }

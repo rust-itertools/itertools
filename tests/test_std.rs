@@ -2,6 +2,7 @@
 #[macro_use] extern crate itertools as it;
 extern crate permutohedron;
 
+use it::flatten;
 use it::Itertools;
 use it::multizip;
 use it::multipeek;
@@ -539,17 +540,15 @@ fn concat_non_empty() {
 
 #[test]
 fn flatten_iter() {
-    let data = vec![vec![1,2,3], vec![4,5,6]];
-    let flattened = data.into_iter().flatten();
-
-    it::assert_equal(flattened, vec![1,2,3,4,5,6]);
+    let data = vec![vec![1,2,3], vec![4,5], vec![], vec![6]];
+    it::assert_equal(flatten(data), vec![1,2,3,4,5,6]);
 }
 
 #[test]
 fn flatten_fold() {
     let xs = [0, 1, 1, 1, 2, 1, 3, 3];
     let ch = xs.iter().chunks(3);
-    let mut iter = ch.into_iter().flatten();
+    let mut iter = flatten(&ch);
     iter.next();
     let mut xs_d = Vec::new();
     iter.fold((), |(), &elt| xs_d.push(elt));
