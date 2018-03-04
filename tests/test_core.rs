@@ -145,14 +145,14 @@ fn test_put_back() {
 
 #[test]
 fn step() {
-    it::assert_equal((0..10).step(1), (0..10));
+    it::assert_equal((0..10).step(1), 0..10);
     it::assert_equal((0..10).step(2), (0..10).filter(|x: &i32| *x % 2 == 0));
     it::assert_equal((0..10).step(10), 0..1);
 }
 
 #[test]
 fn merge() {
-    it::assert_equal((0..10).step(2).merge((1..10).step(2)), (0..10));
+    it::assert_equal((0..10).step(2).merge((1..10).step(2)), 0..10);
 }
 
 

@@ -225,19 +225,19 @@ fn merge_by_btree() {
 fn kmerge() {
     let its = (0..4).map(|s| (s..10).step(4));
 
-    it::assert_equal(its.kmerge(), (0..10));
+    it::assert_equal(its.kmerge(), 0..10);
 }
 
 #[test]
 fn kmerge_2() {
     let its = vec![3, 2, 1, 0].into_iter().map(|s| (s..10).step(4));
 
-    it::assert_equal(its.kmerge(), (0..10));
+    it::assert_equal(its.kmerge(), 0..10);
 }
 
 #[test]
 fn kmerge_empty() {
-    let its = (0..4).map(|_| (0..0));
+    let its = (0..4).map(|_| 0..0);
     assert_eq!(its.kmerge().next(), None);
 }
 
@@ -353,7 +353,7 @@ fn test_multipeek_peeking_next() {
 
 #[test]
 fn pad_using() {
-    it::assert_equal((0..0).pad_using(1, |_| 1), (1..2));
+    it::assert_equal((0..0).pad_using(1, |_| 1), 1..2);
 
     let v: Vec<usize> = vec![0, 1, 2];
     let r = v.into_iter().pad_using(5, |n| n);
