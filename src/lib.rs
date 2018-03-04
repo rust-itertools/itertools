@@ -1093,7 +1093,7 @@ pub trait Itertools : Iterator {
     /// This is more or less equivalent to `.flat_map` with an identity
     /// function.
     ///
-    /// ```
+    /// ```ignore
     /// use itertools::Itertools;
     ///
     /// let data = vec![vec![1, 2, 3], vec![4, 5, 6]];
