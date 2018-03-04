@@ -7,6 +7,7 @@
 
 #[macro_use] extern crate itertools as it;
 
+use it::flatten;
 use it::Itertools;
 use it::interleave;
 use it::multizip;
@@ -224,7 +225,7 @@ fn flatten_clone() {
         &[1,2,3],
         &[4,5,6]
     ];
-    let flattened1 = data.into_iter().cloned().flatten();
+    let flattened1 = flatten(data.into_iter().cloned());
     let flattened2 = flattened1.clone();
 
     it::assert_equal(flattened1, &[1,2,3,4,5,6]);
