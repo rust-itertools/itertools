@@ -41,6 +41,16 @@ How to contribute:
 Recent Changes
 --------------
 
+- 0.7.7
+
+  - Add new iterator method ``.into_group_map() -> HashMap<K, Vec<V>>``
+    which turns an iterator of ``(K, V)`` elements into such a hash table,
+    where values are grouped by key. By @tobz1000
+  - Add new free function ``flatten`` for the ``.flatten()`` adaptor.
+    **NOTE:** recent Rust nightlies have ``Iterator::flatten`` and thus a clash
+    with our flatten adaptor. One workaround is to use the itertools ``flatten``
+    free function.
+
 - 0.7.6
 
   - Add new adaptor ``.multi_cartesian_product()`` which is an n-ary product
