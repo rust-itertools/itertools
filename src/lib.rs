@@ -103,6 +103,7 @@ pub mod structs {
     pub use ziptuple::Zip;
 }
 pub use structs::*;
+pub use adaptors::flatten;
 pub use concat_impl::concat;
 pub use cons_tuples_impl::cons_tuples;
 pub use diff::diff_with;
@@ -1088,10 +1089,13 @@ pub trait Itertools : Iterator {
         pad_tail::pad_using(self, min, f)
     }
 
-    /// Unravel a nested iterator.
+    /// Flatten an iterator of iterables into a single iteration of all
+    /// elements in the iterables.
     ///
     /// This is more or less equivalent to `.flat_map` with an identity
     /// function.
+    ///
+    /// See also the [`flatten`](fn.flatten.html) function.
     ///
     /// ```ignore
     /// use itertools::Itertools;
