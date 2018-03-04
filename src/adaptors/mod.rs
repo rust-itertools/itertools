@@ -1045,15 +1045,15 @@ pub struct Flatten<I, J> {
     front: Option<J>,
 }
 
-/// Flatten an iteratble of iterables into a single iteration of all
-/// elements in the iterables.
+/// Flatten an iterable of iterables into a single combined sequence of all
+/// the elements in the iterables.
 ///
 /// This is more or less equivalent to `.flat_map` with an identity
 /// function.
 ///
 /// This is an `IntoIterator`-enabled version of the [`.flatten()`][1] adaptor.
 ///
-/// [1]: trait.Itertools.html#method.flatten.
+/// [1]: trait.Itertools.html#method.flatten
 ///
 /// ```
 /// use itertools::flatten;
@@ -1063,13 +1063,13 @@ pub struct Flatten<I, J> {
 /// itertools::assert_equal(flatten(&data),
 ///                         &[1, 2, 3, 4, 5, 6]);
 /// ```
-pub fn flatten<I, J>(iter: I) -> Flatten<I::IntoIter, J>
+pub fn flatten<I, J>(iterable: I) -> Flatten<I::IntoIter, J>
     where I: IntoIterator,
           I::Item: IntoIterator<IntoIter=J, Item=J::Item>,
           J: Iterator,
 {
     Flatten {
-        iter: iter.into_iter(),
+        iter: iterable.into_iter(),
         front: None,
     }
 }

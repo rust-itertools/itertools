@@ -1089,8 +1089,8 @@ pub trait Itertools : Iterator {
         pad_tail::pad_using(self, min, f)
     }
 
-    /// Flatten an iterator of iterables into a single iteration of all
-    /// elements in the iterables.
+    /// Flatten an iterator of iterables into a single combined sequence of all
+    /// the elements in the iterables.
     ///
     /// This is more or less equivalent to `.flat_map` with an identity
     /// function.
