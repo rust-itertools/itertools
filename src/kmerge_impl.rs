@@ -201,6 +201,13 @@ pub struct KMergeBy<I, F>
     less_than: F,
 }
 
+impl<I, F> fmt::Debug for KMergeBy<I, F>
+    where I: Iterator + fmt::Debug,
+          I::Item: fmt::Debug,
+{
+    debug_fmt_fields!(KMergeBy, heap);
+}
+
 /// Create an iterator that merges elements of the contained iterators.
 ///
 /// Equivalent to `iterable.into_iter().kmerge_by(less_than)`.
