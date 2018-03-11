@@ -21,6 +21,7 @@ macro_rules! clone_fields {
 ///
 /// The meanings of `PartialOrd` and `Ord` are reversed so as to turn the heap used in
 /// `KMerge` into a min-heap.
+#[derive(Debug)]
 struct HeadTail<I>
     where I: Iterator
 {
