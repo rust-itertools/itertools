@@ -40,6 +40,7 @@ use std::fmt;
 use std::hash::Hash;
 #[cfg(feature = "use_std")]
 use std::fmt::Write;
+use std::mem;
 
 #[macro_use]
 mod impl_macros;
@@ -1599,6 +1600,40 @@ pub trait Itertools : Iterator {
               Self: Sized,
     {
         self.next().map(move |x| self.fold(x, f))
+    }
+
+    /// Accumulate the elements in the iterator in a balanced manner.
+    ///
+    /// This produces a result like `f(f(1, 2), f(3, 4))`, a balanced call tree,
+    /// instead of `f(f(f(1, 2), 3), 4)`, a linear sequence.
+    ///
+    /// If `f` is associative, prefer the normal `fold1` instead.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// assert_eq!((0..9).fold1_balanced(|x, y| x - y), Some(-8));
+    /// let num_strings = (0..5).map(|x| x.to_string());
+    /// assert_eq!(num_strings.fold1_balanced(|x, y| format!("({}-{})", x, y)),
+    ///     Some(String::from("(((0-1)-(2-3))-4)")));
+    /// assert_eq!((0..0).fold1_balanced(|x, y| x * y), None);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn fold1_balanced<F>(self, mut f: F) -> Option<Self::Item>
+        where F: FnMut(Self::Item, Self::Item) -> Self::Item,
+              Self: Sized,
+    {
+        let hint = self.size_hint().0;
+        let cap = mem::size_of::<usize>() * 8 - hint.leading_zeros() as usize;
+        let mut stack = Vec::with_capacity(cap);
+        self.enumerate().foreach(|(mut i, mut x)| {
+            while (i & 1) != 0 {
+                x = f(stack.pop().unwrap(), x);
+                i >>= 1;
+            }
+            stack.push(x);
+        });
+        stack.into_iter().fold1(f)
     }
 
     /// An iterator method that applies a function, producing a single, final value.
