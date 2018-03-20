@@ -1654,9 +1654,10 @@ pub trait Itertools : Iterator {
     /// assert_eq!((0..10).tree_fold1(|x, y| x + y),
     ///     (0..10).fold1(|x, y| x + y));
     /// // ...but not for non-associative ones
-    /// assert_ne!((0..10).tree_fold1(|x, y| x - y),
-    ///     (0..10).fold1(|x, y| x - y));
+    /// assert!((0..10).tree_fold1(|x, y| x - y)
+    ///     != (0..10).fold1(|x, y| x - y));
     /// ```
+    // FIXME: If minver changes to >= 1.13, use `assert_ne!` in the doctest.
     #[cfg(feature = "use_std")]
     fn tree_fold1<F>(self, mut f: F) -> Option<Self::Item>
         where F: FnMut(Self::Item, Self::Item) -> Self::Item,
