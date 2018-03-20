@@ -719,3 +719,24 @@ fn fold_while() {
     assert_eq!(sum, 15);
 }
 
+#[test]
+fn tree_fold1() {
+    let x = [
+        "",
+        "0",
+        "0 1 x",
+        "0 1 x 2 x",
+        "0 1 x 2 3 x x",
+        "0 1 x 2 3 x x 4 x",
+        "0 1 x 2 3 x x 4 5 x x",
+        "0 1 x 2 3 x x 4 5 x 6 x x",
+        "0 1 x 2 3 x x 4 5 x 6 7 x x x",
+        "0 1 x 2 3 x x 4 5 x 6 7 x x x 8 x",
+    ];
+    for (i, &s) in x.iter().enumerate() {
+        let expected = if s == "" { None } else { Some(s.to_string()) };
+        let num_strings = (0..i).map(|x| x.to_string());
+        let actual = num_strings.tree_fold1(|a, b| format!("{} {} x", a, b));
+        assert_eq!(actual, expected);
+    }
+}

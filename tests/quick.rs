@@ -986,3 +986,34 @@ quickcheck! {
         TestResult::from_bool(minmax == expected)
     }
 }
+
+quickcheck! {
+    fn tree_fold1_f64(mut a: Vec<f64>) -> TestResult {
+        fn collapse_adjacent<F>(x: Vec<f64>, mut f: F) -> Vec<f64>
+            where F: FnMut(f64, f64) -> f64
+        {
+            let mut out = Vec::new();
+            for i in (0..x.len()).step(2) {
+                if i == x.len()-1 {
+                    out.push(x[i])
+                } else {
+                    out.push(f(x[i], x[i+1]));
+                }
+            }
+            out
+        }
+
+        if a.iter().any(|x| x.is_nan()) {
+            return TestResult::discard();
+        }
+
+        let actual = a.iter().cloned().tree_fold1(f64::atan2);
+
+        while a.len() > 1 {
+            a = collapse_adjacent(a, f64::atan2);
+        }
+        let expected = a.pop();
+
+        TestResult::from_bool(actual == expected)
+    }
+}

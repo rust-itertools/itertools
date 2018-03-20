@@ -40,7 +40,8 @@ use std::fmt;
 use std::hash::Hash;
 #[cfg(feature = "use_std")]
 use std::fmt::Write;
-use std::mem;
+#[cfg(feature = "use_std")]
+use std::mem::size_of;
 
 #[macro_use]
 mod impl_macros;
@@ -1602,38 +1603,83 @@ pub trait Itertools : Iterator {
         self.next().map(move |x| self.fold(x, f))
     }
 
-    /// Accumulate the elements in the iterator in a balanced manner.
+    /// Accumulate the elements in the iterator in a tree-like manner.
     ///
-    /// This produces a result like `f(f(1, 2), f(3, 4))`, a balanced call tree,
-    /// instead of `f(f(f(1, 2), 3), 4)`, a linear sequence.
+    /// You can think of it as, while there's more than one item, repeatedly
+    /// combining adjacent items.  It does so in bottom-up-merge-sort order,
+    /// however, so that it needs only logarithmic space.
+    ///
+    /// This produces a call tree like the following:
+    ///
+    /// ```text
+    ///        f
+    ///       / \
+    ///      f   5
+    ///     / \
+    ///    /   \
+    ///   f     f
+    ///  / \   / \
+    /// 1   2 3   4
+    /// ```
+    ///
+    /// Which, for non-associative functions, will typically produce a different
+    /// result than the linear call tree used by `fold1`:
+    ///
+    /// ```text
+    ///         f
+    ///        / \
+    ///       f   5
+    ///      / \
+    ///     f   4
+    ///    / \
+    ///   f   3
+    ///  / \
+    /// 1   2
+    /// ```
     ///
     /// If `f` is associative, prefer the normal `fold1` instead.
     ///
     /// ```
     /// use itertools::Itertools;
     ///
-    /// assert_eq!((0..9).fold1_balanced(|x, y| x - y), Some(-8));
-    /// let num_strings = (0..5).map(|x| x.to_string());
-    /// assert_eq!(num_strings.fold1_balanced(|x, y| format!("({}-{})", x, y)),
-    ///     Some(String::from("(((0-1)-(2-3))-4)")));
-    /// assert_eq!((0..0).fold1_balanced(|x, y| x * y), None);
+    /// // The same tree as above
+    /// let num_strings = (1..6).map(|x| x.to_string());
+    /// assert_eq!(num_strings.tree_fold1(|x, y| format!("f({}, {})", x, y)),
+    ///     Some(String::from("f(f(f(1, 2), f(3, 4)), 5)")));
+    ///
+    /// // Like fold1, an empty iterator produces None
+    /// assert_eq!((0..0).tree_fold1(|x, y| x * y), None);
+    ///
+    /// // tree_fold1 matches fold1 for associative operations...
+    /// assert_eq!((0..10).tree_fold1(|x, y| x + y),
+    ///     (0..10).fold1(|x, y| x + y));
+    /// // ...but not for non-associative ones
+    /// assert_ne!((0..10).tree_fold1(|x, y| x - y),
+    ///     (0..10).fold1(|x, y| x - y));
     /// ```
     #[cfg(feature = "use_std")]
-    fn fold1_balanced<F>(self, mut f: F) -> Option<Self::Item>
+    fn tree_fold1<F>(self, mut f: F) -> Option<Self::Item>
         where F: FnMut(Self::Item, Self::Item) -> Self::Item,
               Self: Sized,
     {
         let hint = self.size_hint().0;
-        let cap = mem::size_of::<usize>() * 8 - hint.leading_zeros() as usize;
+        let cap = size_of::<usize>() * 8 - hint.leading_zeros() as usize;
         let mut stack = Vec::with_capacity(cap);
+
         self.enumerate().foreach(|(mut i, mut x)| {
+            // We need to combine once every other item, twice every fourth item,
+            // thrice every eighth item, etc.  Conveniently, that's the same as
+            // the number of trailing 1 bits in the binary representation of i.
             while (i & 1) != 0 {
                 x = f(stack.pop().unwrap(), x);
                 i >>= 1;
             }
             stack.push(x);
         });
-        stack.into_iter().fold1(f)
+
+        // Every tree in the stack is bigger than all the trees that follow it
+        // combined, so rfold is better balanced here than forward.
+        stack.into_iter().rev().fold1(|a, b| f(b, a))
     }
 
     /// An iterator method that applies a function, producing a single, final value.
