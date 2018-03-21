@@ -232,4 +232,9 @@ fn flatten_clone() {
     it::assert_equal(flattened2, &[1,2,3,4,5,6]);
 }
 
-
+#[test]
+fn tree_fold1() {
+    for i in 0..100 {
+        assert_eq!((0..i).tree_fold1(|x, y| x + y), (0..i).fold1(|x, y| x + y));
+    }
+}

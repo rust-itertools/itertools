@@ -40,8 +40,6 @@ use std::fmt;
 use std::hash::Hash;
 #[cfg(feature = "use_std")]
 use std::fmt::Write;
-#[cfg(feature = "use_std")]
-use std::mem::size_of;
 
 #[macro_use]
 mod impl_macros;
@@ -1607,34 +1605,28 @@ pub trait Itertools : Iterator {
     ///
     /// You can think of it as, while there's more than one item, repeatedly
     /// combining adjacent items.  It does so in bottom-up-merge-sort order,
-    /// however, so that it needs only logarithmic space.
+    /// however, so that it needs only logarithmic stack space.
     ///
-    /// This produces a call tree like the following:
+    /// This produces a call tree like the following (where the calls under
+    /// an item are done after reading that item):
     ///
     /// ```text
-    ///        f
-    ///       / \
-    ///      f   5
-    ///     / \
-    ///    /   \
-    ///   f     f
-    ///  / \   / \
-    /// 1   2 3   4
+    /// 1 2 3 4 5 6 7
+    /// │ │ │ │ │ │ │
+    /// └─f └─f └─f │
+    ///   │   │   │ │
+    ///   └───f   └─f
+    ///       │     │
+    ///       └─────f
     /// ```
     ///
     /// Which, for non-associative functions, will typically produce a different
     /// result than the linear call tree used by `fold1`:
     ///
     /// ```text
-    ///         f
-    ///        / \
-    ///       f   5
-    ///      / \
-    ///     f   4
-    ///    / \
-    ///   f   3
-    ///  / \
-    /// 1   2
+    /// 1 2 3 4 5 6 7
+    /// │ │ │ │ │ │ │
+    /// └─f─f─f─f─f─f
     /// ```
     ///
     /// If `f` is associative, prefer the normal `fold1` instead.
@@ -1643,9 +1635,9 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// // The same tree as above
-    /// let num_strings = (1..6).map(|x| x.to_string());
+    /// let num_strings = (1..8).map(|x| x.to_string());
     /// assert_eq!(num_strings.tree_fold1(|x, y| format!("f({}, {})", x, y)),
-    ///     Some(String::from("f(f(f(1, 2), f(3, 4)), 5)")));
+    ///     Some(String::from("f(f(f(1, 2), f(3, 4)), f(f(5, 6), 7))")));
     ///
     /// // Like fold1, an empty iterator produces None
     /// assert_eq!((0..0).tree_fold1(|x, y| x * y), None);
@@ -1658,29 +1650,63 @@ pub trait Itertools : Iterator {
     ///     != (0..10).fold1(|x, y| x - y));
     /// ```
     // FIXME: If minver changes to >= 1.13, use `assert_ne!` in the doctest.
-    #[cfg(feature = "use_std")]
-    fn tree_fold1<F>(self, mut f: F) -> Option<Self::Item>
+    fn tree_fold1<F>(mut self, mut f: F) -> Option<Self::Item>
         where F: FnMut(Self::Item, Self::Item) -> Self::Item,
               Self: Sized,
     {
-        let hint = self.size_hint().0;
-        let cap = size_of::<usize>() * 8 - hint.leading_zeros() as usize;
-        let mut stack = Vec::with_capacity(cap);
+        type State<T> = Result<T, Option<T>>;
 
-        self.enumerate().foreach(|(mut i, mut x)| {
-            // We need to combine once every other item, twice every fourth item,
-            // thrice every eighth item, etc.  Conveniently, that's the same as
-            // the number of trailing 1 bits in the binary representation of i.
-            while (i & 1) != 0 {
-                x = f(stack.pop().unwrap(), x);
-                i >>= 1;
+        fn inner0<T, II, FF>(it: &mut II, f: &mut FF) -> State<T>
+            where
+                II: Iterator<Item = T>,
+                FF: FnMut(T, T) -> T
+        {
+            // This function could be replaced with `it.next().ok_or(None)`,
+            // but half the useful tree_fold1 work is combining adjacent items,
+            // so put that in a form that LLVM is more likely to optimize well.
+
+            let a =
+                if let Some(v) = it.next() { v }
+                else { return Err(None) };
+            let b =
+                if let Some(v) = it.next() { v }
+                else { return Err(Some(a)) };
+            Ok(f(a, b))
+        }
+
+        fn inner<T, II, FF>(stop: usize, it: &mut II, f: &mut FF) -> State<T>
+            where
+                II: Iterator<Item = T>,
+                FF: FnMut(T, T) -> T
+        {
+            let mut x = try!(inner0(it, f));
+            for height in 0..stop {
+                // Try to get another tree the same size with which to combine it,
+                // creating a new tree that's twice as big for next time around.
+                let next =
+                    if height == 0 {
+                        inner0(it, f)
+                    } else {
+                        inner(height, it, f)
+                    };
+                match next {
+                    Ok(y) => x = f(x, y),
+
+                    // If we ran out of items, combine whatever we did manage
+                    // to get.  It's better combined with the current value
+                    // than something in a parent frame, because the tree in
+                    // the parent is always as least as big as this one.
+                    Err(None) => return Err(Some(x)),
+                    Err(Some(y)) => return Err(Some(f(x, y))),
+                }
             }
-            stack.push(x);
-        });
+            Ok(x)
+        }
 
-        // Every tree in the stack is bigger than all the trees that follow it
-        // combined, so rfold is better balanced here than forward.
-        stack.into_iter().rev().fold1(|a, b| f(b, a))
+        match inner(usize::max_value(), &mut self, &mut f) {
+            Err(x) => x,
+            _ => unreachable!(),
+        }
     }
 
     /// An iterator method that applies a function, producing a single, final value.
