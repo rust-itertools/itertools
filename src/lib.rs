@@ -1709,6 +1709,23 @@ pub trait Itertools : Iterator {
         }
     }
 
+    fn fold1_balanced<F>(self, mut f: F) -> Option<Self::Item>
+        where F: FnMut(Self::Item, Self::Item) -> Self::Item,
+              Self: Sized,
+    {
+        let hint = self.size_hint().0;
+        let cap = std::mem::size_of::<usize>() * 8 - hint.leading_zeros() as usize;
+        let mut stack = Vec::with_capacity(cap);
+        self.enumerate().foreach(|(mut i, mut x)| {
+            while (i & 1) != 0 {
+                x = f(stack.pop().unwrap(), x);
+                i >>= 1;
+            }
+            stack.push(x);
+        });
+        stack.into_iter().fold1(f)
+    }
+
     /// An iterator method that applies a function, producing a single, final value.
     ///
     /// `fold_while()` is basically equivalent to `fold()` but with additional support for
