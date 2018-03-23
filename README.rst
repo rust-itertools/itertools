@@ -41,6 +41,15 @@ How to contribute:
 Recent Changes
 --------------
 
+- 0.7.8
+
+  - Add new iterator method ``.tree_fold1()`` which is like ``.fold1()``
+    except items are combined in a tree structure (see its docs).
+    By @scottmcm
+  - Add more ``Debug`` impls by @phimuemue: KMerge, KMergeBy, MergeJoinBy,
+    ConsTuples, Intersperse, ProcessResults, RcIter, Tee, TupleWindows, Tee,
+    ZipLongest, ZipEq, Zip.
+
 - 0.7.7
 
   - Add new iterator method ``.into_group_map() -> HashMap<K, Vec<V>>``
