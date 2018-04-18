@@ -386,7 +386,7 @@ pub trait Itertools : Iterator {
         zip_eq(self, other)
     }
 
-    /// A “meta iterator adaptor”. Its closure recives a reference to the
+    /// A “meta iterator adaptor”. Its closure receives a reference to the
     /// iterator and may pick off as many elements as it likes, to produce the
     /// next iterator element.
     ///
