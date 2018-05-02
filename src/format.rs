@@ -27,6 +27,15 @@ pub struct Format<'a, I> {
     inner: RefCell<Option<I>>,
 }
 
+/// See [`.format_with_bookends()`](../trait.Itertools.html#method.format_with_bookends)
+pub struct FormatWithBookends<'a, I> {
+    prefix: &'a str,
+    sep: &'a str,
+    suffix: &'a str,
+    /// Format uses interior mutability because Display::fmt takes &self.
+    inner: RefCell<Option<I>>,
+}
+
 pub fn new_format<'a, I, F>(iter: I, separator: &'a str, f: F) -> FormatWith<'a, I, F>
     where I: Iterator,
           F: FnMut(I::Item, &mut FnMut(&fmt::Display) -> fmt::Result) -> fmt::Result
@@ -43,6 +52,17 @@ pub fn new_format_default<'a, I>(iter: I, separator: &'a str) -> Format<'a, I>
     Format {
         sep: separator,
         inner: RefCell::new(Some(iter)),
+    }
+}
+
+pub fn new_format_with_bookends<'a, I>(iter: I, prefix: &'a str, sep: &'a str, suffix: &'a str) -> FormatWithBookends<'a, I>
+    where I: Iterator,
+{
+    FormatWithBookends {
+        prefix: prefix,
+        sep: sep,
+        suffix: suffix,
+        inner: RefCell::new(Some(iter))
     }
 }
 
@@ -111,3 +131,47 @@ macro_rules! impl_format {
 
 impl_format!{Display Debug
              UpperExp LowerExp UpperHex LowerHex Octal Binary Pointer}
+
+impl<'a, I> FormatWithBookends<'a, I>
+    where I: Iterator,
+{
+    fn format<F>(&self, f: &mut fmt::Formatter, mut cb: F) -> fmt::Result
+        where F: FnMut(&I::Item, &mut fmt::Formatter) -> fmt::Result,
+    {
+        let mut iter = match self.inner.borrow_mut().take() {
+            Some(t) => t,
+            None => panic!("FormatWithBookends: was already formatted once"),
+        };
+
+        if let Some(fst) = iter.next() {
+            try!(f.write_str(self.prefix));
+            try!(cb(&fst, f));
+            for elt in iter {
+                if self.sep.len() > 0 {
+                    try!(f.write_str(self.sep));
+                }
+                try!(cb(&elt, f));
+            }
+            try!(f.write_str(self.suffix));
+        }
+        Ok(())
+    }
+}
+
+macro_rules! impl_format_with_bookends {
+    ($($fmt_trait:ident)*) => {
+        $(
+            impl<'a, I> fmt::$fmt_trait for FormatWithBookends<'a, I>
+                where I: Iterator,
+                      I::Item: fmt::$fmt_trait,
+            {
+                fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                    self.format(f, fmt::$fmt_trait::fmt)
+                }
+            }
+        )*
+    }
+}
+
+impl_format_with_bookends!{Display Debug
+                           UpperExp LowerExp UpperHex LowerHex Octal Binary Pointer}

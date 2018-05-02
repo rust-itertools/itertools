@@ -103,7 +103,7 @@ pub mod structs {
     pub use combinations::Combinations;
     pub use cons_tuples_impl::ConsTuples;
     pub use exactly_one_err::ExactlyOneError;
-    pub use format::{Format, FormatWith};
+    pub use format::{Format, FormatWith, FormatWithBookends};
     #[cfg(feature = "use_std")]
     pub use groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
     pub use intersperse::Intersperse;
@@ -1498,6 +1498,14 @@ pub trait Itertools : Iterator {
         where Self: Sized,
     {
         format::new_format_default(self, sep)
+    }
+
+    /// Like `format` with prefix prepended and suffix append,
+    /// except returns the empty string if the input is empty.
+    fn format_with_bookends<'a>(self, prefix: &'a str, sep: &'a str, suffix: &'a str) -> FormatWithBookends<'a, Self>
+        where Self: Sized,
+    {
+        format::new_format_with_bookends(self, prefix, sep, suffix)
     }
 
     /// Format all iterator elements, separated by `sep`.

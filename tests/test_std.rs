@@ -681,6 +681,31 @@ fn format() {
 }
 
 #[test]
+fn format_with_bookends() {
+    let data = [0, 1, 2, 3];
+    let ans1 = "[0, 1, 2, 3]";
+    let ans2 = "[0--1--2--3]";
+
+    let t1 = format!("{}", data.iter().format_with_bookends("[", ", ", "]"));
+    assert_eq!(t1, ans1);
+    let t2 = format!("{:?}", data.iter().format_with_bookends("[", "--", "]"));
+    assert_eq!(t2, ans2);
+
+    let dataf = [1.1, 2.71828, -22.];
+    let ans3 = "[1.10e0, 2.72e0, -2.20e1]";
+    let t3 = format!("{:.2e}", dataf.iter().format_with_bookends("[", ", ", "]"));
+    assert_eq!(t3, ans3);
+
+    let data: &[i8] = &[];
+    let ans = "";
+
+    let t1 = format!("{}", data.iter().format_with_bookends("[", ", ", "]"));
+    assert_eq!(t1, ans);
+    let t2 = format!("{:?}", data.iter().format_with_bookends("[", ", ", "]"));
+    assert_eq!(t2, ans);
+}
+
+#[test]
 fn while_some() {
     let ns = (1..10).map(|x| if x % 5 != 0 { Some(x) } else { None })
                     .while_some();
