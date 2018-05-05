@@ -18,6 +18,7 @@ test = false
 
 [dependencies]
 either = { version = "1.0", default-features = false }
+fnv = { version = "1.0.6", default-features = false }
 
 [dev-dependencies.quickcheck]
 version = "0.5"

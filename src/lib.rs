@@ -1,5 +1,5 @@
 #![warn(missing_docs)]
-#![crate_name="itertools"]
+#![crate_name = "itertools"]
 #![cfg_attr(not(feature = "use_std"), no_std)]
 
 //! Itertools — extra iterator adaptors, functions and macros.
@@ -22,9 +22,10 @@
 //!
 //! This version of itertools requires Rust 1.12 or later.
 //!
-#![doc(html_root_url="https://docs.rs/itertools/0.7/")]
+#![doc(html_root_url = "https://docs.rs/itertools/0.7/")]
 
 extern crate either;
+extern crate fnv;
 
 #[cfg(not(feature = "use_std"))]
 extern crate core as std;
@@ -32,8 +33,8 @@ extern crate core as std;
 pub use either::Either;
 
 #[cfg(feature = "use_std")]
-use std::collections::HashMap;
-use std::iter::{IntoIterator};
+use fnv::FnvHashMap;
+use std::iter::IntoIterator;
 use std::cmp::Ordering;
 use std::fmt;
 #[cfg(feature = "use_std")]
@@ -50,25 +51,9 @@ pub use std::iter as __std_iter;
 
 /// The concrete iterator types.
 pub mod structs {
-    pub use adaptors::{
-        Dedup,
-        Interleave,
-        InterleaveShortest,
-        Product,
-        PutBack,
-        Batching,
-        Step,
-        MapResults,
-        Merge,
-        MergeBy,
-        TakeWhileRef,
-        WhileSome,
-        Coalesce,
-        TupleCombinations,
-        Flatten,
-        Positions,
-        Update,
-    };
+    pub use adaptors::{Batching, Coalesce, Dedup, Flatten, Interleave, InterleaveShortest,
+                       MapResults, Merge, MergeBy, Positions, Product, PutBack, Step,
+                       TakeWhileRef, TupleCombinations, Update, WhileSome};
     #[cfg(feature = "use_std")]
     pub use adaptors::MultiProduct;
     #[cfg(feature = "use_std")]
@@ -76,7 +61,7 @@ pub mod structs {
     pub use cons_tuples_impl::ConsTuples;
     pub use format::{Format, FormatWith};
     #[cfg(feature = "use_std")]
-    pub use groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
+    pub use groupbylazy::{Chunk, Chunks, Group, GroupBy, Groups, IntoChunks};
     pub use intersperse::Intersperse;
     #[cfg(feature = "use_std")]
     pub use kmerge_impl::{KMerge, KMergeBy};
@@ -91,7 +76,7 @@ pub mod structs {
     #[cfg(feature = "use_std")]
     pub use rciter_impl::RcIter;
     pub use repeatn::RepeatN;
-    pub use sources::{RepeatCall, Unfold, Iterate};
+    pub use sources::{Iterate, RepeatCall, Unfold};
     #[cfg(feature = "use_std")]
     pub use tee::Tee;
     pub use tuple_impl::{TupleBuffer, TupleWindows, Tuples};
@@ -109,12 +94,12 @@ pub use cons_tuples_impl::cons_tuples;
 pub use diff::diff_with;
 pub use diff::Diff;
 #[cfg(feature = "use_std")]
-pub use kmerge_impl::{kmerge_by};
+pub use kmerge_impl::kmerge_by;
 pub use minmax::MinMaxResult;
 pub use peeking_take_while::PeekingNext;
 pub use process_results_impl::process_results;
 pub use repeatn::repeat_n;
-pub use sources::{repeat_call, unfold, iterate};
+pub use sources::{iterate, repeat_call, unfold};
 pub use with_position::Position;
 pub use ziptuple::multizip;
 mod adaptors;
@@ -280,7 +265,7 @@ macro_rules! izip {
 /// return a regular value of some other kind.
 /// [`.next_tuple()`](#method.next_tuple) is an example and the first regular
 /// method in the list.
-pub trait Itertools : Iterator {
+pub trait Itertools: Iterator {
     // adaptors
 
     /// Alternate elements from two iterators until both have run out.
@@ -296,8 +281,9 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(it, vec![1, -1, 2, -2, 3, 4, 5, 6]);
     /// ```
     fn interleave<J>(self, other: J) -> Interleave<Self, J::IntoIter>
-        where J: IntoIterator<Item = Self::Item>,
-              Self: Sized
+    where
+        J: IntoIterator<Item = Self::Item>,
+        Self: Sized,
     {
         interleave(self, other)
     }
@@ -314,8 +300,9 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(it, vec![1, -1, 2, -2, 3]);
     /// ```
     fn interleave_shortest<J>(self, other: J) -> InterleaveShortest<Self, J::IntoIter>
-        where J: IntoIterator<Item = Self::Item>,
-              Self: Sized
+    where
+        J: IntoIterator<Item = Self::Item>,
+        Self: Sized,
     {
         adaptors::interleave_shortest(self, other.into_iter())
     }
@@ -333,8 +320,9 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal((0..3).intersperse(8), vec![0, 8, 1, 8, 2]);
     /// ```
     fn intersperse(self, element: Self::Item) -> Intersperse<Self>
-        where Self: Sized,
-              Self::Item: Clone
+    where
+        Self: Sized,
+        Self::Item: Clone,
     {
         intersperse::intersperse(self, element)
     }
@@ -367,8 +355,9 @@ pub trait Itertools : Iterator {
     /// ```
     #[inline]
     fn zip_longest<J>(self, other: J) -> ZipLongest<Self, J::IntoIter>
-        where J: IntoIterator,
-              Self: Sized
+    where
+        J: IntoIterator,
+        Self: Sized,
     {
         zip_longest::zip_longest(self, other.into_iter())
     }
@@ -380,8 +369,9 @@ pub trait Itertools : Iterator {
     /// lengths.
     #[inline]
     fn zip_eq<J>(self, other: J) -> ZipEq<Self, J::IntoIter>
-        where J: IntoIterator,
-              Self: Sized
+    where
+        J: IntoIterator,
+        Self: Sized,
     {
         zip_eq(self, other)
     }
@@ -410,8 +400,9 @@ pub trait Itertools : Iterator {
     /// ```
     ///
     fn batching<B, F>(self, f: F) -> Batching<Self, F>
-        where F: FnMut(&mut Self) -> Option<B>,
-              Self: Sized
+    where
+        F: FnMut(&mut Self) -> Option<B>,
+        Self: Sized,
     {
         adaptors::batching(self, f)
     }
@@ -451,9 +442,10 @@ pub trait Itertools : Iterator {
     /// ```
     #[cfg(feature = "use_std")]
     fn group_by<K, F>(self, key: F) -> GroupBy<K, Self, F>
-        where Self: Sized,
-              F: FnMut(&Self::Item) -> K,
-              K: PartialEq,
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item) -> K,
+        K: PartialEq,
     {
         groupbylazy::new(self, key)
     }
@@ -487,7 +479,8 @@ pub trait Itertools : Iterator {
     /// ```
     #[cfg(feature = "use_std")]
     fn chunks(self, size: usize) -> IntoChunks<Self>
-        where Self: Sized,
+    where
+        Self: Sized,
     {
         assert!(size != 0);
         groupbylazy::new_chunks(self, size)
@@ -525,9 +518,10 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(it, vec![(1, 2, 3), (2, 3, 4)]);
     /// ```
     fn tuple_windows<T>(self) -> TupleWindows<Self, T>
-        where Self: Sized + Iterator<Item = T::Item>,
-              T: tuple_impl::TupleCollect,
-              T::Item: Clone
+    where
+        Self: Sized + Iterator<Item = T::Item>,
+        T: tuple_impl::TupleCollect,
+        T::Item: Clone,
     {
         tuple_impl::tuple_windows(self)
     }
@@ -564,8 +558,9 @@ pub trait Itertools : Iterator {
     ///
     /// See also [`Tuples::into_buffer`](structs/struct.Tuples.html#method.into_buffer).
     fn tuples<T>(self) -> Tuples<Self, T>
-        where Self: Sized + Iterator<Item = T::Item>,
-              T: tuple_impl::TupleCollect
+    where
+        Self: Sized + Iterator<Item = T::Item>,
+        T: tuple_impl::TupleCollect,
     {
         tuple_impl::tuples(self)
     }
@@ -589,8 +584,9 @@ pub trait Itertools : Iterator {
     /// ```
     #[cfg(feature = "use_std")]
     fn tee(self) -> (Tee<Self>, Tee<Self>)
-        where Self: Sized,
-              Self::Item: Clone
+    where
+        Self: Sized,
+        Self::Item: Clone,
     {
         tee::new(self)
     }
@@ -612,7 +608,8 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(it, vec![0, 3, 6]);
     /// ```
     fn step(self, n: usize) -> Step<Self>
-        where Self: Sized
+    where
+        Self: Sized,
     {
         adaptors::step(self, n)
     }
@@ -629,8 +626,9 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(it, vec![Ok(42), Err(false), Ok(12)]);
     /// ```
     fn map_results<F, T, U, E>(self, f: F) -> MapResults<Self, F>
-        where Self: Iterator<Item = Result<T, E>> + Sized,
-              F: FnMut(T) -> U,
+    where
+        Self: Iterator<Item = Result<T, E>> + Sized,
+        F: FnMut(T) -> U,
     {
         adaptors::map_results(self, f)
     }
@@ -650,9 +648,10 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(it, vec![0, 0, 3, 5, 6, 9, 10]);
     /// ```
     fn merge<J>(self, other: J) -> Merge<Self, J::IntoIter>
-        where Self: Sized,
-              Self::Item: PartialOrd,
-              J: IntoIterator<Item = Self::Item>
+    where
+        Self: Sized,
+        Self::Item: PartialOrd,
+        J: IntoIterator<Item = Self::Item>,
     {
         merge(self, other)
     }
@@ -674,9 +673,10 @@ pub trait Itertools : Iterator {
     /// ```
 
     fn merge_by<J, F>(self, other: J, is_first: F) -> MergeBy<Self, J::IntoIter, F>
-        where Self: Sized,
-              J: IntoIterator<Item = Self::Item>,
-              F: FnMut(&Self::Item, &Self::Item) -> bool
+    where
+        Self: Sized,
+        J: IntoIterator<Item = Self::Item>,
+        F: FnMut(&Self::Item, &Self::Item) -> bool,
     {
         adaptors::merge_by_new(self, other.into_iter(), is_first)
     }
@@ -714,13 +714,13 @@ pub trait Itertools : Iterator {
     /// ```
     #[inline]
     fn merge_join_by<J, F>(self, other: J, cmp_fn: F) -> MergeJoinBy<Self, J::IntoIter, F>
-        where J: IntoIterator,
-              F: FnMut(&Self::Item, &J::Item) -> std::cmp::Ordering,
-              Self: Sized
+    where
+        J: IntoIterator,
+        F: FnMut(&Self::Item, &J::Item) -> std::cmp::Ordering,
+        Self: Sized,
     {
         merge_join_by(self, other, cmp_fn)
     }
-
 
     /// Return an iterator adaptor that flattens an iterator of iterators by
     /// merging them in ascending order.
@@ -740,9 +740,10 @@ pub trait Itertools : Iterator {
     /// ```
     #[cfg(feature = "use_std")]
     fn kmerge(self) -> KMerge<<Self::Item as IntoIterator>::IntoIter>
-        where Self: Sized,
-              Self::Item: IntoIterator,
-              <Self::Item as IntoIterator>::Item: PartialOrd,
+    where
+        Self: Sized,
+        Self::Item: IntoIterator,
+        <Self::Item as IntoIterator>::Item: PartialOrd,
     {
         kmerge(self)
     }
@@ -768,12 +769,11 @@ pub trait Itertools : Iterator {
     /// assert_eq!(it.last(), Some(-7.));
     /// ```
     #[cfg(feature = "use_std")]
-    fn kmerge_by<F>(self, first: F)
-        -> KMergeBy<<Self::Item as IntoIterator>::IntoIter, F>
-        where Self: Sized,
-              Self::Item: IntoIterator,
-              F: FnMut(&<Self::Item as IntoIterator>::Item,
-                       &<Self::Item as IntoIterator>::Item) -> bool
+    fn kmerge_by<F>(self, first: F) -> KMergeBy<<Self::Item as IntoIterator>::IntoIter, F>
+    where
+        Self: Sized,
+        Self::Item: IntoIterator,
+        F: FnMut(&<Self::Item as IntoIterator>::Item, &<Self::Item as IntoIterator>::Item) -> bool,
     {
         kmerge_by(self, first)
     }
@@ -790,10 +790,11 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(it, vec![(0, 'α'), (0, 'β'), (1, 'α'), (1, 'β')]);
     /// ```
     fn cartesian_product<J>(self, other: J) -> Product<Self, J::IntoIter>
-        where Self: Sized,
-              Self::Item: Clone,
-              J: IntoIterator,
-              J::IntoIter: Clone
+    where
+        Self: Sized,
+        Self::Item: Clone,
+        J: IntoIterator,
+        J::IntoIter: Clone,
     {
         adaptors::cartesian_product(self, other.into_iter())
     }
@@ -825,10 +826,11 @@ pub trait Itertools : Iterator {
     /// ```
     #[cfg(feature = "use_std")]
     fn multi_cartesian_product(self) -> MultiProduct<<Self::Item as IntoIterator>::IntoIter>
-        where Self: Iterator + Sized,
-              Self::Item: IntoIterator,
-              <Self::Item as IntoIterator>::IntoIter: Clone,
-              <Self::Item as IntoIterator>::Item: Clone
+    where
+        Self: Iterator + Sized,
+        Self::Item: IntoIterator,
+        <Self::Item as IntoIterator>::IntoIter: Clone,
+        <Self::Item as IntoIterator>::Item: Clone,
     {
         adaptors::multi_cartesian_product(self)
     }
@@ -862,9 +864,9 @@ pub trait Itertools : Iterator {
     ///         vec![-6., 4., -1.]);
     /// ```
     fn coalesce<F>(self, f: F) -> Coalesce<Self, F>
-        where Self: Sized,
-              F: FnMut(Self::Item, Self::Item)
-                       -> Result<Self::Item, (Self::Item, Self::Item)>
+    where
+        Self: Sized,
+        F: FnMut(Self::Item, Self::Item) -> Result<Self::Item, (Self::Item, Self::Item)>,
     {
         adaptors::coalesce(self, f)
     }
@@ -884,8 +886,9 @@ pub trait Itertools : Iterator {
     ///                         vec![1., 2., 3., 2.]);
     /// ```
     fn dedup(self) -> Dedup<Self>
-        where Self: Sized,
-              Self::Item: PartialEq,
+    where
+        Self: Sized,
+        Self::Item: PartialEq,
     {
         adaptors::dedup(self)
     }
@@ -906,8 +909,9 @@ pub trait Itertools : Iterator {
     /// ```
     #[cfg(feature = "use_std")]
     fn unique(self) -> Unique<Self>
-        where Self: Sized,
-              Self::Item: Clone + Eq + Hash
+    where
+        Self: Sized,
+        Self::Item: Clone + Eq + Hash,
     {
         unique_impl::unique(self)
     }
@@ -928,9 +932,10 @@ pub trait Itertools : Iterator {
     /// ```
     #[cfg(feature = "use_std")]
     fn unique_by<V, F>(self, f: F) -> UniqueBy<Self, V, F>
-        where Self: Sized,
-              V: Eq + Hash,
-              F: FnMut(&Self::Item) -> V
+    where
+        Self: Sized,
+        V: Eq + Hash,
+        F: FnMut(&Self::Item) -> V,
     {
         unique_impl::unique_by(self, f)
     }
@@ -948,8 +953,9 @@ pub trait Itertools : Iterator {
     /// See also [`.take_while_ref()`](#method.take_while_ref)
     /// which is a similar adaptor.
     fn peeking_take_while<F>(&mut self, accept: F) -> PeekingTakeWhile<Self, F>
-        where Self: Sized + PeekingNext,
-              F: FnMut(&Self::Item) -> bool,
+    where
+        Self: Sized + PeekingNext,
+        F: FnMut(&Self::Item) -> bool,
     {
         peeking_take_while::peeking_take_while(self, accept)
     }
@@ -973,8 +979,9 @@ pub trait Itertools : Iterator {
     ///
     /// ```
     fn take_while_ref<F>(&mut self, accept: F) -> TakeWhileRef<Self, F>
-        where Self: Clone,
-              F: FnMut(&Self::Item) -> bool
+    where
+        Self: Clone,
+        F: FnMut(&Self::Item) -> bool,
     {
         adaptors::take_while_ref(self, accept)
     }
@@ -994,7 +1001,8 @@ pub trait Itertools : Iterator {
     ///
     /// ```
     fn while_some<A>(self) -> WhileSome<Self>
-        where Self: Sized + Iterator<Item = Option<A>>
+    where
+        Self: Sized + Iterator<Item = Option<A>>,
     {
         adaptors::while_some(self)
     }
@@ -1033,9 +1041,10 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(it, vec![(1, 2, 3), (1, 2, 4), (1, 3, 4), (2, 3, 4)]);
     /// ```
     fn tuple_combinations<T>(self) -> TupleCombinations<Self, T>
-        where Self: Sized + Clone,
-              Self::Item: Clone,
-              T: adaptors::HasCombination<Self>,
+    where
+        Self: Sized + Clone,
+        Self::Item: Clone,
+        T: adaptors::HasCombination<Self>,
     {
         adaptors::tuple_combinations(self)
     }
@@ -1059,8 +1068,9 @@ pub trait Itertools : Iterator {
     /// ```
     #[cfg(feature = "use_std")]
     fn combinations(self, n: usize) -> Combinations<Self>
-        where Self: Sized,
-              Self::Item: Clone
+    where
+        Self: Sized,
+        Self::Item: Clone,
     {
         combinations::combinations(self, n)
     }
@@ -1083,8 +1093,9 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(it, vec![18, 16, 14, 12, 10, 4, 3, 2, 1, 0]);
     /// ```
     fn pad_using<F>(self, min: usize, f: F) -> PadUsing<Self, F>
-        where Self: Sized,
-              F: FnMut(usize) -> Self::Item
+    where
+        Self: Sized,
+        F: FnMut(usize) -> Self::Item,
     {
         pad_tail::pad_using(self, min, f)
     }
@@ -1106,8 +1117,9 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(flattened, &[1, 2, 3, 4, 5, 6]);
     /// ```
     fn flatten(self) -> Flatten<Self, <Self::Item as IntoIterator>::IntoIter>
-        where Self: Sized,
-              Self::Item: IntoIterator
+    where
+        Self: Sized,
+        Self::Item: IntoIterator,
     {
         adaptors::flatten(self)
     }
@@ -1132,7 +1144,8 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(it, vec![Position::Only(0)]);
     /// ```
     fn with_position(self) -> WithPosition<Self>
-        where Self: Sized,
+    where
+        Self: Sized,
     {
         with_position::with_position(self)
     }
@@ -1151,8 +1164,9 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(data.iter().positions(|v| v % 2 == 1).rev(), vec![7, 6, 3, 2, 0]);
     /// ```
     fn positions<P>(self, predicate: P) -> Positions<Self, P>
-        where Self: Sized,
-              P: FnMut(Self::Item) -> bool,
+    where
+        Self: Sized,
+        P: FnMut(Self::Item) -> bool,
     {
         adaptors::positions(self, predicate)
     }
@@ -1168,8 +1182,9 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(it, vec![vec![1, 0], vec![3, 2, 1, 0]]);
     /// ```
     fn update<F>(self, updater: F) -> Update<Self, F>
-        where Self: Sized,
-              F: FnMut(&mut Self::Item),
+    where
+        Self: Sized,
+        F: FnMut(&mut Self::Item),
     {
         adaptors::update(self, updater)
     }
@@ -1189,8 +1204,9 @@ pub trait Itertools : Iterator {
     /// assert_eq!(Some((1, 2)), iter.next_tuple());
     /// ```
     fn next_tuple<T>(&mut self) -> Option<T>
-        where Self: Sized + Iterator<Item = T::Item>,
-              T: tuple_impl::TupleCollect
+    where
+        Self: Sized + Iterator<Item = T::Item>,
+        T: tuple_impl::TupleCollect,
     {
         T::collect_from_iter_no_buf(self)
     }
@@ -1214,18 +1230,18 @@ pub trait Itertools : Iterator {
     /// }
     /// ```
     fn collect_tuple<T>(mut self) -> Option<T>
-        where Self: Sized + Iterator<Item = T::Item>,
-              T: tuple_impl::TupleCollect
+    where
+        Self: Sized + Iterator<Item = T::Item>,
+        T: tuple_impl::TupleCollect,
     {
         match self.next_tuple() {
             elt @ Some(_) => match self.next() {
                 Some(_) => None,
                 None => elt,
             },
-            _ => None
+            _ => None,
         }
     }
-
 
     /// Find the position and value of the first element satisfying a predicate.
     ///
@@ -1238,7 +1254,8 @@ pub trait Itertools : Iterator {
     /// assert_eq!(text.chars().find_position(|ch| ch.is_lowercase()), Some((1, 'α')));
     /// ```
     fn find_position<P>(&mut self, mut pred: P) -> Option<(usize, Self::Item)>
-        where P: FnMut(&Self::Item) -> bool
+    where
+        P: FnMut(&Self::Item) -> bool,
     {
         let mut index = 0usize;
         for elt in self {
@@ -1267,7 +1284,8 @@ pub trait Itertools : Iterator {
     /// assert!(data.into_iter().all_equal());
     /// ```
     fn all_equal(&mut self) -> bool
-        where Self::Item: PartialEq,
+    where
+        Self::Item: PartialEq,
     {
         self.dedup().nth(1).is_none()
     }
@@ -1288,7 +1306,8 @@ pub trait Itertools : Iterator {
     /// *Fusing notes: if the iterator is exhausted by dropping,
     /// the result of calling `.next()` again depends on the iterator implementation.*
     fn dropping(mut self, n: usize) -> Self
-        where Self: Sized
+    where
+        Self: Sized,
     {
         if n > 0 {
             self.nth(n - 1);
@@ -1312,8 +1331,9 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(init, vec![0, 3, 6]);
     /// ```
     fn dropping_back(mut self, n: usize) -> Self
-        where Self: Sized,
-              Self: DoubleEndedIterator
+    where
+        Self: Sized,
+        Self: DoubleEndedIterator,
     {
         if n > 0 {
             (&mut self).rev().nth(n - 1);
@@ -1339,8 +1359,9 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(rx.iter(), vec![1, 3, 5, 7, 9]);
     /// ```
     fn foreach<F>(self, mut f: F)
-        where F: FnMut(Self::Item),
-              Self: Sized,
+    where
+        F: FnMut(Self::Item),
+        Self: Sized,
     {
         self.fold((), move |(), element| f(element))
     }
@@ -1359,8 +1380,11 @@ pub trait Itertools : Iterator {
     ///            vec![1, 2, 3, 4, 5, 6]);
     /// ```
     fn concat(self) -> Self::Item
-        where Self: Sized,
-              Self::Item: Extend<<<Self as Iterator>::Item as IntoIterator>::Item> + IntoIterator + Default
+    where
+        Self: Sized,
+        Self::Item: Extend<<<Self as Iterator>::Item as IntoIterator>::Item>
+            + IntoIterator
+            + Default,
     {
         concat(self)
     }
@@ -1369,7 +1393,8 @@ pub trait Itertools : Iterator {
     /// for convenience.
     #[cfg(feature = "use_std")]
     fn collect_vec(self) -> Vec<Self::Item>
-        where Self: Sized
+    where
+        Self: Sized,
     {
         self.collect()
     }
@@ -1391,8 +1416,9 @@ pub trait Itertools : Iterator {
     /// ```
     #[inline]
     fn set_from<'a, A: 'a, J>(&mut self, from: J) -> usize
-        where Self: Iterator<Item = &'a mut A>,
-              J: IntoIterator<Item = A>
+    where
+        Self: Iterator<Item = &'a mut A>,
+        J: IntoIterator<Item = A>,
     {
         let mut count = 0;
         for elt in from {
@@ -1417,7 +1443,8 @@ pub trait Itertools : Iterator {
     /// ```
     #[cfg(feature = "use_std")]
     fn join(&mut self, sep: &str) -> String
-        where Self::Item: std::fmt::Display
+    where
+        Self::Item: std::fmt::Display,
     {
         match self.next() {
             None => String::new(),
@@ -1451,7 +1478,8 @@ pub trait Itertools : Iterator {
     ///            "1.10, 2.72, -3.00");
     /// ```
     fn format(self, sep: &str) -> Format<Self>
-        where Self: Sized,
+    where
+        Self: Sized,
     {
         format::new_format_default(self, sep)
     }
@@ -1489,8 +1517,9 @@ pub trait Itertools : Iterator {
     ///
     /// ```
     fn format_with<F>(self, sep: &str, format: F) -> FormatWith<Self, F>
-        where Self: Sized,
-              F: FnMut(Self::Item, &mut FnMut(&fmt::Display) -> fmt::Result) -> fmt::Result,
+    where
+        Self: Sized,
+        F: FnMut(Self::Item, &mut FnMut(&fmt::Display) -> fmt::Result) -> fmt::Result,
     {
         format::new_format(self, sep, format)
     }
@@ -1538,8 +1567,9 @@ pub trait Itertools : Iterator {
     /// );
     /// ```
     fn fold_results<A, E, B, F>(&mut self, mut start: B, mut f: F) -> Result<B, E>
-        where Self: Iterator<Item = Result<A, E>>,
-              F: FnMut(B, A) -> B
+    where
+        Self: Iterator<Item = Result<A, E>>,
+        F: FnMut(B, A) -> B,
     {
         for elt in self {
             match elt {
@@ -1570,8 +1600,9 @@ pub trait Itertools : Iterator {
     /// assert_eq!(more_values.next().unwrap(), Some(0));
     /// ```
     fn fold_options<A, B, F>(&mut self, mut start: B, mut f: F) -> Option<B>
-        where Self: Iterator<Item = Option<A>>,
-              F: FnMut(B, A) -> B
+    where
+        Self: Iterator<Item = Option<A>>,
+        F: FnMut(B, A) -> B,
     {
         for elt in self {
             match elt {
@@ -1595,8 +1626,9 @@ pub trait Itertools : Iterator {
     /// assert_eq!((0..0).fold1(|x, y| x * y), None);
     /// ```
     fn fold1<F>(mut self, f: F) -> Option<Self::Item>
-        where F: FnMut(Self::Item, Self::Item) -> Self::Item,
-              Self: Sized,
+    where
+        F: FnMut(Self::Item, Self::Item) -> Self::Item,
+        Self: Sized,
     {
         self.next().map(move |x| self.fold(x, f))
     }
@@ -1651,44 +1683,48 @@ pub trait Itertools : Iterator {
     /// ```
     // FIXME: If minver changes to >= 1.13, use `assert_ne!` in the doctest.
     fn tree_fold1<F>(mut self, mut f: F) -> Option<Self::Item>
-        where F: FnMut(Self::Item, Self::Item) -> Self::Item,
-              Self: Sized,
+    where
+        F: FnMut(Self::Item, Self::Item) -> Self::Item,
+        Self: Sized,
     {
         type State<T> = Result<T, Option<T>>;
 
         fn inner0<T, II, FF>(it: &mut II, f: &mut FF) -> State<T>
-            where
-                II: Iterator<Item = T>,
-                FF: FnMut(T, T) -> T
+        where
+            II: Iterator<Item = T>,
+            FF: FnMut(T, T) -> T,
         {
             // This function could be replaced with `it.next().ok_or(None)`,
             // but half the useful tree_fold1 work is combining adjacent items,
             // so put that in a form that LLVM is more likely to optimize well.
 
-            let a =
-                if let Some(v) = it.next() { v }
-                else { return Err(None) };
-            let b =
-                if let Some(v) = it.next() { v }
-                else { return Err(Some(a)) };
+            let a = if let Some(v) = it.next() {
+                v
+            } else {
+                return Err(None);
+            };
+            let b = if let Some(v) = it.next() {
+                v
+            } else {
+                return Err(Some(a));
+            };
             Ok(f(a, b))
         }
 
         fn inner<T, II, FF>(stop: usize, it: &mut II, f: &mut FF) -> State<T>
-            where
-                II: Iterator<Item = T>,
-                FF: FnMut(T, T) -> T
+        where
+            II: Iterator<Item = T>,
+            FF: FnMut(T, T) -> T,
         {
             let mut x = try!(inner0(it, f));
             for height in 0..stop {
                 // Try to get another tree the same size with which to combine it,
                 // creating a new tree that's twice as big for next time around.
-                let next =
-                    if height == 0 {
-                        inner0(it, f)
-                    } else {
-                        inner(height, it, f)
-                    };
+                let next = if height == 0 {
+                    inner0(it, f)
+                } else {
+                    inner(height, it, f)
+                };
                 match next {
                     Ok(y) => x = f(x, y),
 
@@ -1749,8 +1785,9 @@ pub trait Itertools : Iterator {
     /// `fold()` called the provided closure for every item of the callee iterator,
     /// `fold_while()` actually stopped iterating as soon as it encountered `Fold::Done(_)`.
     fn fold_while<B, F>(&mut self, init: B, mut f: F) -> FoldWhile<B>
-        where Self: Sized,
-              F: FnMut(B, Self::Item) -> FoldWhile<B>
+    where
+        Self: Sized,
+        F: FnMut(B, Self::Item) -> FoldWhile<B>,
     {
         let mut acc = init;
         while let Some(item) = self.next() {
@@ -1777,8 +1814,9 @@ pub trait Itertools : Iterator {
     /// ```
     #[cfg(feature = "use_std")]
     fn sorted(self) -> Vec<Self::Item>
-        where Self: Sized,
-              Self::Item: Ord
+    where
+        Self: Sized,
+        Self::Item: Ord,
     {
         self.sorted_by(Ord::cmp)
     }
@@ -1805,8 +1843,9 @@ pub trait Itertools : Iterator {
     /// ```
     #[cfg(feature = "use_std")]
     fn sorted_by<F>(self, cmp: F) -> Vec<Self::Item>
-        where Self: Sized,
-              F: FnMut(&Self::Item, &Self::Item) -> Ordering,
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item, &Self::Item) -> Ordering,
     {
         let mut v: Vec<Self::Item> = self.collect();
 
@@ -1836,9 +1875,10 @@ pub trait Itertools : Iterator {
     /// ```
     #[cfg(feature = "use_std")]
     fn sorted_by_key<K, F>(self, f: F) -> Vec<Self::Item>
-        where Self: Sized,
-              K: Ord,
-              F: FnMut(&Self::Item) -> K,
+    where
+        Self: Sized,
+        K: Ord,
+        F: FnMut(&Self::Item) -> K,
     {
         let mut v: Vec<Self::Item> = self.collect();
 
@@ -1868,10 +1908,11 @@ pub trait Itertools : Iterator {
     /// assert_eq!(failures, [false, true]);
     /// ```
     fn partition_map<A, B, F, L, R>(self, predicate: F) -> (A, B)
-        where Self: Sized,
-              F: Fn(Self::Item) -> Either<L, R>,
-              A: Default + Extend<L>,
-              B: Default + Extend<R>,
+    where
+        Self: Sized,
+        F: Fn(Self::Item) -> Either<L, R>,
+        A: Default + Extend<L>,
+        B: Default + Extend<R>,
     {
         let mut left = A::default();
         let mut right = B::default();
@@ -1888,22 +1929,23 @@ pub trait Itertools : Iterator {
 
     /// Return a `HashMap` of keys mapped to `Vec`s of values. Keys and values
     /// are taken from `(Key, Value)` tuple pairs yielded by the input iterator.
-    /// 
+    ///
     /// ```
     /// use itertools::Itertools;
-    /// 
+    ///
     /// let data = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
     /// let lookup = data.into_iter().into_group_map();
-    /// 
+    ///
     /// assert_eq!(lookup[&0], vec![10, 20]);
     /// assert_eq!(lookup.get(&1), None);
     /// assert_eq!(lookup[&2], vec![12, 42]);
     /// assert_eq!(lookup[&3], vec![13, 33]);
     /// ```
     #[cfg(feature = "use_std")]
-    fn into_group_map<K, V>(self) -> HashMap<K, Vec<V>>
-        where Self: Iterator<Item=(K, V)> + Sized,
-              K: Hash + Eq,
+    fn into_group_map<K, V>(self) -> FnvHashMap<K, Vec<V>>
+    where
+        Self: Iterator<Item = (K, V)> + Sized,
+        K: Hash + Eq,
     {
         group_map::into_group_map(self)
     }
@@ -1944,7 +1986,9 @@ pub trait Itertools : Iterator {
     /// The elements can be floats but no particular result is guaranteed
     /// if an element is NaN.
     fn minmax(self) -> MinMaxResult<Self::Item>
-        where Self: Sized, Self::Item: PartialOrd
+    where
+        Self: Sized,
+        Self::Item: PartialOrd,
     {
         minmax::minmax_impl(self, |_| (), |x, y, _, _| x < y)
     }
@@ -1961,7 +2005,10 @@ pub trait Itertools : Iterator {
     /// The keys can be floats but no particular result is guaranteed
     /// if a key is NaN.
     fn minmax_by_key<K, F>(self, key: F) -> MinMaxResult<Self::Item>
-        where Self: Sized, K: PartialOrd, F: FnMut(&Self::Item) -> K
+    where
+        Self: Sized,
+        K: PartialOrd,
+        F: FnMut(&Self::Item) -> K,
     {
         minmax::minmax_impl(self, key, |_, _, xk, yk| xk < yk)
     }
@@ -1975,17 +2022,19 @@ pub trait Itertools : Iterator {
     /// the last maximal element wins.  This matches the behavior of the standard
     /// `Iterator::min()` and `Iterator::max()` methods.
     fn minmax_by<F>(self, mut compare: F) -> MinMaxResult<Self::Item>
-        where Self: Sized, F: FnMut(&Self::Item, &Self::Item) -> Ordering
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item, &Self::Item) -> Ordering,
     {
-        minmax::minmax_impl(
-            self,
-            |_| (),
-            |x, y, _, _| Ordering::Less == compare(x, y)
-        )
+        minmax::minmax_impl(self, |_| (), |x, y, _, _| Ordering::Less == compare(x, y))
     }
 }
 
-impl<T: ?Sized> Itertools for T where T: Iterator { }
+impl<T: ?Sized> Itertools for T
+where
+    T: Iterator,
+{
+}
 
 /// Return `true` if both iterables produce equal sequences
 /// (elements pairwise equal and sequences of the same length),
@@ -1999,19 +2048,22 @@ impl<T: ?Sized> Itertools for T where T: Iterator { }
 /// assert!(!itertools::equal(&[0, 0], &[0, 0, 0]));
 /// ```
 pub fn equal<I, J>(a: I, b: J) -> bool
-    where I: IntoIterator,
-          J: IntoIterator,
-          I::Item: PartialEq<J::Item>
+where
+    I: IntoIterator,
+    J: IntoIterator,
+    I::Item: PartialEq<J::Item>,
 {
     let mut ia = a.into_iter();
     let mut ib = b.into_iter();
     loop {
         match ia.next() {
             Some(x) => match ib.next() {
-                Some(y) => if x != y { return false; },
+                Some(y) => if x != y {
+                    return false;
+                },
                 None => return false,
             },
-            None => return ib.next().is_none()
+            None => return ib.next().is_none(),
         }
     }
 }
@@ -2027,10 +2079,11 @@ pub fn equal<I, J>(a: I, b: J) -> bool
 /// // ^PANIC: panicked at 'Failed assertion Some("eed") == Some("ess") for iteration 1',
 /// ```
 pub fn assert_equal<I, J>(a: I, b: J)
-    where I: IntoIterator,
-          J: IntoIterator,
-          I::Item: fmt::Debug + PartialEq<J::Item>,
-          J::Item: fmt::Debug,
+where
+    I: IntoIterator,
+    J: IntoIterator,
+    I::Item: fmt::Debug + PartialEq<J::Item>,
+    J::Item: fmt::Debug,
 {
     let mut ia = a.into_iter();
     let mut ib = b.into_iter();
@@ -2043,8 +2096,13 @@ pub fn assert_equal<I, J>(a: I, b: J)
                     (&Some(ref a), &Some(ref b)) => a == b,
                     _ => false,
                 };
-                assert!(equal, "Failed assertion {a:?} == {b:?} for iteration {i}",
-                        i=i, a=a, b=b);
+                assert!(
+                    equal,
+                    "Failed assertion {a:?} == {b:?} for iteration {i}",
+                    i = i,
+                    a = a,
+                    b = b
+                );
                 i += 1;
             }
         }
@@ -2069,9 +2127,10 @@ pub fn assert_equal<I, J>(a: I, b: J)
 /// assert_eq!(split_index, 3);
 /// ```
 pub fn partition<'a, A: 'a, I, F>(iter: I, mut pred: F) -> usize
-    where I: IntoIterator<Item = &'a mut A>,
-          I::IntoIter: DoubleEndedIterator,
-          F: FnMut(&A) -> bool
+where
+    I: IntoIterator<Item = &'a mut A>,
+    I::IntoIter: DoubleEndedIterator,
+    F: FnMut(&A) -> bool,
 {
     let mut split_index = 0;
     let mut iter = iter.into_iter();
