@@ -1,5 +1,6 @@
+
 use fnv::FnvHashMap;
-use std::collections::hash_map::Entry;
+use std::collections::hash_map::{Entry};
 use std::hash::Hash;
 use std::fmt;
 
@@ -16,19 +17,17 @@ pub struct UniqueBy<I: Iterator, V, F> {
 }
 
 impl<I, V, F> fmt::Debug for UniqueBy<I, V, F>
-where
-    I: Iterator + fmt::Debug,
-    V: fmt::Debug + Hash + Eq,
+    where I: Iterator + fmt::Debug,
+          V: fmt::Debug + Hash + Eq,
 {
     debug_fmt_fields!(UniqueBy, iter, used);
 }
 
 /// Create a new `UniqueBy` iterator.
 pub fn unique_by<I, V, F>(iter: I, f: F) -> UniqueBy<I, V, F>
-where
-    V: Eq + Hash,
-    F: FnMut(&I::Item) -> V,
-    I: Iterator,
+    where V: Eq + Hash,
+          F: FnMut(&I::Item) -> V,
+          I: Iterator,
 {
     UniqueBy {
         iter: iter,
@@ -39,9 +38,8 @@ where
 
 // count the number of new unique keys in iterable (`used` is the set already seen)
 fn count_new_keys<I, K>(mut used: FnvHashMap<K, ()>, iterable: I) -> usize
-where
-    I: IntoIterator<Item = K>,
-    K: Hash + Eq,
+    where I: IntoIterator<Item=K>,
+          K: Hash + Eq,
 {
     let iter = iterable.into_iter();
     let current_used = used.len();
@@ -50,10 +48,9 @@ where
 }
 
 impl<I, V, F> Iterator for UniqueBy<I, V, F>
-where
-    I: Iterator,
-    V: Eq + Hash,
-    F: FnMut(&I::Item) -> V,
+    where I: Iterator,
+          V: Eq + Hash,
+          F: FnMut(&I::Item) -> V
 {
     type Item = I::Item;
 
@@ -80,9 +77,8 @@ where
 }
 
 impl<I> Iterator for Unique<I>
-where
-    I: Iterator,
-    I::Item: Eq + Hash + Clone,
+    where I: Iterator,
+          I::Item: Eq + Hash + Clone
 {
     type Item = I::Item;
 
@@ -118,23 +114,21 @@ pub struct Unique<I: Iterator> {
 }
 
 impl<I> fmt::Debug for Unique<I>
-where
-    I: Iterator + fmt::Debug,
-    I::Item: Hash + Eq + fmt::Debug,
+    where I: Iterator + fmt::Debug,
+          I::Item: Hash + Eq + fmt::Debug,
 {
     debug_fmt_fields!(Unique, iter);
 }
 
 pub fn unique<I>(iter: I) -> Unique<I>
-where
-    I: Iterator,
-    I::Item: Eq + Hash,
+    where I: Iterator,
+          I::Item: Eq + Hash,
 {
     Unique {
         iter: UniqueBy {
             iter: iter,
             used: FnvHashMap::default(),
             f: (),
-        },
+        }
     }
 }
