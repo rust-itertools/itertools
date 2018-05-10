@@ -25,6 +25,7 @@
 #![doc(html_root_url="https://docs.rs/itertools/0.7/")]
 
 extern crate either;
+extern crate fnv;
 
 #[cfg(not(feature = "use_std"))]
 extern crate core as std;
@@ -32,7 +33,7 @@ extern crate core as std;
 pub use either::Either;
 
 #[cfg(feature = "use_std")]
-use std::collections::HashMap;
+use fnv::FnvHashMap;
 use std::iter::{IntoIterator};
 use std::cmp::Ordering;
 use std::fmt;
@@ -1901,7 +1902,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!(lookup[&3], vec![13, 33]);
     /// ```
     #[cfg(feature = "use_std")]
-    fn into_group_map<K, V>(self) -> HashMap<K, Vec<V>>
+    fn into_group_map<K, V>(self) -> FnvHashMap<K, Vec<V>>
         where Self: Iterator<Item=(K, V)> + Sized,
               K: Hash + Eq,
     {

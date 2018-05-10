@@ -1,5 +1,5 @@
 
-use std::collections::HashMap;
+use fnv::FnvHashMap;
 use std::collections::hash_map::{Entry};
 use std::hash::Hash;
 use std::fmt;
@@ -12,7 +12,7 @@ use std::fmt;
 pub struct UniqueBy<I: Iterator, V, F> {
     iter: I,
     // Use a hashmap for the entry API
-    used: HashMap<V, ()>,
+    used: FnvHashMap<V, ()>,
     f: F,
 }
 
@@ -31,13 +31,13 @@ pub fn unique_by<I, V, F>(iter: I, f: F) -> UniqueBy<I, V, F>
 {
     UniqueBy {
         iter: iter,
-        used: HashMap::new(),
+        used: FnvHashMap::default(),
         f: f,
     }
 }
 
 // count the number of new unique keys in iterable (`used` is the set already seen)
-fn count_new_keys<I, K>(mut used: HashMap<K, ()>, iterable: I) -> usize
+fn count_new_keys<I, K>(mut used: FnvHashMap<K, ()>, iterable: I) -> usize
     where I: IntoIterator<Item=K>,
           K: Hash + Eq,
 {
@@ -127,7 +127,7 @@ pub fn unique<I>(iter: I) -> Unique<I>
     Unique {
         iter: UniqueBy {
             iter: iter,
-            used: HashMap::new(),
+            used: FnvHashMap::default(),
             f: (),
         }
     }
