@@ -1,5 +1,5 @@
 
-use std::collections::HashMap;
+use std::collections::HashSet;
 use std::hash::Hash;
 use std::fmt;
 
@@ -10,8 +10,7 @@ use std::fmt;
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct UniqueBy<I: Iterator, V, F> {
     iter: I,
-    // Use a hashmap for the entry API
-    used: HashMap<V, ()>,
+    used: HashSet<V>,
     f: F,
 }
 
@@ -30,19 +29,18 @@ pub fn unique_by<I, V, F>(iter: I, f: F) -> UniqueBy<I, V, F>
 {
     UniqueBy {
         iter: iter,
-        used: HashMap::new(),
+        used: HashSet::new(),
         f: f,
     }
 }
 
 // count the number of new unique keys in iterable (`used` is the set already seen)
-fn count_new_keys<I, K>(mut used: HashMap<K, ()>, iterable: I) -> usize
+fn count_new_keys<I, K>(mut used: HashSet<K>, iterable: I) -> usize
     where I: IntoIterator<Item=K>,
           K: Hash + Eq,
 {
-    let iter = iterable.into_iter();
     let current_used = used.len();
-    used.extend(iter.map(|key| (key, ())));
+    used.extend(iterable);
     used.len() - current_used
 }
 
@@ -56,7 +54,7 @@ impl<I, V, F> Iterator for UniqueBy<I, V, F>
     fn next(&mut self) -> Option<I::Item> {
         while let Some(v) = self.iter.next() {
             let key = (self.f)(&v);
-            if self.used.insert(key, ()).is_none() {
+            if self.used.insert(key) {
                 return Some(v);
             }
         }
@@ -118,7 +116,7 @@ pub fn unique<I>(iter: I) -> Unique<I>
     Unique {
         iter: UniqueBy {
             iter: iter,
-            used: HashMap::new(),
+            used: HashSet::new(),
             f: I::Item::clone,
         }
     }
