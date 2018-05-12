@@ -91,7 +91,7 @@ impl<I> Iterator for Unique<I>
     }
 
     fn count(self) -> usize {
-        self.iter.count()
+        count_new_keys(self.iter.used, self.iter.iter)
     }
 }
 
