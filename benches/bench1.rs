@@ -743,3 +743,15 @@ fn unique_lazy_1(b: &mut test::Bencher) {
 
     b.iter(|| data.iter().unique().count())
 }
+
+#[bench]
+fn unique_lazy_2(b: &mut test::Bencher) {
+    let mut data = vec![0; 1024];
+    for (index, elt) in data.iter_mut().enumerate() {
+        *elt = index / 10;
+    }
+
+    let data = test::black_box(data);
+
+    b.iter(|| data.iter().unique().for_each(|_| ()))
+}
