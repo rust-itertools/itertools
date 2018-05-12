@@ -75,7 +75,7 @@ impl<I, V, F> Iterator for UniqueBy<I, V, F>
 
 impl<I> Iterator for Unique<I>
     where I: Iterator,
-          I::Item: Eq + Hash
+          I::Item: Eq + Hash + Clone
 {
     type Item = I::Item;
 
@@ -98,13 +98,16 @@ impl<I> Iterator for Unique<I>
 /// See [`.unique()`](../trait.Itertools.html#method.unique) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct Unique<I: Iterator> {
+pub struct Unique<I: Iterator>
+    where I: Iterator,
+          I::Item: Eq + Hash + Clone,
+{
     iter: UniqueBy<I, I::Item, fn(&I::Item) -> I::Item>,
 }
 
 impl<I> fmt::Debug for Unique<I>
     where I: Iterator + fmt::Debug,
-          I::Item: Hash + Eq + fmt::Debug,
+          I::Item: Hash + Eq + Clone + fmt::Debug,
 {
     debug_fmt_fields!(Unique, iter);
 }
