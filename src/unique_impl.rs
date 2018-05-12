@@ -1,6 +1,5 @@
 
 use std::collections::HashMap;
-use std::collections::hash_map::{Entry};
 use std::hash::Hash;
 use std::fmt;
 
@@ -78,29 +77,21 @@ impl<I, V, F> Iterator for UniqueBy<I, V, F>
 
 impl<I> Iterator for Unique<I>
     where I: Iterator,
-          I::Item: Eq + Hash + Clone
+          I::Item: Eq + Hash
 {
     type Item = I::Item;
 
     fn next(&mut self) -> Option<I::Item> {
-        while let Some(v) = self.iter.iter.next() {
-            if let Entry::Vacant(entry) = self.iter.used.entry(v) {
-                let elt = entry.key().clone();
-                entry.insert(());
-                return Some(elt);
-            }
-        }
-        None
+        return self.iter.next();
     }
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let (low, hi) = self.iter.iter.size_hint();
-        ((low > 0 && self.iter.used.is_empty()) as usize, hi)
+        self.iter.size_hint()
     }
 
     fn count(self) -> usize {
-        count_new_keys(self.iter.used, self.iter.iter)
+        self.iter.count()
     }
 }
 
@@ -110,7 +101,7 @@ impl<I> Iterator for Unique<I>
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Unique<I: Iterator> {
-    iter: UniqueBy<I, I::Item, ()>,
+    iter: UniqueBy<I, I::Item, fn(&I::Item) -> I::Item>,
 }
 
 impl<I> fmt::Debug for Unique<I>
@@ -122,13 +113,13 @@ impl<I> fmt::Debug for Unique<I>
 
 pub fn unique<I>(iter: I) -> Unique<I>
     where I: Iterator,
-          I::Item: Eq + Hash,
+          I::Item: Eq + Hash + Clone,
 {
     Unique {
         iter: UniqueBy {
             iter: iter,
             used: HashMap::new(),
-            f: (),
+            f: I::Item::clone,
         }
     }
 }
