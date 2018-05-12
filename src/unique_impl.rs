@@ -1,6 +1,5 @@
 
-use std::collections::HashMap;
-use std::collections::hash_map::{Entry};
+use std::collections::HashSet;
 use std::hash::Hash;
 use std::fmt;
 
@@ -11,8 +10,7 @@ use std::fmt;
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct UniqueBy<I: Iterator, V, F> {
     iter: I,
-    // Use a hashmap for the entry API
-    used: HashMap<V, ()>,
+    used: HashSet<V>,
     f: F,
 }
 
@@ -31,19 +29,18 @@ pub fn unique_by<I, V, F>(iter: I, f: F) -> UniqueBy<I, V, F>
 {
     UniqueBy {
         iter: iter,
-        used: HashMap::new(),
+        used: HashSet::new(),
         f: f,
     }
 }
 
 // count the number of new unique keys in iterable (`used` is the set already seen)
-fn count_new_keys<I, K>(mut used: HashMap<K, ()>, iterable: I) -> usize
+fn count_new_keys<I, K>(mut used: HashSet<K>, iterable: I) -> usize
     where I: IntoIterator<Item=K>,
           K: Hash + Eq,
 {
-    let iter = iterable.into_iter();
     let current_used = used.len();
-    used.extend(iter.map(|key| (key, ())));
+    used.extend(iterable);
     used.len() - current_used
 }
 
@@ -57,7 +54,7 @@ impl<I, V, F> Iterator for UniqueBy<I, V, F>
     fn next(&mut self) -> Option<I::Item> {
         while let Some(v) = self.iter.next() {
             let key = (self.f)(&v);
-            if self.used.insert(key, ()).is_none() {
+            if self.used.insert(key) {
                 return Some(v);
             }
         }
@@ -83,20 +80,12 @@ impl<I> Iterator for Unique<I>
     type Item = I::Item;
 
     fn next(&mut self) -> Option<I::Item> {
-        while let Some(v) = self.iter.iter.next() {
-            if let Entry::Vacant(entry) = self.iter.used.entry(v) {
-                let elt = entry.key().clone();
-                entry.insert(());
-                return Some(elt);
-            }
-        }
-        None
+        return self.iter.next();
     }
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let (low, hi) = self.iter.iter.size_hint();
-        ((low > 0 && self.iter.used.is_empty()) as usize, hi)
+        self.iter.size_hint()
     }
 
     fn count(self) -> usize {
@@ -109,26 +98,29 @@ impl<I> Iterator for Unique<I>
 /// See [`.unique()`](../trait.Itertools.html#method.unique) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct Unique<I: Iterator> {
-    iter: UniqueBy<I, I::Item, ()>,
+pub struct Unique<I: Iterator>
+    where I: Iterator,
+          I::Item: Eq + Hash + Clone,
+{
+    iter: UniqueBy<I, I::Item, fn(&I::Item) -> I::Item>,
 }
 
 impl<I> fmt::Debug for Unique<I>
     where I: Iterator + fmt::Debug,
-          I::Item: Hash + Eq + fmt::Debug,
+          I::Item: Hash + Eq + Clone + fmt::Debug,
 {
     debug_fmt_fields!(Unique, iter);
 }
 
 pub fn unique<I>(iter: I) -> Unique<I>
     where I: Iterator,
-          I::Item: Eq + Hash,
+          I::Item: Eq + Hash + Clone,
 {
     Unique {
         iter: UniqueBy {
             iter: iter,
-            used: HashMap::new(),
-            f: (),
+            used: HashSet::new(),
+            f: I::Item::clone,
         }
     }
 }
