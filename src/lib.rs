@@ -1918,7 +1918,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     /// 
     /// let data = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
-    /// let lookup = data.into_iter().reduce_by_key();
+    /// let lookup = data.into_iter().reduce_by_key(|a, b| *a += b);
     /// 
     /// assert_eq!(lookup[&0], 30);
     /// assert_eq!(lookup.get(&1), None);
