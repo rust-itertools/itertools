@@ -1918,7 +1918,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     /// 
     /// let data = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
-    /// let lookup = data.into_iter().reduce_by_key(|a, b| *a += b);
+    /// let lookup = data.into_iter().reduce_by_key(|acc, x| acc + x);
     /// 
     /// assert_eq!(lookup[&0], 30);
     /// assert_eq!(lookup.get(&1), None);
@@ -1929,7 +1929,7 @@ pub trait Itertools : Iterator {
     fn reduce_by_key<K, V, F>(self, f: F) -> HashMap<K, V>
         where Self: Iterator<Item=(K, V)> + Sized,
               K: Hash + Eq,
-              F: FnMut(&mut V, V),
+              F: FnMut(&V, V) -> V,
     {
         reduce_by_key::reduce_by_key(self, f)
     }
