@@ -148,6 +148,8 @@ mod process_results_impl;
 mod put_back_n_impl;
 #[cfg(feature = "use_std")]
 mod rciter_impl;
+#[cfg(feature = "use_std")]
+mod reduce_by_key;
 mod repeatn;
 mod size_hint;
 mod sources;
@@ -1906,6 +1908,30 @@ pub trait Itertools : Iterator {
               K: Hash + Eq,
     {
         group_map::into_group_map(self)
+    }
+
+    /// Return a `HashMap` of keys mapped to `Value`s of reductions of values.
+    /// Keys and values are taken from `(Key, Value)` tuple pairs yielded by
+    /// the input iterator.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let data = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
+    /// let lookup = data.into_iter().reduce_by_key();
+    /// 
+    /// assert_eq!(lookup[&0], 30);
+    /// assert_eq!(lookup.get(&1), None);
+    /// assert_eq!(lookup[&2], 54);
+    /// assert_eq!(lookup[&3], 46);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn reduce_by_key<K, V, F>(self, f: F) -> HashMap<K, V>
+        where Self: Iterator<Item=(K, V)> + Sized,
+              K: Hash + Eq,
+              F: FnMut(&mut V, V),
+    {
+        reduce_by_key::reduce_by_key(self, f)
     }
 
     /// Return the minimum and maximum elements in the iterator.
