@@ -1910,7 +1910,7 @@ pub trait Itertools : Iterator {
         group_map::into_group_map(self)
     }
 
-    /// Return a `HashMap` of keys mapped to `Value`s of reductions of values.
+    /// Return a `HashMap` of keys mapped to a reduce merge of their values.
     /// Keys and values are taken from `(Key, Value)` tuple pairs yielded by
     /// the input iterator.
     /// 
