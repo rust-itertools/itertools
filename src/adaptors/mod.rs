@@ -362,7 +362,7 @@ impl<I, J> Iterator for Product<I, J>
     }
 }
 
-/// A “meta iterator adaptor”. Its closure recives a reference to the iterator
+/// A “meta iterator adaptor”. Its closure receives a reference to the iterator
 /// and may pick off as many elements as it likes, to produce the next iterator element.
 ///
 /// Iterator element type is *X*, if the return type of `F` is *Option\<X\>*.
