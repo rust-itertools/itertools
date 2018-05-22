@@ -1260,6 +1260,56 @@ impl<I, F, T, U, E> Iterator for FilterMapOk<I, F>
         }).collect()
     }
 }
+	
+/// An iterator adapter to apply a fallible transformation within a nested `Result`.
+///
+/// See [`.map_and_then()`](../trait.Itertools.html#method.map_and_then) for more information.
+#[derive(Clone)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+pub struct MapAndThen<I, F> {
+    iter: I,
+    f: F
+}
+
+/// Create a new `MapAndThen` iterator.
+pub fn map_and_then<I, F, T, U, E>(iter: I, f: F) -> MapAndThen<I, F>
+    where I: Iterator<Item = Result<T, E>>,
+          F: FnMut(T) -> Result<U, E>
+{
+    MapAndThen {
+        iter: iter,
+        f: f,
+    }
+}
+
+impl<I, F, T, U, E> Iterator for MapAndThen<I, F>
+    where I: Iterator<Item = Result<T, E>>,
+          F: FnMut(T) -> Result<U, E>
+{
+    type Item = Result<U, E>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().map(|v| v.and_then(&mut self.f))
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+
+    fn fold<Acc, Fold>(self, init: Acc, mut fold_f: Fold) -> Acc
+        where Fold: FnMut(Acc, Self::Item) -> Acc,
+    {
+        let mut f = self.f;
+        self.iter.fold(init, move |acc, v| fold_f(acc, v.and_then(&mut f)))
+    }
+
+    fn collect<C>(self) -> C
+        where C: FromIterator<Self::Item>
+    {
+        let mut f = self.f;
+        self.iter.map(move |v| v.and_then(&mut f)).collect()
+    }
+}
 
 /// An iterator adapter to get the positions of each element that matches a predicate.
 ///
