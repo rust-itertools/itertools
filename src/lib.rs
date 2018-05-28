@@ -70,7 +70,7 @@ pub mod structs {
         Update,
     };
     #[cfg(feature = "use_std")]
-    pub use adaptors::MultiProduct;
+    pub use adaptors::{MultiProduct, MultiProductArray};
     #[cfg(feature = "use_std")]
     pub use combinations::Combinations;
     pub use cons_tuples_impl::ConsTuples;
@@ -167,12 +167,19 @@ mod ziptuple;
 /// Iterator element type is like `(A, B, ..., E)` if formed
 /// from iterators `(I, J, ..., M)` with element types `I::Item = A`, `J::Item = B`, etc.
 ///
+/// Iterators are specified in a comma-separated list. A maxmimum of 8 iterators
+/// can be specified.
+///
 /// ```
 /// #[macro_use] extern crate itertools;
 /// # fn main() {
-/// // Iterate over the coordinates of a 4 x 4 x 4 grid
-/// // from (0, 0, 0), (0, 0, 1), .., (0, 1, 0), (0, 1, 1), .. etc until (3, 3, 3)
-/// for (i, j, k) in iproduct!(0..4, 0..4, 0..4) {
+/// let symbols = ['α', 'β'];
+/// let words = ["alpha", "bravo"];
+/// let numbers = [20, 30];
+///
+/// // Iterate over all combinations of elements from each iterator
+/// // from ('α', "alpha", 20), ('α', "alpha", 30), .. until ('β', "bravo", 30)
+/// for (symbol, word, num) in iproduct!(&symbols, &words, &numbers) {
 ///    // ..
 /// }
 /// # }
@@ -195,12 +202,76 @@ macro_rules! iproduct {
     ($I:expr) => (
         $crate::__std_iter::IntoIterator::into_iter($I)
     );
+    ($($I:expr,)+) => {
+        iproduct!($($I),+)
+    };
     ($I:expr, $J:expr) => (
         $crate::Itertools::cartesian_product(iproduct!($I), iproduct!($J))
     );
     ($I:expr, $J:expr, $($K:expr),+) => (
         iproduct!(@flatten iproduct!($I, $J), $($K,)+)
     );
+}
+
+#[macro_export]
+/// Creates an iterator over the "cartesian product" of iterators, where each
+/// iterator it of the same type.
+///
+/// Iterator element type is `[I::Item; N]`, where I is type of the
+/// sub-iterators, and `N` is the number of sub-iterators.
+///
+/// Iterators can be specified in a comma separated list. Or, if all iterators
+/// are identical and implement `Clone`, they can be specified with the
+/// shorthand `[iterator; N]` syntax, similar to `vec!` and array literals. A
+/// maximum of 32 iterators can be specified.
+///
+/// ```
+/// #[macro_use] extern crate itertools;
+/// # fn main() {
+/// // Iterate over the coordinates of a 3 x 4 x 5 grid
+/// // from [0, 0, 0], [0, 0, 1], .., [0, 1, 0], [0, 1, 1], .. etc until [2, 3, 4]
+/// for c in iproduct_arr![0..3, 0..4, 0..5] {
+///    let i = c[0];
+///    let j = c[1];
+///    let k = c[2];
+///    // ..
+/// }
+///
+/// // Short-form when all iterators are identical
+/// for c in iproduct_arr![0..4; 3] {
+///    //..
+/// }
+/// # }
+/// ```
+///
+/// If the number of sub-iterators is not known at compile time, use
+/// [`.multi_cartesian_product()`](trait.Itertools.html#method.multi_cartesian_product)
+/// instead. If each sub-iterator is of a different type, use the
+/// [`iproduct`](macro.iproduct.html) macro.
+///
+/// **Note:** To enable the macros in this crate, use the `#[macro_use]`
+/// attribute when importing the crate:
+///
+/// ```
+/// #[macro_use] extern crate itertools;
+/// # fn main() { }
+/// ```
+macro_rules! iproduct_arr {
+    (@count $($I:expr, $(@$_I:tt)*)*) => {
+        0 $(+ $($_I)* 1 )*
+    };
+    (@prod $iter:expr, $N:expr) => {
+        $crate::Itertools::multi_cartesian_product($iter).array::<[(); $N]>()
+    };
+    ($($I:expr,)+) => {
+        iproduct_arr!($($I),+)
+    };
+    ($($I:expr),+) => {
+        iproduct_arr!(@prod vec![$($I),+].into_iter(), iproduct_arr!(@count $($I,)+))
+    };
+    ($I:expr; $N:expr) => {
+        iproduct_arr!(@prod $crate::repeat_n($I, $N), $N)
+    };
 }
 
 #[macro_export]
