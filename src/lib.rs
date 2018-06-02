@@ -83,6 +83,7 @@ pub mod structs {
         Product,
         PutBack,
         Batching,
+        MapInto,
         MapResults,
         Merge,
         MergeBy,
@@ -663,6 +664,20 @@ pub trait Itertools : Iterator {
         where Self: Sized
     {
         adaptors::step(self, n)
+    }
+
+    /// Convert each item of the iterator using the `Into` trait.
+    ///
+    /// ```rust
+    /// use itertools::Itertools;
+    ///
+    /// (1i32..42i32).map_into::<f64>().collect_vec();
+    /// ```
+    fn map_into<R>(self) -> MapInto<Self, R>
+        where Self: Sized,
+              Self::Item: Into<R>,
+    {
+        adaptors::map_into(self)
     }
 
     /// Return an iterator adaptor that applies the provided closure

@@ -1038,6 +1038,62 @@ impl_tuple_combination!(Tuple2Combination Tuple1Combination ; A, A, A ; a);
 impl_tuple_combination!(Tuple3Combination Tuple2Combination ; A, A, A, A ; a b);
 impl_tuple_combination!(Tuple4Combination Tuple3Combination ; A, A, A, A, A; a b c);
 
+/// An iterator adapter to apply `Into` conversion to each element.
+///
+/// See [`.map_into()`](../trait.Itertools.html#method.map_into) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+pub struct MapInto<I, R> {
+    iter: I,
+    _res: PhantomData<fn() -> R>,
+}
+
+/// Create a new [`MapInto`](struct.MapInto.html) iterator.
+pub fn map_into<I, R>(iter: I) -> MapInto<I, R> {
+    MapInto {
+        iter: iter,
+        _res: PhantomData,
+    }
+}
+
+impl<I, R> Iterator for MapInto<I, R>
+    where I: Iterator,
+          I::Item: Into<R>,
+{
+    type Item = R;
+
+    fn next(&mut self) -> Option<R> {
+        self.iter
+            .next()
+            .map(|i| i.into())
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+
+    fn fold<Acc, Fold>(self, init: Acc, mut fold_f: Fold) -> Acc
+        where Fold: FnMut(Acc, Self::Item) -> Acc,
+    {
+        self.iter.fold(init, move |acc, v| fold_f(acc, v.into()))
+    }
+}
+
+impl<I, R> DoubleEndedIterator for MapInto<I, R>
+    where I: DoubleEndedIterator,
+          I::Item: Into<R>,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter
+            .next_back()
+            .map(|i| i.into())
+    }
+}
+
+impl<I, R> ExactSizeIterator for MapInto<I, R>
+where
+    I: ExactSizeIterator,
+    I::Item: Into<R>,
+{}
 
 /// An iterator adapter to apply a transformation within a nested `Result`.
 ///
