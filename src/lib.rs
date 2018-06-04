@@ -51,6 +51,7 @@ pub use std::iter as __std_iter;
 /// The concrete iterator types.
 pub mod structs {
     pub use adaptors::{
+        Copied,
         Dedup,
         Interleave,
         InterleaveShortest,
@@ -1982,6 +1983,33 @@ pub trait Itertools : Iterator {
             |_| (),
             |x, y, _, _| Ordering::Less == compare(x, y)
         )
+    }
+
+    /// Creates an iterator which copies all of its elements.
+    ///
+    /// This is useful when you have an iterator over `&T`, but you need an
+    /// iterator over `T`. It works like `Iterator::cloned`, but requires
+    /// `T` to implement `Copy`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let a = [1, 2, 3];
+    ///
+    /// let v_copied: Vec<_> = a.iter().copied().collect();
+    ///
+    /// // copied is the same as .map(|&x| x)
+    /// let v_map: Vec<_> = a.iter().map(|&x| x).collect();
+    ///
+    /// assert_eq!(v_copied, vec![1, 2, 3]);
+    /// assert_eq!(v_map, vec![1, 2, 3]);
+    /// ```
+    fn copied<'a, T>(self) -> Copied<Self>
+        where Self: Sized + Iterator<Item=&'a T>, T: 'a + Copy
+    {
+        adaptors::copied(self)
     }
 }
 

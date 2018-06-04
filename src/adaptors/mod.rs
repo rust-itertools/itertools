@@ -24,6 +24,52 @@ macro_rules! clone_fields {
         }
     );
 }
+/// An iterator that copies the elements of an underlying iterator.
+///
+/// See [`.copied()`](../trait.Itertools.html#method.copied) for more information.
+#[derive(Clone, Debug)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+pub struct Copied<I> {
+    it: I
+}
+
+pub fn copied<'a, I, T>(iterable: I) -> Copied<I::IntoIter>
+    where I: IntoIterator<Item=&'a T>,
+          T: 'a + Copy
+{
+    Copied { it: iterable.into_iter() }
+}
+
+impl<'a, I, T> Iterator for Copied<I>
+    where I: Iterator<Item=&'a T>,
+          T: Copy + 'a
+{
+    type Item = T;
+    #[inline]
+    fn next(&mut self) -> Option<T> {
+        self.it.next().map(|&x| x)
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.it.size_hint()
+    }
+}
+
+impl<'a, I, T> ExactSizeIterator for Copied<I>
+    where I: ExactSizeIterator<Item=&'a T>,
+          T: Copy + 'a
+{}
+
+impl<'a, I, T> DoubleEndedIterator for Copied<I>
+    where I: DoubleEndedIterator<Item=&'a T>,
+          T: Copy + 'a
+{
+    #[inline]
+    fn next_back(&mut self) -> Option<T> {
+        self.it.next_back().map(|&x| x)
+    }
+}
 
 /// An iterator adaptor that alternates elements from two iterators until both
 /// run out.

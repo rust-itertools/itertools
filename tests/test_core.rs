@@ -75,7 +75,7 @@ fn izip3() {
 fn write_to() {
     let xs = [7, 9, 8];
     let mut ys = [0; 5];
-    let cnt = ys.iter_mut().set_from(xs.iter().map(|x| *x));
+    let cnt = ys.iter_mut().set_from(xs.iter().copied());
     assert!(cnt == xs.len());
     assert!(ys == [7, 9, 8, 0, 0]);
 
@@ -237,4 +237,13 @@ fn tree_fold1() {
     for i in 0..100 {
         assert_eq!((0..i).tree_fold1(|x, y| x + y), (0..i).fold1(|x, y| x + y));
     }
+}
+
+#[test]
+fn test_copied() {
+    let a = [1, 2, 3, 4, 5];
+    let mut copied = a.iter().copied();
+    assert_eq!(copied.next(), Some(1));
+    assert_eq!(copied.next_back(), Some(5));
+    it::assert_equal(copied, [2, 3, 4].iter().cloned());
 }
