@@ -12,14 +12,14 @@ pub fn reduce_by_key<I, K, V, F>(iter: I, mut f: F) -> HashMap<K, V>
 where
     I: Iterator<Item = (K, V)>,
     K: Hash + Eq,
-    F: FnMut(&V, V) -> V,
+    F: FnMut(&V, &V) -> V,
 {
     let mut lookup = HashMap::new();
 
     for (k, v) in iter {
         match lookup.entry(k) {
             Entry::Occupied(mut e) => {
-                *e.into_mut() = f(e.get(), v);
+                *e.into_mut() = f(e.get(), &v);
             }
             Entry::Vacant(e) => {
                 e.insert(v);
