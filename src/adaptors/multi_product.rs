@@ -80,11 +80,13 @@ impl<I> MultiProduct<I>
     /// 
     /// ```
     /// use itertools::Itertools;
-    /// let mut multi_prod_array = (0..3).map(|_| 4..6);
+    /// let mut multi_prod_array = (0..4).map(|_| 0..3)
+    ///     .multi_cartesian_product()
+    ///     .array::<[(); 4]>();
     /// ```
     /// 
-    /// In most instances, it is preferable to use the
-    /// [`iproduct_arr`](../macro.iproduct_arr.html).
+    /// In most instances, it is preferable to construct using the
+    /// [`iproduct_arr`](../macro.iproduct_arr.html) macro.
     pub fn array<A>(self) -> MultiProductArray<I, A>
         where MultiProductArray<I, A>: AssertIterLength
     {
