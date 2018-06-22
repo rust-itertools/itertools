@@ -38,8 +38,8 @@ How to contribute
 - Include tests for your new feature, preferably a quickcheck test
 - Make a Pull Request
 
-For new features, please first file a PR to `rust-lang/rust <https://github.com/rust-lang/rust/>`_,
-adding your new feature to the `Iterator` trait of the standard library.
+For new features, please first consider filing a PR to `rust-lang/rust <https://github.com/rust-lang/rust/>`_,
+adding your new feature to the `Iterator` trait of the standard library, if you believe it is reasonable.
 If it isn't accepted there, proposing it for inclusion in ``itertools`` is a good idea.
 The reason for doing is this is so that we avoid future breakage as with ``.flatten()``.
 However, if your feature involves heap allocation, such as storing elements in a ``Vec<T>``,
