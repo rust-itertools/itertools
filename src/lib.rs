@@ -2095,7 +2095,7 @@ pub fn partition<'a, A: 'a, I, F>(iter: I, mut pred: F) -> usize
 /// An enum used for controlling the execution of `.fold_while()`.
 ///
 /// See [`.fold_while()`](trait.Itertools.html#method.fold_while) for more information.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum FoldWhile<T> {
     /// Continue folding with this value
     Continue(T),
