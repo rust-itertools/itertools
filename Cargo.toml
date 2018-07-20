@@ -12,6 +12,8 @@ description = "Extra iterator adaptors, iterator methods, free functions, and ma
 keywords = ["iterator", "data-structure", "zip", "product", "group-by"]
 categories = ["algorithms", "rust-patterns"]
 
+exclude = ["/.travis.yml", "/Makefile", "/bors.toml", "/custom.css"]
+
 [lib]
 bench = false
 test = false
