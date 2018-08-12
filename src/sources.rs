@@ -135,6 +135,83 @@ impl<A, St, F> Iterator for Unfold<St, F>
     }
 }
 
+/// Returns an iterator that starts with the `seed` and repeatedly
+/// calls the `step` function to produce the next value, until it
+/// returns `None`. The resulting sequence always has at least one
+/// element -- the `seed`. To produce a possibly empty sequence,
+/// use `Generate::new`.
+///
+/// ```
+/// // an iterator that yields Collatz sequence.
+/// // https://en.wikipedia.org/wiki/Collatz_conjecture
+///
+/// use itertools::generate;
+///
+/// let collatz = generate(12, |&n| {
+///     if n == 1 {
+///         None
+///     } else if n % 2 == 0 {
+///         Some(n / 2)
+///     } else {
+///         Some(3 * n + 1)
+///     }
+/// });
+///
+/// itertools::assert_equal(collatz,
+///                         vec![12, 6, 3, 10, 5, 16, 8, 4, 2, 1]);
+/// ```
+pub fn generate<T, F>(seed: T, step: F) -> Generate<T, F>
+    where F: FnMut(&T) -> Option<T>
+{
+    Generate::new(Some(seed), step)
+}
+
+impl<T, F> fmt::Debug for Generate<T, F>
+    where T: fmt::Debug,
+{
+    debug_fmt_fields!(Genrate, next);
+}
+
+/// See [`generate`](../fn.generate.html) for more information.
+#[derive(Clone)]
+#[must_use = "iterators are lazy and do nothing unless consumed"]
+pub struct Generate<T, F> {
+    next: Option<T>,
+    step: F,
+}
+
+impl<T, F> Generate<T, F>
+    where F: FnMut(&T) -> Option<T>
+{
+    /// Like [`generate`](../fn.generate.html), but allows for
+    /// empty sequences.
+    pub fn new(seed: Option<T>, step: F) -> Generate<T, F> {
+        Generate {
+            next: seed,
+            step: step,
+        }
+    }
+}
+
+impl<T, F> Iterator for Generate<T, F>
+    where F: FnMut(&T) -> Option<T>
+{
+    type Item = T;
+
+    #[inline]
+    fn next(&mut self) -> Option<T> {
+        self.next.take().map(|next| {
+            self.next = (self.step)(&next);
+            next
+        })
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.next.is_some() as usize, None)
+    }
+}
+
 /// An iterator that infinitely applies function to value and yields results.
 ///
 /// This `struct` is created by the [`iterate()`] function. See its documentation for more.

@@ -12,6 +12,7 @@ use it::Itertools;
 use it::interleave;
 use it::multizip;
 use it::free::put_back;
+use it::{generate, Generate};
 
 #[test]
 fn product2() {
@@ -237,4 +238,14 @@ fn tree_fold1() {
     for i in 0..100 {
         assert_eq!((0..i).tree_fold1(|x, y| x + y), (0..i).fold1(|x, y| x + y));
     }
+}
+
+#[test]
+fn test_generate() {
+    let count_down = generate(5u32, |&n| n.checked_sub(1));
+    it::assert_equal(count_down, [5, 4, 3, 2, 1, 0].iter().cloned());
+    let non_empty = generate((), |&()| None);
+    assert_eq!(non_empty.count(), 1);
+    let empty = Generate::new(None, |&()| None);
+    assert_eq!(empty.count(), 0);
 }

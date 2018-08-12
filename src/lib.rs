@@ -91,7 +91,7 @@ pub mod structs {
     #[cfg(feature = "use_std")]
     pub use rciter_impl::RcIter;
     pub use repeatn::RepeatN;
-    pub use sources::{RepeatCall, Unfold, Iterate};
+    pub use sources::{RepeatCall, Generate, Unfold, Iterate};
     #[cfg(feature = "use_std")]
     pub use tee::Tee;
     pub use tuple_impl::{TupleBuffer, TupleWindows, Tuples};
@@ -114,7 +114,7 @@ pub use minmax::MinMaxResult;
 pub use peeking_take_while::PeekingNext;
 pub use process_results_impl::process_results;
 pub use repeatn::repeat_n;
-pub use sources::{repeat_call, unfold, iterate};
+pub use sources::{repeat_call, generate, unfold, iterate};
 pub use with_position::Position;
 pub use ziptuple::multizip;
 mod adaptors;
@@ -1888,13 +1888,13 @@ pub trait Itertools : Iterator {
 
     /// Return a `HashMap` of keys mapped to `Vec`s of values. Keys and values
     /// are taken from `(Key, Value)` tuple pairs yielded by the input iterator.
-    /// 
+    ///
     /// ```
     /// use itertools::Itertools;
-    /// 
+    ///
     /// let data = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
     /// let lookup = data.into_iter().into_group_map();
-    /// 
+    ///
     /// assert_eq!(lookup[&0], vec![10, 20]);
     /// assert_eq!(lookup.get(&1), None);
     /// assert_eq!(lookup[&2], vec![12, 42]);
