@@ -252,3 +252,21 @@ fn exactly_one() {
     assert!((0..10).filter(|&x| x > 1 && x < 5).exactly_one().unwrap_err().eq(2..5));
     assert!((0..10).filter(|&_| false).exactly_one().unwrap_err().eq(0..0));
 }
+
+#[test]
+fn sum1() {
+    let v: &[i32] = &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    assert_eq!(v[..0].iter().cloned().sum1::<i32>(), None);
+    assert_eq!(v[1..2].iter().cloned().sum1::<i32>(), Some(1));
+    assert_eq!(v[1..3].iter().cloned().sum1::<i32>(), Some(3));
+    assert_eq!(v.iter().cloned().sum1::<i32>(), Some(55));
+}
+
+#[test]
+fn product1() {
+    let v: &[i32] = &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    assert_eq!(v[..0].iter().cloned().product1::<i32>(), None);
+    assert_eq!(v[..1].iter().cloned().product1::<i32>(), Some(0));
+    assert_eq!(v[1..3].iter().cloned().product1::<i32>(), Some(2));
+    assert_eq!(v[1..5].iter().cloned().product1::<i32>(), Some(24));
+}
