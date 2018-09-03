@@ -22,6 +22,8 @@ pub use crate::put_back_n_impl::put_back_n;
 #[cfg(feature = "use_std")]
 pub use crate::multipeek_impl::multipeek;
 #[cfg(feature = "use_std")]
+pub use crate::peek_nth::peek_nth;
+#[cfg(feature = "use_std")]
 pub use crate::kmerge_impl::kmerge;
 pub use crate::zip_eq_impl::zip_eq;
 pub use crate::merge_join::merge_join_by;

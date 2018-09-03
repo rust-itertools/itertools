@@ -113,6 +113,8 @@ pub mod structs {
     pub use crate::merge_join::MergeJoinBy;
     #[cfg(feature = "use_std")]
     pub use crate::multipeek_impl::MultiPeek;
+    #[cfg(feature = "use_std")]
+    pub use crate::peek_nth::PeekNth;
     pub use crate::pad_tail::PadUsing;
     pub use crate::peeking_take_while::PeekingTakeWhile;
     #[cfg(feature = "use_std")]
@@ -187,6 +189,8 @@ mod minmax;
 #[cfg(feature = "use_std")]
 mod multipeek_impl;
 mod pad_tail;
+#[cfg(feature = "use_std")]
+mod peek_nth;
 mod peeking_take_while;
 #[cfg(feature = "use_std")]
 mod permutations;

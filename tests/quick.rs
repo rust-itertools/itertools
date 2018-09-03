@@ -19,6 +19,7 @@ use itertools::free::{
     cloned,
     enumerate,
     multipeek,
+    peek_nth,
     put_back,
     put_back_n,
     rciter,
@@ -483,6 +484,15 @@ quickcheck! {
         // peek a few times
         for _ in 0..s {
             it.peek();
+        }
+        exact_size(it)
+    }
+
+    fn size_peek_nth(a: Iter<u16, Exact>, s: u8) -> bool {
+        let mut it = peek_nth(a);
+        // peek a few times
+        for n in 0..s {
+            it.peek_nth(n as usize);
         }
         exact_size(it)
     }

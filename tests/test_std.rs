@@ -3,6 +3,7 @@ use itertools as it;
 use crate::it::Itertools;
 use crate::it::multizip;
 use crate::it::multipeek;
+use crate::it::peek_nth;
 use crate::it::free::rciter;
 use crate::it::free::put_back_n;
 use crate::it::FoldWhile;
@@ -369,6 +370,70 @@ fn test_multipeek_peeking_next() {
     assert_eq!(mp.peek(), None);
     assert_eq!(mp.next(), Some(7));
     assert_eq!(mp.peek(), None);
+}
+
+#[test]
+fn test_peek_nth() {
+    let nums = vec![1u8,2,3,4,5];
+
+    let iter = peek_nth(nums.iter().map(|&x| x));
+    assert_eq!(nums, iter.collect::<Vec<_>>());
+
+    let mut iter = peek_nth(nums.iter().map(|&x| x));
+
+    assert_eq!(iter.peek_nth(0), Some(&1));
+    assert_eq!(iter.peek_nth(0), Some(&1));
+    assert_eq!(iter.next(), Some(1));
+
+    assert_eq!(iter.peek_nth(0), Some(&2));
+    assert_eq!(iter.peek_nth(1), Some(&3));
+    assert_eq!(iter.next(), Some(2));
+
+    assert_eq!(iter.peek_nth(0), Some(&3));
+    assert_eq!(iter.peek_nth(1), Some(&4));
+    assert_eq!(iter.peek_nth(2), Some(&5));
+    assert_eq!(iter.peek_nth(3), None);
+
+    assert_eq!(iter.next(), Some(3));
+    assert_eq!(iter.next(), Some(4));
+
+    assert_eq!(iter.peek_nth(0), Some(&5));
+    assert_eq!(iter.peek_nth(1), None);
+    assert_eq!(iter.next(), Some(5));
+    assert_eq!(iter.next(), None);
+
+    assert_eq!(iter.peek_nth(0), None);
+    assert_eq!(iter.peek_nth(1), None);
+}
+
+#[test]
+fn test_peek_nth_peeking_next() {
+    use it::PeekingNext;
+    let nums = vec![1u8,2,3,4,5,6,7];
+    let mut iter = peek_nth(nums.iter().map(|&x| x));
+
+    assert_eq!(iter.peeking_next(|&x| x != 0), Some(1));
+    assert_eq!(iter.next(), Some(2));
+
+    assert_eq!(iter.peek_nth(0), Some(&3));
+    assert_eq!(iter.peek_nth(1), Some(&4));
+    assert_eq!(iter.peeking_next(|&x| x == 3), Some(3));
+    assert_eq!(iter.peek(), Some(&4));
+
+    assert_eq!(iter.peeking_next(|&x| x != 4), None);
+    assert_eq!(iter.peeking_next(|&x| x == 4), Some(4));
+    assert_eq!(iter.peek_nth(0), Some(&5));
+    assert_eq!(iter.peek_nth(1), Some(&6));
+
+    assert_eq!(iter.peeking_next(|&x| x != 5), None);
+    assert_eq!(iter.peek(), Some(&5));
+
+    assert_eq!(iter.peeking_next(|&x| x == 5), Some(5));
+    assert_eq!(iter.peeking_next(|&x| x == 6), Some(6));
+    assert_eq!(iter.peek_nth(0), Some(&7));
+    assert_eq!(iter.peek_nth(1), None);
+    assert_eq!(iter.next(), Some(7));
+    assert_eq!(iter.peek(), None);
 }
 
 #[test]
