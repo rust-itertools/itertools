@@ -87,6 +87,8 @@ pub mod structs {
     pub use peeking_take_while::PeekingTakeWhile;
     pub use process_results_impl::ProcessResults;
     #[cfg(feature = "use_std")]
+    pub use product_combination::ProductCombination;
+    #[cfg(feature = "use_std")]
     pub use put_back_n_impl::PutBackN;
     #[cfg(feature = "use_std")]
     pub use rciter_impl::RcIter;
@@ -144,6 +146,7 @@ mod multipeek_impl;
 mod pad_tail;
 mod peeking_take_while;
 mod process_results_impl;
+#[cfg(feature = "use_std")]
 mod product_combination;
 #[cfg(feature = "use_std")]
 mod put_back_n_impl;
@@ -2010,6 +2013,7 @@ pub trait Itertools : Iterator {
     ///assert_eq!(iter.next().unwrap(), vec![&3, &3]);
     ///assert_eq!(iter.next().unwrap(), vec![&1, &1, &1]);
     ///```
+    #[cfg(feature = "use_std")]
     fn product_combination(self) -> product_combination::ProductCombination<Self>
         where Self: Sized
     {
