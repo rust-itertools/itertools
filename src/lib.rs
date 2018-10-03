@@ -1888,13 +1888,13 @@ pub trait Itertools : Iterator {
 
     /// Return a `HashMap` of keys mapped to `Vec`s of values. Keys and values
     /// are taken from `(Key, Value)` tuple pairs yielded by the input iterator.
-    /// 
+    ///
     /// ```
     /// use itertools::Itertools;
-    /// 
+    ///
     /// let data = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
     /// let lookup = data.into_iter().into_group_map();
-    /// 
+    ///
     /// assert_eq!(lookup[&0], vec![10, 20]);
     /// assert_eq!(lookup.get(&1), None);
     /// assert_eq!(lookup[&2], vec![12, 42]);
@@ -1982,6 +1982,47 @@ pub trait Itertools : Iterator {
             |_| (),
             |x, y, _, _| Ordering::Less == compare(x, y)
         )
+    }
+
+    /// If the iterator yields exactly one element, that element will be returned, otherwise
+    /// an error will be returned with a `Vec` of all the elements that were yielded.
+    ///
+    /// This provides an additional layer of validation over just calling `Iterator::next()`.
+    /// If your assumption that there should only be one element yielded is false this provides
+    /// the opportunity to detect and handle that, preventing errors at a distance.
+    ///
+    /// # Examples
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// assert_eq!((0..10).filter(|&x| x == 2).exactly_one(), Ok(2));
+    /// assert_eq!((0..10).filter(|&x| x > 1 && x < 4).exactly_one(), Err(vec![2, 3]));
+    /// assert_eq!((0..10).filter(|&x| x > 1 && x < 5).exactly_one(), Err(vec![2, 3, 4]));
+    /// assert_eq!((0..10).filter(|&x| false).exactly_one(), Err(vec![]));
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn exactly_one(mut self) -> Result<Self::Item, Vec<Self::Item>>
+        where Self: Sized,
+    {
+        match self.next() {
+            Some(value) => {
+                match self.next() {
+                    Some(second) => {
+                        let hint = self.size_hint();
+                        let additional_capacity = hint.1.unwrap_or(hint.0);
+                        let mut err_vec = Vec::with_capacity(2 + additional_capacity);
+                        err_vec.push(value);
+                        err_vec.push(second);
+                        err_vec.extend(self);
+                        Err(err_vec)
+                    },
+                    None => {
+                        Ok(value)
+                    }
+                }
+            },
+            None => Err(vec![])
+        }
     }
 }
 
