@@ -14,7 +14,7 @@ pub fn product_combination<I>(iter: I) -> ProductCombination<I>
     let mut data: Vec<I::Item> = iter.collect();
 
     ProductCombination {
-        data,
+        data: data,
         internal_state: Vec::new(),
     }
 }
