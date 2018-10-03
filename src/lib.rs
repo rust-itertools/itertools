@@ -144,6 +144,7 @@ mod multipeek_impl;
 mod pad_tail;
 mod peeking_take_while;
 mod process_results_impl;
+mod product_combination;
 #[cfg(feature = "use_std")]
 mod put_back_n_impl;
 #[cfg(feature = "use_std")]
@@ -1982,6 +1983,37 @@ pub trait Itertools : Iterator {
             |_| (),
             |x, y, _, _| Ordering::Less == compare(x, y)
         )
+    }
+
+    /// Returns an iterator adaptor that iterators over all product combinations of the elements from the iterator.
+    ///
+    /// Every iteration produces a new `Vec` containing cloned elements from the iterator. The iterator will never halt as there are infinitely many product combinations.
+    ///
+    ///```
+    ///use itertools::Itertools;
+    ///
+    ///let list = vec![1, 2, 3];
+    ///
+    ///let mut iter = list.iter().product_combination();
+    ///
+    ///assert_eq!(iter.next().unwrap(), vec![&1]);
+    ///assert_eq!(iter.next().unwrap(), vec![&2]);
+    ///assert_eq!(iter.next().unwrap(), vec![&3]);
+    ///assert_eq!(iter.next().unwrap(), vec![&1, &1]);
+    ///assert_eq!(iter.next().unwrap(), vec![&2, &1]);
+    ///assert_eq!(iter.next().unwrap(), vec![&3, &1]);
+    ///assert_eq!(iter.next().unwrap(), vec![&1, &2]);
+    ///assert_eq!(iter.next().unwrap(), vec![&2, &2]);
+    ///assert_eq!(iter.next().unwrap(), vec![&3, &2]);
+    ///assert_eq!(iter.next().unwrap(), vec![&1, &3]);
+    ///assert_eq!(iter.next().unwrap(), vec![&2, &3]);
+    ///assert_eq!(iter.next().unwrap(), vec![&3, &3]);
+    ///assert_eq!(iter.next().unwrap(), vec![&1, &1, &1]);
+    ///```
+    fn product_combination(self) -> product_combination::ProductCombination<Self>
+        where Self: Sized
+    {
+        product_combination::product_combination(self)
     }
 }
 
