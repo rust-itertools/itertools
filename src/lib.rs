@@ -2015,7 +2015,7 @@ pub trait Itertools : Iterator {
     ///```
     #[cfg(feature = "use_std")]
     fn product_combination(self) -> product_combination::ProductCombination<Self>
-        where Self: Sized
+        where Self: Sized + Clone
     {
         product_combination::product_combination(self)
     }
