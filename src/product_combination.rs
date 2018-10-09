@@ -27,7 +27,7 @@ impl<I: Iterator + Clone> ProductCombination<I> {
                     tack_on = true;
                     break;
                 },
-                Some((iter, item)) => {
+                Some((ref mut iter, ref mut item)) => {
                     let new_item = iter.next();
                     match new_item {
                         //Reached the end of the iterator ... restart the iterator and advance the pointer
@@ -73,6 +73,6 @@ impl<I> Iterator for ProductCombination<I>
     fn next(&mut self) -> Option<Self::Item> {
         self.increment();
 
-        Some(self.internal_state.iter().map(|(iter,item)| item.clone()).collect())
+        Some(self.internal_state.iter().map(|(ref iter, ref item)| item.clone()).collect())
     }
 }
