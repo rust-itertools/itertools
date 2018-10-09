@@ -28,7 +28,8 @@ impl<I: Iterator + Clone> ProductCombination<I> {
                     break;
                 },
                 Some(ref mut pair) => {
-                    let (ref mut iter, ref mut item) = pair;
+                    let iter = &mut pair.0;
+                    let item = &mut pair.1;
 
                     let new_item = iter.next();
                     match new_item {
