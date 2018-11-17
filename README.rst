@@ -21,7 +21,7 @@ How to use with cargo:
 .. code:: toml
 
     [dependencies]
-    itertools = "0.7.3"
+    itertools = "0.7"
 
 How to use in your crate:
 
@@ -47,6 +47,12 @@ then it can't be accepted into ``libcore``, and you should propose it for ``iter
 
 Recent Changes
 --------------
+
+- 0.7.9
+
+  - New inclusion policy: See the readme about suggesting features for std before
+    accepting them in itertools.
+  - The ``FoldWhile`` type now implements ``Eq`` and ``PartialEq`` by @jturner314
 
 - 0.7.8
 
