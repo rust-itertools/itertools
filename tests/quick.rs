@@ -6,6 +6,7 @@
 #[macro_use] extern crate itertools;
 
 extern crate quickcheck;
+extern crate rand;
 
 use std::default::Default;
 
@@ -29,6 +30,8 @@ use itertools::free::{
     zip_eq,
 };
 
+use rand::Rng;
+use rand::seq::SliceRandom;
 use quickcheck::TestResult;
 
 /// Trait for size hint modifier types
@@ -78,8 +81,8 @@ impl qc::Arbitrary for Inexact {
         let ue_choices = &[0, ue_value, usize::max_value()];
         let oe_choices = &[0, oe_value, usize::max_value()];
         Inexact {
-            underestimate: *g.choose(ue_choices).unwrap(),
-            overestimate: *g.choose(oe_choices).unwrap(),
+            underestimate: *ue_choices.choose(g).unwrap(),
+            overestimate: *oe_choices.choose(g).unwrap(),
         }
     }
 
