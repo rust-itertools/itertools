@@ -165,6 +165,7 @@ fn test_rciter() {
     assert_eq!(z.next(), Some((0, 1)));
 }
 
+#[allow(deprecated)]
 #[test]
 fn trait_pointers() {
     struct ByRef<'r, I: ?Sized>(&'r mut I) where I: 'r;
@@ -220,6 +221,7 @@ fn merge_by_btree() {
     it::assert_equal(results, expected.into_iter());
 }
 
+#[allow(deprecated)]
 #[test]
 fn kmerge() {
     let its = (0..4).map(|s| (s..10).step(4));
@@ -227,6 +229,7 @@ fn kmerge() {
     it::assert_equal(its.kmerge(), 0..10);
 }
 
+#[allow(deprecated)]
 #[test]
 fn kmerge_2() {
     let its = vec![3, 2, 1, 0].into_iter().map(|s| (s..10).step(4));
@@ -684,6 +687,7 @@ fn while_some() {
     it::assert_equal(ns, vec![1, 2, 3, 4]);
 }
 
+#[allow(deprecated)]
 #[test]
 fn fold_while() {
     let mut iterations = 0;

@@ -61,7 +61,6 @@ pub mod structs {
         Product,
         PutBack,
         Batching,
-        Step,
         MapResults,
         Merge,
         MergeBy,
@@ -72,6 +71,8 @@ pub mod structs {
         Positions,
         Update,
     };
+    #[allow(deprecated)]
+    pub use adaptors::Step;
     #[cfg(feature = "use_std")]
     pub use adaptors::MultiProduct;
     #[cfg(feature = "use_std")]
@@ -94,6 +95,7 @@ pub mod structs {
     #[cfg(feature = "use_std")]
     pub use rciter_impl::RcIter;
     pub use repeatn::RepeatN;
+    #[allow(deprecated)]
     pub use sources::{RepeatCall, Unfold, Iterate};
     #[cfg(feature = "use_std")]
     pub use tee::Tee;
@@ -105,6 +107,7 @@ pub mod structs {
     pub use zip_longest::ZipLongest;
     pub use ziptuple::Zip;
 }
+#[allow(deprecated)]
 pub use structs::*;
 pub use concat_impl::concat;
 pub use cons_tuples_impl::cons_tuples;
@@ -116,6 +119,7 @@ pub use minmax::MinMaxResult;
 pub use peeking_take_while::PeekingNext;
 pub use process_results_impl::process_results;
 pub use repeatn::repeat_n;
+#[allow(deprecated)]
 pub use sources::{repeat_call, unfold, iterate};
 pub use with_position::Position;
 pub use ziptuple::multizip;
@@ -628,6 +632,8 @@ pub trait Itertools : Iterator {
     /// let it = (0..8).step(3);
     /// itertools::assert_equal(it, vec![0, 3, 6]);
     /// ```
+    #[deprecated(note="Use std .step_by() instead", since="0.8")]
+    #[allow(deprecated)]
     fn step(self, n: usize) -> Step<Self>
         where Self: Sized
     {
@@ -1332,11 +1338,12 @@ pub trait Itertools : Iterator {
     ///
     /// itertools::assert_equal(rx.iter(), vec![1, 3, 5, 7, 9]);
     /// ```
-    fn foreach<F>(self, mut f: F)
+    #[deprecated(note="Use .for_each() instead", since="0.8")]
+    fn foreach<F>(self, f: F)
         where F: FnMut(Self::Item),
               Self: Sized,
     {
-        self.fold((), move |(), element| f(element))
+        self.for_each(f)
     }
 
     /// Combine all an iterator's elements into one element by using `Extend`.
@@ -1742,6 +1749,7 @@ pub trait Itertools : Iterator {
     /// The big difference between the computations of `result2` and `result3` is that while
     /// `fold()` called the provided closure for every item of the callee iterator,
     /// `fold_while()` actually stopped iterating as soon as it encountered `Fold::Done(_)`.
+    #[deprecated(note="Use .try_fold() instead", since="0.8")]
     fn fold_while<B, F>(&mut self, init: B, mut f: F) -> FoldWhile<B>
         where Self: Sized,
               F: FnMut(B, Self::Item) -> FoldWhile<B>

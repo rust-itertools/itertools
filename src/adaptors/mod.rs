@@ -407,6 +407,8 @@ impl<B, F, I> Iterator for Batching<I, F>
 /// then skipping forward *n-1* elements.
 ///
 /// See [`.step()`](../trait.Itertools.html#method.step) for more information.
+#[deprecated(note="Use std .step_by() instead", since="0.8")]
+#[allow(deprecated)]
 #[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Step<I> {
@@ -417,6 +419,7 @@ pub struct Step<I> {
 /// Create a `Step` iterator.
 ///
 /// **Panics** if the step is 0.
+#[allow(deprecated)]
 pub fn step<I>(iter: I, step: usize) -> Step<I>
     where I: Iterator
 {
@@ -427,6 +430,7 @@ pub fn step<I>(iter: I, step: usize) -> Step<I>
     }
 }
 
+#[allow(deprecated)]
 impl<I> Iterator for Step<I>
     where I: Iterator
 {
@@ -454,6 +458,7 @@ impl<I> Iterator for Step<I>
 }
 
 // known size
+#[allow(deprecated)]
 impl<I> ExactSizeIterator for Step<I>
     where I: ExactSizeIterator
 {}

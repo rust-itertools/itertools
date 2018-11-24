@@ -113,6 +113,7 @@ fn test_interleave() {
     it::assert_equal(it, rs.iter());
 }
 
+#[allow(deprecated)]
 #[test]
 fn foreach() {
     let xs = [1i32, 2, 3];
@@ -159,6 +160,7 @@ fn test_put_back() {
     it::assert_equal(pb, xs.iter().cloned());
 }
 
+#[allow(deprecated)]
 #[test]
 fn step() {
     it::assert_equal((0..10).step(1), 0..10);
@@ -166,6 +168,7 @@ fn step() {
     it::assert_equal((0..10).step(10), 0..1);
 }
 
+#[allow(deprecated)]
 #[test]
 fn merge() {
     it::assert_equal((0..10).step(2).merge((1..10).step(2)), 0..10);
