@@ -54,6 +54,7 @@ pub use std::iter as __std_iter;
 
 /// The concrete iterator types.
 pub mod structs {
+    #[allow(deprecated)]
     pub use adaptors::{
         Dedup,
         Interleave,
@@ -630,6 +631,8 @@ pub trait Itertools : Iterator {
     /// let it = (0..8).step(3);
     /// itertools::assert_equal(it, vec![0, 3, 6]);
     /// ```
+    #[deprecated(note="Use std .step_by() instead", since="0.8")]
+    #[allow(deprecated)]
     fn step(self, n: usize) -> Step<Self>
         where Self: Sized
     {

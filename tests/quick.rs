@@ -403,6 +403,7 @@ quickcheck! {
         assert_eq!(answer.into_iter().last(), a.clone().multi_cartesian_product().last());
     }
 
+    #[allow(deprecated)]
     fn size_step(a: Iter<i16, Exact>, s: usize) -> bool {
         let mut s = s;
         if s == 0 {
@@ -412,6 +413,8 @@ quickcheck! {
         correct_size_hint(filt.step(s)) &&
             exact_size(a.step(s))
     }
+
+    #[allow(deprecated)]
     fn equal_step(a: Iter<i16>, s: usize) -> bool {
         let mut s = s;
         if s == 0 {
@@ -424,6 +427,8 @@ quickcheck! {
             keep
         }))
     }
+
+    #[allow(deprecated)]
     fn equal_step_vec(a: Vec<i16>, s: usize) -> bool {
         let mut s = s;
         if s == 0 {
@@ -988,6 +993,7 @@ quickcheck! {
 }
 
 quickcheck! {
+    #[allow(deprecated)]
     fn tree_fold1_f64(mut a: Vec<f64>) -> TestResult {
         fn collapse_adjacent<F>(x: Vec<f64>, mut f: F) -> Vec<f64>
             where F: FnMut(f64, f64) -> f64
