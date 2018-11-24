@@ -106,7 +106,6 @@ pub mod structs {
     pub use ziptuple::Zip;
 }
 pub use structs::*;
-pub use adaptors::flatten;
 pub use concat_impl::concat;
 pub use cons_tuples_impl::cons_tuples;
 pub use diff::diff_with;

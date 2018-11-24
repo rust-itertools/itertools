@@ -9,7 +9,6 @@
 
 use core::iter;
 
-use it::flatten;
 use it::Itertools;
 use it::interleave;
 use it::multizip;
@@ -234,19 +233,6 @@ fn part() {
     let i = it::partition(&mut data, |elt| *elt % 3 == 0);
     assert_eq!(i, 3);
     assert_eq!(data, [9, 6, 3, 4, 5, 2, 7, 8, 1]);
-}
-
-#[test]
-fn flatten_clone() {
-    let data = &[
-        &[1,2,3],
-        &[4,5,6]
-    ];
-    let flattened1 = flatten(data.into_iter().cloned());
-    let flattened2 = flattened1.clone();
-
-    it::assert_equal(flattened1, &[1,2,3,4,5,6]);
-    it::assert_equal(flattened2, &[1,2,3,4,5,6]);
 }
 
 #[test]
