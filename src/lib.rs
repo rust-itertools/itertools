@@ -94,6 +94,7 @@ pub mod structs {
     #[cfg(feature = "use_std")]
     pub use rciter_impl::RcIter;
     pub use repeatn::RepeatN;
+    #[allow(deprecated)]
     pub use sources::{RepeatCall, Unfold, Iterate};
     #[cfg(feature = "use_std")]
     pub use tee::Tee;
@@ -116,6 +117,7 @@ pub use minmax::MinMaxResult;
 pub use peeking_take_while::PeekingNext;
 pub use process_results_impl::process_results;
 pub use repeatn::repeat_n;
+#[allow(deprecated)]
 pub use sources::{repeat_call, unfold, iterate};
 pub use with_position::Position;
 pub use ziptuple::multizip;
