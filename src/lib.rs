@@ -61,7 +61,6 @@ pub mod structs {
         Product,
         PutBack,
         Batching,
-        Step,
         MapResults,
         Merge,
         MergeBy,
@@ -72,6 +71,8 @@ pub mod structs {
         Positions,
         Update,
     };
+    #[allow(deprecated)]
+    pub use adaptors::Step;
     #[cfg(feature = "use_std")]
     pub use adaptors::MultiProduct;
     #[cfg(feature = "use_std")]
@@ -106,6 +107,7 @@ pub mod structs {
     pub use zip_longest::ZipLongest;
     pub use ziptuple::Zip;
 }
+#[allow(deprecated)]
 pub use structs::*;
 pub use concat_impl::concat;
 pub use cons_tuples_impl::cons_tuples;
@@ -630,6 +632,8 @@ pub trait Itertools : Iterator {
     /// let it = (0..8).step(3);
     /// itertools::assert_equal(it, vec![0, 3, 6]);
     /// ```
+    #[deprecated(note="Use std .step_by() instead", since="0.8")]
+    #[allow(deprecated)]
     fn step(self, n: usize) -> Step<Self>
         where Self: Sized
     {
