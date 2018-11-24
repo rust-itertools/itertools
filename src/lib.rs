@@ -1767,9 +1767,9 @@ pub trait Itertools : Iterator {
     /// The big difference between the computations of `result2` and `result3` is that while
     /// `fold()` called the provided closure for every item of the callee iterator,
     /// `fold_while()` actually stopped iterating as soon as it encountered `Fold::Done(_)`.
-    fn fold_while<B, F>(&mut self, init: B, mut f: F) -> FoldWhile<B>
+    fn fold_while<T, U, F>(&mut self, init: T, mut f: F) -> FoldWhile<T, U>
         where Self: Sized,
-              F: FnMut(B, Self::Item) -> FoldWhile<B>
+              F: FnMut(T, Self::Item) -> FoldWhile<T, U>
     {
         let mut acc = init;
         while let Some(item) = self.next() {
@@ -2127,21 +2127,23 @@ pub fn partition<'a, A: 'a, I, F>(iter: I, mut pred: F) -> usize
 ///
 /// See [`.fold_while()`](trait.Itertools.html#method.fold_while) for more information.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum FoldWhile<T> {
+pub enum FoldWhile<T, U = T> {
     /// Continue folding with this value
     Continue(T),
     /// Fold is complete and will return this value
-    Done(T),
+    Done(U),
 }
 
-impl<T> FoldWhile<T> {
+impl<T> FoldWhile<T, T> {
     /// Return the value in the continue or done.
     pub fn into_inner(self) -> T {
         match self {
             FoldWhile::Continue(x) | FoldWhile::Done(x) => x,
         }
     }
+}
 
+impl<T, U> FoldWhile<T, U> {
     /// Return true if `self` is `Done`, false if it is `Continue`.
     pub fn is_done(&self) -> bool {
         match *self {
