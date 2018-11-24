@@ -40,6 +40,10 @@ use std::fmt;
 use std::hash::Hash;
 #[cfg(feature = "use_std")]
 use std::fmt::Write;
+#[cfg(feature = "use_std")]
+type VecIntoIter<T> = ::std::vec::IntoIter<T>;
+#[cfg(feature = "use_std")]
+use std::iter::FromIterator;
 
 #[macro_use]
 mod impl_macros;
@@ -1762,10 +1766,14 @@ pub trait Itertools : Iterator {
         FoldWhile::Continue(acc)
     }
 
-    /// Collect all iterator elements into a sorted vector in ascending order.
+    /// Sort all iterator elements into a new iterator in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, uses the
-    /// `slice::sort_by()` method and returns the sorted vector.
+    /// `slice::sort()` method and returns the result as a new
+    /// iterator that owns its elements.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -1776,17 +1784,25 @@ pub trait Itertools : Iterator {
     ///                         "abcdef".chars());
     /// ```
     #[cfg(feature = "use_std")]
-    fn sorted(self) -> Vec<Self::Item>
+    fn sorted(self) -> VecIntoIter<Self::Item>
         where Self: Sized,
               Self::Item: Ord
     {
-        self.sorted_by(Ord::cmp)
+        // Use .sort() directly since it is not quite identical with
+        // .sort_by(Ord::cmp)
+        let mut v = Vec::from_iter(self);
+        v.sort();
+        v.into_iter()
     }
 
-    /// Collect all iterator elements into a sorted vector.
+    /// Sort all iterator elements into a new iterator in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, uses the
-    /// `slice::sort_by()` method and returns the sorted vector.
+    /// `slice::sort_by()` method and returns the result as a new
+    /// iterator that owns its elements.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -1797,27 +1813,29 @@ pub trait Itertools : Iterator {
     /// let oldest_people_first = people
     ///     .into_iter()
     ///     .sorted_by(|a, b| Ord::cmp(&b.1, &a.1))
-    ///     .into_iter()
     ///     .map(|(person, _age)| person);
     ///
     /// itertools::assert_equal(oldest_people_first,
     ///                         vec!["Jill", "Jack", "Jane", "John"]);
     /// ```
     #[cfg(feature = "use_std")]
-    fn sorted_by<F>(self, cmp: F) -> Vec<Self::Item>
+    fn sorted_by<F>(self, cmp: F) -> VecIntoIter<Self::Item>
         where Self: Sized,
               F: FnMut(&Self::Item, &Self::Item) -> Ordering,
     {
-        let mut v: Vec<Self::Item> = self.collect();
-
+        let mut v = Vec::from_iter(self);
         v.sort_by(cmp);
-        v
+        v.into_iter()
     }
 
-    /// Collect all iterator elements into a sorted vector.
+    /// Sort all iterator elements into a new iterator in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, uses the
-    /// `slice::sort_by_key()` method and returns the sorted vector.
+    /// `slice::sort_by_key()` method and returns the result as a new
+    /// iterator that owns its elements.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -1828,22 +1846,20 @@ pub trait Itertools : Iterator {
     /// let oldest_people_first = people
     ///     .into_iter()
     ///     .sorted_by_key(|x| -x.1)
-    ///     .into_iter()
     ///     .map(|(person, _age)| person);
     ///
     /// itertools::assert_equal(oldest_people_first,
     ///                         vec!["Jill", "Jack", "Jane", "John"]);
     /// ```
     #[cfg(feature = "use_std")]
-    fn sorted_by_key<K, F>(self, f: F) -> Vec<Self::Item>
+    fn sorted_by_key<K, F>(self, f: F) -> VecIntoIter<Self::Item>
         where Self: Sized,
               K: Ord,
               F: FnMut(&Self::Item) -> K,
     {
-        let mut v: Vec<Self::Item> = self.collect();
-
+        let mut v = Vec::from_iter(self);
         v.sort_by_key(f);
-        v
+        v.into_iter()
     }
 
     /// Collect all iterator elements into one of two
