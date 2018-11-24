@@ -7,6 +7,8 @@
 
 #[macro_use] extern crate itertools as it;
 
+use core::iter;
+
 use it::flatten;
 use it::Itertools;
 use it::interleave;
@@ -55,7 +57,22 @@ fn izip_macro() {
 }
 
 #[test]
+fn izip2() {
+    let _zip1: iter::Zip<_, _> = izip!(1.., 2..);
+    let _zip2: iter::Zip<_, _> = izip!(1.., 2.., );
+}
+
+#[test]
 fn izip3() {
+    let mut zip: iter::Map<iter::Zip<_, _>, _> = izip!(0..3, 0..2, 0..2i8);
+    for i in 0..2 {
+        assert!((i as usize, i, i as i8) == zip.next().unwrap());
+    }
+    assert!(zip.next().is_none());
+}
+
+#[test]
+fn multizip3() {
     let mut zip = multizip((0..3, 0..2, 0..2i8));
     for i in 0..2 {
         assert!((i as usize, i, i as i8) == zip.next().unwrap());

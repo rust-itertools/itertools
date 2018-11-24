@@ -214,12 +214,15 @@ macro_rules! iproduct {
 /// returns `None`.
 ///
 /// This is a version of the standard ``.zip()`` that's supporting more than
-/// two iterators. The iterator elment type is a tuple with one element
+/// two iterators. The iterator element type is a tuple with one element
 /// from each of the input iterators. Just like ``.zip()``, the iteration stops
 /// when the shortest of the inputs reaches its end.
 ///
-/// **Note:** The result of this macro is an iterator composed of
-/// repeated `.zip()` and a `.map()`; it has an anonymous type.
+/// **Note:** The result of this macro is in the general case an iterator
+/// composed of repeated `.zip()` and a `.map()`; it has an anonymous type.
+/// The special cases of one and two arguments produce the equivalent of
+/// `$a.into_iter()` and `$a.into_iter().zip($b)` respectively.
+///
 /// Prefer this macro `izip!()` over [`multizip`] for the performance benefits
 /// of using the standard library `.zip()`.
 ///
@@ -261,8 +264,20 @@ macro_rules! izip {
         izip!(@closure ($p, b) => ( $($tup)*, b ) $( , $tail )*)
     };
 
-    ( $first:expr $( , $rest:expr )* $(,)* ) => {
+    // unary
+    ($first:expr $(,)*) => {
         $crate::__std_iter::IntoIterator::into_iter($first)
+    };
+
+    // binary
+    ($first:expr, $second:expr $(,)*) => {
+        izip!($first)
+            .zip($second)
+    };
+
+    // n-ary where n > 2
+    ( $first:expr $( , $rest:expr )* $(,)* ) => {
+        izip!($first)
             $(
                 .zip($rest)
             )*
