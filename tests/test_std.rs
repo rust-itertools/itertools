@@ -684,6 +684,7 @@ fn while_some() {
     it::assert_equal(ns, vec![1, 2, 3, 4]);
 }
 
+#[allow(deprecated)]
 #[test]
 fn fold_while() {
     let mut iterations = 0;
