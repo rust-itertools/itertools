@@ -10,10 +10,9 @@ pub use self::multi_product::*;
 
 use std::fmt;
 use std::mem::replace;
-use std::iter::{Fuse, Peekable, FromIterator};
+use std::iter::{Flatten, Fuse, Peekable, FromIterator};
 use std::marker::PhantomData;
 use size_hint;
-use fold;
 
 macro_rules! clone_fields {
     ($name:ident, $base:expr, $($field:ident),+) => (
@@ -1035,16 +1034,6 @@ impl_tuple_combination!(Tuple3Combination Tuple2Combination ; A, A, A, A ; a b);
 impl_tuple_combination!(Tuple4Combination Tuple3Combination ; A, A, A, A, A; a b c);
 
 
-/// An iterator adapter to simply flatten a structure.
-///
-/// See [`.flatten()`](../trait.Itertools.html#method.flatten) for more information.
-#[derive(Clone, Debug)]
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct Flatten<I, J> {
-    iter: I,
-    front: Option<J>,
-}
-
 /// Flatten an iterable of iterables into a single combined sequence of all
 /// the elements in the iterables.
 ///
@@ -1063,51 +1052,11 @@ pub struct Flatten<I, J> {
 /// itertools::assert_equal(flatten(&data),
 ///                         &[1, 2, 3, 4, 5, 6]);
 /// ```
-pub fn flatten<I, J>(iterable: I) -> Flatten<I::IntoIter, J>
+pub fn flatten<I>(iterable: I) -> Flatten<I::IntoIter>
     where I: IntoIterator,
-          I::Item: IntoIterator<IntoIter=J, Item=J::Item>,
-          J: Iterator,
+          I::Item: IntoIterator,
 {
-    Flatten {
-        iter: iterable.into_iter(),
-        front: None,
-    }
-}
-
-impl<I, J> Iterator for Flatten<I, J>
-    where I: Iterator,
-          I::Item: IntoIterator<IntoIter=J, Item=J::Item>,
-          J: Iterator,
-{
-    type Item = J::Item;
-    fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            if let Some(ref mut f) = self.front {
-                match f.next() {
-                    elt @ Some(_) => return elt,
-                    None => { }
-                }
-            }
-            if let Some(next_front) = self.iter.next() {
-                self.front = Some(next_front.into_iter());
-            } else {
-                break;
-            }
-        }
-        None
-    }
-
-    // special case to convert segmented iterator into consecutive loops
-    fn fold<Acc, G>(self, init: Acc, mut f: G) -> Acc
-        where G: FnMut(Acc, Self::Item) -> Acc,
-    {
-        let mut accum = init;
-        if let Some(iter) = self.front {
-            accum = fold(iter, accum, &mut f);
-        }
-        self.iter.fold(accum, move |accum, iter| fold(iter, accum, &mut f))
-    }
-
+    iterable.into_iter().flatten()
 }
 
 /// An iterator adapter to apply a transformation within a nested `Result`.
