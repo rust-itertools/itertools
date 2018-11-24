@@ -113,6 +113,7 @@ fn test_interleave() {
     it::assert_equal(it, rs.iter());
 }
 
+#[allow(deprecated)]
 #[test]
 fn foreach() {
     let xs = [1i32, 2, 3];

@@ -1338,11 +1338,12 @@ pub trait Itertools : Iterator {
     ///
     /// itertools::assert_equal(rx.iter(), vec![1, 3, 5, 7, 9]);
     /// ```
-    fn foreach<F>(self, mut f: F)
+    #[deprecated(note="Use .for_each() instead", since="0.8")]
+    fn foreach<F>(self, f: F)
         where F: FnMut(Self::Item),
               Self: Sized,
     {
-        self.fold((), move |(), element| f(element))
+        self.for_each(f)
     }
 
     /// Combine all an iterator's elements into one element by using `Extend`.

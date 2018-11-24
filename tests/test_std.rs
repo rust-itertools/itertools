@@ -165,6 +165,7 @@ fn test_rciter() {
     assert_eq!(z.next(), Some((0, 1)));
 }
 
+#[allow(deprecated)]
 #[test]
 fn trait_pointers() {
     struct ByRef<'r, I: ?Sized>(&'r mut I) where I: 'r;
