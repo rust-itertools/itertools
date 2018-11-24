@@ -18,7 +18,6 @@ use itertools::{
     multizip,
     EitherOrBoth,
 };
-use itertools::flatten;
 use itertools::free::{
     cloned,
     enumerate,
@@ -605,16 +604,6 @@ quickcheck! {
             inter = !inter;
         }
         true
-    }
-
-    fn equal_flatten(a: Vec<Option<i32>>) -> bool {
-        itertools::equal(flatten(&a),
-                         a.iter().filter_map(|x| x.as_ref()))
-    }
-
-    fn equal_flatten_vec(a: Vec<Vec<u8>>) -> bool {
-        itertools::equal(flatten(&a),
-                         a.iter().flat_map(|x| x))
     }
 
     fn equal_combinations_2(a: Vec<u8>) -> bool {

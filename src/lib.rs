@@ -69,7 +69,6 @@ pub mod structs {
         WhileSome,
         Coalesce,
         TupleCombinations,
-        Flatten,
         Positions,
         Update,
     };
@@ -107,7 +106,6 @@ pub mod structs {
     pub use ziptuple::Zip;
 }
 pub use structs::*;
-pub use adaptors::flatten;
 pub use concat_impl::concat;
 pub use cons_tuples_impl::cons_tuples;
 pub use diff::diff_with;
@@ -1106,29 +1104,6 @@ pub trait Itertools : Iterator {
               F: FnMut(usize) -> Self::Item
     {
         pad_tail::pad_using(self, min, f)
-    }
-
-    /// Flatten an iterator of iterables into a single combined sequence of all
-    /// the elements in the iterables.
-    ///
-    /// This is more or less equivalent to `.flat_map` with an identity
-    /// function.
-    ///
-    /// See also the [`flatten`](fn.flatten.html) function.
-    ///
-    /// ```ignore
-    /// use itertools::Itertools;
-    ///
-    /// let data = vec![vec![1, 2, 3], vec![4, 5, 6]];
-    /// let flattened = data.iter().flatten();
-    ///
-    /// itertools::assert_equal(flattened, &[1, 2, 3, 4, 5, 6]);
-    /// ```
-    fn flatten(self) -> Flatten<Self, <Self::Item as IntoIterator>::IntoIter>
-        where Self: Sized,
-              Self::Item: IntoIterator
-    {
-        adaptors::flatten(self)
     }
 
     /// Return an iterator adaptor that wraps each element in a `Position` to
