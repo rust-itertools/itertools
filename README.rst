@@ -48,6 +48,15 @@ then it can't be accepted into ``libcore``, and you should propose it for ``iter
 Recent Changes
 --------------
 
+- 0.7.11
+
+  - Add convenience methods to ``EitherOrBoth``, making it more similar to ``Option``
+    and ``Either`` by @jethrogb
+
+- 0.7.10
+
+  - No changes.
+
 - 0.7.9
 
   - New inclusion policy: See the readme about suggesting features for std before
