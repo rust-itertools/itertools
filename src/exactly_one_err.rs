@@ -1,3 +1,5 @@
+use size_hint;
+
 /// Iterator returned for the error case of `IterTools::exactly_one()`
 /// This iterator yields exactly the same elements as the input iterator.
 ///
@@ -37,5 +39,16 @@ where
             .take()
             .or_else(|| self.first_two.1.take())
             .or_else(|| self.inner.next())
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let mut additional_len = 0;
+        if self.first_two.0.is_some() {
+            additional_len += 1;
+        }
+        if self.first_two.1.is_some() {
+            additional_len += 1;
+        }
+        size_hint::add_scalar(self.inner.size_hint(), additional_len)
     }
 }
