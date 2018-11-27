@@ -33,7 +33,7 @@ pub use either::Either;
 
 #[cfg(feature = "use_std")]
 use std::collections::HashMap;
-use std::iter::{IntoIterator, Peekable};
+use std::iter::{IntoIterator};
 use std::cmp::Ordering;
 use std::fmt;
 #[cfg(feature = "use_std")]
@@ -74,6 +74,7 @@ pub mod structs {
     #[cfg(feature = "use_std")]
     pub use combinations::Combinations;
     pub use cons_tuples_impl::ConsTuples;
+    pub use exactly_one_err::ExactlyOneErr;
     pub use format::{Format, FormatWith};
     #[cfg(feature = "use_std")]
     pub use groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
@@ -128,6 +129,7 @@ mod concat_impl;
 mod cons_tuples_impl;
 #[cfg(feature = "use_std")]
 mod combinations;
+mod exactly_one_err;
 mod diff;
 mod format;
 #[cfg(feature = "use_std")]
@@ -1997,24 +1999,26 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// assert_eq!((0..10).filter(|&x| x == 2).exactly_one().unwrap(), 2);
-    /// assert!((0..10).filter(|&x| x > 1 && x < 4).exactly_one().unwrap_err().eq(vec![2, 3].into_iter()));
-    /// assert!((0..10).filter(|&x| x > 1 && x < 5).exactly_one().unwrap_err().eq(vec![2, 3, 4].into_iter()));
-    /// assert!((0..10).filter(|&x| false).exactly_one().unwrap_err().eq(vec![].into_iter()));
+    /// assert!((0..10).filter(|&x| x > 1 && x < 4).exactly_one().unwrap_err().eq(2..4));
+    /// assert!((0..10).filter(|&x| x > 1 && x < 5).exactly_one().unwrap_err().eq(2..5));
+    /// assert!((0..10).filter(|&x| false).exactly_one().unwrap_err().eq(0..0));
     /// ```
-    fn exactly_one(self) -> Result<Self::Item, PutBack<Peekable<Self>>>
+    fn exactly_one(mut self) -> Result<Self::Item, ExactlyOneErr<Self::Item, Self>>
     where
         Self: Sized,
     {
-        let mut peek = self.peekable();
-        match peek.next() {
-            Some(value) => {
-                if peek.peek().is_some() {
-                    Err(put_back(peek).with_value(value))
-                } else {
-                    Ok(value)
+        match self.next() {
+            Some(first) => {
+                match self.next() {
+                    Some(second) => {
+                        Err(ExactlyOneErr::new((Some(first), Some(second)), self))
+                    }
+                    None => {
+                        Ok(first)
+                    }
                 }
             }
-            None => Err(put_back(peek)),
+            None => Err(ExactlyOneErr::new((None, None), self)),
         }
     }
 }
