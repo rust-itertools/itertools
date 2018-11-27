@@ -33,7 +33,7 @@ pub use either::Either;
 
 #[cfg(feature = "use_std")]
 use std::collections::HashMap;
-use std::iter::{IntoIterator};
+use std::iter::{IntoIterator, Peekable};
 use std::cmp::Ordering;
 use std::fmt;
 #[cfg(feature = "use_std")]
@@ -1985,7 +1985,8 @@ pub trait Itertools : Iterator {
     }
 
     /// If the iterator yields exactly one element, that element will be returned, otherwise
-    /// an error will be returned with a `Vec` of all the elements that were yielded.
+    /// an error will be returned containing an iterator that has the same output as the input
+    /// iterator.
     ///
     /// This provides an additional layer of validation over just calling `Iterator::next()`.
     /// If your assumption that there should only be one element yielded is false this provides
@@ -1995,33 +1996,25 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// assert_eq!((0..10).filter(|&x| x == 2).exactly_one(), Ok(2));
-    /// assert_eq!((0..10).filter(|&x| x > 1 && x < 4).exactly_one(), Err(vec![2, 3]));
-    /// assert_eq!((0..10).filter(|&x| x > 1 && x < 5).exactly_one(), Err(vec![2, 3, 4]));
-    /// assert_eq!((0..10).filter(|&x| false).exactly_one(), Err(vec![]));
+    /// assert_eq!((0..10).filter(|&x| x == 2).exactly_one().unwrap(), 2);
+    /// assert!((0..10).filter(|&x| x > 1 && x < 4).exactly_one().unwrap_err().eq(vec![2, 3].into_iter()));
+    /// assert!((0..10).filter(|&x| x > 1 && x < 5).exactly_one().unwrap_err().eq(vec![2, 3, 4].into_iter()));
+    /// assert!((0..10).filter(|&x| false).exactly_one().unwrap_err().eq(vec![].into_iter()));
     /// ```
-    #[cfg(feature = "use_std")]
-    fn exactly_one(mut self) -> Result<Self::Item, Vec<Self::Item>>
-        where Self: Sized,
+    fn exactly_one(self) -> Result<Self::Item, PutBack<Peekable<Self>>>
+    where
+        Self: Sized,
     {
-        match self.next() {
+        let mut peek = self.peekable();
+        match peek.next() {
             Some(value) => {
-                match self.next() {
-                    Some(second) => {
-                        let hint = self.size_hint();
-                        let additional_capacity = hint.1.unwrap_or(hint.0);
-                        let mut err_vec = Vec::with_capacity(2 + additional_capacity);
-                        err_vec.push(value);
-                        err_vec.push(second);
-                        err_vec.extend(self);
-                        Err(err_vec)
-                    },
-                    None => {
-                        Ok(value)
-                    }
+                if peek.peek().is_some() {
+                    Err(put_back(peek).with_value(value))
+                } else {
+                    Ok(value)
                 }
-            },
-            None => Err(vec![])
+            }
+            None => Err(put_back(peek)),
         }
     }
 }
