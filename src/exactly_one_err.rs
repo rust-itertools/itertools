@@ -1,3 +1,5 @@
+use std::iter::ExactSizeIterator;
+
 use size_hint;
 
 /// Iterator returned for the error case of `IterTools::exactly_one()`
@@ -9,31 +11,31 @@ use size_hint;
 /// This is very similar to PutBackN except this iterator only supports 0-2 elements and does not
 /// use a `Vec`.
 #[derive(Debug, Clone)]
-pub struct ExactlyOneErr<T, I>
+pub struct ExactlyOneError<I>
 where
-    I: Iterator<Item = T>,
+    I: Iterator,
 {
-    first_two: (Option<T>, Option<T>),
+    first_two: (Option<I::Item>, Option<I::Item>),
     inner: I,
 }
 
-impl<T, I> ExactlyOneErr<T, I>
+impl<I> ExactlyOneError<I>
 where
-    I: Iterator<Item = T>,
+    I: Iterator,
 {
     /// Creates a new `ExactlyOneErr` iterator.
-    pub fn new(first_two: (Option<T>, Option<T>), inner: I) -> Self {
+    pub fn new(first_two: (Option<I::Item>, Option<I::Item>), inner: I) -> Self {
         Self { first_two, inner }
     }
 }
 
-impl<T, I> Iterator for ExactlyOneErr<T, I>
+impl<I> Iterator for ExactlyOneError<I>
 where
-    I: Iterator<Item = T>,
+    I: Iterator,
 {
-    type Item = T;
+    type Item = I::Item;
 
-    fn next(&mut self) -> Option<T> {
+    fn next(&mut self) -> Option<Self::Item> {
         self.first_two
             .0
             .take()
@@ -52,3 +54,5 @@ where
         size_hint::add_scalar(self.inner.size_hint(), additional_len)
     }
 }
+
+impl<I> ExactSizeIterator for ExactlyOneError<I> where I: ExactSizeIterator {}

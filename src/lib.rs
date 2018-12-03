@@ -74,7 +74,7 @@ pub mod structs {
     #[cfg(feature = "use_std")]
     pub use combinations::Combinations;
     pub use cons_tuples_impl::ConsTuples;
-    pub use exactly_one_err::ExactlyOneErr;
+    pub use exactly_one_err::ExactlyOneError;
     pub use format::{Format, FormatWith};
     #[cfg(feature = "use_std")]
     pub use groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
@@ -2003,7 +2003,7 @@ pub trait Itertools : Iterator {
     /// assert!((0..10).filter(|&x| x > 1 && x < 5).exactly_one().unwrap_err().eq(2..5));
     /// assert!((0..10).filter(|&x| false).exactly_one().unwrap_err().eq(0..0));
     /// ```
-    fn exactly_one(mut self) -> Result<Self::Item, ExactlyOneErr<Self::Item, Self>>
+    fn exactly_one(mut self) -> Result<Self::Item, ExactlyOneError<Self>>
     where
         Self: Sized,
     {
@@ -2011,14 +2011,14 @@ pub trait Itertools : Iterator {
             Some(first) => {
                 match self.next() {
                     Some(second) => {
-                        Err(ExactlyOneErr::new((Some(first), Some(second)), self))
+                        Err(ExactlyOneError::new((Some(first), Some(second)), self))
                     }
                     None => {
                         Ok(first)
                     }
                 }
             }
-            None => Err(ExactlyOneErr::new((None, None), self)),
+            None => Err(ExactlyOneError::new((None, None), self)),
         }
     }
 }
