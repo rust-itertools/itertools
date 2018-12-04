@@ -2,12 +2,33 @@
 #![crate_name="itertools"]
 #![cfg_attr(not(feature = "use_std"), no_std)]
 
-//! Itertools — extra iterator adaptors, functions and macros.
+//! Extra iterator adaptors, functions and macros.
 //!
-//! To use the iterator methods in this crate, import the [`Itertools` trait](./trait.Itertools.html):
+//! To extend [`Iterator`] with methods in this crate, import
+//! the [`Itertools` trait](./trait.Itertools.html):
 //!
 //! ```
 //! use itertools::Itertools;
+//! ```
+//!
+//! Now, new methods like [`interleave`](./trait.Itertools.html#method.interleave)
+//! are available on all Iterators:
+//!
+//! ```
+//! use itertools::Itertools;
+//!
+//! let it = (1..3).interleave(vec![-1, -2]);
+//! itertools::assert_equal(it, vec![1, -1, 2, -2]);
+//! ```
+//!
+//! Most iterator methods are also provided as functions:
+//!
+//! ```
+//! use itertools::interleave;
+//!
+//! for elt in interleave(&[1, 2, 3], &[2, 3, 4]) {
+//!     /* loop body */
+//! }
 //! ```
 //!
 //! ## Crate Features
@@ -22,6 +43,7 @@
 //!
 //! This version of itertools requires Rust 1.12 or later.
 //!
+//! [`Iterator`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html
 #![doc(html_root_url="https://docs.rs/itertools/0.7/")]
 
 extern crate either;
@@ -289,7 +311,8 @@ macro_rules! izip {
     };
 }
 
-/// The trait `Itertools`: extra iterator adaptors and methods for iterators.
+/// An [`Iterator`] blanket implementation that provides extra adaptors and
+/// methods.
 ///
 /// This trait defines a number of methods. They are divided into two groups:
 ///
@@ -301,6 +324,8 @@ macro_rules! izip {
 /// return a regular value of some other kind.
 /// [`.next_tuple()`](#method.next_tuple) is an example and the first regular
 /// method in the list.
+///
+/// [`Iterator`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html
 pub trait Itertools : Iterator {
     // adaptors
 
