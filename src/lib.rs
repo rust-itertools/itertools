@@ -45,7 +45,7 @@
 //! This version of itertools requires Rust 1.24 or later.
 //!
 //! [`Iterator`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html
-#![doc(html_root_url="https://docs.rs/itertools/0.7/")]
+#![doc(html_root_url="https://docs.rs/itertools/0.8/")]
 
 extern crate either;
 

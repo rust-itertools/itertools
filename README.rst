@@ -21,7 +21,7 @@ How to use with cargo:
 .. code:: toml
 
     [dependencies]
-    itertools = "0.7"
+    itertools = "0.8"
 
 How to use in your crate:
 
@@ -47,6 +47,20 @@ then it can't be accepted into ``libcore``, and you should propose it for ``iter
 
 Recent Changes
 --------------
+
+- 0.8.0
+
+  - Added new adaptor ``.map_into()`` for conversions using ``Into`` by @vorner
+  - Improved ``Itertools`` docs by @JohnHeitmann
+  - The return type of ``.sorted/_by/_by_key()`` is now an iterator, not a Vec.
+  - The return type of the ``izip!(x, y)`` macro with exactly two arguments
+    is now the usual ``Iterator::zip``.
+  - Remove ``.flatten()`` in favour of std's ``.flatten()``
+  - Deprecate ``.foreach()`` in favour of std's ``.for_each()``
+  - Deprecate ``.step()`` in favour of std's ``.step_by()``
+  - Deprecate ``repeat_call`` in favour of std's ``repeat_with``
+  - Deprecate ``.fold_while()`` in favour of std's ``.try_fold()``
+  - Require Rust 1.24 as minimal version.
 
 - 0.7.11
 
