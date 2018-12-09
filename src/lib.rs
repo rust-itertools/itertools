@@ -12,7 +12,7 @@
 //! ```
 //!
 //! Now, new methods like [`interleave`](./trait.Itertools.html#method.interleave)
-//! are available on all Iterators:
+//! are available on all iterators:
 //!
 //! ```
 //! use itertools::Itertools;
@@ -21,7 +21,8 @@
 //! itertools::assert_equal(it, vec![1, -1, 2, -2]);
 //! ```
 //!
-//! Most iterator methods are also provided as functions:
+//! Most iterator methods are also provided as functions (with the benefit
+//! that they convert parameters using [`IntoIterator`]):
 //!
 //! ```
 //! use itertools::interleave;
