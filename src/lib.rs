@@ -168,6 +168,8 @@ mod combinations;
 mod combinations_with_replacement;
 mod exactly_one_err;
 mod diff;
+#[cfg(feature = "use_std")]
+mod extrema_set;
 mod format;
 #[cfg(feature = "use_std")]
 mod group_map;
@@ -2140,6 +2142,194 @@ pub trait Itertools : Iterator {
               K: Hash + Eq,
     {
         group_map::into_group_map(self)
+    }
+
+    /// Return all minimum elements of an iterator.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let a: [i32; 0] = [];
+    /// assert_eq!(a.iter().min_set(), None);
+    ///
+    /// let a = [1];
+    /// assert_eq!(a.iter().min_set(), Some(vec![&1]));
+    ///
+    /// let a = [1, 2, 3, 4, 5];
+    /// assert_eq!(a.iter().min_set(), Some(vec![&1]));
+    ///
+    /// let a = [1, 1, 1, 1];
+    /// assert_eq!(a.iter().min_set(), Some(vec![&1, &1, &1, &1]));
+    /// ```
+    ///
+    /// The elements can be floats but no particular result is guaranteed
+    /// if an element is NaN.
+    #[cfg(feature = "use_std")]
+    fn min_set(self) -> Option<Vec<Self::Item>>
+        where Self: Sized, Self::Item: PartialOrd
+    {
+        extrema_set::min_set_impl(self, |_| (), |x, y, _, _| x < y)
+    }
+
+    /// Return all minimum elements of an iterator, as determined by
+    /// the specified function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::cmp::Ordering;
+    /// use itertools::Itertools;
+    ///
+    /// let a: [(i32, i32); 0] = [];
+    /// assert_eq!(a.iter().min_set_by(|_, _| Ordering::Equal), None);
+    ///
+    /// let a = [(1, 2)];
+    /// assert_eq!(a.iter().min_set_by(|&&(k1,_), &&(k2, _)| k1.cmp(&k2)), Some(vec![&(1, 2)]));
+    ///
+    /// let a = [(1, 2), (2, 2), (3, 9), (4, 8), (5, 9)];
+    /// assert_eq!(a.iter().min_set_by(|&&(_,k1), &&(_,k2)| k1.cmp(&k2)), Some(vec![&(1, 2), &(2, 2)]));
+    ///
+    /// let a = [(1, 2), (1, 3), (1, 4), (1, 5)];
+    /// assert_eq!(a.iter().min_set_by(|&&(k1,_), &&(k2, _)| k1.cmp(&k2)), Some(vec![&(1, 2), &(1, 3), &(1, 4), &(1, 5)]));
+    /// ```
+    ///
+    /// The elements can be floats but no particular result is guaranteed
+    /// if an element is NaN.
+    #[cfg(feature = "use_std")]
+    fn min_set_by<F>(self, mut compare: F) -> Option<Vec<Self::Item>>
+        where Self: Sized, F: FnMut(&Self::Item, &Self::Item) -> Ordering
+    {
+        extrema_set::min_set_impl(
+            self,
+            |_| (),
+            |x, y, _, _| Ordering::Less == compare(x, y)
+        )
+    }
+
+    /// Return all minimum elements of an iterator, as determined by
+    /// the specified function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let a: [(i32, i32); 0] = [];
+    /// assert_eq!(a.iter().min_set_by_key(|_| ()), None);
+    ///
+    /// let a = [(1, 2)];
+    /// assert_eq!(a.iter().min_set_by_key(|&&(k,_)| k), Some(vec![&(1, 2)]));
+    ///
+    /// let a = [(1, 2), (2, 2), (3, 9), (4, 8), (5, 9)];
+    /// assert_eq!(a.iter().min_set_by_key(|&&(_, k)| k), Some(vec![&(1, 2), &(2, 2)]));
+    ///
+    /// let a = [(1, 2), (1, 3), (1, 4), (1, 5)];
+    /// assert_eq!(a.iter().min_set_by_key(|&&(k, _)| k), Some(vec![&(1, 2), &(1, 3), &(1, 4), &(1, 5)]));
+    /// ```
+    ///
+    /// The elements can be floats but no particular result is guaranteed
+    /// if an element is NaN.
+    #[cfg(feature = "use_std")]
+    fn min_set_by_key<K, F>(self, key: F) -> Option<Vec<Self::Item>>
+        where Self: Sized, K: PartialOrd, F: FnMut(&Self::Item) -> K
+    {
+        extrema_set::min_set_impl(self, key, |_, _, kx, ky| kx < ky)
+    }
+
+    /// Return all maximum elements of an iterator.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let a: [i32; 0] = [];
+    /// assert_eq!(a.iter().max_set(), None);
+    ///
+    /// let a = [1];
+    /// assert_eq!(a.iter().max_set(), Some(vec![&1]));
+    ///
+    /// let a = [1, 2, 3, 4, 5];
+    /// assert_eq!(a.iter().max_set(), Some(vec![&5]));
+    ///
+    /// let a = [1, 1, 1, 1];
+    /// assert_eq!(a.iter().max_set(), Some(vec![&1, &1, &1, &1]));
+    /// ```
+    ///
+    /// The elements can be floats but no particular result is guaranteed
+    /// if an element is NaN.
+    #[cfg(feature = "use_std")]
+    fn max_set(self) -> Option<Vec<Self::Item>>
+        where Self: Sized, Self::Item: PartialOrd
+    {
+        extrema_set::max_set_impl(self, |_| (), |x, y, _, _| x < y)
+    }
+
+    /// Return all maximum elements of an iterator, as determined by
+    /// the specified function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::cmp::Ordering;
+    /// use itertools::Itertools;
+    ///
+    /// let a: [(i32, i32); 0] = [];
+    /// assert_eq!(a.iter().max_set_by(|_, _| Ordering::Equal), None);
+    ///
+    /// let a = [(1, 2)];
+    /// assert_eq!(a.iter().max_set_by(|&&(k1,_), &&(k2, _)| k1.cmp(&k2)), Some(vec![&(1, 2)]));
+    ///
+    /// let a = [(1, 2), (2, 2), (3, 9), (4, 8), (5, 9)];
+    /// assert_eq!(a.iter().max_set_by(|&&(_,k1), &&(_,k2)| k1.cmp(&k2)), Some(vec![&(3, 9), &(5, 9)]));
+    ///
+    /// let a = [(1, 2), (1, 3), (1, 4), (1, 5)];
+    /// assert_eq!(a.iter().max_set_by(|&&(k1,_), &&(k2, _)| k1.cmp(&k2)), Some(vec![&(1, 2), &(1, 3), &(1, 4), &(1, 5)]));
+    /// ```
+    ///
+    /// The elements can be floats but no particular result is guaranteed
+    /// if an element is NaN.
+    #[cfg(feature = "use_std")]
+    fn max_set_by<F>(self, mut compare: F) -> Option<Vec<Self::Item>>
+        where Self: Sized, F: FnMut(&Self::Item, &Self::Item) -> Ordering
+    {
+        extrema_set::max_set_impl(
+            self,
+            |_| (),
+            |x, y, _, _| Ordering::Less == compare(x, y)
+        )
+    }
+
+    /// Return all minimum elements of an iterator, as determined by
+    /// the specified function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let a: [(i32, i32); 0] = [];
+    /// assert_eq!(a.iter().max_set_by_key(|_| ()), None);
+    ///
+    /// let a = [(1, 2)];
+    /// assert_eq!(a.iter().max_set_by_key(|&&(k,_)| k), Some(vec![&(1, 2)]));
+    ///
+    /// let a = [(1, 2), (2, 2), (3, 9), (4, 8), (5, 9)];
+    /// assert_eq!(a.iter().max_set_by_key(|&&(_, k)| k), Some(vec![&(3, 9), &(5, 9)]));
+    ///
+    /// let a = [(1, 2), (1, 3), (1, 4), (1, 5)];
+    /// assert_eq!(a.iter().max_set_by_key(|&&(k, _)| k), Some(vec![&(1, 2), &(1, 3), &(1, 4), &(1, 5)]));
+    /// ```
+    ///
+    /// The elements can be floats but no particular result is guaranteed
+    /// if an element is NaN.
+    #[cfg(feature = "use_std")]
+    fn max_set_by_key<K, F>(self, key: F) -> Option<Vec<Self::Item>>
+        where Self: Sized, K: PartialOrd, F: FnMut(&Self::Item) -> K
+    {
+        extrema_set::max_set_impl(self, key, |_, _, kx, ky| kx < ky)
     }
 
     /// Return the minimum and maximum elements in the iterator.
