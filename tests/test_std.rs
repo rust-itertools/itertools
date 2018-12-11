@@ -993,6 +993,54 @@ fn diff_shorter() {
 }
 
 #[test]
+fn extrema_set() {
+    use std::cmp::Ordering;
+
+    // A peculiar type: Equality compares both tuple items, but ordering only the
+    // first item. Used to distinguish equal elements.
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    struct Val(u32, u32);
+
+    impl PartialOrd<Val> for Val {
+        fn partial_cmp(&self, other: &Val) -> Option<Ordering> {
+            self.0.partial_cmp(&other.0)
+        }
+    }
+
+    impl Ord for Val {
+        fn cmp(&self, other: &Val) -> Ordering {
+            self.0.cmp(&other.0)
+        }
+    }
+
+    assert_eq!(None::<Option<u32>>.iter().min_set(), None);
+    assert_eq!(None::<Option<u32>>.iter().max_set(), None);
+
+    assert_eq!(Some(1u32).iter().min_set(), Some(vec![&1]));
+    assert_eq!(Some(1u32).iter().max_set(), Some(vec![&1]));
+
+    let data = vec![Val(0, 1), Val(2, 0), Val(0, 2), Val(1, 0), Val(2, 1)];
+
+    let min_set = data.iter().min_set().unwrap();
+    assert_eq!(min_set, vec![&Val(0, 1), &Val(0, 2)]);
+
+    let min_set_by_key = data.iter().min_set_by_key(|v| v.1).unwrap();
+    assert_eq!(min_set_by_key, vec![&Val(2, 0), &Val(1, 0)]);
+
+    let min_set_by = data.iter().min_set_by(|x, y| x.1.cmp(&y.1)).unwrap();
+    assert_eq!(min_set_by, vec![&Val(2, 0), &Val(1, 0)]);
+
+    let max_set = data.iter().max_set().unwrap();
+    assert_eq!(max_set, vec![&Val(2, 0), &Val(2, 1)]);
+
+    let max_set_by_key = data.iter().max_set_by_key(|v| v.1).unwrap();
+    assert_eq!(max_set_by_key, vec![&Val(0, 2)]);
+
+    let max_set_by = data.iter().max_set_by(|x, y| x.1.cmp(&y.1)).unwrap();
+    assert_eq!(max_set_by, vec![&Val(0, 2)]);
+}
+
+#[test]
 fn minmax() {
     use std::cmp::Ordering;
     use crate::it::MinMaxResult;
