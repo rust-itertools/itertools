@@ -102,6 +102,7 @@ pub mod structs {
     #[cfg(feature = "use_std")]
     pub use combinations::Combinations;
     pub use cons_tuples_impl::ConsTuples;
+    pub use exactly_one_err::ExactlyOneError;
     pub use format::{Format, FormatWith};
     #[cfg(feature = "use_std")]
     pub use groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
@@ -158,6 +159,7 @@ mod concat_impl;
 mod cons_tuples_impl;
 #[cfg(feature = "use_std")]
 mod combinations;
+mod exactly_one_err;
 mod diff;
 mod format;
 #[cfg(feature = "use_std")]
@@ -1943,13 +1945,13 @@ pub trait Itertools : Iterator {
 
     /// Return a `HashMap` of keys mapped to `Vec`s of values. Keys and values
     /// are taken from `(Key, Value)` tuple pairs yielded by the input iterator.
-    /// 
+    ///
     /// ```
     /// use itertools::Itertools;
-    /// 
+    ///
     /// let data = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
     /// let lookup = data.into_iter().into_group_map();
-    /// 
+    ///
     /// assert_eq!(lookup[&0], vec![10, 20]);
     /// assert_eq!(lookup.get(&1), None);
     /// assert_eq!(lookup[&2], vec![12, 42]);
@@ -2037,6 +2039,42 @@ pub trait Itertools : Iterator {
             |_| (),
             |x, y, _, _| Ordering::Less == compare(x, y)
         )
+    }
+
+    /// If the iterator yields exactly one element, that element will be returned, otherwise
+    /// an error will be returned containing an iterator that has the same output as the input
+    /// iterator.
+    ///
+    /// This provides an additional layer of validation over just calling `Iterator::next()`.
+    /// If your assumption that there should only be one element yielded is false this provides
+    /// the opportunity to detect and handle that, preventing errors at a distance.
+    ///
+    /// # Examples
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// assert_eq!((0..10).filter(|&x| x == 2).exactly_one().unwrap(), 2);
+    /// assert!((0..10).filter(|&x| x > 1 && x < 4).exactly_one().unwrap_err().eq(2..4));
+    /// assert!((0..10).filter(|&x| x > 1 && x < 5).exactly_one().unwrap_err().eq(2..5));
+    /// assert!((0..10).filter(|&x| false).exactly_one().unwrap_err().eq(0..0));
+    /// ```
+    fn exactly_one(mut self) -> Result<Self::Item, ExactlyOneError<Self>>
+    where
+        Self: Sized,
+    {
+        match self.next() {
+            Some(first) => {
+                match self.next() {
+                    Some(second) => {
+                        Err(ExactlyOneError::new((Some(first), Some(second)), self))
+                    }
+                    None => {
+                        Ok(first)
+                    }
+                }
+            }
+            None => Err(ExactlyOneError::new((None, None), self)),
+        }
     }
 }
 
