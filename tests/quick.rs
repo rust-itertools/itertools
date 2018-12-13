@@ -1015,3 +1015,13 @@ quickcheck! {
         TestResult::from_bool(actual == expected)
     }
 }
+
+quickcheck! {
+    fn exactly_one_i32(a: Vec<i32>) -> TestResult {
+        let ret = a.iter().cloned().exactly_one();
+        match a.len() {
+            1 => TestResult::from_bool(ret.unwrap() == a[0]),
+            _ => TestResult::from_bool(ret.unwrap_err().eq(a.iter().cloned())),
+        }
+    }
+}

@@ -244,3 +244,11 @@ fn tree_fold1() {
         assert_eq!((0..i).tree_fold1(|x, y| x + y), (0..i).fold1(|x, y| x + y));
     }
 }
+
+#[test]
+fn exactly_one() {
+    assert_eq!((0..10).filter(|&x| x == 2).exactly_one().unwrap(), 2);
+    assert!((0..10).filter(|&x| x > 1 && x < 4).exactly_one().unwrap_err().eq(2..4));
+    assert!((0..10).filter(|&x| x > 1 && x < 5).exactly_one().unwrap_err().eq(2..5));
+    assert!((0..10).filter(|&_| false).exactly_one().unwrap_err().eq(0..0));
+}

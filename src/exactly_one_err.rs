@@ -24,7 +24,7 @@ where
     I: Iterator,
 {
     /// Creates a new `ExactlyOneErr` iterator.
-    pub fn new(first_two: (Option<I::Item>, Option<I::Item>), inner: I) -> Self {
+    pub(crate) fn new(first_two: (Option<I::Item>, Option<I::Item>), inner: I) -> Self {
         Self { first_two, inner }
     }
 }
