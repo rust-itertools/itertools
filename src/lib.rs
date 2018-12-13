@@ -2056,7 +2056,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!((0..10).filter(|&x| x == 2).exactly_one().unwrap(), 2);
     /// assert!((0..10).filter(|&x| x > 1 && x < 4).exactly_one().unwrap_err().eq(2..4));
     /// assert!((0..10).filter(|&x| x > 1 && x < 5).exactly_one().unwrap_err().eq(2..5));
-    /// assert!((0..10).filter(|&x| false).exactly_one().unwrap_err().eq(0..0));
+    /// assert!((0..10).filter(|&_| false).exactly_one().unwrap_err().eq(0..0));
     /// ```
     fn exactly_one(mut self) -> Result<Self::Item, ExactlyOneError<Self>>
     where
