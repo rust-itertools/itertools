@@ -128,6 +128,8 @@ pub mod structs {
     #[cfg(feature = "use_std")]
     pub use unique_impl::{Unique, UniqueBy};
     pub use with_position::WithPosition;
+    pub use zip_cycle::{ZipCycle, ZipCycleErr};
+    pub use zip_cycle_biased::{ZipCycleBiased, ZipCycleBiasedErr};
     pub use zip_eq_impl::ZipEq;
     pub use zip_longest::ZipLongest;
     pub use ziptuple::Zip;
@@ -189,6 +191,8 @@ mod tuple_impl;
 #[cfg(feature = "use_std")]
 mod unique_impl;
 mod with_position;
+mod zip_cycle;
+mod zip_cycle_biased;
 mod zip_eq_impl;
 mod zip_longest;
 mod ziptuple;
@@ -387,6 +391,60 @@ pub trait Itertools : Iterator {
               Self::Item: Clone
     {
         intersperse::intersperse(self, element)
+    }
+
+
+    /// Create an iterator which iterates over both this and the specified
+    /// iterator simultaneously, yielding pairs of two elements, cycling the shorter iterator.
+    ///
+    /// Iterator element type is
+    /// `(Self::Item, J::Item)`.
+    ///
+    /// ```rust
+    /// use itertools::Itertools;
+    /// let it = (0..2).zip_cycle(1..5);
+    /// assert_eq!(it.unwrap().collect::<Vec<_>>(), vec![(0, 1), (1, 2), (0, 3), (1, 4)]);
+    /// let it2 = (0..4).zip_cycle(1..3);
+    /// assert_eq!(it2.unwrap().collect::<Vec<_>>(), vec![(0, 1), (1, 2), (2, 1), (3, 2)]);
+    /// ```
+    fn zip_cycle<J>(self, other: J) -> Result<ZipCycle<Self, J::IntoIter>, ZipCycleErr>
+    where
+        J: IntoIterator,
+        <J as IntoIterator>::IntoIter: Clone,
+        Self: Sized + Clone,
+    {
+        zip_cycle::zip_cycle(self, other.into_iter())
+    }
+
+    /// Create an iterator which iterates over both this and the specified
+    /// iterator simultaneously, yielding pairs of two elements.
+    ///
+    /// This iterator may be used instead of `ZipCycle` when it is known that one iter will
+    /// be shorter than the other.
+    ///
+    /// The bias is that if the left hand side iterator finishes, the entire iterator finishes,
+    /// even if the right hand side iterator has never cycled once.
+    ///
+    /// This iterator is intended to be used when it is known beforehand which iterator will be shorter.
+    /// This allows a much faster and simpler implementation than `ZipCycle`, however it is less general.
+    ///
+    /// Iterator element type is
+    /// `(Self::Item, J::Item)`.
+    ///
+    /// ```rust
+    /// use itertools::Itertools;
+    /// let it = (1..5).zip_cycle_biased(0..2);
+    /// assert_eq!(it.unwrap().collect::<Vec<_>>(), vec![(1, 0), (2, 1), (3, 0), (4, 1)]);
+    /// let it2 = (0..2).zip_cycle_biased(1..5);
+    /// assert_eq!(it2.unwrap().collect::<Vec<_>>(), vec![(0, 1), (1, 2)]);
+    /// ```
+    fn zip_cycle_biased<J>(self, other: J) -> Result<ZipCycleBiased<Self, J::IntoIter>, ZipCycleBiasedErr>
+    where
+        J: IntoIterator,
+        <J as IntoIterator>::IntoIter: Clone,
+        Self: Sized + Clone,
+    {
+        zip_cycle_biased::zip_cycle_biased(self, other.into_iter())
     }
 
     /// Create an iterator which iterates over both this and the specified
