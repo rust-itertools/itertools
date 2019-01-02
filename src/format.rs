@@ -115,9 +115,9 @@ impl<'a, I> Format<'a, I>
 }
 
 macro_rules! impl_format {
-    ($($fmt_trait:ident)*) => {
+    ($fmt_struct:ident, $($fmt_trait:ident)*) => {
         $(
-            impl<'a, I> fmt::$fmt_trait for Format<'a, I>
+            impl<'a, I> fmt::$fmt_trait for $fmt_struct<'a, I>
                 where I: Iterator,
                       I::Item: fmt::$fmt_trait,
             {
@@ -129,8 +129,8 @@ macro_rules! impl_format {
     }
 }
 
-impl_format!{Display Debug
-             UpperExp LowerExp UpperHex LowerHex Octal Binary Pointer}
+impl_format!{Format,
+  Display Debug UpperExp LowerExp UpperHex LowerHex Octal Binary Pointer}
 
 impl<'a, I> FormatWithBookends<'a, I>
     where I: Iterator,
@@ -158,20 +158,5 @@ impl<'a, I> FormatWithBookends<'a, I>
     }
 }
 
-macro_rules! impl_format_with_bookends {
-    ($($fmt_trait:ident)*) => {
-        $(
-            impl<'a, I> fmt::$fmt_trait for FormatWithBookends<'a, I>
-                where I: Iterator,
-                      I::Item: fmt::$fmt_trait,
-            {
-                fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                    self.format(f, fmt::$fmt_trait::fmt)
-                }
-            }
-        )*
-    }
-}
-
-impl_format_with_bookends!{Display Debug
-                           UpperExp LowerExp UpperHex LowerHex Octal Binary Pointer}
+impl_format!{FormatWithBookends,
+  Display Debug UpperExp LowerExp UpperHex LowerHex Octal Binary Pointer}
