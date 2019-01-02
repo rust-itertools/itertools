@@ -1,5 +1,5 @@
 use std::fmt;
-use std::cell::RefCell;
+use std::cell::{RefCell, RefMut};
 
 /// Format all iterator elements lazily, separated by `sep`.
 ///
@@ -93,25 +93,40 @@ impl<'a, I, F> fmt::Display for FormatWith<'a, I, F>
 impl<'a, I> Format<'a, I>
     where I: Iterator,
 {
-    fn format<F>(&self, f: &mut fmt::Formatter, mut cb: F) -> fmt::Result
+    fn format<F>(&self, f: &mut fmt::Formatter, cb: F) -> fmt::Result
         where F: FnMut(&I::Item, &mut fmt::Formatter) -> fmt::Result,
     {
-        let mut iter = match self.inner.borrow_mut().take() {
-            Some(t) => t,
-            None => panic!("Format: was already formatted once"),
-        };
-
-        if let Some(fst) = iter.next() {
-            try!(cb(&fst, f));
-            for elt in iter {
-                if self.sep.len() > 0 {
-                    try!(f.write_str(self.sep));
-                }
-                try!(cb(&elt, f));
-            }
-        }
-        Ok(())
+        format_impl(self.inner.borrow_mut(), "", self.sep, "", f, cb)
     }
+}
+
+fn format_impl<'a, I, F>(mut state: RefMut<Option<I>>, prefix: &'a str, sep: &'a str, suffix: &'a str,
+                         f: &mut fmt::Formatter, mut cb: F) -> fmt::Result
+    where
+        I: Iterator,
+        F: FnMut(&I::Item, &mut fmt::Formatter) -> fmt::Result,
+{
+    let mut iter = match state.take() {
+        Some(t) => t,
+        None => panic!("Format: was already formatted once"),
+    };
+
+    if let Some(fst) = iter.next() {
+        if prefix.len() > 0 {
+            try!(f.write_str(prefix));
+        }
+        try!(cb(&fst, f));
+        for elt in iter {
+            if sep.len() > 0 {
+                try!(f.write_str(sep));
+            }
+            try!(cb(&elt, f));
+        }
+        if suffix.len() > 0 {
+            try!(f.write_str(suffix));
+        }
+    }
+    Ok(())
 }
 
 macro_rules! impl_format {
@@ -135,26 +150,10 @@ impl_format!{Format,
 impl<'a, I> FormatWithBookends<'a, I>
     where I: Iterator,
 {
-    fn format<F>(&self, f: &mut fmt::Formatter, mut cb: F) -> fmt::Result
+    fn format<F>(&self, f: &mut fmt::Formatter, cb: F) -> fmt::Result
         where F: FnMut(&I::Item, &mut fmt::Formatter) -> fmt::Result,
     {
-        let mut iter = match self.inner.borrow_mut().take() {
-            Some(t) => t,
-            None => panic!("FormatWithBookends: was already formatted once"),
-        };
-
-        if let Some(fst) = iter.next() {
-            try!(f.write_str(self.prefix));
-            try!(cb(&fst, f));
-            for elt in iter {
-                if self.sep.len() > 0 {
-                    try!(f.write_str(self.sep));
-                }
-                try!(cb(&elt, f));
-            }
-            try!(f.write_str(self.suffix));
-        }
-        Ok(())
+        format_impl(self.inner.borrow_mut(), self.prefix, self.sep, self.suffix, f, cb)
     }
 }
 
