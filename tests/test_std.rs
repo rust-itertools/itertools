@@ -577,6 +577,22 @@ fn combinations() {
         vec![3, 4],
         ]);
 
+    assert!((1..3).combinations(0).nth(1).is_none());
+    assert_eq!((1..3).combinations(0).nth(0), Some(vec![]));
+
+    let mut it = (1..3).combinations(0);
+    assert_eq!(it.nth(0), Some(vec![]));
+    assert_eq!(it.nth(0), None);
+
+    let mut it = (1..6).combinations(2);
+    assert_eq!(it.nth(0), Some(vec![1, 2]));
+    assert_eq!(it.nth(3), Some(vec![2, 3]));
+    assert_eq!(it.nth(2), Some(vec![3, 4]));
+    assert_eq!(it.nth(2), None);
+
+    let mut it = (0..8).combinations(4);
+    assert_eq!(it.nth(1), Some(vec![0, 1, 2, 4]));
+
     it::assert_equal((0..0).tuple_combinations::<(_, _)>(), <Vec<_>>::new());
     it::assert_equal((0..1).tuple_combinations::<(_, _)>(), <Vec<_>>::new());
     it::assert_equal((0..2).tuple_combinations::<(_, _)>(), vec![(0, 1)]);

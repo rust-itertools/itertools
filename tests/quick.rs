@@ -14,6 +14,7 @@ use quickcheck as qc;
 use std::ops::Range;
 use std::cmp::{max, min, Ordering};
 use std::collections::HashSet;
+use std::panic::catch_unwind;
 use itertools::Itertools;
 use itertools::{
     multizip,
@@ -33,6 +34,25 @@ use itertools::free::{
 use rand::Rng;
 use rand::seq::SliceRandom;
 use quickcheck::TestResult;
+
+/// An unspecialized wrapper around another iterator.
+struct Unspecialized<I>(I);
+
+impl<I> Iterator for Unspecialized<I>
+where I: Iterator
+{
+    type Item = I::Item;
+
+    #[inline(always)]
+    fn next(&mut self) -> Option<I::Item> {
+        self.0.next()
+    }
+
+    #[inline(always)]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.0.size_hint()
+    }
+}
 
 /// Trait for size hint modifier types
 trait HintKind: Copy + Send + qc::Arbitrary {
@@ -1156,6 +1176,31 @@ quickcheck! {
         match a.len() {
             1 => TestResult::from_bool(ret.unwrap() == a[0]),
             _ => TestResult::from_bool(ret.unwrap_err().eq(a.iter().cloned())),
+        }
+    }
+}
+
+quickcheck! {
+    // check that the specialization of `Combinations::nth` produces the same
+    // results as the unspecialized version.
+    fn combinations_nth(l: u8, n: u8, i: u8) -> TestResult {
+        let (l, n, i) = (l as usize, n as usize, i as usize);
+
+        let s_ith = catch_unwind(|| {
+            (0..l).combinations(n).nth(i)
+        }).map_err(|_| "PANICKED");
+
+        let u_ith = catch_unwind(|| {
+            Unspecialized((0..l).combinations(n as usize)).nth(i)
+        }).map_err(|_| "PANICKED");
+
+        if s_ith == u_ith {
+            TestResult::passed()
+        } else {
+            TestResult::error(
+                format!(
+                    "(0..{}).combinations({}).nth({}): {:?} != {:?}",
+                    l, n, i, s_ith, u_ith))
         }
     }
 }
