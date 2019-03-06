@@ -1449,7 +1449,7 @@ pub trait Itertools : Iterator {
         count
     }
 
-    /// Combine all iterator elements into one String, seperated by `sep`.
+    /// Combine all iterator elements into one String, separated by `sep`.
     ///
     /// Use the `Display` implementation of each element.
     ///
