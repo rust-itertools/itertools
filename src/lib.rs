@@ -1561,7 +1561,7 @@ pub trait Itertools : Iterator {
     /// ```
     ///
     /// With a `start` value of 0 and an addition as folding function,
-    /// this effetively results in *((0 + 1) + 2) + 3*
+    /// this effectively results in *((0 + 1) + 2) + 3*
     ///
     /// ```
     /// use std::ops::Add;
