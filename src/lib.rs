@@ -101,6 +101,7 @@ pub mod structs {
     pub use adaptors::MultiProduct;
     #[cfg(feature = "use_std")]
     pub use combinations::Combinations;
+    #[cfg(feature = "use_std")]
     pub use combinations_with_replacement::CombinationsWithReplacement;
     pub use cons_tuples_impl::ConsTuples;
     pub use exactly_one_err::ExactlyOneError;
@@ -160,6 +161,7 @@ mod concat_impl;
 mod cons_tuples_impl;
 #[cfg(feature = "use_std")]
 mod combinations;
+#[cfg(feature = "use_std")]
 mod combinations_with_replacement;
 mod exactly_one_err;
 mod diff;
