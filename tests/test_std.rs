@@ -584,6 +584,34 @@ fn combinations_zero() {
 }
 
 #[test]
+fn combinations_with_replacement() {
+    // Pool smaller than n
+    it::assert_equal((0..1).combinations_with_replacement(2), vec![vec![0, 0]]);
+    // Pool larger than n
+    it::assert_equal(
+        (0..3).combinations_with_replacement(2),
+        vec![
+            vec![0, 0],
+            vec![0, 1],
+            vec![0, 2],
+            vec![1, 1],
+            vec![1, 2],
+            vec![2, 2],
+        ],
+    );
+    // Zero size
+    it::assert_equal(
+        (0..3).combinations_with_replacement(0),
+        <Vec<Vec<_>>>::new(),
+    );
+    // Empty pool
+    it::assert_equal(
+        (0..0).combinations_with_replacement(2),
+        <Vec<Vec<_>>>::new(),
+    );
+}
+
+#[test]
 fn diff_mismatch() {
     let a = vec![1, 2, 3, 4];
     let b = vec![1.0, 5.0, 3.0, 4.0];
