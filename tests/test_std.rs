@@ -116,6 +116,7 @@ fn dedup_by() {
 
 #[test]
 fn all_equal() {
+    assert!("".chars().all_equal());
     assert!(!"AABBCCC".chars().all_equal());
     assert!("AAAAAAA".chars().all_equal());
     for (_key, mut sub) in &"AABBCCC".chars().group_by(|&x| x) {
