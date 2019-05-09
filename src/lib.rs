@@ -156,6 +156,8 @@ pub mod free;
 #[doc(inline)]
 pub use free::*;
 mod concat_impl;
+mod copy_into_slice;
+pub use copy_into_slice::*;
 mod cons_tuples_impl;
 #[cfg(feature = "use_std")]
 mod combinations;
