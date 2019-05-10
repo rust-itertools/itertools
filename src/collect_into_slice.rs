@@ -7,13 +7,13 @@ pub enum Error {
     EndOfSlice
 }
 
-/// Trait copying all iterator's elements into one slice, returning number of elements
+/// Trait collectin all iterator elements into one slice, returning number of elements
 ///
 /// The method will return Error::EndOfSlice if slice is exceeded
 ///
 /// # Examples
 /// ```
-///    use itertools::CopyIntoSlice;
+///    use itertools::CollectIntoSlice;
 ///
 ///    let req_method_get = b"GET ";
 ///    let req_method_head = b"HEAD ";
@@ -24,21 +24,21 @@ pub enum Error {
 ///    // chaining both iterators and copying bytewise into the buffer
 ///    match  req_method_get.iter()
 ///        .chain(uri.iter())
-///        .copy_into_slice(request.as_mut())
+///        .collect_into_slice(request.as_mut())
 ///        {
 ///            Ok(nwritten)
-///            => println!("{:?}", std::str::from_utf8(&request[0..nwritten])),
+///            => println!("{:?}", request[0..nwritten].as_ref()),
 ///            _ => panic!(),
 ///        };
 /// ```
-pub trait CopyIntoSlice<'t, It: 't>: Iterator<Item=&'t It> {
+pub trait CollectIntoSlice<'t, It: 't>: Iterator<Item=&'t It> {
     /// Trait-method copying all iterator's elements into one slice, returning number of elements.
     ///
     /// Returns number of placed elements, otherwise Error if slice is exceeded.
     ///
     /// # Examples
     /// ```
-    ///    use itertools::CopyIntoSlice;
+    ///    use itertools::CollectIntoSlice;
     ///
     ///    let req_method_get = b"GET ";
     ///    let req_method_head = b"HEAD ";
@@ -49,34 +49,31 @@ pub trait CopyIntoSlice<'t, It: 't>: Iterator<Item=&'t It> {
     ///    // chaining both iterators and copying bytewise into the buffer
     ///    match  req_method_get.iter()
     ///        .chain(uri.iter())
-    ///        .copy_into_slice(request.as_mut())
+    ///        .collect_into_slice(request.as_mut())
     ///        {
     ///            Ok(nwritten)
-    ///            => println!("{:?}", std::str::from_utf8(&request[0..nwritten])),
+    ///            => println!("{:?}", request[0..nwritten].as_ref()),
     ///            _ => panic!(),
     ///        };
     /// ```
-    fn copy_into_slice(self, slice: &mut [It]) -> Result<usize, Error>
+    fn collect_into_slice(self, slice: &mut [It]) -> Result<usize, Error>
         where
             It: Clone,
             Self: Sized,
     {
-        let slice_len = slice.len();
-
         let mut nwritten = 0;
+        let mut iter = self.fuse();
+        iter.by_ref()
+            .zip(slice)
+            .for_each(| (item, slot)| {*slot = item.clone(); nwritten+=1; } );
 
-        for (idx, item) in self.enumerate() {
-            if idx < slice_len {
-                slice[idx] = item.clone();
-                nwritten += 1;
-            } else {
-                return Err(Error::EndOfSlice);
-            }
+        // conditional return value
+        match iter.next() {
+            None => Ok(nwritten),
+            _ => Err(Error::EndOfSlice),
         }
-
-        Ok(nwritten)
     }
 }
 
-/// Implementing the trait CopyIntoSlice
-impl<'t, It: 't, I: Iterator<Item=&'t It> > CopyIntoSlice<'t, It> for I {}
+/// Implementing the trait CollectIntoSlice
+impl<'t, It: 't, I: Iterator<Item=&'t It> > CollectIntoSlice<'t, It> for I {}
