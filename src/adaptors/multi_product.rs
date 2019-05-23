@@ -1,32 +1,35 @@
 #![cfg(feature = "use_std")]
 
+use std::iter::FromIterator;
+use std::marker::PhantomData;
 use size_hint;
-use Itertools;
 
 #[derive(Clone)]
 /// An iterator adaptor that iterates over the cartesian product of
 /// multiple iterators of type `I`.
 ///
-/// An iterator element type is `Vec<I>`.
+/// An iterator element type is `T<I>`, which defaults to `Vec<I>`.
 ///
 /// See [`.multi_cartesian_product()`](../trait.Itertools.html#method.multi_cartesian_product)
 /// for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct MultiProduct<I>(Vec<MultiProductIter<I>>)
+pub struct MultiProduct<I, T=Vec<<I as Iterator>::Item>>(Vec<MultiProductIter<I>>, PhantomData<T>)
     where I: Iterator + Clone,
-          I::Item: Clone;
+          I::Item: Clone,
+          T: FromIterator<I::Item>;
 
 /// Create a new cartesian product iterator over an arbitrary number
 /// of iterators of the same type.
 ///
-/// Iterator element is of type `Vec<H::Item::Item>`.
-pub fn multi_cartesian_product<H>(iters: H) -> MultiProduct<<H::Item as IntoIterator>::IntoIter>
+/// Iterator element is of type `T<H::Item::Item>`.
+pub fn multi_cartesian_product<H, T>(iters: H) -> MultiProduct<<H::Item as IntoIterator>::IntoIter, T>
     where H: Iterator,
           H::Item: IntoIterator,
           <H::Item as IntoIterator>::IntoIter: Clone,
-          <H::Item as IntoIterator>::Item: Clone
+          <H::Item as IntoIterator>::Item: Clone,
+          T: FromIterator<<H::Item as IntoIterator>::Item>
 {
-    MultiProduct(iters.map(|i| MultiProductIter::new(i.into_iter())).collect())
+    MultiProduct(iters.map(|i| MultiProductIter::new(i.into_iter())).collect(), PhantomData)
 }
 
 #[derive(Clone, Debug)]
@@ -47,9 +50,10 @@ enum MultiProductIterState {
     MidIter { on_first_iter: bool },
 }
 
-impl<I> MultiProduct<I>
+impl<I, T> MultiProduct<I, T>
     where I: Iterator + Clone,
-          I::Item: Clone
+          I::Item: Clone,
+          T: FromIterator<I::Item>
 {
     /// Iterates the rightmost iterator, then recursively iterates iterators
     /// to the left if necessary.
@@ -77,7 +81,7 @@ impl<I> MultiProduct<I>
 
             if last.in_progress() {
                 true
-            } else if MultiProduct::iterate_last(rest, state) {
+            } else if Self::iterate_last(rest, state) {
                 last.reset();
                 last.iterate();
                 // If iterator is None twice consecutively, then iterator is
@@ -97,7 +101,7 @@ impl<I> MultiProduct<I>
     }
 
     /// Returns the unwrapped value of the next iteration.
-    fn curr_iterator(&self) -> Vec<I::Item> {
+    fn curr_iterator(&self) -> T {
         self.0.iter().map(|multi_iter| {
             multi_iter.cur.clone().unwrap()
         }).collect()
@@ -143,14 +147,15 @@ impl<I> MultiProductIter<I>
     }
 }
 
-impl<I> Iterator for MultiProduct<I>
+impl<I, T> Iterator for MultiProduct<I, T>
     where I: Iterator + Clone,
-          I::Item: Clone
+          I::Item: Clone,
+          T: FromIterator<I::Item>
 {
-    type Item = Vec<I::Item>;
+    type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if MultiProduct::iterate_last(
+        if Self::iterate_last(
             &mut self.0,
             MultiProductIterState::StartOfIter
         ) {
@@ -204,17 +209,8 @@ impl<I> Iterator for MultiProduct<I>
     }
 
     fn last(self) -> Option<Self::Item> {
-        let iter_count = self.0.len();
-
-        let lasts: Self::Item = self.0.into_iter()
+        self.0.into_iter()
             .map(|multi_iter| multi_iter.iter.last())
-            .while_some()
-            .collect();
-
-        if lasts.len() == iter_count {
-            Some(lasts)
-        } else {
-            None
-        }
+            .collect()
     }
 }

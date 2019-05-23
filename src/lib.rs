@@ -890,11 +890,48 @@ pub trait Itertools : Iterator {
     /// assert_eq!(multi_prod.next(), None);
     /// ```
     #[cfg(feature = "use_std")]
-    fn multi_cartesian_product(self) -> MultiProduct<<Self::Item as IntoIterator>::IntoIter>
+    fn multi_cartesian_product(self) -> MultiProduct<<Self::Item as IntoIterator>::IntoIter, Vec<<Self::Item as IntoIterator>::Item>>
         where Self: Iterator + Sized,
               Self::Item: IntoIterator,
               <Self::Item as IntoIterator>::IntoIter: Clone,
-              <Self::Item as IntoIterator>::Item: Clone
+              <Self::Item as IntoIterator>::Item: Clone,
+    {
+        self.multi_cartesian_product_with()
+    }
+
+    /// Return an iterator adaptor that iterates over the cartesian product of
+    /// all subiterators returned by meta-iterator `self`.
+    ///
+    /// All provided iterators must yield the same `Item` type. To generate
+    /// the product of iterators yielding multiple types, use the
+    /// [`iproduct`](macro.iproduct.html) macro instead.
+    ///
+    ///
+    /// The iterator element type is `C<T>`, where `T` is the iterator element
+    /// of the subiterators.
+    ///
+    /// ```
+    /// use std::collections::VecDeque;
+    /// use itertools::Itertools;
+    /// let mut multi_prod = (0..3).map(|i| (i * 2)..(i * 2 + 2))
+    ///     .multi_cartesian_product_with::<VecDeque<i32>>();
+    /// assert_eq!(multi_prod.next(), Some(vec![0, 2, 4].into()));
+    /// assert_eq!(multi_prod.next(), Some(vec![0, 2, 5].into()));
+    /// assert_eq!(multi_prod.next(), Some(vec![0, 3, 4].into()));
+    /// assert_eq!(multi_prod.next(), Some(vec![0, 3, 5].into()));
+    /// assert_eq!(multi_prod.next(), Some(vec![1, 2, 4].into()));
+    /// assert_eq!(multi_prod.next(), Some(vec![1, 2, 5].into()));
+    /// assert_eq!(multi_prod.next(), Some(vec![1, 3, 4].into()));
+    /// assert_eq!(multi_prod.next(), Some(vec![1, 3, 5].into()));
+    /// assert_eq!(multi_prod.next(), None);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn multi_cartesian_product_with<C>(self) -> MultiProduct<<Self::Item as IntoIterator>::IntoIter, C>
+        where Self: Iterator + Sized,
+              Self::Item: IntoIterator,
+              <Self::Item as IntoIterator>::IntoIter: Clone,
+              <Self::Item as IntoIterator>::Item: Clone,
+              C: FromIterator<<Self::Item as IntoIterator>::Item>,
     {
         adaptors::multi_cartesian_product(self)
     }
