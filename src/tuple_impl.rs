@@ -1,6 +1,9 @@
 //! Some iterator that produces tuples
 
 use std::iter::Fuse;
+use std::iter::Take;
+use std::iter::Cycle;
+use std::marker::PhantomData;
 
 // `HomogeneousTuple` is a public facade for `TupleCollect`, allowing
 // tuple-related methods to be used by clients in generic contexts, while
@@ -181,6 +184,48 @@ impl<I, T> Iterator for TupleWindows<I, T>
             }
         }
         None
+    }
+}
+
+/// An iterator over all windows,wrapping back to the first elements when the
+/// window would otherwise exceed the length of the iterator, producing tuples
+/// of a specific size.
+///
+/// See [`.circular_tuple_windows()`](../trait.Itertools.html#method.circular_tuple_windows) for more
+/// information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+#[derive(Debug)]
+pub struct CircularTupleWindows<I, T: Clone>
+    where I: Iterator<Item = T::Item> + Clone,
+          T: TupleCollect + Clone
+{
+    iter: Take<TupleWindows<Cycle<I>, T>>,
+    phantom_data: PhantomData<T>
+}
+
+pub fn circular_tuple_windows<I, T>(iter: I) -> CircularTupleWindows<I, T>
+    where I: Iterator<Item = T::Item> + Clone + ExactSizeIterator,
+          T: TupleCollect + Clone,
+          T::Item: Clone
+{
+    let len = iter.len();
+    let iter = tuple_windows(iter.cycle()).take(len);
+
+    CircularTupleWindows {
+        iter: iter,
+        phantom_data: PhantomData{}
+    }
+}
+
+impl<I, T> Iterator for CircularTupleWindows<I, T>
+    where I: Iterator<Item = T::Item> + Clone,
+          T: TupleCollect + Clone,
+          T::Item: Clone
+{
+    type Item = T;
+
+    fn next(&mut self) -> Option<T> {
+        self.iter.next()
     }
 }
 
