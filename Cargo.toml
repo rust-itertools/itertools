@@ -24,7 +24,7 @@ either = { version = "1.0", default-features = false }
 rand = "0.6"
 
 [dev-dependencies.quickcheck]
-version = "0.7"
+version = "0.8"
 default-features = false
 
 [dev-dependencies.permutohedron]
