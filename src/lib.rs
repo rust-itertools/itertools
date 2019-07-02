@@ -1146,6 +1146,19 @@ pub trait Itertools : Iterator {
     ///     vec![2, 3, 4],
     ///     ]);
     /// ```
+    ///
+    /// Note: Combinations does not take into accout the equality of the inner values.
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let it = vec![1, 2, 2].into_iter().combinations(2);
+    /// itertools::assert_equal(it, vec![
+    ///     vec![1, 2], // Note: thise are the same
+    ///     vec![1, 2], // Note: thise are the same
+    ///     vec![2, 2],
+    /// ]);
+    /// ```
+    ///
     #[cfg(feature = "use_std")]
     fn combinations(self, n: usize) -> Combinations<Self>
         where Self: Sized,
