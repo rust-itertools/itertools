@@ -10,8 +10,8 @@ __ https://docs.rs/itertools/
 
 |build_status|_ |crates|_
 
-.. |build_status| image:: https://travis-ci.org/bluss/rust-itertools.svg?branch=master
-.. _build_status: https://travis-ci.org/bluss/rust-itertools
+.. |build_status| image:: https://travis-ci.org/rust-itertools/itertools.svg?branch=master
+.. _build_status: https://travis-ci.org/rust-itertools/itertools
 
 .. |crates| image:: http://meritbadge.herokuapp.com/itertools
 .. _crates: https://crates.io/crates/itertools
