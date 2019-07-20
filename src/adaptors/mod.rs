@@ -753,22 +753,41 @@ impl<I, F> Iterator for Coalesce<I, F>
     }
 }
 
-/// An iterator adaptor that removes repeated duplicates.
+/// An iterator adaptor that removes repeated duplicates, determining equality using a comparison function.
 ///
 /// See [`.dedup()`](../trait.Itertools.html#method.dedup) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct Dedup<I>
+pub struct DedupBy<I, Pred>
     where I: Iterator
 {
     iter: CoalesceCore<I>,
+    dedup_pred: Pred,
 }
 
-impl<I: Clone> Clone for Dedup<I>
+pub trait DedupPredicate<T> { // TODO replace by Fn(&T, &T)->bool once Rust supports it
+    fn dedup_pair(&mut self, a: &T, b: &T) -> bool;
+}
+
+#[derive(Clone)]
+pub struct DedupEq;
+
+impl<T: PartialEq> DedupPredicate<T> for DedupEq {
+    fn dedup_pair(&mut self, a: &T, b: &T) -> bool {
+        a==b
+    }
+}
+
+/// An iterator adaptor that removes repeated duplicates.
+///
+/// See [`.dedup()`](../trait.Itertools.html#method.dedup) for more information.
+pub type Dedup<I>=DedupBy<I, DedupEq>;
+
+impl<I: Clone, Pred: Clone> Clone for DedupBy<I, Pred>
     where I: Iterator,
-          I::Item: Clone
+          I::Item: Clone,
 {
     fn clone(&self) -> Self {
-        clone_fields!(Dedup, self, iter)
+        clone_fields!(DedupBy, self, iter, dedup_pred)
     }
 }
 
@@ -776,30 +795,33 @@ impl<I: Clone> Clone for Dedup<I>
 pub fn dedup<I>(mut iter: I) -> Dedup<I>
     where I: Iterator
 {
-    Dedup {
+    DedupBy {
         iter: CoalesceCore {
             last: iter.next(),
             iter: iter,
         },
+        dedup_pred: DedupEq,
     }
 }
 
-impl<I> fmt::Debug for Dedup<I>
+impl<I, Pred> fmt::Debug for DedupBy<I, Pred>
     where I: Iterator + fmt::Debug,
           I::Item: fmt::Debug,
 {
     debug_fmt_fields!(Dedup, iter);
 }
 
-impl<I> Iterator for Dedup<I>
+impl<I, Pred> Iterator for DedupBy<I, Pred>
     where I: Iterator,
-          I::Item: PartialEq
+          I::Item: PartialEq,
+          Pred: DedupPredicate<I::Item>,
 {
     type Item = I::Item;
 
     fn next(&mut self) -> Option<I::Item> {
+        let ref mut dedup_pred = self.dedup_pred;
         self.iter.next_with(|x, y| {
-            if x == y { Ok(x) } else { Err((x, y)) }
+            if dedup_pred.dedup_pair(&x, &y) { Ok(x) } else { Err((x, y)) }
         })
     }
 
@@ -811,8 +833,9 @@ impl<I> Iterator for Dedup<I>
         where G: FnMut(Acc, Self::Item) -> Acc,
     {
         if let Some(mut last) = self.iter.last {
+            let mut dedup_pred = self.dedup_pred;
             accum = self.iter.iter.fold(accum, |acc, elt| {
-                if elt == last {
+                if dedup_pred.dedup_pair(&elt, &last) {
                     acc
                 } else {
                     f(acc, replace(&mut last, elt))
