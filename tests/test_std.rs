@@ -99,6 +99,22 @@ fn dedup() {
 }
 
 #[test]
+fn dedup_by() {
+    let xs = [(0, 0), (0, 1), (1, 1), (2, 1), (0, 2), (3, 1), (0, 3), (1, 3)];
+    let ys = [(0, 0), (0, 1), (0, 2), (3, 1), (0, 3)];
+    it::assert_equal(ys.iter(), xs.iter().dedup_by(|x, y| x.1==y.1));
+    let xs = [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5)];
+    let ys = [(0, 1)];
+    it::assert_equal(ys.iter(), xs.iter().dedup_by(|x, y| x.0==y.0));
+
+    let xs = [(0, 0), (0, 1), (1, 1), (2, 1), (0, 2), (3, 1), (0, 3), (1, 3)];
+    let ys = [(0, 0), (0, 1), (0, 2), (3, 1), (0, 3)];
+    let mut xs_d = Vec::new();
+    xs.iter().dedup_by(|x, y| x.1==y.1).fold((), |(), &elt| xs_d.push(elt));
+    assert_eq!(&xs_d, &ys);
+}
+
+#[test]
 fn all_equal() {
     assert!(!"AABBCCC".chars().all_equal());
     assert!("AAAAAAA".chars().all_equal());

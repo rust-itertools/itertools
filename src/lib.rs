@@ -79,6 +79,7 @@ pub use std::iter as __std_iter;
 pub mod structs {
     pub use adaptors::{
         Dedup,
+        DedupBy,
         Interleave,
         InterleaveShortest,
         Product,
@@ -954,6 +955,28 @@ pub trait Itertools : Iterator {
               Self::Item: PartialEq,
     {
         adaptors::dedup(self)
+    }
+
+    /// Remove duplicates from sections of consecutive identical elements,
+    /// determining equality using a comparison function.
+    /// If the iterator is sorted, all elements will be unique.
+    ///
+    /// Iterator element type is `Self::Item`.
+    ///
+    /// This iterator is *fused*.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![(0, 1.), (1, 1.), (0, 2.), (0, 3.), (1, 3.), (1, 2.), (2, 2.)];
+    /// itertools::assert_equal(data.into_iter().dedup_by(|x, y| x.1==y.1),
+    ///                         vec![(0, 1.), (0, 2.), (0, 3.), (1, 2.)]);
+    /// ```
+    fn dedup_by<Cmp>(self, cmp: Cmp) -> DedupBy<Self, Cmp>
+        where Self: Sized,
+              Cmp: FnMut(&Self::Item, &Self::Item)->bool,
+    {
+        adaptors::dedup_by(self, cmp)
     }
 
     /// Return an iterator adaptor that filters out elements that have

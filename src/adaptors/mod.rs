@@ -755,7 +755,7 @@ impl<I, F> Iterator for Coalesce<I, F>
 
 /// An iterator adaptor that removes repeated duplicates, determining equality using a comparison function.
 ///
-/// See [`.dedup()`](../trait.Itertools.html#method.dedup) for more information.
+/// See [`.dedup_by()`](../trait.Itertools.html#method.dedup_by) or [`.dedup()`](../trait.Itertools.html#method.dedup) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct DedupBy<I, Pred>
     where I: Iterator
@@ -777,6 +777,12 @@ impl<T: PartialEq> DedupPredicate<T> for DedupEq {
     }
 }
 
+impl<T, F: FnMut(&T, &T)->bool> DedupPredicate<T> for F {
+    fn dedup_pair(&mut self, a: &T, b: &T) -> bool {
+        self(a, b)
+    }
+}
+
 /// An iterator adaptor that removes repeated duplicates.
 ///
 /// See [`.dedup()`](../trait.Itertools.html#method.dedup) for more information.
@@ -791,17 +797,24 @@ impl<I: Clone, Pred: Clone> Clone for DedupBy<I, Pred>
     }
 }
 
-/// Create a new `Dedup`.
-pub fn dedup<I>(mut iter: I) -> Dedup<I>
-    where I: Iterator
+/// Create a new `DedupBy`.
+pub fn dedup_by<I, Pred>(mut iter: I, dedup_pred: Pred) -> DedupBy<I, Pred>
+    where I: Iterator,
 {
     DedupBy {
         iter: CoalesceCore {
             last: iter.next(),
             iter: iter,
         },
-        dedup_pred: DedupEq,
+        dedup_pred,
     }
+}
+
+/// Create a new `Dedup`.
+pub fn dedup<I>(iter: I) -> Dedup<I>
+    where I: Iterator
+{
+    dedup_by(iter, DedupEq)
 }
 
 impl<I, Pred> fmt::Debug for DedupBy<I, Pred>
