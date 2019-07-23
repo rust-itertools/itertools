@@ -636,8 +636,22 @@ quickcheck! {
 }
 
 quickcheck! {
+    fn equal_dedup_by(a: Vec<(i32, i32)>) -> bool {
+        let mut b = a.clone();
+        b.dedup_by(|x, y| x.0==y.0);
+        itertools::equal(&b, a.iter().dedup_by(|x, y| x.0==y.0))
+    }
+}
+
+quickcheck! {
     fn size_dedup(a: Vec<i32>) -> bool {
         correct_size_hint(a.iter().dedup())
+    }
+}
+
+quickcheck! {
+    fn size_dedup_by(a: Vec<(i32, i32)>) -> bool {
+        correct_size_hint(a.iter().dedup_by(|x, y| x.0==y.0))
     }
 }
 
