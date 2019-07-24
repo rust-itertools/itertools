@@ -463,64 +463,6 @@ impl<I> ExactSizeIterator for Step<I>
     where I: ExactSizeIterator
 {}
 
-
-struct MergeCore<I, J>
-    where I: Iterator,
-          J: Iterator<Item = I::Item>
-{
-    a: Peekable<I>,
-    b: Peekable<J>,
-    fused: Option<bool>,
-}
-
-
-impl<I, J> Clone for MergeCore<I, J>
-    where I: Iterator,
-          J: Iterator<Item = I::Item>,
-          Peekable<I>: Clone,
-          Peekable<J>: Clone
-{
-    fn clone(&self) -> Self {
-        clone_fields!(MergeCore, self, a, b, fused)
-    }
-}
-
-impl<I, J> MergeCore<I, J>
-    where I: Iterator,
-          J: Iterator<Item = I::Item>
-{
-    fn next_with<F>(&mut self, mut less_than: F) -> Option<I::Item>
-        where F: FnMut(&I::Item, &I::Item) -> bool
-    {
-        let less_than = match self.fused {
-            Some(lt) => lt,
-            None => match (self.a.peek(), self.b.peek()) {
-                (Some(a), Some(b)) => less_than(a, b),
-                (Some(_), None) => {
-                    self.fused = Some(true);
-                    true
-                }
-                (None, Some(_)) => {
-                    self.fused = Some(false);
-                    false
-                }
-                (None, None) => return None,
-            }
-        };
-
-        if less_than {
-            self.a.next()
-        } else {
-            self.b.next()
-        }
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        // Not ExactSizeIterator because size may be larger than usize
-        size_hint::add(self.a.size_hint(), self.b.size_hint())
-    }
-}
-
 pub trait MergePredicate<T> {
     fn merge_pred(&mut self, a: &T, b: &T) -> bool;
 }
@@ -573,7 +515,9 @@ pub struct MergeBy<I, J, F>
     where I: Iterator,
           J: Iterator<Item = I::Item>
 {
-    merge: MergeCore<I, J>,
+    a: Peekable<I>,
+    b: Peekable<J>,
+    fused: Option<bool>,
     cmp: F,
 }
 
@@ -581,7 +525,7 @@ impl<I, J, F> fmt::Debug for MergeBy<I, J, F>
     where I: Iterator + fmt::Debug, J: Iterator<Item = I::Item> + fmt::Debug,
           I::Item: fmt::Debug,
 {
-    debug_fmt_fields!(MergeBy, merge.a, merge.b);
+    debug_fmt_fields!(MergeBy, a, b);
 }
 
 impl<T, F: FnMut(&T, &T)->bool> MergePredicate<T> for F {
@@ -597,11 +541,9 @@ pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I::IntoIter, J::Into
           F: MergePredicate<I::Item>,
 {
     MergeBy {
-        merge: MergeCore {
-            a: a.into_iter().peekable(),
-            b: b.into_iter().peekable(),
-            fused: None,
-        },
+        a: a.into_iter().peekable(),
+        b: b.into_iter().peekable(),
+        fused: None,
         cmp: cmp,
     }
 }
@@ -614,7 +556,7 @@ impl<I, J, F> Clone for MergeBy<I, J, F>
           F: Clone
 {
     fn clone(&self) -> Self {
-        clone_fields!(MergeBy, self, merge, cmp)
+        clone_fields!(MergeBy, self, a, b, fused, cmp)
     }
 }
 
@@ -626,12 +568,31 @@ impl<I, J, F> Iterator for MergeBy<I, J, F>
     type Item = I::Item;
 
     fn next(&mut self) -> Option<I::Item> {
-        let cmp = &mut self.cmp;
-        self.merge.next_with(|a, b| cmp.merge_pred(a, b))
+        let less_than = match self.fused {
+            Some(lt) => lt,
+            None => match (self.a.peek(), self.b.peek()) {
+                (Some(a), Some(b)) => self.cmp.merge_pred(a, b),
+                (Some(_), None) => {
+                    self.fused = Some(true);
+                    true
+                }
+                (None, Some(_)) => {
+                    self.fused = Some(false);
+                    false
+                }
+                (None, None) => return None,
+            }
+        };
+        if less_than {
+            self.a.next()
+        } else {
+            self.b.next()
+        }
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        self.merge.size_hint()
+        // Not ExactSizeIterator because size may be larger than usize
+        size_hint::add(self.a.size_hint(), self.b.size_hint())
     }
 }
 
