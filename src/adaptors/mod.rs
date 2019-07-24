@@ -521,6 +521,19 @@ impl<I, J> MergeCore<I, J>
     }
 }
 
+pub trait MergePredicate<T> {
+    fn merge_pred(&mut self, a: &T, b: &T) -> bool;
+}
+
+#[derive(Clone)]
+pub struct MergeLte;
+
+impl<T: PartialOrd> MergePredicate<T> for MergeLte {
+    fn merge_pred(&mut self, a: &T, b: &T) -> bool {
+        a <= b
+    }
+}
+
 /// An iterator adaptor that merges the two base iterators in ascending order.
 /// If both base iterators are sorted (ascending), the result is sorted.
 ///
@@ -528,30 +541,7 @@ impl<I, J> MergeCore<I, J>
 ///
 /// See [`.merge()`](../trait.Itertools.html#method.merge_by) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct Merge<I, J>
-    where I: Iterator,
-          J: Iterator<Item = I::Item>
-{
-    merge: MergeCore<I, J>,
-}
-
-impl<I, J> Clone for Merge<I, J>
-    where I: Iterator,
-          J: Iterator<Item = I::Item>,
-          Peekable<I>: Clone,
-          Peekable<J>: Clone
-{
-    fn clone(&self) -> Self {
-        clone_fields!(Merge, self, merge)
-    }
-}
-
-impl<I, J> fmt::Debug for Merge<I, J>
-    where I: Iterator + fmt::Debug, J: Iterator<Item = I::Item> + fmt::Debug,
-          I::Item: fmt::Debug,
-{
-    debug_fmt_fields!(Merge, merge.a, merge.b);
-}
+pub type Merge<I, J> = MergeBy<I, J, MergeLte>;
 
 /// Create an iterator that merges elements in `i` and `j`.
 ///
@@ -569,29 +559,7 @@ pub fn merge<I, J>(i: I, j: J) -> Merge<<I as IntoIterator>::IntoIter, <J as Int
           J: IntoIterator<Item = I::Item>,
           I::Item: PartialOrd
 {
-    Merge {
-        merge: MergeCore {
-            a: i.into_iter().peekable(),
-            b: j.into_iter().peekable(),
-            fused: None,
-        },
-    }
-}
-
-impl<I, J> Iterator for Merge<I, J>
-    where I: Iterator,
-          J: Iterator<Item = I::Item>,
-          I::Item: PartialOrd
-{
-    type Item = I::Item;
-
-    fn next(&mut self) -> Option<I::Item> {
-        self.merge.next_with(|a, b| a <= b)
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.merge.size_hint()
-    }
+    merge_by_new(i, j, MergeLte)
 }
 
 /// An iterator adaptor that merges the two base iterators in ascending order.
@@ -616,15 +584,22 @@ impl<I, J, F> fmt::Debug for MergeBy<I, J, F>
     debug_fmt_fields!(MergeBy, merge.a, merge.b);
 }
 
+impl<T, F: FnMut(&T, &T)->bool> MergePredicate<T> for F {
+    fn merge_pred(&mut self, a: &T, b: &T) -> bool {
+        self(a, b)
+    }
+}
+
 /// Create a `MergeBy` iterator.
-pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I, J, F>
-    where I: Iterator,
-          J: Iterator<Item = I::Item>
+pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I::IntoIter, J::IntoIter, F>
+    where I: IntoIterator,
+          J: IntoIterator<Item = I::Item>,
+          F: MergePredicate<I::Item>,
 {
     MergeBy {
         merge: MergeCore {
-            a: a.peekable(),
-            b: b.peekable(),
+            a: a.into_iter().peekable(),
+            b: b.into_iter().peekable(),
             fused: None,
         },
         cmp: cmp,
@@ -646,12 +621,13 @@ impl<I, J, F> Clone for MergeBy<I, J, F>
 impl<I, J, F> Iterator for MergeBy<I, J, F>
     where I: Iterator,
           J: Iterator<Item = I::Item>,
-          F: FnMut(&I::Item, &I::Item) -> bool
+          F: MergePredicate<I::Item>
 {
     type Item = I::Item;
 
     fn next(&mut self) -> Option<I::Item> {
-        self.merge.next_with(&mut self.cmp)
+        let cmp = &mut self.cmp;
+        self.merge.next_with(|a, b| cmp.merge_pred(a, b))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
