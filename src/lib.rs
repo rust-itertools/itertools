@@ -115,6 +115,7 @@ pub mod structs {
     pub use crate::combinations::Combinations;
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations_with_replacement::CombinationsWithReplacement;
+    pub use crate::combinations_by_len::CombinationsByLen;
     pub use crate::cons_tuples_impl::ConsTuples;
     pub use crate::exactly_one_err::ExactlyOneError;
     pub use crate::format::{Format, FormatWith};
@@ -187,6 +188,8 @@ mod cons_tuples_impl;
 mod combinations;
 #[cfg(feature = "use_alloc")]
 mod combinations_with_replacement;
+mod combinations_by_len;
+pub use combinations_by_len::combinations_by_len;
 mod exactly_one_err;
 mod diff;
 mod format;
