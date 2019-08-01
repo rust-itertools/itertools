@@ -1147,14 +1147,14 @@ pub trait Itertools : Iterator {
     ///     ]);
     /// ```
     ///
-    /// Note: Combinations does not take into accout the equality of the inner values.
+    /// Note: Combinations does not take into account the equality of the iterated values.
     /// ```
     /// use itertools::Itertools;
     ///
     /// let it = vec![1, 2, 2].into_iter().combinations(2);
     /// itertools::assert_equal(it, vec![
-    ///     vec![1, 2], // Note: thise are the same
-    ///     vec![1, 2], // Note: thise are the same
+    ///     vec![1, 2], // Note: these are the same
+    ///     vec![1, 2], // Note: these are the same
     ///     vec![2, 2],
     /// ]);
     /// ```
