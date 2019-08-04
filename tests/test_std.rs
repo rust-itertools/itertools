@@ -567,6 +567,12 @@ fn combinations() {
     it::assert_equal((0..1).combinations(1), vec![vec![0]]);
     it::assert_equal((0..2).combinations(1), vec![vec![0], vec![1]]);
     it::assert_equal((0..2).combinations(2), vec![vec![0, 1]]);
+
+    // Infinite iterator should work, even though it doesn't really make sense
+    let mut infinite_combinations = (0..).combinations(2);
+    assert_eq!(infinite_combinations.next(), Some(vec![0, 1]));
+    assert_eq!(infinite_combinations.next(), Some(vec![0, 2]));
+    assert_eq!(infinite_combinations.next(), Some(vec![0, 3]));
 }
 
 #[test]
@@ -609,6 +615,12 @@ fn combinations_with_replacement() {
         (0..0).combinations_with_replacement(2),
         <Vec<Vec<_>>>::new(),
     );
+
+    // Infinite iterator should work, even though it doesn't really make sense
+    let mut infinite_combinations = (0..).combinations_with_replacement(2);
+    assert_eq!(infinite_combinations.next(), Some(vec![0, 0]));
+    assert_eq!(infinite_combinations.next(), Some(vec![0, 1]));
+    assert_eq!(infinite_combinations.next(), Some(vec![0, 2]));
 }
 
 #[test]
