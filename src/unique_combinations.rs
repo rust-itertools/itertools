@@ -80,7 +80,7 @@ where
             // check if we cant bump the back number
             if self.pool[self.position[self.len - 1]] == self.pool[org_len - 1] {
                 // locate the number closest behind that needs to be bumped
-                for i in 2..=self.len {
+                for i in 2.. self.len + 1 {
                     if self.pool[self.position[self.len - i]] < self.pool[org_len - i] {
                         //find the value of the
                         let lastpos = self.position[self.len - i];
