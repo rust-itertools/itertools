@@ -1,14 +1,30 @@
+use std::fmt;
+
+use super::lazy_buffer::LazyBuffer;
+
 /// An iterator to iterate through all the `n`-length combinations in an iterator, with replacement.
 ///
 /// See [`.combinations_with_replacement()`](../trait.Itertools.html#method.combinations_with_replacement) for more information.
-#[derive(Debug, Clone)]
-pub struct CombinationsWithReplacement<I: Iterator> {
+#[derive(Clone)]
+pub struct CombinationsWithReplacement<I>
+where
+    I: Iterator,
+    I::Item: Clone,
+{
     n: usize,
     indices: Vec<usize>,
+    // The current known max index value. This increases as pool grows.
     max_index: usize,
-    pool: Vec<I::Item>,
+    pool: LazyBuffer<I>,
     first: bool,
-    empty: bool,
+}
+
+impl<I> fmt::Debug for CombinationsWithReplacement<I>
+where
+    I: Iterator + fmt::Debug,
+    I::Item: fmt::Debug + Clone,
+{
+    debug_fmt_fields!(Combinations, n, indices, max_index, pool, first);
 }
 
 impl<I> CombinationsWithReplacement<I>
@@ -26,19 +42,17 @@ where
 pub fn combinations_with_replacement<I>(iter: I, n: usize) -> CombinationsWithReplacement<I>
 where
     I: Iterator,
+    I::Item: Clone,
 {
     let indices: Vec<usize> = vec![0; n];
-    let pool: Vec<I::Item> = iter.collect();
-    let empty = n == 0 || pool.len() == 0;
-    let max_index = if empty { 0 } else { pool.len() - 1 };
+    let pool: LazyBuffer<I> = LazyBuffer::new(iter);
 
     CombinationsWithReplacement {
         n,
-        indices: indices,
-        max_index,
+        indices,
+        max_index: 0,
         pool: pool,
         first: true,
-        empty,
     }
 }
 
@@ -49,16 +63,23 @@ where
 {
     type Item = Vec<I::Item>;
     fn next(&mut self) -> Option<Self::Item> {
-        // If this is the first iteration
+        // If this is the first iteration, return early
         if self.first {
             // In empty edge cases, stop iterating immediately
-            return if self.empty {
+            return if self.n == 0 || self.pool.is_done() {
                 None
             // Otherwise, yield the initial state
             } else {
                 self.first = false;
                 Some(self.current())
             };
+        }
+
+        // Check if we need to consume more from the iterator
+        // This will run while we increment our first index digit
+        if !self.pool.is_done() {
+            self.pool.get_next();
+            self.max_index = self.pool.len() - 1;
         }
 
         // Work out where we need to update our indices

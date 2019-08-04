@@ -173,6 +173,8 @@ mod groupbylazy;
 mod intersperse;
 #[cfg(feature = "use_std")]
 mod kmerge_impl;
+#[cfg(feature = "use_std")]
+mod lazy_buffer;
 mod merge_join;
 mod minmax;
 #[cfg(feature = "use_std")]
