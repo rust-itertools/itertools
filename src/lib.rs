@@ -102,6 +102,8 @@ pub mod structs {
     pub use adaptors::MultiProduct;
     #[cfg(feature = "use_std")]
     pub use combinations::Combinations;
+    #[cfg(feature = "use_std")]
+    pub use combinations_with_replacement::CombinationsWithReplacement;
     pub use cons_tuples_impl::ConsTuples;
     pub use exactly_one_err::ExactlyOneError;
     pub use format::{Format, FormatWith};
@@ -160,6 +162,8 @@ mod concat_impl;
 mod cons_tuples_impl;
 #[cfg(feature = "use_std")]
 mod combinations;
+#[cfg(feature = "use_std")]
+mod combinations_with_replacement;
 mod exactly_one_err;
 mod diff;
 mod format;
@@ -170,6 +174,8 @@ mod groupbylazy;
 mod intersperse;
 #[cfg(feature = "use_std")]
 mod kmerge_impl;
+#[cfg(feature = "use_std")]
+mod lazy_buffer;
 mod merge_join;
 mod minmax;
 #[cfg(feature = "use_std")]
@@ -1165,6 +1171,34 @@ pub trait Itertools : Iterator {
               Self::Item: Clone
     {
         combinations::combinations(self, n)
+    }
+
+    /// Return an iterator that iterates over the `n`-length combinations of
+    /// the elements from an iterator, with replacement.
+    ///
+    /// Iterator element type is `Vec<Self::Item>`. The iterator produces a new Vec per iteration,
+    /// and clones the iterator elements.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let it = (1..4).combinations_with_replacement(2);
+    /// itertools::assert_equal(it, vec![
+    ///     vec![1, 1],
+    ///     vec![1, 2],
+    ///     vec![1, 3],
+    ///     vec![2, 2],
+    ///     vec![2, 3],
+    ///     vec![3, 3],
+    ///     ]);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn combinations_with_replacement(self, n: usize) -> CombinationsWithReplacement<Self>
+    where
+        Self: Sized,
+        Self::Item: Clone,
+    {
+        combinations_with_replacement::combinations_with_replacement(self, n)
     }
 
     /// Return an iterator adaptor that pads the sequence to a minimum length of
