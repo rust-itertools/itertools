@@ -150,12 +150,7 @@ pub fn kmerge<I>(iterable: I) -> KMerge<<I::Item as IntoIterator>::IntoIter>
           I::Item: IntoIterator,
           <<I as IntoIterator>::Item as IntoIterator>::Item: PartialOrd
 {
-    let iter = iterable.into_iter();
-    let (lower, _) = iter.size_hint();
-    let mut heap = Vec::with_capacity(lower);
-    heap.extend(iter.filter_map(|it| HeadTail::new(it.into_iter())));
-    heapify(&mut heap, |a, b| a.head < b.head);
-    KMerge { heap: heap , less_than: KMergeByLt }
+    kmerge_by(iterable, KMergeByLt)
 }
 
 /// An iterator adaptor that merges an abitrary number of base iterators
@@ -187,14 +182,13 @@ pub fn kmerge_by<I, F>(iterable: I, mut less_than: F)
     -> KMergeBy<<I::Item as IntoIterator>::IntoIter, F>
     where I: IntoIterator,
           I::Item: IntoIterator,
-          F: FnMut(&<<I as IntoIterator>::Item as IntoIterator>::Item,
-                   &<<I as IntoIterator>::Item as IntoIterator>::Item) -> bool
+          F: KMergePredicate<<<I as IntoIterator>::Item as IntoIterator>::Item>,
 {
     let iter = iterable.into_iter();
     let (lower, _) = iter.size_hint();
     let mut heap: Vec<_> = Vec::with_capacity(lower);
     heap.extend(iter.filter_map(|it| HeadTail::new(it.into_iter())));
-    heapify(&mut heap, |a, b| less_than(&a.head, &b.head));
+    heapify(&mut heap, |a, b| less_than.kmerge_pred(&a.head, &b.head));
     KMergeBy { heap: heap, less_than: less_than }
 }
 
