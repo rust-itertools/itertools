@@ -226,6 +226,15 @@ pub fn kmerge_by<I, F>(iterable: I, mut less_than: F)
     KMergeBy { heap: heap, less_than: less_than }
 }
 
+impl<I, F> Clone for KMergeBy<I, F>
+    where I: Iterator + Clone,
+          I::Item: Clone,
+          F: Clone,
+{
+    fn clone(&self) -> KMergeBy<I, F> {
+        clone_fields!(KMergeBy, self, heap, less_than)
+    }
+}
 
 impl<I, F> Iterator for KMergeBy<I, F>
     where I: Iterator,
