@@ -1380,9 +1380,13 @@ pub trait Itertools : Iterator {
     /// assert!(data.into_iter().all_equal());
     /// ```
     fn all_equal(&mut self) -> bool
-        where Self::Item: PartialEq,
+        where Self: Sized,
+              Self::Item: PartialEq,
     {
-        self.dedup().nth(1).is_none()
+        match self.next() {
+            None => true,
+            Some(a) => self.all(|x| a == x),
+        }
     }
 
     /// Consume the first `n` elements from the iterator eagerly,
