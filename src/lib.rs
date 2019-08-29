@@ -1997,21 +1997,19 @@ pub trait Itertools : Iterator {
     /// assert_eq!(successes, [1, 2]);
     /// assert_eq!(failures, [false, true]);
     /// ```
-    fn partition_map<A, B, F, L, R>(self, predicate: F) -> (A, B)
+    fn partition_map<A, B, F, L, R>(self, mut predicate: F) -> (A, B)
         where Self: Sized,
-              F: Fn(Self::Item) -> Either<L, R>,
+              F: FnMut(Self::Item) -> Either<L, R>,
               A: Default + Extend<L>,
               B: Default + Extend<R>,
     {
         let mut left = A::default();
         let mut right = B::default();
 
-        for val in self {
-            match predicate(val) {
-                Either::Left(v) => left.extend(Some(v)),
-                Either::Right(v) => right.extend(Some(v)),
-            }
-        }
+        self.for_each(|val| match predicate(val) {
+            Either::Left(v) => left.extend(Some(v)),
+            Either::Right(v) => right.extend(Some(v)),
+        });
 
         (left, right)
     }
