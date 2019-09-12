@@ -3,7 +3,11 @@ sudo: false
 matrix:
   include:
     - rust: 1.24.0
-    - rust: stable
+    - name: Rust stable
+      rust: stable
+      before_script:
+        - rustup component add rustfmt
+        - cargo fmt -- --check
     - rust: beta
     - rust: nightly
       env:
