@@ -14,15 +14,17 @@ pub struct Combinations<I: Iterator> {
 }
 
 impl<I> fmt::Debug for Combinations<I>
-    where I: Iterator + fmt::Debug,
-          I::Item: fmt::Debug,
+where
+    I: Iterator + fmt::Debug,
+    I::Item: fmt::Debug,
 {
     debug_fmt_fields!(Combinations, n, indices, pool, first);
 }
 
 /// Create a new `Combinations` from a clonable iterator.
 pub fn combinations<I>(iter: I, n: usize) -> Combinations<I>
-    where I: Iterator
+where
+    I: Iterator,
 {
     let mut indices: Vec<usize> = Vec::with_capacity(n);
     for i in 0..n {
@@ -45,8 +47,9 @@ pub fn combinations<I>(iter: I, n: usize) -> Combinations<I>
 }
 
 impl<I> Iterator for Combinations<I>
-    where I: Iterator,
-          I::Item: Clone
+where
+    I: Iterator,
+    I::Item: Clone,
 {
     type Item = Vec<I::Item>;
     fn next(&mut self) -> Option<Self::Item> {

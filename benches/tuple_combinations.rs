@@ -1,10 +1,10 @@
 #![feature(test)]
 
-extern crate test;
 extern crate itertools;
+extern crate test;
 
-use test::{black_box, Bencher};
 use itertools::Itertools;
+use test::{black_box, Bencher};
 
 // approximate 100_000 iterations for each combination
 const N1: usize = 100_000;

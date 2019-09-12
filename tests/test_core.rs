@@ -5,14 +5,15 @@
 //! except according to those terms.
 #![no_std]
 
-#[macro_use] extern crate itertools as it;
+#[macro_use]
+extern crate itertools as it;
 
 use core::iter;
 
-use it::Itertools;
+use it::free::put_back;
 use it::interleave;
 use it::multizip;
-use it::free::put_back;
+use it::Itertools;
 
 #[test]
 fn product2() {
@@ -31,12 +32,11 @@ fn product_temporary() {
     for (_x, _y, _z) in iproduct!(
         [0, 1, 2].iter().cloned(),
         [0, 1, 2].iter().cloned(),
-        [0, 1, 2].iter().cloned())
-    {
+        [0, 1, 2].iter().cloned()
+    ) {
         // ok
     }
 }
-
 
 #[test]
 fn izip_macro() {
@@ -58,7 +58,7 @@ fn izip_macro() {
 #[test]
 fn izip2() {
     let _zip1: iter::Zip<_, _> = izip!(1.., 2..);
-    let _zip2: iter::Zip<_, _> = izip!(1.., 2.., );
+    let _zip2: iter::Zip<_, _> = izip!(1.., 2..,);
 }
 
 #[test]
@@ -102,7 +102,7 @@ fn write_to() {
 
 #[test]
 fn test_interleave() {
-    let xs: [u8; 0]  = [];
+    let xs: [u8; 0] = [];
     let ys = [7u8, 9, 8, 10];
     let zs = [2u8, 77];
     let it = interleave(xs.iter(), ys.iter());
@@ -138,15 +138,13 @@ fn batching() {
     let ys = [(0, 1), (2, 1)];
 
     // An iterator that gathers elements up in pairs
-    let pit = xs.iter().cloned().batching(|it| {
-               match it.next() {
-                   None => None,
-                   Some(x) => match it.next() {
-                       None => None,
-                       Some(y) => Some((x, y)),
-                   }
-               }
-           });
+    let pit = xs.iter().cloned().batching(|it| match it.next() {
+        None => None,
+        Some(x) => match it.next() {
+            None => None,
+            Some(y) => Some((x, y)),
+        },
+    });
     it::assert_equal(pit, ys.iter().cloned());
 }
 
@@ -174,7 +172,6 @@ fn merge() {
     it::assert_equal((0..10).step(2).merge((1..10).step(2)), 0..10);
 }
 
-
 #[test]
 fn repeatn() {
     let s = "α";
@@ -194,29 +191,33 @@ fn count_clones() {
     use core::cell::Cell;
     #[derive(PartialEq, Debug)]
     struct Foo {
-        n: Cell<usize>
+        n: Cell<usize>,
     }
 
-    impl Clone for Foo
-    {
-        fn clone(&self) -> Self
-        {
+    impl Clone for Foo {
+        fn clone(&self) -> Self {
             let n = self.n.get();
             self.n.set(n + 1);
-            Foo { n: Cell::new(n + 1) }
+            Foo {
+                n: Cell::new(n + 1),
+            }
         }
     }
 
-
     for n in 0..10 {
-        let f = Foo{n: Cell::new(0)};
+        let f = Foo { n: Cell::new(0) };
         let it = it::repeat_n(f, n);
         // drain it
         let last = it.last();
         if n == 0 {
             assert_eq!(last, None);
         } else {
-            assert_eq!(last, Some(Foo{n: Cell::new(n - 1)}));
+            assert_eq!(
+                last,
+                Some(Foo {
+                    n: Cell::new(n - 1)
+                })
+            );
         }
     }
 }
@@ -248,7 +249,19 @@ fn tree_fold1() {
 #[test]
 fn exactly_one() {
     assert_eq!((0..10).filter(|&x| x == 2).exactly_one().unwrap(), 2);
-    assert!((0..10).filter(|&x| x > 1 && x < 4).exactly_one().unwrap_err().eq(2..4));
-    assert!((0..10).filter(|&x| x > 1 && x < 5).exactly_one().unwrap_err().eq(2..5));
-    assert!((0..10).filter(|&_| false).exactly_one().unwrap_err().eq(0..0));
+    assert!((0..10)
+        .filter(|&x| x > 1 && x < 4)
+        .exactly_one()
+        .unwrap_err()
+        .eq(2..4));
+    assert!((0..10)
+        .filter(|&x| x > 1 && x < 5)
+        .exactly_one()
+        .unwrap_err()
+        .eq(2..5));
+    assert!((0..10)
+        .filter(|&_| false)
+        .exactly_one()
+        .unwrap_err()
+        .eq(0..0));
 }

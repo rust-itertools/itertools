@@ -26,7 +26,7 @@ impl<A, B> EitherOrBoth<A, B> {
     pub fn left(self) -> Option<A> {
         match self {
             Left(left) | Both(left, _) => Some(left),
-            _ => None
+            _ => None,
         }
     }
 
@@ -34,7 +34,7 @@ impl<A, B> EitherOrBoth<A, B> {
     pub fn right(self) -> Option<B> {
         match self {
             Right(right) | Both(_, right) => Some(right),
-            _ => None
+            _ => None,
         }
     }
 

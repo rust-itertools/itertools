@@ -1,4 +1,4 @@
-use std::iter::{Fuse,Peekable};
+use std::iter::{Fuse, Peekable};
 
 /// An iterator adaptor that wraps each element in an [`Position`](../enum.Position.html).
 ///
@@ -7,7 +7,8 @@ use std::iter::{Fuse,Peekable};
 /// See [`.with_position()`](../trait.Itertools.html#method.with_position) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct WithPosition<I>
-    where I: Iterator,
+where
+    I: Iterator,
 {
     handled_first: bool,
     peekable: Peekable<Fuse<I>>,
@@ -15,7 +16,8 @@ pub struct WithPosition<I>
 
 /// Create a new `WithPosition` iterator.
 pub fn with_position<I>(iter: I) -> WithPosition<I>
-    where I: Iterator,
+where
+    I: Iterator,
 {
     WithPosition {
         handled_first: false,
@@ -43,10 +45,7 @@ impl<T> Position<T> {
     /// Return the inner value.
     pub fn into_inner(self) -> T {
         match self {
-            Position::First(x) |
-            Position::Middle(x) |
-            Position::Last(x) |
-            Position::Only(x) => x,
+            Position::First(x) | Position::Middle(x) | Position::Last(x) | Position::Only(x) => x,
         }
     }
 }
@@ -85,6 +84,4 @@ impl<I: Iterator> Iterator for WithPosition<I> {
     }
 }
 
-impl<I> ExactSizeIterator for WithPosition<I>
-    where I: ExactSizeIterator,
-{ }
+impl<I> ExactSizeIterator for WithPosition<I> where I: ExactSizeIterator {}

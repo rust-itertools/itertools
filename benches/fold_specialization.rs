@@ -1,14 +1,15 @@
 #![feature(test)]
 
-extern crate test;
 extern crate itertools;
+extern crate test;
 
 use itertools::Itertools;
 
 struct Unspecialized<I>(I);
 
 impl<I> Iterator for Unspecialized<I>
-where I: Iterator
+where
+    I: Iterator,
 {
     type Item = I::Item;
 
@@ -30,8 +31,7 @@ mod specialization {
         use super::*;
 
         #[bench]
-        fn external(b: &mut test::Bencher)
-        {
+        fn external(b: &mut test::Bencher) {
             let arr = [1; 1024];
 
             b.iter(|| {
@@ -44,23 +44,17 @@ mod specialization {
         }
 
         #[bench]
-        fn internal_specialized(b: &mut test::Bencher)
-        {
+        fn internal_specialized(b: &mut test::Bencher) {
             let arr = [1; 1024];
 
-            b.iter(|| {
-                arr.into_iter().intersperse(&0).fold(0, |acc, x| acc + x)
-            })
+            b.iter(|| arr.into_iter().intersperse(&0).fold(0, |acc, x| acc + x))
         }
 
         #[bench]
-        fn internal_unspecialized(b: &mut test::Bencher)
-        {
+        fn internal_unspecialized(b: &mut test::Bencher) {
             let arr = [1; 1024];
 
-            b.iter(|| {
-                Unspecialized(arr.into_iter().intersperse(&0)).fold(0, |acc, x| acc + x)
-            })
+            b.iter(|| Unspecialized(arr.into_iter().intersperse(&0)).fold(0, |acc, x| acc + x))
         }
     }
 }

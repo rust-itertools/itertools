@@ -1,18 +1,19 @@
 extern crate itertools;
 
-use itertools::Itertools;
-use itertools::EitherOrBoth::{Both, Left, Right};
 use itertools::free::zip_eq;
+use itertools::EitherOrBoth::{Both, Left, Right};
+use itertools::Itertools;
 
 #[test]
 fn zip_longest_fused() {
     let a = [Some(1), None, Some(3), Some(4)];
     let b = [1, 2, 3];
 
-    let unfused = a.iter().batching(|it| *it.next().unwrap())
+    let unfused = a
+        .iter()
+        .batching(|it| *it.next().unwrap())
         .zip_longest(b.iter().cloned());
-    itertools::assert_equal(unfused,
-                       vec![Both(1, 1), Right(2), Right(3)]);
+    itertools::assert_equal(unfused, vec![Both(1, 1), Right(2), Right(3)]);
 }
 
 #[test]
@@ -42,11 +43,9 @@ fn test_double_ended_zip_longest() {
     assert_eq!(it.next(), None);
 }
 
-
 #[should_panic]
 #[test]
-fn zip_eq_panic1()
-{
+fn zip_eq_panic1() {
     let a = [1, 2];
     let b = [1, 2, 3];
 
@@ -55,11 +54,9 @@ fn zip_eq_panic1()
 
 #[should_panic]
 #[test]
-fn zip_eq_panic2()
-{
+fn zip_eq_panic2() {
     let a: [i32; 0] = [];
     let b = [1, 2, 3];
 
     zip_eq(&a, &b).count();
 }
-

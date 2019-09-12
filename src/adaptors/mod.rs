@@ -8,11 +8,11 @@ mod multi_product;
 #[cfg(feature = "use_std")]
 pub use self::multi_product::*;
 
-use std::fmt;
-use std::mem::replace;
-use std::iter::{Fuse, Peekable, FromIterator};
-use std::marker::PhantomData;
 use size_hint;
+use std::fmt;
+use std::iter::{FromIterator, Fuse, Peekable};
+use std::marker::PhantomData;
+use std::mem::replace;
 
 macro_rules! clone_fields {
     ($name:ident, $base:expr, $($field:ident),+) => (
@@ -49,9 +49,13 @@ pub struct Interleave<I, J> {
 ///     /* loop body */
 /// }
 /// ```
-pub fn interleave<I, J>(i: I, j: J) -> Interleave<<I as IntoIterator>::IntoIter, <J as IntoIterator>::IntoIter>
-    where I: IntoIterator,
-          J: IntoIterator<Item = I::Item>
+pub fn interleave<I, J>(
+    i: I,
+    j: J,
+) -> Interleave<<I as IntoIterator>::IntoIter, <J as IntoIterator>::IntoIter>
+where
+    I: IntoIterator,
+    J: IntoIterator<Item = I::Item>,
 {
     Interleave {
         a: i.into_iter().fuse(),
@@ -61,8 +65,9 @@ pub fn interleave<I, J>(i: I, j: J) -> Interleave<<I as IntoIterator>::IntoIter,
 }
 
 impl<I, J> Iterator for Interleave<I, J>
-    where I: Iterator,
-          J: Iterator<Item = I::Item>
+where
+    I: Iterator,
+    J: Iterator<Item = I::Item>,
 {
     type Item = I::Item;
     #[inline]
@@ -96,8 +101,9 @@ impl<I, J> Iterator for Interleave<I, J>
 #[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct InterleaveShortest<I, J>
-    where I: Iterator,
-          J: Iterator<Item = I::Item>
+where
+    I: Iterator,
+    J: Iterator<Item = I::Item>,
 {
     it0: I,
     it1: J,
@@ -106,8 +112,9 @@ pub struct InterleaveShortest<I, J>
 
 /// Create a new `InterleaveShortest` iterator.
 pub fn interleave_shortest<I, J>(a: I, b: J) -> InterleaveShortest<I, J>
-    where I: Iterator,
-          J: Iterator<Item = I::Item>
+where
+    I: Iterator,
+    J: Iterator<Item = I::Item>,
 {
     InterleaveShortest {
         it0: a,
@@ -117,8 +124,9 @@ pub fn interleave_shortest<I, J>(a: I, b: J) -> InterleaveShortest<I, J>
 }
 
 impl<I, J> Iterator for InterleaveShortest<I, J>
-    where I: Iterator,
-          J: Iterator<Item = I::Item>
+where
+    I: Iterator,
+    J: Iterator<Item = I::Item>,
 {
     type Item = I::Item;
 
@@ -157,12 +165,11 @@ impl<I, J> Iterator for InterleaveShortest<I, J>
         let (next_lower, next_upper) = next_hint;
         let (combined_lower, combined_upper) =
             size_hint::mul_scalar(size_hint::min(curr_hint, next_hint), 2);
-        let lower =
-            if curr_lower > next_lower {
-                combined_lower + 1
-            } else {
-                combined_lower
-            };
+        let lower = if curr_lower > next_lower {
+            combined_lower + 1
+        } else {
+            combined_lower
+        };
         let upper = {
             let extra_elem = match (curr_upper, next_upper) {
                 (_, None) => false,
@@ -185,7 +192,8 @@ impl<I, J> Iterator for InterleaveShortest<I, J>
 ///
 /// Iterator element type is `I::Item`.
 pub struct PutBack<I>
-    where I: Iterator
+where
+    I: Iterator,
 {
     top: Option<I::Item>,
     iter: I,
@@ -193,7 +201,8 @@ pub struct PutBack<I>
 
 /// Create an iterator where you can put back a single item
 pub fn put_back<I>(iterable: I) -> PutBack<I::IntoIter>
-    where I: IntoIterator
+where
+    I: IntoIterator,
 {
     PutBack {
         top: None,
@@ -202,7 +211,8 @@ pub fn put_back<I>(iterable: I) -> PutBack<I::IntoIter>
 }
 
 impl<I> PutBack<I>
-    where I: Iterator
+where
+    I: Iterator,
 {
     /// put back value `value` (builder method)
     pub fn with_value(mut self, value: I::Item) -> Self {
@@ -213,7 +223,7 @@ impl<I> PutBack<I>
     /// Split the `PutBack` into its parts.
     #[inline]
     pub fn into_parts(self) -> (Option<I::Item>, I) {
-        let PutBack{top, iter} = self;
+        let PutBack { top, iter } = self;
         (top, iter)
     }
 
@@ -227,7 +237,8 @@ impl<I> PutBack<I>
 }
 
 impl<I> Iterator for PutBack<I>
-    where I: Iterator
+where
+    I: Iterator,
 {
     type Item = I::Item;
     #[inline]
@@ -244,7 +255,8 @@ impl<I> Iterator for PutBack<I>
     }
 
     fn all<G>(&mut self, mut f: G) -> bool
-        where G: FnMut(Self::Item) -> bool
+    where
+        G: FnMut(Self::Item) -> bool,
     {
         if let Some(elt) = self.top.take() {
             if !f(elt) {
@@ -255,7 +267,8 @@ impl<I> Iterator for PutBack<I>
     }
 
     fn fold<Acc, G>(mut self, init: Acc, mut f: G) -> Acc
-        where G: FnMut(Acc, Self::Item) -> Acc,
+    where
+        G: FnMut(Acc, Self::Item) -> Acc,
     {
         let mut accum = init;
         if let Some(elt) = self.top.take() {
@@ -274,7 +287,8 @@ impl<I> Iterator for PutBack<I>
 /// See [`.cartesian_product()`](../trait.Itertools.html#method.cartesian_product) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Product<I, J>
-    where I: Iterator
+where
+    I: Iterator,
 {
     a: I,
     a_cur: Option<I::Item>,
@@ -286,9 +300,10 @@ pub struct Product<I, J>
 ///
 /// Iterator element type is `(I::Item, J::Item)`.
 pub fn cartesian_product<I, J>(mut i: I, j: J) -> Product<I, J>
-    where I: Iterator,
-          J: Clone + Iterator,
-          I::Item: Clone
+where
+    I: Iterator,
+    J: Clone + Iterator,
+    I::Item: Clone,
 {
     Product {
         a_cur: i.next(),
@@ -298,11 +313,11 @@ pub fn cartesian_product<I, J>(mut i: I, j: J) -> Product<I, J>
     }
 }
 
-
 impl<I, J> Iterator for Product<I, J>
-    where I: Iterator,
-          J: Clone + Iterator,
-          I::Item: Clone
+where
+    I: Iterator,
+    J: Clone + Iterator,
+    I::Item: Clone,
 {
     type Item = (I::Item, J::Item);
     fn next(&mut self) -> Option<(I::Item, J::Item)> {
@@ -317,13 +332,11 @@ impl<I, J> Iterator for Product<I, J>
                     }
                 }
             }
-            Some(x) => x
+            Some(x) => x,
         };
         match self.a_cur {
             None => None,
-            Some(ref a) => {
-                Some((a.clone(), elt_b))
-            }
+            Some(ref a) => Some((a.clone(), elt_b)),
         }
     }
 
@@ -335,11 +348,13 @@ impl<I, J> Iterator for Product<I, J>
         // Compute a * b_orig + b for both lower and upper bound
         size_hint::add(
             size_hint::mul(self.a.size_hint(), self.b_orig.size_hint()),
-            (b_min * has_cur, b_max.map(move |x| x * has_cur)))
+            (b_min * has_cur, b_max.map(move |x| x * has_cur)),
+        )
     }
 
     fn fold<Acc, G>(mut self, mut accum: Acc, mut f: G) -> Acc
-        where G: FnMut(Acc, Self::Item) -> Acc,
+    where
+        G: FnMut(Acc, Self::Item) -> Acc,
     {
         // use a split loop to handle the loose a_cur as well as avoiding to
         // clone b_orig at the end.
@@ -374,7 +389,10 @@ pub struct Batching<I, F> {
     iter: I,
 }
 
-impl<I, F> fmt::Debug for Batching<I, F> where I: fmt::Debug {
+impl<I, F> fmt::Debug for Batching<I, F>
+where
+    I: fmt::Debug,
+{
     debug_fmt_fields!(Batching, iter);
 }
 
@@ -384,8 +402,9 @@ pub fn batching<I, F>(iter: I, f: F) -> Batching<I, F> {
 }
 
 impl<B, F, I> Iterator for Batching<I, F>
-    where I: Iterator,
-          F: FnMut(&mut I) -> Option<B>
+where
+    I: Iterator,
+    F: FnMut(&mut I) -> Option<B>,
 {
     type Item = B;
     #[inline]
@@ -407,7 +426,7 @@ impl<B, F, I> Iterator for Batching<I, F>
 /// then skipping forward *n-1* elements.
 ///
 /// See [`.step()`](../trait.Itertools.html#method.step) for more information.
-#[deprecated(note="Use std .step_by() instead", since="0.8")]
+#[deprecated(note = "Use std .step_by() instead", since = "0.8")]
 #[allow(deprecated)]
 #[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
@@ -421,7 +440,8 @@ pub struct Step<I> {
 /// **Panics** if the step is 0.
 #[allow(deprecated)]
 pub fn step<I>(iter: I, step: usize) -> Step<I>
-    where I: Iterator
+where
+    I: Iterator,
 {
     assert!(step != 0);
     Step {
@@ -432,7 +452,8 @@ pub fn step<I>(iter: I, step: usize) -> Step<I>
 
 #[allow(deprecated)]
 impl<I> Iterator for Step<I>
-    where I: Iterator
+where
+    I: Iterator,
 {
     type Item = I::Item;
     #[inline]
@@ -459,9 +480,7 @@ impl<I> Iterator for Step<I>
 
 // known size
 #[allow(deprecated)]
-impl<I> ExactSizeIterator for Step<I>
-    where I: ExactSizeIterator
-{}
+impl<I> ExactSizeIterator for Step<I> where I: ExactSizeIterator {}
 
 pub trait MergePredicate<T> {
     fn merge_pred(&mut self, a: &T, b: &T) -> bool;
@@ -496,10 +515,14 @@ pub type Merge<I, J> = MergeBy<I, J, MergeLte>;
 ///     /* loop body */
 /// }
 /// ```
-pub fn merge<I, J>(i: I, j: J) -> Merge<<I as IntoIterator>::IntoIter, <J as IntoIterator>::IntoIter>
-    where I: IntoIterator,
-          J: IntoIterator<Item = I::Item>,
-          I::Item: PartialOrd
+pub fn merge<I, J>(
+    i: I,
+    j: J,
+) -> Merge<<I as IntoIterator>::IntoIter, <J as IntoIterator>::IntoIter>
+where
+    I: IntoIterator,
+    J: IntoIterator<Item = I::Item>,
+    I::Item: PartialOrd,
 {
     merge_by_new(i, j, MergeLte)
 }
@@ -512,8 +535,9 @@ pub fn merge<I, J>(i: I, j: J) -> Merge<<I as IntoIterator>::IntoIter, <J as Int
 /// See [`.merge_by()`](../trait.Itertools.html#method.merge_by) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct MergeBy<I, J, F>
-    where I: Iterator,
-          J: Iterator<Item = I::Item>
+where
+    I: Iterator,
+    J: Iterator<Item = I::Item>,
 {
     a: Peekable<I>,
     b: Peekable<J>,
@@ -522,13 +546,15 @@ pub struct MergeBy<I, J, F>
 }
 
 impl<I, J, F> fmt::Debug for MergeBy<I, J, F>
-    where I: Iterator + fmt::Debug, J: Iterator<Item = I::Item> + fmt::Debug,
-          I::Item: fmt::Debug,
+where
+    I: Iterator + fmt::Debug,
+    J: Iterator<Item = I::Item> + fmt::Debug,
+    I::Item: fmt::Debug,
 {
     debug_fmt_fields!(MergeBy, a, b);
 }
 
-impl<T, F: FnMut(&T, &T)->bool> MergePredicate<T> for F {
+impl<T, F: FnMut(&T, &T) -> bool> MergePredicate<T> for F {
     fn merge_pred(&mut self, a: &T, b: &T) -> bool {
         self(a, b)
     }
@@ -536,9 +562,10 @@ impl<T, F: FnMut(&T, &T)->bool> MergePredicate<T> for F {
 
 /// Create a `MergeBy` iterator.
 pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I::IntoIter, J::IntoIter, F>
-    where I: IntoIterator,
-          J: IntoIterator<Item = I::Item>,
-          F: MergePredicate<I::Item>,
+where
+    I: IntoIterator,
+    J: IntoIterator<Item = I::Item>,
+    F: MergePredicate<I::Item>,
 {
     MergeBy {
         a: a.into_iter().peekable(),
@@ -549,11 +576,12 @@ pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I::IntoIter, J::Into
 }
 
 impl<I, J, F> Clone for MergeBy<I, J, F>
-    where I: Iterator,
-          J: Iterator<Item = I::Item>,
-          Peekable<I>: Clone,
-          Peekable<J>: Clone,
-          F: Clone
+where
+    I: Iterator,
+    J: Iterator<Item = I::Item>,
+    Peekable<I>: Clone,
+    Peekable<J>: Clone,
+    F: Clone,
 {
     fn clone(&self) -> Self {
         clone_fields!(MergeBy, self, a, b, fused, cmp)
@@ -561,9 +589,10 @@ impl<I, J, F> Clone for MergeBy<I, J, F>
 }
 
 impl<I, J, F> Iterator for MergeBy<I, J, F>
-    where I: Iterator,
-          J: Iterator<Item = I::Item>,
-          F: MergePredicate<I::Item>
+where
+    I: Iterator,
+    J: Iterator<Item = I::Item>,
+    F: MergePredicate<I::Item>,
 {
     type Item = I::Item;
 
@@ -581,7 +610,7 @@ impl<I, J, F> Iterator for MergeBy<I, J, F>
                     false
                 }
                 (None, None) => return None,
-            }
+            },
         };
         if less_than {
             self.a.next()
@@ -598,17 +627,20 @@ impl<I, J, F> Iterator for MergeBy<I, J, F>
 
 #[derive(Clone, Debug)]
 pub struct CoalesceCore<I>
-    where I: Iterator
+where
+    I: Iterator,
 {
     iter: I,
     last: Option<I::Item>,
 }
 
 impl<I> CoalesceCore<I>
-    where I: Iterator
+where
+    I: Iterator,
 {
     fn next_with<F>(&mut self, mut f: F) -> Option<I::Item>
-        where F: FnMut(I::Item, I::Item) -> Result<I::Item, (I::Item, I::Item)>
+    where
+        F: FnMut(I::Item, I::Item) -> Result<I::Item, (I::Item, I::Item)>,
     {
         // this fuses the iterator
         let mut last = match self.last.take() {
@@ -629,8 +661,7 @@ impl<I> CoalesceCore<I>
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let (low, hi) = size_hint::add_scalar(self.iter.size_hint(),
-                                              self.last.is_some() as usize);
+        let (low, hi) = size_hint::add_scalar(self.iter.size_hint(), self.last.is_some() as usize);
         ((low > 0) as usize, hi)
     }
 }
@@ -640,15 +671,17 @@ impl<I> CoalesceCore<I>
 /// See [`.coalesce()`](../trait.Itertools.html#method.coalesce) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Coalesce<I, F>
-    where I: Iterator
+where
+    I: Iterator,
 {
     iter: CoalesceCore<I>,
     f: F,
 }
 
 impl<I: Clone, F: Clone> Clone for Coalesce<I, F>
-    where I: Iterator,
-          I::Item: Clone
+where
+    I: Iterator,
+    I::Item: Clone,
 {
     fn clone(&self) -> Self {
         clone_fields!(Coalesce, self, iter, f)
@@ -656,15 +689,17 @@ impl<I: Clone, F: Clone> Clone for Coalesce<I, F>
 }
 
 impl<I, F> fmt::Debug for Coalesce<I, F>
-    where I: Iterator + fmt::Debug,
-          I::Item: fmt::Debug,
+where
+    I: Iterator + fmt::Debug,
+    I::Item: fmt::Debug,
 {
     debug_fmt_fields!(Coalesce, iter);
 }
 
 /// Create a new `Coalesce`.
 pub fn coalesce<I, F>(mut iter: I, f: F) -> Coalesce<I, F>
-    where I: Iterator
+where
+    I: Iterator,
 {
     Coalesce {
         iter: CoalesceCore {
@@ -676,8 +711,9 @@ pub fn coalesce<I, F>(mut iter: I, f: F) -> Coalesce<I, F>
 }
 
 impl<I, F> Iterator for Coalesce<I, F>
-    where I: Iterator,
-          F: FnMut(I::Item, I::Item) -> Result<I::Item, (I::Item, I::Item)>
+where
+    I: Iterator,
+    F: FnMut(I::Item, I::Item) -> Result<I::Item, (I::Item, I::Item)>,
 {
     type Item = I::Item;
 
@@ -695,13 +731,15 @@ impl<I, F> Iterator for Coalesce<I, F>
 /// See [`.dedup_by()`](../trait.Itertools.html#method.dedup_by) or [`.dedup()`](../trait.Itertools.html#method.dedup) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct DedupBy<I, Pred>
-    where I: Iterator
+where
+    I: Iterator,
 {
     iter: CoalesceCore<I>,
     dedup_pred: Pred,
 }
 
-pub trait DedupPredicate<T> { // TODO replace by Fn(&T, &T)->bool once Rust supports it
+pub trait DedupPredicate<T> {
+    // TODO replace by Fn(&T, &T)->bool once Rust supports it
     fn dedup_pair(&mut self, a: &T, b: &T) -> bool;
 }
 
@@ -710,11 +748,11 @@ pub struct DedupEq;
 
 impl<T: PartialEq> DedupPredicate<T> for DedupEq {
     fn dedup_pair(&mut self, a: &T, b: &T) -> bool {
-        a==b
+        a == b
     }
 }
 
-impl<T, F: FnMut(&T, &T)->bool> DedupPredicate<T> for F {
+impl<T, F: FnMut(&T, &T) -> bool> DedupPredicate<T> for F {
     fn dedup_pair(&mut self, a: &T, b: &T) -> bool {
         self(a, b)
     }
@@ -723,11 +761,12 @@ impl<T, F: FnMut(&T, &T)->bool> DedupPredicate<T> for F {
 /// An iterator adaptor that removes repeated duplicates.
 ///
 /// See [`.dedup()`](../trait.Itertools.html#method.dedup) for more information.
-pub type Dedup<I>=DedupBy<I, DedupEq>;
+pub type Dedup<I> = DedupBy<I, DedupEq>;
 
 impl<I: Clone, Pred: Clone> Clone for DedupBy<I, Pred>
-    where I: Iterator,
-          I::Item: Clone,
+where
+    I: Iterator,
+    I::Item: Clone,
 {
     fn clone(&self) -> Self {
         clone_fields!(DedupBy, self, iter, dedup_pred)
@@ -736,7 +775,8 @@ impl<I: Clone, Pred: Clone> Clone for DedupBy<I, Pred>
 
 /// Create a new `DedupBy`.
 pub fn dedup_by<I, Pred>(mut iter: I, dedup_pred: Pred) -> DedupBy<I, Pred>
-    where I: Iterator,
+where
+    I: Iterator,
 {
     DedupBy {
         iter: CoalesceCore {
@@ -749,29 +789,36 @@ pub fn dedup_by<I, Pred>(mut iter: I, dedup_pred: Pred) -> DedupBy<I, Pred>
 
 /// Create a new `Dedup`.
 pub fn dedup<I>(iter: I) -> Dedup<I>
-    where I: Iterator
+where
+    I: Iterator,
 {
     dedup_by(iter, DedupEq)
 }
 
 impl<I, Pred> fmt::Debug for DedupBy<I, Pred>
-    where I: Iterator + fmt::Debug,
-          I::Item: fmt::Debug,
+where
+    I: Iterator + fmt::Debug,
+    I::Item: fmt::Debug,
 {
     debug_fmt_fields!(Dedup, iter);
 }
 
 impl<I, Pred> Iterator for DedupBy<I, Pred>
-    where I: Iterator,
-          I::Item: PartialEq,
-          Pred: DedupPredicate<I::Item>,
+where
+    I: Iterator,
+    I::Item: PartialEq,
+    Pred: DedupPredicate<I::Item>,
 {
     type Item = I::Item;
 
     fn next(&mut self) -> Option<I::Item> {
         let ref mut dedup_pred = self.dedup_pred;
         self.iter.next_with(|x, y| {
-            if dedup_pred.dedup_pair(&x, &y) { Ok(x) } else { Err((x, y)) }
+            if dedup_pred.dedup_pair(&x, &y) {
+                Ok(x)
+            } else {
+                Err((x, y))
+            }
         })
     }
 
@@ -780,7 +827,8 @@ impl<I, Pred> Iterator for DedupBy<I, Pred>
     }
 
     fn fold<Acc, G>(self, mut accum: Acc, mut f: G) -> Acc
-        where G: FnMut(Acc, Self::Item) -> Acc,
+    where
+        G: FnMut(Acc, Self::Item) -> Acc,
     {
         if let Some(mut last) = self.iter.last {
             let mut dedup_pred = self.dedup_pred;
@@ -809,21 +857,24 @@ pub struct TakeWhileRef<'a, I: 'a, F> {
 }
 
 impl<'a, I, F> fmt::Debug for TakeWhileRef<'a, I, F>
-    where I: Iterator + fmt::Debug,
+where
+    I: Iterator + fmt::Debug,
 {
     debug_fmt_fields!(TakeWhileRef, iter);
 }
 
 /// Create a new `TakeWhileRef` from a reference to clonable iterator.
 pub fn take_while_ref<I, F>(iter: &mut I, f: F) -> TakeWhileRef<I, F>
-    where I: Iterator + Clone
+where
+    I: Iterator + Clone,
 {
     TakeWhileRef { iter: iter, f: f }
 }
 
 impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F>
-    where I: Iterator + Clone,
-          F: FnMut(&I::Item) -> bool
+where
+    I: Iterator + Clone,
+    F: FnMut(&I::Item) -> bool,
 {
     type Item = I::Item;
 
@@ -864,7 +915,8 @@ pub fn while_some<I>(iter: I) -> WhileSome<I> {
 }
 
 impl<I, A> Iterator for WhileSome<I>
-    where I: Iterator<Item = Option<A>>
+where
+    I: Iterator<Item = Option<A>>,
 {
     type Item = A;
 
@@ -889,12 +941,13 @@ impl<I, A> Iterator for WhileSome<I>
 #[derive(Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct TupleCombinations<I, T>
-    where I: Iterator,
-          T: HasCombination<I>
+where
+    I: Iterator,
+    T: HasCombination<I>,
 {
     iter: T::Combination,
     _mi: PhantomData<I>,
-    _mt: PhantomData<T>
+    _mt: PhantomData<T>,
 }
 
 pub trait HasCombination<I>: Sized {
@@ -903,9 +956,10 @@ pub trait HasCombination<I>: Sized {
 
 /// Create a new `TupleCombinations` from a clonable iterator.
 pub fn tuple_combinations<T, I>(iter: I) -> TupleCombinations<I, T>
-    where I: Iterator + Clone,
-          I::Item: Clone,
-          T: HasCombination<I>,
+where
+    I: Iterator + Clone,
+    I::Item: Clone,
+    T: HasCombination<I>,
 {
     TupleCombinations {
         iter: T::Combination::from(iter),
@@ -915,8 +969,9 @@ pub fn tuple_combinations<T, I>(iter: I) -> TupleCombinations<I, T>
 }
 
 impl<I, T> Iterator for TupleCombinations<I, T>
-    where I: Iterator,
-          T: HasCombination<I>,
+where
+    I: Iterator,
+    T: HasCombination<I>,
 {
     type Item = T;
 
@@ -1029,15 +1084,14 @@ pub fn map_into<I, R>(iter: I) -> MapInto<I, R> {
 }
 
 impl<I, R> Iterator for MapInto<I, R>
-    where I: Iterator,
-          I::Item: Into<R>,
+where
+    I: Iterator,
+    I::Item: Into<R>,
 {
     type Item = R;
 
     fn next(&mut self) -> Option<R> {
-        self.iter
-            .next()
-            .map(|i| i.into())
+        self.iter.next().map(|i| i.into())
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -1045,20 +1099,20 @@ impl<I, R> Iterator for MapInto<I, R>
     }
 
     fn fold<Acc, Fold>(self, init: Acc, mut fold_f: Fold) -> Acc
-        where Fold: FnMut(Acc, Self::Item) -> Acc,
+    where
+        Fold: FnMut(Acc, Self::Item) -> Acc,
     {
         self.iter.fold(init, move |acc, v| fold_f(acc, v.into()))
     }
 }
 
 impl<I, R> DoubleEndedIterator for MapInto<I, R>
-    where I: DoubleEndedIterator,
-          I::Item: Into<R>,
+where
+    I: DoubleEndedIterator,
+    I::Item: Into<R>,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.iter
-            .next_back()
-            .map(|i| i.into())
+        self.iter.next_back().map(|i| i.into())
     }
 }
 
@@ -1066,7 +1120,8 @@ impl<I, R> ExactSizeIterator for MapInto<I, R>
 where
     I: ExactSizeIterator,
     I::Item: Into<R>,
-{}
+{
+}
 
 /// An iterator adapter to apply a transformation within a nested `Result`.
 ///
@@ -1074,23 +1129,22 @@ where
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct MapResults<I, F> {
     iter: I,
-    f: F
+    f: F,
 }
 
 /// Create a new `MapResults` iterator.
 pub fn map_results<I, F, T, U, E>(iter: I, f: F) -> MapResults<I, F>
-    where I: Iterator<Item = Result<T, E>>,
-          F: FnMut(T) -> U,
+where
+    I: Iterator<Item = Result<T, E>>,
+    F: FnMut(T) -> U,
 {
-    MapResults {
-        iter: iter,
-        f: f,
-    }
+    MapResults { iter: iter, f: f }
 }
 
 impl<I, F, T, U, E> Iterator for MapResults<I, F>
-    where I: Iterator<Item = Result<T, E>>,
-          F: FnMut(T) -> U,
+where
+    I: Iterator<Item = Result<T, E>>,
+    F: FnMut(T) -> U,
 {
     type Item = Result<U, E>;
 
@@ -1103,14 +1157,17 @@ impl<I, F, T, U, E> Iterator for MapResults<I, F>
     }
 
     fn fold<Acc, Fold>(self, init: Acc, mut fold_f: Fold) -> Acc
-        where Fold: FnMut(Acc, Self::Item) -> Acc,
+    where
+        Fold: FnMut(Acc, Self::Item) -> Acc,
     {
         let mut f = self.f;
-        self.iter.fold(init, move |acc, v| fold_f(acc, v.map(&mut f)))
+        self.iter
+            .fold(init, move |acc, v| fold_f(acc, v.map(&mut f)))
     }
 
     fn collect<C>(self) -> C
-        where C: FromIterator<Self::Item>
+    where
+        C: FromIterator<Self::Item>,
     {
         let mut f = self.f;
         self.iter.map(move |v| v.map(&mut f)).collect()
@@ -1129,19 +1186,21 @@ pub struct Positions<I, F> {
 
 /// Create a new `Positions` iterator.
 pub fn positions<I, F>(iter: I, f: F) -> Positions<I, F>
-    where I: Iterator,
-          F: FnMut(I::Item) -> bool,
+where
+    I: Iterator,
+    F: FnMut(I::Item) -> bool,
 {
     Positions {
         iter: iter,
         f: f,
-        count: 0
+        count: 0,
     }
 }
 
 impl<I, F> Iterator for Positions<I, F>
-    where I: Iterator,
-          F: FnMut(I::Item) -> bool,
+where
+    I: Iterator,
+    F: FnMut(I::Item) -> bool,
 {
     type Item = usize;
 
@@ -1162,13 +1221,14 @@ impl<I, F> Iterator for Positions<I, F>
 }
 
 impl<I, F> DoubleEndedIterator for Positions<I, F>
-    where I: DoubleEndedIterator + ExactSizeIterator,
-          F: FnMut(I::Item) -> bool,
+where
+    I: DoubleEndedIterator + ExactSizeIterator,
+    F: FnMut(I::Item) -> bool,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         while let Some(v) = self.iter.next_back() {
             if (self.f)(v) {
-                return Some(self.count + self.iter.len())
+                return Some(self.count + self.iter.len());
             }
         }
         None
@@ -1214,18 +1274,28 @@ where
     }
 
     fn fold<Acc, G>(self, init: Acc, mut g: G) -> Acc
-        where G: FnMut(Acc, Self::Item) -> Acc,
+    where
+        G: FnMut(Acc, Self::Item) -> Acc,
     {
         let mut f = self.f;
-        self.iter.fold(init, move |acc, mut v| { f(&mut v); g(acc, v) })
+        self.iter.fold(init, move |acc, mut v| {
+            f(&mut v);
+            g(acc, v)
+        })
     }
 
     // if possible, re-use inner iterator specializations in collect
     fn collect<C>(self) -> C
-        where C: FromIterator<Self::Item>
+    where
+        C: FromIterator<Self::Item>,
     {
         let mut f = self.f;
-        self.iter.map(move |mut v| { f(&mut v); v }).collect()
+        self.iter
+            .map(move |mut v| {
+                f(&mut v);
+                v
+            })
+            .collect()
     }
 }
 
@@ -1233,7 +1303,8 @@ impl<I, F> ExactSizeIterator for Update<I, F>
 where
     I: ExactSizeIterator,
     F: FnMut(&mut I::Item),
-{}
+{
+}
 
 impl<I, F> DoubleEndedIterator for Update<I, F>
 where

@@ -12,21 +12,17 @@ type VecIntoIter<T> = ::std::vec::IntoIter<T>;
 #[cfg(feature = "use_std")]
 use Itertools;
 
-pub use adaptors::{
-    interleave,
-    merge,
-    put_back,
-};
+pub use adaptors::{interleave, merge, put_back};
 #[cfg(feature = "use_std")]
-pub use put_back_n_impl::put_back_n;
+pub use kmerge_impl::kmerge;
+pub use merge_join::merge_join_by;
 #[cfg(feature = "use_std")]
 pub use multipeek_impl::multipeek;
 #[cfg(feature = "use_std")]
-pub use kmerge_impl::kmerge;
-pub use zip_eq_impl::zip_eq;
-pub use merge_join::merge_join_by;
+pub use put_back_n_impl::put_back_n;
 #[cfg(feature = "use_std")]
 pub use rciter_impl::rciter;
+pub use zip_eq_impl::zip_eq;
 
 /// Iterate `iterable` with a running index.
 ///
@@ -40,7 +36,8 @@ pub use rciter_impl::rciter;
 /// }
 /// ```
 pub fn enumerate<I>(iterable: I) -> iter::Enumerate<I::IntoIter>
-    where I: IntoIterator
+where
+    I: IntoIterator,
 {
     iterable.into_iter().enumerate()
 }
@@ -57,8 +54,9 @@ pub fn enumerate<I>(iterable: I) -> iter::Enumerate<I::IntoIter>
 /// }
 /// ```
 pub fn rev<I>(iterable: I) -> iter::Rev<I::IntoIter>
-    where I: IntoIterator,
-          I::IntoIter: DoubleEndedIterator
+where
+    I: IntoIterator,
+    I::IntoIter: DoubleEndedIterator,
 {
     iterable.into_iter().rev()
 }
@@ -76,8 +74,9 @@ pub fn rev<I>(iterable: I) -> iter::Rev<I::IntoIter>
 /// }
 /// ```
 pub fn zip<I, J>(i: I, j: J) -> Zip<I::IntoIter, J::IntoIter>
-    where I: IntoIterator,
-          J: IntoIterator
+where
+    I: IntoIterator,
+    J: IntoIterator,
 {
     i.into_iter().zip(j)
 }
@@ -93,9 +92,13 @@ pub fn zip<I, J>(i: I, j: J) -> Zip<I::IntoIter, J::IntoIter>
 ///     /* loop body */
 /// }
 /// ```
-pub fn chain<I, J>(i: I, j: J) -> iter::Chain<<I as IntoIterator>::IntoIter, <J as IntoIterator>::IntoIter>
-    where I: IntoIterator,
-          J: IntoIterator<Item = I::Item>
+pub fn chain<I, J>(
+    i: I,
+    j: J,
+) -> iter::Chain<<I as IntoIterator>::IntoIter, <J as IntoIterator>::IntoIter>
+where
+    I: IntoIterator,
+    J: IntoIterator<Item = I::Item>,
 {
     i.into_iter().chain(j)
 }
@@ -110,8 +113,9 @@ pub fn chain<I, J>(i: I, j: J) -> iter::Chain<<I as IntoIterator>::IntoIter, <J 
 /// assert_eq!(cloned(b"abc").next(), Some(b'a'));
 /// ```
 pub fn cloned<'a, I, T: 'a>(iterable: I) -> iter::Cloned<I::IntoIter>
-    where I: IntoIterator<Item=&'a T>,
-          T: Clone,
+where
+    I: IntoIterator<Item = &'a T>,
+    T: Clone,
 {
     iterable.into_iter().cloned()
 }
@@ -126,8 +130,9 @@ pub fn cloned<'a, I, T: 'a>(iterable: I) -> iter::Cloned<I::IntoIter>
 /// assert_eq!(fold(&[1., 2., 3.], 0., |a, &b| f32::max(a, b)), 3.);
 /// ```
 pub fn fold<I, B, F>(iterable: I, init: B, f: F) -> B
-    where I: IntoIterator,
-          F: FnMut(B, I::Item) -> B
+where
+    I: IntoIterator,
+    F: FnMut(B, I::Item) -> B,
 {
     iterable.into_iter().fold(init, f)
 }
@@ -142,8 +147,9 @@ pub fn fold<I, B, F>(iterable: I, init: B, f: F) -> B
 /// assert!(all(&[1, 2, 3], |elt| *elt > 0));
 /// ```
 pub fn all<I, F>(iterable: I, f: F) -> bool
-    where I: IntoIterator,
-          F: FnMut(I::Item) -> bool
+where
+    I: IntoIterator,
+    F: FnMut(I::Item) -> bool,
 {
     iterable.into_iter().all(f)
 }
@@ -158,8 +164,9 @@ pub fn all<I, F>(iterable: I, f: F) -> bool
 /// assert!(any(&[0, -1, 2], |elt| *elt > 0));
 /// ```
 pub fn any<I, F>(iterable: I, f: F) -> bool
-    where I: IntoIterator,
-          F: FnMut(I::Item) -> bool
+where
+    I: IntoIterator,
+    F: FnMut(I::Item) -> bool,
 {
     iterable.into_iter().any(f)
 }
@@ -174,8 +181,9 @@ pub fn any<I, F>(iterable: I, f: F) -> bool
 /// assert_eq!(max(0..10), Some(9));
 /// ```
 pub fn max<I>(iterable: I) -> Option<I::Item>
-    where I: IntoIterator,
-          I::Item: Ord
+where
+    I: IntoIterator,
+    I::Item: Ord,
 {
     iterable.into_iter().max()
 }
@@ -190,12 +198,12 @@ pub fn max<I>(iterable: I) -> Option<I::Item>
 /// assert_eq!(min(0..10), Some(0));
 /// ```
 pub fn min<I>(iterable: I) -> Option<I::Item>
-    where I: IntoIterator,
-          I::Item: Ord
+where
+    I: IntoIterator,
+    I::Item: Ord,
 {
     iterable.into_iter().min()
 }
-
 
 /// Combine all iterator elements into one String, seperated by `sep`.
 ///
@@ -208,8 +216,9 @@ pub fn min<I>(iterable: I) -> Option<I::Item>
 /// ```
 #[cfg(feature = "use_std")]
 pub fn join<I>(iterable: I, sep: &str) -> String
-    where I: IntoIterator,
-          I::Item: Display
+where
+    I: IntoIterator,
+    I::Item: Display,
 {
     iterable.into_iter().join(sep)
 }
@@ -228,9 +237,9 @@ pub fn join<I>(iterable: I, sep: &str) -> String
 /// ```
 #[cfg(feature = "use_std")]
 pub fn sorted<I>(iterable: I) -> VecIntoIter<I::Item>
-    where I: IntoIterator,
-          I::Item: Ord
+where
+    I: IntoIterator,
+    I::Item: Ord,
 {
     iterable.into_iter().sorted()
 }
-

@@ -8,25 +8,25 @@ use std::iter::Fuse;
 /// [`Tuples::into_buffer()`](struct.Tuples.html#method.into_buffer).
 #[derive(Debug)]
 pub struct TupleBuffer<T>
-    where T: TupleCollect
+where
+    T: TupleCollect,
 {
     cur: usize,
     buf: T::Buffer,
 }
 
 impl<T> TupleBuffer<T>
-    where T: TupleCollect
+where
+    T: TupleCollect,
 {
     fn new(buf: T::Buffer) -> Self {
-        TupleBuffer {
-            cur: 0,
-            buf: buf,
-        }
+        TupleBuffer { cur: 0, buf: buf }
     }
 }
 
 impl<T> Iterator for TupleBuffer<T>
-    where T: TupleCollect
+where
+    T: TupleCollect,
 {
     type Item = T::Item;
 
@@ -45,26 +45,25 @@ impl<T> Iterator for TupleBuffer<T>
         let len = if buffer.len() == 0 {
             0
         } else {
-            buffer.iter()
-                  .position(|x| x.is_none())
-                  .unwrap_or(buffer.len())
+            buffer
+                .iter()
+                .position(|x| x.is_none())
+                .unwrap_or(buffer.len())
         };
         (len, Some(len))
     }
 }
 
-impl<T> ExactSizeIterator for TupleBuffer<T>
-    where T: TupleCollect
-{
-}
+impl<T> ExactSizeIterator for TupleBuffer<T> where T: TupleCollect {}
 
 /// An iterator that groups the items in tuples of a specific size.
 ///
 /// See [`.tuples()`](../trait.Itertools.html#method.tuples) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Tuples<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: TupleCollect
+where
+    I: Iterator<Item = T::Item>,
+    T: TupleCollect,
 {
     iter: Fuse<I>,
     buf: T::Buffer,
@@ -72,8 +71,9 @@ pub struct Tuples<I, T>
 
 /// Create a new tuples iterator.
 pub fn tuples<I, T>(iter: I) -> Tuples<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: TupleCollect
+where
+    I: Iterator<Item = T::Item>,
+    T: TupleCollect,
 {
     Tuples {
         iter: iter.fuse(),
@@ -82,8 +82,9 @@ pub fn tuples<I, T>(iter: I) -> Tuples<I, T>
 }
 
 impl<I, T> Iterator for Tuples<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: TupleCollect
+where
+    I: Iterator<Item = T::Item>,
+    T: TupleCollect,
 {
     type Item = T;
 
@@ -93,8 +94,9 @@ impl<I, T> Iterator for Tuples<I, T>
 }
 
 impl<I, T> Tuples<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: TupleCollect
+where
+    I: Iterator<Item = T::Item>,
+    T: TupleCollect,
 {
     /// Return a buffer with the produced items that was not enough to be grouped in a tuple.
     ///
@@ -111,7 +113,6 @@ impl<I, T> Tuples<I, T>
     }
 }
 
-
 /// An iterator over all contiguous windows that produces tuples of a specific size.
 ///
 /// See [`.tuple_windows()`](../trait.Itertools.html#method.tuple_windows) for more
@@ -119,8 +120,9 @@ impl<I, T> Tuples<I, T>
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 #[derive(Debug)]
 pub struct TupleWindows<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: TupleCollect
+where
+    I: Iterator<Item = T::Item>,
+    T: TupleCollect,
 {
     iter: I,
     last: Option<T>,
@@ -128,9 +130,10 @@ pub struct TupleWindows<I, T>
 
 /// Create a new tuple windows iterator.
 pub fn tuple_windows<I, T>(mut iter: I) -> TupleWindows<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: TupleCollect,
-          T::Item: Clone
+where
+    I: Iterator<Item = T::Item>,
+    T: TupleCollect,
+    T::Item: Clone,
 {
     use std::iter::once;
 
@@ -151,15 +154,16 @@ pub fn tuple_windows<I, T>(mut iter: I) -> TupleWindows<I, T>
 }
 
 impl<I, T> Iterator for TupleWindows<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: TupleCollect + Clone,
-          T::Item: Clone
+where
+    I: Iterator<Item = T::Item>,
+    T: TupleCollect + Clone,
+    T::Item: Clone,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
         if T::num_items() == 1 {
-            return T::collect_from_iter_no_buf(&mut self.iter)
+            return T::collect_from_iter_no_buf(&mut self.iter);
         }
         if let Some(ref mut last) = self.last {
             if let Some(new) = self.iter.next() {
@@ -176,10 +180,12 @@ pub trait TupleCollect: Sized {
     type Buffer: Default + AsRef<[Option<Self::Item>]> + AsMut<[Option<Self::Item>]>;
 
     fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
-        where I: IntoIterator<Item = Self::Item>;
+    where
+        I: IntoIterator<Item = Self::Item>;
 
     fn collect_from_iter_no_buf<I>(iter: I) -> Option<Self>
-        where I: IntoIterator<Item = Self::Item>;
+    where
+        I: IntoIterator<Item = Self::Item>;
 
     fn num_items() -> usize;
 

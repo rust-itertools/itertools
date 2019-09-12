@@ -1,4 +1,3 @@
-
 use std::iter::Peekable;
 use PutBack;
 #[cfg(feature = "use_std")]
@@ -12,19 +11,22 @@ use PutBackN;
 /// This is implemented by peeking adaptors like peekable and put back,
 /// but also by a few iterators that can be peeked natively, like the slice’s
 /// by reference iterator (`std::slice::Iter`).
-pub trait PeekingNext : Iterator {
+pub trait PeekingNext: Iterator {
     /// Pass a reference to the next iterator element to the closure `accept`;
     /// if `accept` returns true, return it as the next element,
     /// else None.
     fn peeking_next<F>(&mut self, accept: F) -> Option<Self::Item>
-        where F: FnOnce(&Self::Item) -> bool;
+    where
+        F: FnOnce(&Self::Item) -> bool;
 }
 
 impl<I> PeekingNext for Peekable<I>
-    where I: Iterator,
+where
+    I: Iterator,
 {
     fn peeking_next<F>(&mut self, accept: F) -> Option<Self::Item>
-        where F: FnOnce(&Self::Item) -> bool
+    where
+        F: FnOnce(&Self::Item) -> bool,
     {
         if let Some(r) = self.peek() {
             if !accept(r) {
@@ -36,10 +38,12 @@ impl<I> PeekingNext for Peekable<I>
 }
 
 impl<I> PeekingNext for PutBack<I>
-    where I: Iterator,
+where
+    I: Iterator,
 {
     fn peeking_next<F>(&mut self, accept: F) -> Option<Self::Item>
-        where F: FnOnce(&Self::Item) -> bool
+    where
+        F: FnOnce(&Self::Item) -> bool,
     {
         if let Some(r) = self.next() {
             if !accept(&r) {
@@ -55,10 +59,12 @@ impl<I> PeekingNext for PutBack<I>
 
 #[cfg(feature = "use_std")]
 impl<I> PeekingNext for PutBackN<I>
-    where I: Iterator,
+where
+    I: Iterator,
 {
     fn peeking_next<F>(&mut self, accept: F) -> Option<Self::Item>
-        where F: FnOnce(&Self::Item) -> bool
+    where
+        F: FnOnce(&Self::Item) -> bool,
     {
         if let Some(r) = self.next() {
             if !accept(&r) {
@@ -78,7 +84,8 @@ impl<I> PeekingNext for PutBackN<I>
 /// for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct PeekingTakeWhile<'a, I: 'a, F>
-    where I: Iterator,
+where
+    I: Iterator,
 {
     iter: &'a mut I,
     f: F,
@@ -86,18 +93,16 @@ pub struct PeekingTakeWhile<'a, I: 'a, F>
 
 /// Create a PeekingTakeWhile
 pub fn peeking_take_while<I, F>(iter: &mut I, f: F) -> PeekingTakeWhile<I, F>
-    where I: Iterator,
+where
+    I: Iterator,
 {
-    PeekingTakeWhile {
-        iter: iter,
-        f: f,
-    }
+    PeekingTakeWhile { iter: iter, f: f }
 }
 
 impl<'a, I, F> Iterator for PeekingTakeWhile<'a, I, F>
-    where I: PeekingNext,
-          F: FnMut(&I::Item) -> bool,
-
+where
+    I: PeekingNext,
+    F: FnMut(&I::Item) -> bool,
 {
     type Item = I::Item;
     fn next(&mut self) -> Option<Self::Item> {
@@ -146,4 +151,4 @@ peeking_next_by_clone! { ['a, T] ::std::collections::vec_deque::Iter<'a, T> }
 
 // cloning a Rev has no extra overhead; peekable and put backs are never DEI.
 peeking_next_by_clone! { [I: Clone + PeekingNext + DoubleEndedIterator]
-                         ::std::iter::Rev<I> }
+::std::iter::Rev<I> }

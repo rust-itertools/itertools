@@ -3,35 +3,24 @@
 //!
 //! In particular we test the tedious size_hint and exact size correctness.
 
-#[macro_use] extern crate itertools;
+#[macro_use]
+extern crate itertools;
 
 extern crate quickcheck;
 extern crate rand;
 
 use std::default::Default;
 
-use quickcheck as qc;
-use std::ops::Range;
-use std::cmp::Ordering;
+use itertools::free::{cloned, enumerate, multipeek, put_back, put_back_n, rciter, zip, zip_eq};
 use itertools::Itertools;
-use itertools::{
-    multizip,
-    EitherOrBoth,
-};
-use itertools::free::{
-    cloned,
-    enumerate,
-    multipeek,
-    put_back,
-    put_back_n,
-    rciter,
-    zip,
-    zip_eq,
-};
+use itertools::{multizip, EitherOrBoth};
+use quickcheck as qc;
+use std::cmp::Ordering;
+use std::ops::Range;
 
-use rand::Rng;
-use rand::seq::SliceRandom;
 use quickcheck::TestResult;
+use rand::seq::SliceRandom;
+use rand::Rng;
 
 /// Trait for size hint modifier types
 trait HintKind: Copy + Send + qc::Arbitrary {
@@ -67,8 +56,10 @@ struct Inexact {
 impl HintKind for Inexact {
     fn loosen_bounds(&self, org_hint: (usize, Option<usize>)) -> (usize, Option<usize>) {
         let (org_lower, org_upper) = org_hint;
-        (org_lower.saturating_sub(self.underestimate),
-         org_upper.and_then(move |x| x.checked_add(self.overestimate)))
+        (
+            org_lower.saturating_sub(self.underestimate),
+            org_upper.and_then(move |x| x.checked_add(self.overestimate)),
+        )
     }
 }
 
@@ -85,19 +76,15 @@ impl qc::Arbitrary for Inexact {
         }
     }
 
-    fn shrink(&self) -> Box<Iterator<Item=Self>> {
+    fn shrink(&self) -> Box<Iterator<Item = Self>> {
         let underestimate_value = self.underestimate;
         let overestimate_value = self.overestimate;
-        Box::new(
-            underestimate_value.shrink().flat_map(move |ue_value|
-                overestimate_value.shrink().map(move |oe_value|
-                    Inexact {
-                        underestimate: ue_value,
-                        overestimate: oe_value,
-                    }
-                )
-            )
-        )
+        Box::new(underestimate_value.shrink().flat_map(move |ue_value| {
+            overestimate_value.shrink().map(move |oe_value| Inexact {
+                underestimate: ue_value,
+                overestimate: oe_value,
+            })
+        }))
     }
 }
 
@@ -117,76 +104,80 @@ struct Iter<T, SK: HintKind = Inexact> {
     hint_kind: SK,
 }
 
-impl<T, HK> Iter<T, HK> where HK: HintKind
+impl<T, HK> Iter<T, HK>
+where
+    HK: HintKind,
 {
     fn new(it: Range<T>, hint_kind: HK) -> Self {
         Iter {
             iterator: it,
             fuse_flag: 0,
-            hint_kind: hint_kind
+            hint_kind: hint_kind,
         }
     }
 }
 
 impl<T, HK> Iterator for Iter<T, HK>
-    where Range<T>: Iterator,
-          <Range<T> as Iterator>::Item: Default,
-          HK: HintKind,
+where
+    Range<T>: Iterator,
+    <Range<T> as Iterator>::Item: Default,
+    HK: HintKind,
 {
     type Item = <Range<T> as Iterator>::Item;
 
-    fn next(&mut self) -> Option<Self::Item>
-    {
+    fn next(&mut self) -> Option<Self::Item> {
         let elt = self.iterator.next();
         if elt.is_none() {
             self.fuse_flag += 1;
             // check fuse flag
             if self.fuse_flag == 2 {
-                return Some(Default::default())
+                return Some(Default::default());
             }
         }
         elt
     }
 
-    fn size_hint(&self) -> (usize, Option<usize>)
-    {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         let org_hint = self.iterator.size_hint();
         self.hint_kind.loosen_bounds(org_hint)
     }
 }
 
 impl<T, HK> DoubleEndedIterator for Iter<T, HK>
-    where Range<T>: DoubleEndedIterator,
-          <Range<T> as Iterator>::Item: Default,
-          HK: HintKind
+where
+    Range<T>: DoubleEndedIterator,
+    <Range<T> as Iterator>::Item: Default,
+    HK: HintKind,
 {
-    fn next_back(&mut self) -> Option<Self::Item> { self.iterator.next_back() }
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iterator.next_back()
+    }
 }
 
-impl<T> ExactSizeIterator for Iter<T, Exact> where Range<T>: ExactSizeIterator,
+impl<T> ExactSizeIterator for Iter<T, Exact>
+where
+    Range<T>: ExactSizeIterator,
     <Range<T> as Iterator>::Item: Default,
-{ }
+{
+}
 
 impl<T, HK> qc::Arbitrary for Iter<T, HK>
-    where T: qc::Arbitrary,
-          HK: HintKind,
+where
+    T: qc::Arbitrary,
+    HK: HintKind,
 {
-    fn arbitrary<G: qc::Gen>(g: &mut G) -> Self
-    {
+    fn arbitrary<G: qc::Gen>(g: &mut G) -> Self {
         Iter::new(T::arbitrary(g)..T::arbitrary(g), HK::arbitrary(g))
     }
 
-    fn shrink(&self) -> Box<Iterator<Item=Iter<T, HK>>>
-    {
+    fn shrink(&self) -> Box<Iterator<Item = Iter<T, HK>>> {
         let r = self.iterator.clone();
         let hint_kind = self.hint_kind;
-        Box::new(
-            r.start.shrink().flat_map(move |a|
-                r.end.shrink().map(move |b|
-                    Iter::new(a.clone()..b, hint_kind)
-                )
-            )
-        )
+        Box::new(r.start.shrink().flat_map(move |a| {
+            r.end
+                .shrink()
+                .map(move |b| Iter::new(a.clone()..b, hint_kind))
+        }))
     }
 }
 
@@ -202,7 +193,10 @@ struct ShiftRange<HK = Inexact> {
     hint_kind: HK,
 }
 
-impl<HK> Iterator for ShiftRange<HK> where HK: HintKind {
+impl<HK> Iterator for ShiftRange<HK>
+where
+    HK: HintKind,
+{
     type Item = Iter<i32, HK>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -220,10 +214,11 @@ impl<HK> Iterator for ShiftRange<HK> where HK: HintKind {
     }
 }
 
-impl ExactSizeIterator for ShiftRange<Exact> { }
+impl ExactSizeIterator for ShiftRange<Exact> {}
 
 impl<HK> qc::Arbitrary for ShiftRange<HK>
-    where HK: HintKind
+where
+    HK: HintKind,
 {
     fn arbitrary<G: qc::Gen>(g: &mut G) -> Self {
         const MAX_STARTING_RANGE_DIFF: i32 = 32;
@@ -243,7 +238,7 @@ impl<HK> qc::Arbitrary for ShiftRange<HK>
             start_step: start_step,
             end_step: end_step,
             iter_count: iter_count,
-            hint_kind: hint_kind
+            hint_kind: hint_kind,
         }
     }
 }
@@ -262,12 +257,10 @@ fn correct_size_hint<I: Iterator>(mut it: I) -> bool {
     // check all the size hints
     for &(low, hi) in &hints {
         true_count -= 1;
-        if low > true_count ||
-            (hi.is_some() && hi.unwrap() < true_count)
-        {
+        if low > true_count || (hi.is_some() && hi.unwrap() < true_count) {
             println!("True size: {:?}, size hint: {:?}", true_count, (low, hi));
             //println!("All hints: {:?}", hints);
-            return false
+            return false;
         }
     }
     true
@@ -276,13 +269,19 @@ fn correct_size_hint<I: Iterator>(mut it: I) -> bool {
 fn exact_size<I: ExactSizeIterator>(mut it: I) -> bool {
     // check every iteration
     let (mut low, mut hi) = it.size_hint();
-    if Some(low) != hi { return false; }
+    if Some(low) != hi {
+        return false;
+    }
     while let Some(_) = it.next() {
         let (xlow, xhi) = it.size_hint();
-        if low != xlow + 1 { return false; }
+        if low != xlow + 1 {
+            return false;
+        }
         low = xlow;
         hi = xhi;
-        if Some(low) != hi { return false; }
+        if Some(low) != hi {
+            return false;
+        }
     }
     let (low, hi) = it.size_hint();
     low == 0 && hi == Some(0)
@@ -292,13 +291,19 @@ fn exact_size<I: ExactSizeIterator>(mut it: I) -> bool {
 fn exact_size_for_this<I: Iterator>(mut it: I) -> bool {
     // check every iteration
     let (mut low, mut hi) = it.size_hint();
-    if Some(low) != hi { return false; }
+    if Some(low) != hi {
+        return false;
+    }
     while let Some(_) = it.next() {
         let (xlow, xhi) = it.size_hint();
-        if low != xlow + 1 { return false; }
+        if low != xlow + 1 {
+            return false;
+        }
         low = xlow;
         hi = xhi;
-        if Some(low) != hi { return false; }
+        if Some(low) != hi {
+            return false;
+        }
     }
     let (low, hi) = it.size_hint();
     low == 0 && hi == Some(0)

@@ -1,10 +1,10 @@
 #![feature(test)]
 
-extern crate test;
 extern crate itertools;
+extern crate test;
 
-use test::Bencher;
 use itertools::Itertools;
+use test::Bencher;
 
 fn s1(a: u32) -> u32 {
     a
@@ -38,7 +38,7 @@ fn sum_s4(s: &[u32]) -> u32 {
     s4(s[0], s[1], s[2], s[3])
 }
 
-fn sum_t1(s: &(&u32, )) -> u32 {
+fn sum_t1(s: &(&u32,)) -> u32 {
     s1(*s.0)
 }
 
@@ -64,10 +64,10 @@ macro_rules! def_benchs {
      $WINDOWS:ident;
      $FOR_CHUNKS:ident,
      $FOR_WINDOWS:ident
-     ) => (
+     ) => {
         #[bench]
         fn $FOR_CHUNKS(b: &mut Bencher) {
-            let v: Vec<u32> = (0.. $N * 1_000).collect();
+            let v: Vec<u32> = (0..$N * 1_000).collect();
             let mut s = 0;
             b.iter(|| {
                 let mut j = 0;
@@ -93,7 +93,7 @@ macro_rules! def_benchs {
 
         #[bench]
         fn $TUPLES(b: &mut Bencher) {
-            let v: Vec<u32> = (0.. $N * 1_000).collect();
+            let v: Vec<u32> = (0..$N * 1_000).collect();
             let mut s = 0;
             b.iter(|| {
                 for x in v.iter().tuples() {
@@ -105,7 +105,7 @@ macro_rules! def_benchs {
 
         #[bench]
         fn $CHUNKS(b: &mut Bencher) {
-            let v: Vec<u32> = (0.. $N * 1_000).collect();
+            let v: Vec<u32> = (0..$N * 1_000).collect();
             let mut s = 0;
             b.iter(|| {
                 for x in v.chunks($N) {
@@ -138,10 +138,10 @@ macro_rules! def_benchs {
                 s
             });
         }
-    )
+    };
 }
 
-def_benchs!{
+def_benchs! {
     1;
     sum_t1,
     tuple_chunks_1,
@@ -153,7 +153,7 @@ def_benchs!{
     for_windows_1
 }
 
-def_benchs!{
+def_benchs! {
     2;
     sum_t2,
     tuple_chunks_2,
@@ -165,7 +165,7 @@ def_benchs!{
     for_windows_2
 }
 
-def_benchs!{
+def_benchs! {
     3;
     sum_t3,
     tuple_chunks_3,
@@ -177,7 +177,7 @@ def_benchs!{
     for_windows_3
 }
 
-def_benchs!{
+def_benchs! {
     4;
     sum_t4,
     tuple_chunks_4,
