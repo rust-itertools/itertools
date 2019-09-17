@@ -2,7 +2,7 @@ use std::ops::Index;
 
 #[derive(Debug, Clone)]
 pub struct LazyBuffer<I: Iterator> {
-    it: I,
+    pub it: I,
     done: bool,
     buffer: Vec<I::Item>,
 }
@@ -54,14 +54,15 @@ where
     }
 }
 
-impl<I> Index<usize> for LazyBuffer<I>
+impl<I, J> Index<J> for LazyBuffer<I>
 where
     I: Iterator,
     I::Item: Sized,
+    Vec<I::Item>: Index<J>
 {
-    type Output = I::Item;
+    type Output = <Vec<I::Item> as Index<J>>::Output;
 
-    fn index<'b>(&'b self, _index: usize) -> &'b I::Item {
+    fn index(&self, _index: J) -> &Self::Output {
         self.buffer.index(_index)
     }
 }
