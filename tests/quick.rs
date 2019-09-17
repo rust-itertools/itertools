@@ -13,6 +13,7 @@ use std::default::Default;
 use quickcheck as qc;
 use std::ops::Range;
 use std::cmp::Ordering;
+use std::fmt::Debug;
 use itertools::Itertools;
 use itertools::{
     multizip,
@@ -323,6 +324,36 @@ fn size_range_u8(a: Iter<u8>) -> bool {
 }
  */
 
+fn _correct_product3<I, P, F, G>(a: ShiftRange, take_manual: usize, to_product: F, to_elt: G)
+    where I: PartialEq + Debug,
+          P: Iterator<Item=I>,
+          F: Fn(ShiftRange) -> P,
+          G: Fn(i32, i32, i32) -> I
+{
+    // Fix no. of iterators at 3
+    let a = ShiftRange { iter_count: 3, ..a };
+
+    let _to_elt = &to_elt;
+
+    // test correctness of Product through regular iteration (take)
+    // and through fold.
+    let mut iters = a.clone();
+    let i0 = iters.next().unwrap();
+    let i1r = &iters.next().unwrap();
+    let i2r = &iters.next().unwrap();
+    let answer: Vec<_> = i0.flat_map(|ei0| i1r.clone().flat_map(move |ei1| i2r.clone().map(move |ei2| _to_elt(ei0, ei1, ei2)))).collect();
+    let mut product = to_product(a.clone());
+    let mut actual = Vec::new();
+
+    actual.extend((&mut product).take(take_manual));
+    if actual.len() == take_manual {
+        product.fold((), |(), elt| actual.push(elt));
+    }
+    assert_eq!(answer, actual);
+
+    assert_eq!(answer.into_iter().last(), to_product(a).last());
+}
+
 macro_rules! quickcheck {
     // accept several property function definitions
     // The property functions can use pattern matching and `mut` as usual
@@ -359,50 +390,26 @@ quickcheck! {
     fn size_product3(a: Iter<u16>, b: Iter<u16>, c: Iter<u16>) -> bool {
         correct_size_hint(iproduct!(a, b, c))
     }
-
-    fn correct_cartesian_product3(a: Iter<u16>, b: Iter<u16>, c: Iter<u16>,
-                                  take_manual: usize) -> ()
-    {
-        // test correctness of iproduct through regular iteration (take)
-        // and through fold.
-        let ac = a.clone();
-        let br = &b.clone();
-        let cr = &c.clone();
-        let answer: Vec<_> = ac.flat_map(move |ea| br.clone().flat_map(move |eb| cr.clone().map(move |ec| (ea, eb, ec)))).collect();
-        let mut product_iter = iproduct!(a, b, c);
-        let mut actual = Vec::new();
-
-        actual.extend((&mut product_iter).take(take_manual));
-        if actual.len() == take_manual {
-            product_iter.fold((), |(), elt| actual.push(elt));
-        }
-        assert_eq!(answer, actual);
-    }
-
     fn size_multi_product(a: ShiftRange) -> bool {
         correct_size_hint(a.multi_cartesian_product())
     }
-    fn correct_multi_product3(a: ShiftRange, take_manual: usize) -> () {
-        // Fix no. of iterators at 3
-        let a = ShiftRange { iter_count: 3, ..a };
-
-        // test correctness of MultiProduct through regular iteration (take)
-        // and through fold.
-        let mut iters = a.clone();
-        let i0 = iters.next().unwrap();
-        let i1r = &iters.next().unwrap();
-        let i2r = &iters.next().unwrap();
-        let answer: Vec<_> = i0.flat_map(move |ei0| i1r.clone().flat_map(move |ei1| i2r.clone().map(move |ei2| vec![ei0, ei1, ei2]))).collect();
-        let mut multi_product = a.clone().multi_cartesian_product();
-        let mut actual = Vec::new();
-
-        actual.extend((&mut multi_product).take(take_manual));
-        if actual.len() == take_manual {
-            multi_product.fold((), |(), elt| actual.push(elt));
+    fn size_multi_product_arr(a: ShiftRange) -> bool {
+        match a.iter_count {
+            0 => correct_size_hint(iproduct_arr![a; 0]),
+            1 => correct_size_hint(iproduct_arr![a; 1]),
+            2 => correct_size_hint(iproduct_arr![a; 2]),
+            3 => correct_size_hint(iproduct_arr![a; 3]),
+            _ => panic!()
         }
-        assert_eq!(answer, actual);
-
-        assert_eq!(answer.into_iter().last(), a.clone().multi_cartesian_product().last());
+    }
+    fn correct_product3(a: ShiftRange, take_manual: usize) -> () {
+        _correct_product3(a, take_manual, |mut a| iproduct!(a.next().unwrap(), a.next().unwrap(), a.next().unwrap()), |i, j, k| (i, j, k))
+    }
+    fn correct_multi_product3(a: ShiftRange, take_manual: usize) -> () {
+        _correct_product3(a.clone(), take_manual, |a| a.multi_cartesian_product(), |i, j, k| vec![i, j, k])
+    }
+    fn correct_multi_product_arr3(a: ShiftRange, take_manual: usize) -> () {
+        _correct_product3(a, take_manual, |mut a| iproduct_arr![a.next().unwrap(), a.next().unwrap(), a.next().unwrap()], |i, j, k| [i, j, k])
     }
 
     #[allow(deprecated)]
