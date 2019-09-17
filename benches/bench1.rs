@@ -7,10 +7,11 @@ use test::{black_box};
 use itertools::Itertools;
 
 use itertools::free::cloned;
+use itertools::Permutations;
 
 use std::iter::repeat;
 use std::cmp;
-use std::ops::Add;
+use std::ops::{Add, Range};
 
 mod extra;
 
@@ -761,4 +762,45 @@ fn all_equal_default(b: &mut test::Bencher) {
     xs.extend(vec![1; 5_000_000]);
 
     b.iter(|| xs.iter().dedup().nth(1).is_none())
+}
+
+const PERM_COUNT: usize = 6;
+
+#[bench]
+fn permutations_iter(b: &mut test::Bencher) {
+    struct NewIterator(Range<usize>);
+
+    impl Iterator for NewIterator {
+        type Item = usize;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            self.0.next()
+        }
+    }
+
+    b.iter(|| {
+        for _ in NewIterator(0..PERM_COUNT).permutations(PERM_COUNT) {
+
+        }
+    })
+}
+
+#[bench]
+fn permutations_range(b: &mut test::Bencher) {
+    b.iter(|| {
+        for _ in (0..PERM_COUNT).permutations(PERM_COUNT) {
+
+        }
+    })
+}
+
+#[bench]
+fn permutations_slice(b: &mut test::Bencher) {
+    let v = (0..PERM_COUNT).collect_vec();
+
+    b.iter(|| {
+        for _ in v.as_slice().iter().permutations(PERM_COUNT) {
+
+        }
+    })
 }

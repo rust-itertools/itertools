@@ -117,6 +117,8 @@ pub mod structs {
     pub use multipeek_impl::MultiPeek;
     pub use pad_tail::PadUsing;
     pub use peeking_take_while::PeekingTakeWhile;
+    #[cfg(feature = "use_std")]
+    pub use permutations::Permutations;
     pub use process_results_impl::ProcessResults;
     #[cfg(feature = "use_std")]
     pub use put_back_n_impl::PutBackN;
@@ -182,6 +184,8 @@ mod minmax;
 mod multipeek_impl;
 mod pad_tail;
 mod peeking_take_while;
+#[cfg(feature = "use_std")]
+mod permutations;
 mod process_results_impl;
 #[cfg(feature = "use_std")]
 mod put_back_n_impl;
@@ -1135,7 +1139,7 @@ pub trait Itertools : Iterator {
         adaptors::tuple_combinations(self)
     }
 
-    /// Return an iterator adaptor that iterates over the `n`-length combinations of
+    /// Return an iterator adaptor that iterates over the `k`-length combinations of
     /// the elements from an iterator.
     ///
     /// Iterator element type is `Vec<Self::Item>`. The iterator produces a new Vec per iteration,
@@ -1150,7 +1154,7 @@ pub trait Itertools : Iterator {
     ///     vec![1, 2, 4],
     ///     vec![1, 3, 4],
     ///     vec![2, 3, 4],
-    ///     ]);
+    /// ]);
     /// ```
     ///
     /// Note: Combinations does not take into account the equality of the iterated values.
@@ -1164,16 +1168,15 @@ pub trait Itertools : Iterator {
     ///     vec![2, 2],
     /// ]);
     /// ```
-    ///
     #[cfg(feature = "use_std")]
-    fn combinations(self, n: usize) -> Combinations<Self>
+    fn combinations(self, k: usize) -> Combinations<Self>
         where Self: Sized,
               Self::Item: Clone
     {
-        combinations::combinations(self, n)
+        combinations::combinations(self, k)
     }
 
-    /// Return an iterator that iterates over the `n`-length combinations of
+    /// Return an iterator that iterates over the `k`-length combinations of
     /// the elements from an iterator, with replacement.
     ///
     /// Iterator element type is `Vec<Self::Item>`. The iterator produces a new Vec per iteration,
@@ -1190,15 +1193,60 @@ pub trait Itertools : Iterator {
     ///     vec![2, 2],
     ///     vec![2, 3],
     ///     vec![3, 3],
-    ///     ]);
+    /// ]);
     /// ```
     #[cfg(feature = "use_std")]
-    fn combinations_with_replacement(self, n: usize) -> CombinationsWithReplacement<Self>
+    fn combinations_with_replacement(self, k: usize) -> CombinationsWithReplacement<Self>
     where
         Self: Sized,
         Self::Item: Clone,
     {
-        combinations_with_replacement::combinations_with_replacement(self, n)
+        combinations_with_replacement::combinations_with_replacement(self, k)
+    }
+
+    /// Return an iterator adaptor that iterates over all k-permutations of the
+    /// elements from an iterator.
+    ///
+    /// Iterator element type is `Vec<Self::Item>` with length `k`. The iterator
+    /// produces a new Vec per iteration, and clones the iterator elements.
+    ///
+    /// If `k` is greater than the length of the input iterator, the resultant
+    /// iterator adaptor will be empty.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let perms = (5..8).permutations(2);
+    /// itertools::assert_equal(perms, vec![
+    ///     vec![5, 6],
+    ///     vec![5, 7],
+    ///     vec![6, 5],
+    ///     vec![6, 7],
+    ///     vec![7, 5],
+    ///     vec![7, 6],
+    /// ]);
+    /// ```
+    ///
+    /// Note: Permutations does not take into account the equality of the iterated values.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let it = vec![2, 2].into_iter().permutations(2);
+    /// itertools::assert_equal(it, vec![
+    ///     vec![2, 2], // Note: these are the same
+    ///     vec![2, 2], // Note: these are the same
+    /// ]);
+    /// ```
+    ///
+    /// Note: The source iterator is collected lazily, and will not be
+    /// re-iterated if the permutations adaptor is completed and re-iterated.
+    #[cfg(feature = "use_std")]
+    fn permutations(self, k: usize) -> Permutations<Self>
+        where Self: Sized,
+              Self::Item: Clone
+    {
+        permutations::permutations(self, k)
     }
 
     /// Return an iterator adaptor that pads the sequence to a minimum length of

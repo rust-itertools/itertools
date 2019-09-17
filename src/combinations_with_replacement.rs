@@ -11,7 +11,7 @@ where
     I: Iterator,
     I::Item: Clone,
 {
-    n: usize,
+    k: usize,
     indices: Vec<usize>,
     // The current known max index value. This increases as pool grows.
     max_index: usize,
@@ -24,7 +24,7 @@ where
     I: Iterator + fmt::Debug,
     I::Item: fmt::Debug + Clone,
 {
-    debug_fmt_fields!(Combinations, n, indices, max_index, pool, first);
+    debug_fmt_fields!(Combinations, k, indices, max_index, pool, first);
 }
 
 impl<I> CombinationsWithReplacement<I>
@@ -39,16 +39,16 @@ where
 }
 
 /// Create a new `CombinationsWithReplacement` from a clonable iterator.
-pub fn combinations_with_replacement<I>(iter: I, n: usize) -> CombinationsWithReplacement<I>
+pub fn combinations_with_replacement<I>(iter: I, k: usize) -> CombinationsWithReplacement<I>
 where
     I: Iterator,
     I::Item: Clone,
 {
-    let indices: Vec<usize> = vec![0; n];
+    let indices: Vec<usize> = vec![0; k];
     let pool: LazyBuffer<I> = LazyBuffer::new(iter);
 
     CombinationsWithReplacement {
-        n,
+        k,
         indices,
         max_index: 0,
         pool: pool,
@@ -66,7 +66,7 @@ where
         // If this is the first iteration, return early
         if self.first {
             // In empty edge cases, stop iterating immediately
-            return if self.n == 0 || self.pool.is_done() {
+            return if self.k == 0 || self.pool.is_done() {
                 None
             // Otherwise, yield the initial state
             } else {
