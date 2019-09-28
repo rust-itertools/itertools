@@ -84,4 +84,70 @@ impl<I, J, F> Iterator for MergeJoinBy<I, J, F>
 
         (lower, upper)
     }
+
+    fn count(mut self) -> usize {
+        let mut count = 0;
+        loop {
+            match (self.left.next(), self.right.next()) {
+                (None, None) => break count,
+                (Some(_left), None) => break count + 1 + self.left.count(),
+                (None, Some(_right)) => break count + 1 + self.right.count(),
+                (Some(left), Some(right)) => {
+                    count += 1;
+                    match (self.cmp_fn)(&left, &right) {
+                        Ordering::Equal => {}
+                        Ordering::Less => self.right.put_back(right),
+                        Ordering::Greater => self.left.put_back(left),
+                    }
+                }
+            }
+        }
+    }
+
+    fn last(mut self) -> Option<Self::Item> {
+        let mut previous_element = None;
+        loop {
+            match (self.left.next(), self.right.next()) {
+                (None, None) => break previous_element,
+                (Some(left), None) => {
+                    break Some(EitherOrBoth::Left(self.left.last().unwrap_or(left)))
+                }
+                (None, Some(right)) => {
+                    break Some(EitherOrBoth::Right(self.right.last().unwrap_or(right)))
+                }
+                (Some(left), Some(right)) => {
+                    previous_element = match (self.cmp_fn)(&left, &right) {
+                        Ordering::Equal => Some(EitherOrBoth::Both(left, right)),
+                        Ordering::Less => {
+                            self.right.put_back(right);
+                            Some(EitherOrBoth::Left(left))
+                        }
+                        Ordering::Greater => {
+                            self.left.put_back(left);
+                            Some(EitherOrBoth::Right(right))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fn nth(&mut self, mut n: usize) -> Option<Self::Item> {
+        loop {
+            if n == 0 {
+                break self.next();
+            }
+            n -= 1;
+            match (self.left.next(), self.right.next()) {
+                (None, None) => break None,
+                (Some(_left), None) => break self.left.nth(n).map(EitherOrBoth::Left),
+                (None, Some(_right)) => break self.right.nth(n).map(EitherOrBoth::Right),
+                (Some(left), Some(right)) => match (self.cmp_fn)(&left, &right) {
+                    Ordering::Equal => {}
+                    Ordering::Less => self.right.put_back(right),
+                    Ordering::Greater => self.left.put_back(left),
+                },
+            }
+        }
+    }
 }
