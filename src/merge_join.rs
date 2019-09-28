@@ -90,8 +90,8 @@ impl<I, J, F> Iterator for MergeJoinBy<I, J, F>
         loop {
             match (self.left.next(), self.right.next()) {
                 (None, None) => break count,
-                (Some(_left), None) => break count + 1 + self.left.count(),
-                (None, Some(_right)) => break count + 1 + self.right.count(),
+                (Some(_left), None) => break count + 1 + self.left.into_parts().1.count(),
+                (None, Some(_right)) => break count + 1 + self.right.into_parts().1.count(),
                 (Some(left), Some(right)) => {
                     count += 1;
                     match (self.cmp_fn)(&left, &right) {
@@ -110,10 +110,14 @@ impl<I, J, F> Iterator for MergeJoinBy<I, J, F>
             match (self.left.next(), self.right.next()) {
                 (None, None) => break previous_element,
                 (Some(left), None) => {
-                    break Some(EitherOrBoth::Left(self.left.last().unwrap_or(left)))
+                    break Some(EitherOrBoth::Left(
+                        self.left.into_parts().1.last().unwrap_or(left),
+                    ))
                 }
                 (None, Some(right)) => {
-                    break Some(EitherOrBoth::Right(self.right.last().unwrap_or(right)))
+                    break Some(EitherOrBoth::Right(
+                        self.right.into_parts().1.last().unwrap_or(right),
+                    ))
                 }
                 (Some(left), Some(right)) => {
                     previous_element = match (self.cmp_fn)(&left, &right) {
