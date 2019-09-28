@@ -243,6 +243,28 @@ impl<I> Iterator for PutBack<I>
         size_hint::add_scalar(self.iter.size_hint(), self.top.is_some() as usize)
     }
 
+    fn count(self) -> usize {
+        self.iter.count() + (self.top.is_some() as usize)
+    }
+
+    fn last(self) -> Option<Self::Item> {
+        self.iter.last().or(self.top)
+    }
+
+    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+        match self.top {
+            None => self.iter.nth(n),
+            ref mut some => {
+                if n == 0 {
+                    some.take()
+                } else {
+                    *some = None;
+                    self.iter.nth(n - 1)
+                }
+            }
+        }
+    }
+
     fn all<G>(&mut self, mut f: G) -> bool
         where G: FnMut(Self::Item) -> bool
     {
