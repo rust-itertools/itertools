@@ -56,7 +56,7 @@ pub use either::Either;
 
 #[cfg(feature = "use_std")]
 use std::collections::HashMap;
-use std::iter::{IntoIterator};
+use std::iter::{IntoIterator, once};
 use std::cmp::Ordering;
 use std::fmt;
 #[cfg(feature = "use_std")]
@@ -1927,6 +1927,64 @@ pub trait Itertools : Iterator {
         }
         FoldWhile::Continue(acc)
     }
+
+    /// Iterate over the entire iterator and add all the elements.
+    ///
+    /// An empty iterator returns `None`, otherwise `Some(sum)`.
+    ///
+    /// # Panics
+    ///
+    /// When calling `sum1()` and a primitive integer type is being returned, this
+    /// method will panic if the computation overflows and debug assertions are
+    /// enabled.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let empty_sum = (1..1).sum1::<i32>();
+    /// assert_eq!(empty_sum, None);
+    ///
+    /// let nonempty_sum = (1..11).sum1::<i32>();
+    /// assert_eq!(nonempty_sum, Some(55));
+    /// ```
+    fn sum1<S>(mut self) -> Option<S>
+        where Self: Sized,
+              S: std::iter::Sum<Self::Item>,
+    {
+        self.next()
+            .map(|first| once(first).chain(self).sum())
+    }
+
+    /// Iterate over the entire iterator and multiply all the elements.
+    ///
+    /// An empty iterator returns `None`, otherwise `Some(product)`.
+    ///
+    /// # Panics
+    ///
+    /// When calling `product1()` and a primitive integer type is being returned,
+    /// method will panic if the computation overflows and debug assertions are
+    /// enabled.
+    ///
+    /// # Examples
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let empty_product = (1..1).product1::<i32>();
+    /// assert_eq!(empty_product, None);
+    ///
+    /// let nonempty_product = (1..11).product1::<i32>();
+    /// assert_eq!(nonempty_product, Some(3628800));
+    /// ```
+    fn product1<P>(mut self) -> Option<P>
+        where Self: Sized,
+              P: std::iter::Product<Self::Item>,
+    {
+        self.next()
+            .map(|first| once(first).chain(self).product())
+    }
+
 
     /// Sort all iterator elements into a new iterator in ascending order.
     ///
