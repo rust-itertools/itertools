@@ -74,20 +74,6 @@ Recent Changes
 
       ; by `@tobz1000 <https://github.com/tobz1000>`_
 
-    - `.combinations(k) <https://docs.rs/itertools/0.8.1/itertools/trait.Itertools.html#method.combinations>`_:
-
-      ``[0, 1, 2].iter().combinations(2)`` yields
-
-      .. code:: rust
-
-        [
-            vec![0, 1],
-            vec![0, 2],
-            vec![1, 2],
-        ]
-
-      ; by `@tobz1000 <https://github.com/tobz1000>`_
-
     - `.combinations_with_replacement(k) <https://docs.rs/itertools/0.8.1/itertools/trait.Itertools.html#method.combinations_with_replacement>`_:
 
       ``[0, 1, 2].iter().combinations_with_replacement(2)`` yields
@@ -104,6 +90,19 @@ Recent Changes
         ]
 
       ; by `@tommilligan <https://github.com/tommilligan>`_
+
+    - For reference, these methods join the already existing
+      `.combinations(k) <https://docs.rs/itertools/0.8.1/itertools/trait.Itertools.html#method.combinations>`_:
+
+      ``[0, 1, 2].iter().combinations(2)`` yields
+
+      .. code:: rust
+
+        [
+            vec![0, 1],
+            vec![0, 2],
+            vec![1, 2],
+        ]
 
   - Improved the performance of `.fold() <https://docs.rs/itertools/0.8.1/itertools/trait.Itertools.html#method.fold>`_-based internal iteration for the
     `.intersperse() <https://docs.rs/itertools/0.8.1/itertools/trait.Itertools.html#method.intersperse>`_ iterator
