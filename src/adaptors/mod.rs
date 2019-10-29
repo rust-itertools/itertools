@@ -1124,6 +1124,74 @@ impl<I, F, T, U, E> Iterator for MapResults<I, F>
     }
 }
 
+/// An iterator adapter to filter values within a nested `Result`.
+///
+/// See [`.filter_results()`](../trait.Itertools.html#method.filter_results) for more information.
+#[derive(Clone)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+pub struct FilterResults<I, F> {
+    iter: I,
+    f: F
+}
+
+/// Create a new `FilterResults` iterator.
+pub fn filter_results<I, F, T, E>(iter: I, f: F) -> FilterResults<I, F>
+    where I: Iterator<Item = Result<T, E>>,
+          F: FnMut(&T) -> bool,
+{
+    FilterResults {
+        iter,
+        f,
+    }
+}
+
+impl<I, F, T, E> Iterator for FilterResults<I, F>
+    where I: Iterator<Item = Result<T, E>>,
+          F: FnMut(&T) -> bool,
+{
+    type Item = Result<T, E>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            match self.iter.next() {
+                Some(Ok(v)) => {
+                    if (self.f)(&v) {
+                        return Some(Ok(v));
+                    }
+                },
+                Some(Err(e)) => return Some(Err(e)),
+                None => return None,
+            }
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, self.iter.size_hint().1)
+    }
+
+    fn fold<Acc, Fold>(self, init: Acc, mut fold_f: Fold) -> Acc
+        where Fold: FnMut(Acc, Self::Item) -> Acc,
+    {
+        let mut f = self.f;
+        self.iter.fold(init, move |acc, v| {
+            if v.as_ref().map(&mut f).unwrap_or(true) {
+                fold_f(acc, v)
+            } else {
+                acc
+            }
+        })
+    }
+
+    fn collect<C>(self) -> C
+        where C: FromIterator<Self::Item>
+    {
+        let mut f = self.f;
+        self.iter.filter(move |v| {
+            v.as_ref().map(&mut f).unwrap_or(true)
+        }).collect()
+    }
+}
+
 /// An iterator adapter to get the positions of each element that matches a predicate.
 ///
 /// See [`.positions()`](../trait.Itertools.html#method.positions) for more information.

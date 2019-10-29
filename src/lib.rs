@@ -80,6 +80,7 @@ pub mod structs {
         DedupBy,
         Interleave,
         InterleaveShortest,
+        FilterResults,
         Product,
         PutBack,
         Batching,
@@ -735,6 +736,24 @@ pub trait Itertools : Iterator {
               F: FnMut(T) -> U,
     {
         adaptors::map_results(self, f)
+    }
+
+    /// Return an iterator adaptor that filters every `Result::Ok`
+    /// value with the provided closure. `Result::Err` values are
+    /// unchanged.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let input = vec![Ok(22), Err(false), Ok(11)];
+    /// let it = input.into_iter().filter_results(|&i| i > 20);
+    /// itertools::assert_equal(it, vec![Ok(22), Err(false)]);
+    /// ```
+    fn filter_results<F, T, E>(self, f: F) -> FilterResults<Self, F>
+        where Self: Iterator<Item = Result<T, E>> + Sized,
+              F: FnMut(&T) -> bool,
+    {
+        adaptors::filter_results(self, f)
     }
 
     /// Return an iterator adaptor that merges the two base iterators in
