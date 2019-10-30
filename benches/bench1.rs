@@ -688,7 +688,7 @@ fn multi_cartesian_product_iterator(b: &mut test::Bencher)
 
     b.iter(|| {
         let mut sum = 0;
-        for x in xs.into_iter().multi_cartesian_product() {
+        for x in xs.iter().multi_cartesian_product() {
             sum += x[0];
             sum += x[1];
             sum += x[2];
@@ -704,7 +704,7 @@ fn multi_cartesian_product_fold(b: &mut test::Bencher)
 
     b.iter(|| {
         let mut sum = 0;
-        xs.into_iter().multi_cartesian_product().fold((), |(), x| {
+        xs.iter().multi_cartesian_product().fold((), |(), x| {
             sum += x[0];
             sum += x[1];
             sum += x[2];
