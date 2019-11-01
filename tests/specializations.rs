@@ -97,10 +97,10 @@ fn put_back() {
 
 #[test]
 fn merge_join_by() {
-    let i1 = vec![1, 3, 5].into_iter();
+    let i1 = vec![1, 3, 5, 7, 8, 9].into_iter();
     let i2 = vec![0, 3, 4, 5].into_iter();
-    let mjb = i1.merge_join_by(i2, std::cmp::Ord::cmp);
-    check_specialized_count_last_nth_sizeh(&mjb, 5);
+    let mjb = i1.clone().merge_join_by(i2.clone(), std::cmp::Ord::cmp);
+    check_specialized_count_last_nth_sizeh(&mjb, 8);
     // Rust 1.24 compatibility:
     fn eob_left_z(eob: EitherOrBoth<usize, usize>) -> usize {
         eob.left().unwrap_or(0)
@@ -113,6 +113,13 @@ fn merge_join_by() {
         assert_eq!(a, b);
         a
     }
+    check_specialized_fold_xor(&mjb.clone().map(eob_left_z));
+    check_specialized_fold_xor(&mjb.clone().map(eob_right_z));
+    check_specialized_fold_xor(&mjb.clone().map(eob_both_z));
+
+	// And the other way around
+    let mjb = i2.merge_join_by(i1, std::cmp::Ord::cmp);
+    check_specialized_count_last_nth_sizeh(&mjb, 8);
     check_specialized_fold_xor(&mjb.clone().map(eob_left_z));
     check_specialized_fold_xor(&mjb.clone().map(eob_right_z));
     check_specialized_fold_xor(&mjb.clone().map(eob_both_z));
