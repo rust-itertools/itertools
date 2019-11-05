@@ -603,6 +603,12 @@ fn combinations_zero() {
 }
 
 #[test]
+fn permutations_zero() {
+    it::assert_equal((1..3).permutations(0), vec![vec![]]);
+    it::assert_equal((0..0).permutations(0), vec![vec![]]);
+}
+
+#[test]
 fn combinations_with_replacement() {
     // Pool smaller than n
     it::assert_equal((0..1).combinations_with_replacement(2), vec![vec![0, 0]]);
