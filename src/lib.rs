@@ -402,6 +402,7 @@ pub trait Itertools : Iterator {
     ///
     /// let mut i = 10;
     /// itertools::assert_equal((0..3).intersperse_with(|| { i -= 1; i }), vec![0, 9, 1, 8, 2]);
+    /// assert_eq!(i, 8);
     /// ```
     fn intersperse_with<F>(self, element: F) -> IntersperseWith<Self, F>
         where Self: Sized,
