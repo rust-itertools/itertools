@@ -13,6 +13,18 @@ pub struct WithPosition<I>
     peekable: Peekable<Fuse<I>>,
 }
 
+impl<I> Clone for WithPosition<I>
+    where I: Clone + Iterator,
+          I::Item: Clone,
+{
+    fn clone(&self) -> Self {
+        WithPosition {
+            handled_first: self.handled_first,
+            peekable: self.peekable.clone(),
+        }
+    }
+}
+
 /// Create a new `WithPosition` iterator.
 pub fn with_position<I>(iter: I) -> WithPosition<I>
     where I: Iterator,

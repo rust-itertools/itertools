@@ -7,6 +7,7 @@ use std::cell::RefCell;
 /// exhausted.
 ///
 /// See [`.format_with()`](../trait.Itertools.html#method.format_with) for more information.
+#[derive(Clone)]
 pub struct FormatWith<'a, I, F> {
     sep: &'a str,
     /// FormatWith uses interior mutability because Display::fmt takes &self.

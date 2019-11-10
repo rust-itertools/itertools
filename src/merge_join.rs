@@ -31,6 +31,22 @@ pub struct MergeJoinBy<I: Iterator, J: Iterator, F> {
     cmp_fn: F
 }
 
+impl<I, J, F> Clone for MergeJoinBy<I, J, F>
+    where I: Clone + Iterator,
+          I::Item: Clone,
+          J: Clone + Iterator,
+          J::Item: Clone,
+          F: Clone,
+{
+    fn clone(&self) -> Self {
+        MergeJoinBy {
+            left: self.left.clone(),
+            right: self.right.clone(),
+            cmp_fn: self.cmp_fn.clone(),
+        }
+    }
+}
+
 impl<I, J, F> fmt::Debug for MergeJoinBy<I, J, F>
     where I: Iterator + fmt::Debug,
           I::Item: fmt::Debug,
