@@ -65,12 +65,12 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         // If this is the first iteration, return early
         if self.first {
-            // In empty edge cases, stop iterating immediately
+            self.first = false;
+            // In empty edge cases (k == 0), return an empty vector.
             return if self.k == 0 || self.pool.is_done() {
-                None
+                Some(Vec::new())
             // Otherwise, yield the initial state
             } else {
-                self.first = false;
                 Some(self.current())
             };
         }

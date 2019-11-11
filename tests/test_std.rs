@@ -627,17 +627,17 @@ fn combinations_with_replacement() {
     // Zero size
     it::assert_equal(
         (0..3).combinations_with_replacement(0),
-        <Vec<Vec<_>>>::new(),
+        vec![vec![]],
     );
     // Zero size on empty pool
     it::assert_equal(
         (0..0).combinations_with_replacement(0),
-        <Vec<Vec<_>>>::new(),
+        vec![vec![]],
     );
     // Empty pool
     it::assert_equal(
         (0..0).combinations_with_replacement(2),
-        <Vec<Vec<_>>>::new(),
+        vec![vec![]],
     );
 }
 
