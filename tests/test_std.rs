@@ -637,7 +637,7 @@ fn combinations_with_replacement() {
     // Empty pool
     it::assert_equal(
         (0..0).combinations_with_replacement(2),
-        vec![vec![]],
+        <Vec<Vec<_>>>::new(),
     );
 }
 

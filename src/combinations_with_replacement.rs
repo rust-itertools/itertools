@@ -67,11 +67,10 @@ where
         if self.first {
             self.first = false;
             // In empty edge cases (k == 0), return an empty vector.
-            return if self.k == 0 || self.pool.is_done() {
-                Some(Vec::new())
-            // Otherwise, yield the initial state
-            } else {
-                Some(self.current())
+            return match (self.pool.is_done(), self.k == 0) {
+                (_, true) => Some(Vec::new()), // ((0/N, 0)) = 1
+                (true, false) => None,         // ((0, N)) = 0
+                _ => Some(self.current())      // Otherwise, yield the initial state
             };
         }
 
