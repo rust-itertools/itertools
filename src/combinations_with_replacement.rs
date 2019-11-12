@@ -66,7 +66,7 @@ where
         // If this is the first iteration, return early
         if self.first {
             self.first = false;
-            // In empty edge cases (k == 0), return an empty vector.
+            // Handle corner cases of ((N,0)), ((0,N)), and ((0,0))
             return match (self.pool.is_done(), self.k == 0) {
                 (_, true) => Some(Vec::new()), // ((0/N, 0)) = 1
                 (true, false) => None,         // ((0, N)) = 0
