@@ -51,13 +51,11 @@ impl<I> Iterator for Combinations<I>
     type Item = Vec<I::Item>;
     fn next(&mut self) -> Option<Self::Item> {
         let mut pool_len = self.pool.len();
-        if self.pool.is_done() {
-            if pool_len == 0 || self.k > pool_len {
-                return None;
-            }
-        }
 
         if self.first {
+            if self.pool.is_done() {
+                return None;
+            }
             self.first = false;
         } else if self.k == 0 {
             return None;

@@ -12,19 +12,10 @@ where
     I: Iterator,
 {
     pub fn new(it: I) -> LazyBuffer<I> {
-        let mut it = it;
-        let mut buffer = Vec::new();
-        let done;
-        if let Some(first) = it.next() {
-            buffer.push(first);
-            done = false;
-        } else {
-            done = true;
-        }
         LazyBuffer {
             it: it,
-            done: done,
-            buffer: buffer,
+            done: false,
+            buffer: Vec::new(),
         }
     }
 

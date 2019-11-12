@@ -599,6 +599,13 @@ fn combinations_of_too_short() {
 #[test]
 fn combinations_zero() {
     it::assert_equal((1..3).combinations(0), vec![vec![]]);
+    it::assert_equal((0..0).combinations(0), vec![vec![]]);
+}
+
+#[test]
+fn permutations_zero() {
+    it::assert_equal((1..3).permutations(0), vec![vec![]]);
+    it::assert_equal((0..0).permutations(0), vec![vec![]]);
 }
 
 #[test]
@@ -620,7 +627,12 @@ fn combinations_with_replacement() {
     // Zero size
     it::assert_equal(
         (0..3).combinations_with_replacement(0),
-        <Vec<Vec<_>>>::new(),
+        vec![vec![]],
+    );
+    // Zero size on empty pool
+    it::assert_equal(
+        (0..0).combinations_with_replacement(0),
+        vec![vec![]],
     );
     // Empty pool
     it::assert_equal(
