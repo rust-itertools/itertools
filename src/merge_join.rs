@@ -78,7 +78,7 @@ impl<I, J, F> Iterator for MergeJoinBy<I, J, F>
         let lower = ::std::cmp::max(a_lower, b_lower);
 
         let upper = match (a_upper, b_upper) {
-            (Some(x), Some(y)) => Some(x + y),
+            (Some(x), Some(y)) => x.checked_add(y),
             _ => None,
         };
 
