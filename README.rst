@@ -47,6 +47,9 @@ then it can't be accepted into ``libcore``, and you should propose it for ``iter
 
 Recent Changes
 --------------
+- 0.8.2
+
+  - Use :code:`slice::iter` instead of :code:`into_iter` to avoid future breakage (`#378 <https://github.com/rust-itertools/itertools/pull/378>`_, by `@LukasKalbertodt <https://github.com/LukasKalbertodt>`_)
 
 - 0.8.1
 
