@@ -137,6 +137,12 @@ pub mod structs {
     pub use zip_longest::ZipLongest;
     pub use ziptuple::Zip;
 }
+
+/// Traits helpful for using certain `Itertools` methods in generic contexts.
+pub mod traits {
+    pub use ::tuple_impl::HomogeneousTuple;
+}
+
 #[allow(deprecated)]
 pub use structs::*;
 pub use concat_impl::concat;
@@ -588,7 +594,7 @@ pub trait Itertools : Iterator {
     /// ```
     fn tuple_windows<T>(self) -> TupleWindows<Self, T>
         where Self: Sized + Iterator<Item = T::Item>,
-              T: tuple_impl::TupleCollect,
+              T: traits::HomogeneousTuple,
               T::Item: Clone
     {
         tuple_impl::tuple_windows(self)
@@ -627,7 +633,7 @@ pub trait Itertools : Iterator {
     /// See also [`Tuples::into_buffer`](structs/struct.Tuples.html#method.into_buffer).
     fn tuples<T>(self) -> Tuples<Self, T>
         where Self: Sized + Iterator<Item = T::Item>,
-              T: tuple_impl::TupleCollect
+              T: traits::HomogeneousTuple
     {
         tuple_impl::tuples(self)
     }
@@ -1352,7 +1358,7 @@ pub trait Itertools : Iterator {
     /// ```
     fn next_tuple<T>(&mut self) -> Option<T>
         where Self: Sized + Iterator<Item = T::Item>,
-              T: tuple_impl::TupleCollect
+              T: traits::HomogeneousTuple
     {
         T::collect_from_iter_no_buf(self)
     }
@@ -1377,7 +1383,7 @@ pub trait Itertools : Iterator {
     /// ```
     fn collect_tuple<T>(mut self) -> Option<T>
         where Self: Sized + Iterator<Item = T::Item>,
-              T: tuple_impl::TupleCollect
+              T: traits::HomogeneousTuple
     {
         match self.next_tuple() {
             elt @ Some(_) => match self.next() {
