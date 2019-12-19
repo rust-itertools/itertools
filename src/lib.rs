@@ -203,6 +203,7 @@ mod with_position;
 mod zip_eq_impl;
 mod zip_longest;
 mod ziptuple;
+pub mod column_row;
 
 #[macro_export]
 /// Create an iterator over the “cartesian product” of iterators.
