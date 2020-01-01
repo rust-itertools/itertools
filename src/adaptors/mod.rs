@@ -886,7 +886,7 @@ impl<I, A> Iterator for WhileSome<I>
 ///
 /// See [`.tuple_combinations()`](../trait.Itertools.html#method.tuple_combinations) for more
 /// information.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct TupleCombinations<I, T>
     where I: Iterator,
@@ -925,7 +925,7 @@ impl<I, T> Iterator for TupleCombinations<I, T>
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Tuple1Combination<I> {
     iter: I,
 }
@@ -950,7 +950,7 @@ impl<I: Iterator> HasCombination<I> for (I::Item,) {
 
 macro_rules! impl_tuple_combination {
     ($C:ident $P:ident ; $A:ident, $($I:ident),* ; $($X:ident)*) => (
-        #[derive(Debug)]
+        #[derive(Clone, Debug)]
         pub struct $C<I: Iterator> {
             item: Option<I::Item>,
             iter: I,
@@ -1014,6 +1014,7 @@ impl_tuple_combination!(Tuple4Combination Tuple3Combination ; A, A, A, A, A; a b
 /// An iterator adapter to apply `Into` conversion to each element.
 ///
 /// See [`.map_into()`](../trait.Itertools.html#method.map_into) for more information.
+#[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct MapInto<I, R> {
     iter: I,
@@ -1071,6 +1072,7 @@ where
 /// An iterator adapter to apply a transformation within a nested `Result`.
 ///
 /// See [`.map_results()`](../trait.Itertools.html#method.map_results) for more information.
+#[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct MapResults<I, F> {
     iter: I,
@@ -1120,6 +1122,7 @@ impl<I, F, T, U, E> Iterator for MapResults<I, F>
 /// An iterator adapter to get the positions of each element that matches a predicate.
 ///
 /// See [`.positions()`](../trait.Itertools.html#method.positions) for more information.
+#[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Positions<I, F> {
     iter: I,
@@ -1178,6 +1181,7 @@ impl<I, F> DoubleEndedIterator for Positions<I, F>
 /// An iterator adapter to apply a mutating function to each element before yielding it.
 ///
 /// See [`.update()`](../trait.Itertools.html#method.update) for more information.
+#[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Update<I, F> {
     iter: I,
