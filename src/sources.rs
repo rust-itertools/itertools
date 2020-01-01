@@ -6,6 +6,7 @@ use std::fmt;
 use std::mem;
 
 /// See [`repeat_call`](../fn.repeat_call.html) for more information.
+#[derive(Clone)]
 #[deprecated(note="Use std repeat_with() instead", since="0.8")]
 pub struct RepeatCall<F> {
     f: F,

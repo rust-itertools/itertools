@@ -14,7 +14,19 @@ pub struct Permutations<I: Iterator> {
     state: PermutationState,
 }
 
-#[derive(Debug)]
+impl<I> Clone for Permutations<I>
+    where I: Clone + Iterator,
+          I::Item: Clone,
+{
+    fn clone(&self) -> Self {
+        Permutations {
+            vals: self.vals.clone(),
+            state: self.state.clone(),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
 enum PermutationState {
     StartUnknownLen {
         k: usize,
@@ -27,7 +39,7 @@ enum PermutationState {
     Empty,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 enum CompleteState {
     Start {
         n: usize,

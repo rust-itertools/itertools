@@ -505,10 +505,11 @@ pub trait Itertools : Iterator {
     ///
     /// // Note: The `&` is significant here, `GroupBy` is iterable
     /// // only by reference. You can also call `.into_iter()` explicitly.
+    /// let mut data_grouped = Vec::new();
     /// for (key, group) in &data.into_iter().group_by(|elt| *elt >= 0) {
-    ///     // Check that the sum of each group is +/- 4.
-    ///     assert_eq!(4, group.sum::<i32>().abs());
+    ///     data_grouped.push((key, group.collect()));
     /// }
+    /// assert_eq!(data_grouped, vec![(true, vec![1, 3]), (false, vec![-2, -2]), (true, vec![1, 0, 1, 2])]);
     /// ```
     #[cfg(feature = "use_std")]
     fn group_by<K, F>(self, key: F) -> GroupBy<K, Self, F>

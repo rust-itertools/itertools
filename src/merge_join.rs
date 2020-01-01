@@ -32,12 +32,11 @@ pub struct MergeJoinBy<I: Iterator, J: Iterator, F> {
 }
 
 impl<I, J, F> Clone for MergeJoinBy<I, J, F>
-where
-    I: Iterator,
-    J: Iterator,
-    PutBack<Fuse<I>>: Clone,
-    PutBack<Fuse<J>>: Clone,
-    F: Clone,
+    where I: Iterator,
+          J: Iterator,
+          PutBack<Fuse<I>>: Clone,
+          PutBack<Fuse<J>>: Clone,
+          F: Clone,
 {
     fn clone(&self) -> Self {
         MergeJoinBy {
@@ -95,7 +94,7 @@ impl<I, J, F> Iterator for MergeJoinBy<I, J, F>
         let lower = ::std::cmp::max(a_lower, b_lower);
 
         let upper = match (a_upper, b_upper) {
-            (Some(x), Some(y)) => Some(x + y),
+            (Some(x), Some(y)) => x.checked_add(y),
             _ => None,
         };
 

@@ -13,6 +13,20 @@ pub struct Combinations<I: Iterator> {
     first: bool,
 }
 
+impl<I> Clone for Combinations<I>
+    where I: Clone + Iterator,
+          I::Item: Clone,
+{
+    fn clone(&self) -> Self {
+        Combinations {
+            k: self.k,
+            indices: self.indices.clone(),
+            pool: self.pool.clone(),
+            first: self.first,
+        }
+    }
+}
+
 impl<I> fmt::Debug for Combinations<I>
     where I: Iterator + fmt::Debug,
           I::Item: fmt::Debug,
