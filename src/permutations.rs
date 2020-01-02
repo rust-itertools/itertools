@@ -18,12 +18,7 @@ impl<I> Clone for Permutations<I>
     where I: Clone + Iterator,
           I::Item: Clone,
 {
-    fn clone(&self) -> Self {
-        Permutations {
-            vals: self.vals.clone(),
-            state: self.state.clone(),
-        }
-    }
+    clone_fields!(vals, state);
 }
 
 #[derive(Clone, Debug)]

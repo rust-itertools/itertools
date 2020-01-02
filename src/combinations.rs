@@ -17,14 +17,7 @@ impl<I> Clone for Combinations<I>
     where I: Clone + Iterator,
           I::Item: Clone,
 {
-    fn clone(&self) -> Self {
-        Combinations {
-            k: self.k,
-            indices: self.indices.clone(),
-            pool: self.pool.clone(),
-            first: self.first,
-        }
-    }
+    clone_fields!(k, indices, pool, first);
 }
 
 impl<I> fmt::Debug for Combinations<I>

@@ -17,12 +17,7 @@ impl<I> Clone for WithPosition<I>
     where I: Clone + Iterator,
           I::Item: Clone,
 {
-    fn clone(&self) -> Self {
-        WithPosition {
-            handled_first: self.handled_first,
-            peekable: self.peekable.clone(),
-        }
-    }
+    clone_fields!(handled_first, peekable);
 }
 
 /// Create a new `WithPosition` iterator.

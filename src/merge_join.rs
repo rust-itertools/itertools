@@ -38,13 +38,7 @@ impl<I, J, F> Clone for MergeJoinBy<I, J, F>
           J::Item: Clone,
           F: Clone,
 {
-    fn clone(&self) -> Self {
-        MergeJoinBy {
-            left: self.left.clone(),
-            right: self.right.clone(),
-            cmp_fn: self.cmp_fn.clone(),
-        }
-    }
+    clone_fields!(left, right, cmp_fn);
 }
 
 impl<I, J, F> fmt::Debug for MergeJoinBy<I, J, F>
