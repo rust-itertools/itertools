@@ -58,13 +58,13 @@ impl<'a, I, F> fmt::Display for FormatWith<'a, I, F>
         };
 
         if let Some(fst) = iter.next() {
-            try!(format(fst, &mut |disp: &fmt::Display| disp.fmt(f)));
+            format(fst, &mut |disp: &fmt::Display| disp.fmt(f))?;
             for elt in iter {
                 if self.sep.len() > 0 {
 
-                    try!(f.write_str(self.sep));
+                    f.write_str(self.sep)?;
                 }
-                try!(format(elt, &mut |disp: &fmt::Display| disp.fmt(f)));
+                format(elt, &mut |disp: &fmt::Display| disp.fmt(f))?;
             }
         }
         Ok(())
@@ -83,12 +83,12 @@ impl<'a, I> Format<'a, I>
         };
 
         if let Some(fst) = iter.next() {
-            try!(cb(&fst, f));
+            cb(&fst, f)?;
             for elt in iter {
                 if self.sep.len() > 0 {
-                    try!(f.write_str(self.sep));
+                    f.write_str(self.sep)?;
                 }
-                try!(cb(&elt, f));
+                cb(&elt, f)?;
             }
         }
         Ok(())
