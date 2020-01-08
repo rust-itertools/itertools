@@ -7,7 +7,6 @@ use test::{black_box};
 use itertools::Itertools;
 
 use itertools::free::cloned;
-use itertools::Permutations;
 
 use std::iter::repeat;
 use std::cmp;
@@ -621,7 +620,7 @@ fn fast_integer_sum<I>(iter: I) -> I::Item
 fn step_vec_2(b: &mut test::Bencher) {
     let v = vec![0; 1024];
     b.iter(|| {
-        fast_integer_sum(cloned(v.iter().step(2)))
+        fast_integer_sum(cloned(v.iter().step_by(2)))
     });
 }
 
@@ -629,7 +628,7 @@ fn step_vec_2(b: &mut test::Bencher) {
 fn step_vec_10(b: &mut test::Bencher) {
     let v = vec![0; 1024];
     b.iter(|| {
-        fast_integer_sum(cloned(v.iter().step(10)))
+        fast_integer_sum(cloned(v.iter().step_by(10)))
     });
 }
 
@@ -637,7 +636,7 @@ fn step_vec_10(b: &mut test::Bencher) {
 fn step_range_2(b: &mut test::Bencher) {
     let v = black_box(0..1024);
     b.iter(|| {
-        fast_integer_sum(v.clone().step(2))
+        fast_integer_sum(v.clone().step_by(2))
     });
 }
 
@@ -645,7 +644,7 @@ fn step_range_2(b: &mut test::Bencher) {
 fn step_range_10(b: &mut test::Bencher) {
     let v = black_box(0..1024);
     b.iter(|| {
-        fast_integer_sum(v.clone().step(10))
+        fast_integer_sum(v.clone().step_by(10))
     });
 }
 

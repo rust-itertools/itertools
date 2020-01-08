@@ -36,7 +36,7 @@ mod specialization {
 
             b.iter(|| {
                 let mut sum = 0;
-                for &x in arr.into_iter().intersperse(&0) {
+                for &x in arr.iter().intersperse(&0) {
                     sum += x;
                 }
                 sum
@@ -49,7 +49,7 @@ mod specialization {
             let arr = [1; 1024];
 
             b.iter(|| {
-                arr.into_iter().intersperse(&0).fold(0, |acc, x| acc + x)
+                arr.iter().intersperse(&0).fold(0, |acc, x| acc + x)
             })
         }
 
@@ -59,7 +59,7 @@ mod specialization {
             let arr = [1; 1024];
 
             b.iter(|| {
-                Unspecialized(arr.into_iter().intersperse(&0)).fold(0, |acc, x| acc + x)
+                Unspecialized(arr.iter().intersperse(&0)).fold(0, |acc, x| acc + x)
             })
         }
     }

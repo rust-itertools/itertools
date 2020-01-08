@@ -17,7 +17,7 @@ trait IterEx : Iterator {
         let hint = self.size_hint().0;
         let cap = std::mem::size_of::<usize>() * 8 - hint.leading_zeros() as usize;
         let mut stack = Vec::with_capacity(cap);
-        self.enumerate().foreach(|(mut i, mut x)| {
+        self.enumerate().for_each(|(mut i, mut x)| {
             while (i & 1) != 0 {
                 x = f(stack.pop().unwrap(), x);
                 i >>= 1;
