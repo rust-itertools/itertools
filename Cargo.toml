@@ -24,10 +24,10 @@ test = false
 either = { version = "1.0", default-features = false }
 
 [dev-dependencies]
-rand = "0.6"
+rand = "0.7"
 
 [dev-dependencies.quickcheck]
-version = "0.7"
+version = "0.9"
 default-features = false
 
 [dev-dependencies.permutohedron]
