@@ -1541,6 +1541,35 @@ pub trait Itertools : Iterator {
         self.collect()
     }
 
+    /// `.try_collect()` is more convenient way of writing
+    /// `.collect::<Result<_, _>>()`
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use std::{fs, io};
+    /// use itertools::Itertools;
+    ///
+    /// fn process_dir_entries(entries: &[fs::DirEntry]) {
+    ///     // ...
+    /// }
+    ///
+    /// fn do_stuff() -> std::io::Result<()> {
+    ///     let entries: Vec<_> = fs::read_dir(".")?.try_collect()?;
+    ///     process_dir_entries(&entries);
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn try_collect<T, U, E>(self) -> Result<U, E>
+    where
+        Self: Sized + Iterator<Item = Result<T, E>>,
+        Result<U, E>: FromIterator<Result<T, E>>,
+    {
+        self.collect()
+    }
+
     /// Assign to each reference in `self` from the `from` iterator,
     /// stopping at the shortest of the two iterators.
     ///
