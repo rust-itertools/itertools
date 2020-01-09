@@ -1,8 +1,7 @@
-#![feature(test)]
-
-extern crate test;
+extern crate criterion;
 extern crate itertools;
 
+use criterion::{criterion_group, criterion_main, Criterion};
 use itertools::Itertools;
 
 struct Unspecialized<I>(I);
@@ -26,41 +25,52 @@ where I: Iterator
 mod specialization {
     use super::*;
 
-    mod intersperse {
+    pub mod intersperse {
         use super::*;
 
-        #[bench]
-        fn external(b: &mut test::Bencher)
+        pub fn external(c: &mut Criterion)
         {
             let arr = [1; 1024];
 
-            b.iter(|| {
-                let mut sum = 0;
-                for &x in arr.iter().intersperse(&0) {
-                    sum += x;
-                }
-                sum
-            })
+            c.bench_function("external", move |b| {
+                b.iter(|| {
+                    let mut sum = 0;
+                    for &x in arr.iter().intersperse(&0) {
+                        sum += x;
+                    }
+                    sum
+                })
+            });
         }
 
-        #[bench]
-        fn internal_specialized(b: &mut test::Bencher)
+        pub fn internal_specialized(c: &mut Criterion)
         {
             let arr = [1; 1024];
 
-            b.iter(|| {
-                arr.iter().intersperse(&0).fold(0, |acc, x| acc + x)
-            })
+            c.bench_function("internal specialized", move |b| {
+                b.iter(|| {
+                    arr.iter().intersperse(&0).fold(0, |acc, x| acc + x)
+                })
+            });
         }
 
-        #[bench]
-        fn internal_unspecialized(b: &mut test::Bencher)
+        pub fn internal_unspecialized(c: &mut Criterion)
         {
             let arr = [1; 1024];
 
-            b.iter(|| {
-                Unspecialized(arr.iter().intersperse(&0)).fold(0, |acc, x| acc + x)
-            })
+            c.bench_function("internal unspecialized", move |b| {
+                b.iter(|| {
+                    Unspecialized(arr.iter().intersperse(&0)).fold(0, |acc, x| acc + x)
+                })
+            });
         }
     }
 }
+
+criterion_group!(
+    benches,
+    specialization::intersperse::external,
+    specialization::intersperse::internal_specialized,
+    specialization::intersperse::internal_unspecialized,
+);
+criterion_main!(benches);

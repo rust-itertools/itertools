@@ -6,8 +6,6 @@ matrix:
     - rust: stable
     - rust: beta
     - rust: nightly
-      env:
-       - BENCH=1
 branches:
   only:
     - master
@@ -19,4 +17,4 @@ script:
       cargo build --verbose --no-default-features &&
       cargo build --verbose --features "$FEATURES" &&
       cargo test --verbose --features "$FEATURES" &&
-      ([ "$BENCH" != 1 ] || cargo bench --verbose --features "$FEATURES")
+      cargo bench --verbose --features "$FEATURES"
