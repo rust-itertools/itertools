@@ -2,20 +2,32 @@
 
 use std::iter::Fuse;
 
+// `HomogeneousTuple` is a public facade for `TupleCollect`, allowing
+// tuple-related methods to be used by clients in generic contexts, while
+// hiding the implementation details of `TupleCollect`.
+// See https://github.com/rust-itertools/itertools/issues/387
+
+/// Implemented for homogeneous tuples of size up to 4.
+pub trait HomogeneousTuple
+    : TupleCollect
+{}
+
+impl<T: TupleCollect> HomogeneousTuple for T {}
+
 /// An iterator over a incomplete tuple.
 ///
 /// See [`.tuples()`](../trait.Itertools.html#method.tuples) and
 /// [`Tuples::into_buffer()`](struct.Tuples.html#method.into_buffer).
 #[derive(Clone, Debug)]
 pub struct TupleBuffer<T>
-    where T: TupleCollect
+    where T: HomogeneousTuple
 {
     cur: usize,
     buf: T::Buffer,
 }
 
 impl<T> TupleBuffer<T>
-    where T: TupleCollect
+    where T: HomogeneousTuple
 {
     fn new(buf: T::Buffer) -> Self {
         TupleBuffer {
@@ -26,7 +38,7 @@ impl<T> TupleBuffer<T>
 }
 
 impl<T> Iterator for TupleBuffer<T>
-    where T: TupleCollect
+    where T: HomogeneousTuple
 {
     type Item = T::Item;
 
@@ -54,7 +66,7 @@ impl<T> Iterator for TupleBuffer<T>
 }
 
 impl<T> ExactSizeIterator for TupleBuffer<T>
-    where T: TupleCollect
+    where T: HomogeneousTuple
 {
 }
 
@@ -65,7 +77,7 @@ impl<T> ExactSizeIterator for TupleBuffer<T>
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Tuples<I, T>
     where I: Iterator<Item = T::Item>,
-          T: TupleCollect
+          T: HomogeneousTuple
 {
     iter: Fuse<I>,
     buf: T::Buffer,
@@ -74,7 +86,7 @@ pub struct Tuples<I, T>
 /// Create a new tuples iterator.
 pub fn tuples<I, T>(iter: I) -> Tuples<I, T>
     where I: Iterator<Item = T::Item>,
-          T: TupleCollect
+          T: HomogeneousTuple
 {
     Tuples {
         iter: iter.fuse(),
@@ -84,7 +96,7 @@ pub fn tuples<I, T>(iter: I) -> Tuples<I, T>
 
 impl<I, T> Iterator for Tuples<I, T>
     where I: Iterator<Item = T::Item>,
-          T: TupleCollect
+          T: HomogeneousTuple
 {
     type Item = T;
 
@@ -95,7 +107,7 @@ impl<I, T> Iterator for Tuples<I, T>
 
 impl<I, T> Tuples<I, T>
     where I: Iterator<Item = T::Item>,
-          T: TupleCollect
+          T: HomogeneousTuple
 {
     /// Return a buffer with the produced items that was not enough to be grouped in a tuple.
     ///
@@ -121,7 +133,7 @@ impl<I, T> Tuples<I, T>
 #[derive(Clone, Debug)]
 pub struct TupleWindows<I, T>
     where I: Iterator<Item = T::Item>,
-          T: TupleCollect
+          T: HomogeneousTuple
 {
     iter: I,
     last: Option<T>,
@@ -130,7 +142,7 @@ pub struct TupleWindows<I, T>
 /// Create a new tuple windows iterator.
 pub fn tuple_windows<I, T>(mut iter: I) -> TupleWindows<I, T>
     where I: Iterator<Item = T::Item>,
-          T: TupleCollect,
+          T: HomogeneousTuple,
           T::Item: Clone
 {
     use std::iter::once;
@@ -153,7 +165,7 @@ pub fn tuple_windows<I, T>(mut iter: I) -> TupleWindows<I, T>
 
 impl<I, T> Iterator for TupleWindows<I, T>
     where I: Iterator<Item = T::Item>,
-          T: TupleCollect + Clone,
+          T: HomogeneousTuple + Clone,
           T::Item: Clone
 {
     type Item = T;
