@@ -763,7 +763,6 @@ impl<I, Pred> fmt::Debug for DedupBy<I, Pred>
 
 impl<I, Pred> Iterator for DedupBy<I, Pred>
     where I: Iterator,
-          I::Item: PartialEq,
           Pred: DedupPredicate<I::Item>,
 {
     type Item = I::Item;
