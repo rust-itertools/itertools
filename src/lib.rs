@@ -1880,7 +1880,7 @@ pub trait Itertools : Iterator {
                 II: Iterator<Item = T>,
                 FF: FnMut(T, T) -> T
         {
-            let mut x = try!(inner0(it, f));
+            let mut x = inner0(it, f)?;
             for height in 0..stop {
                 // Try to get another tree the same size with which to combine it,
                 // creating a new tree that's twice as big for next time around.
