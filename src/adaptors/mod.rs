@@ -14,16 +14,6 @@ use std::iter::{Fuse, Peekable, FromIterator};
 use std::marker::PhantomData;
 use size_hint;
 
-macro_rules! clone_fields {
-    ($name:ident, $base:expr, $($field:ident),+) => (
-        $name {
-            $(
-                $field : $base . $field .clone()
-            ),*
-        }
-    );
-}
-
 /// An iterator adaptor that alternates elements from two iterators until both
 /// run out.
 ///
@@ -555,9 +545,7 @@ impl<I, J, F> Clone for MergeBy<I, J, F>
           Peekable<J>: Clone,
           F: Clone
 {
-    fn clone(&self) -> Self {
-        clone_fields!(MergeBy, self, a, b, fused, cmp)
-    }
+    clone_fields!(a, b, fused, cmp);
 }
 
 impl<I, J, F> Iterator for MergeBy<I, J, F>
@@ -650,9 +638,7 @@ impl<I: Clone, F: Clone> Clone for Coalesce<I, F>
     where I: Iterator,
           I::Item: Clone
 {
-    fn clone(&self) -> Self {
-        clone_fields!(Coalesce, self, iter, f)
-    }
+    clone_fields!(iter, f);
 }
 
 impl<I, F> fmt::Debug for Coalesce<I, F>
@@ -729,9 +715,7 @@ impl<I: Clone, Pred: Clone> Clone for DedupBy<I, Pred>
     where I: Iterator,
           I::Item: Clone,
 {
-    fn clone(&self) -> Self {
-        clone_fields!(DedupBy, self, iter, dedup_pred)
-    }
+    clone_fields!(iter, dedup_pred);
 }
 
 /// Create a new `DedupBy`.
@@ -763,7 +747,6 @@ impl<I, Pred> fmt::Debug for DedupBy<I, Pred>
 
 impl<I, Pred> Iterator for DedupBy<I, Pred>
     where I: Iterator,
-          I::Item: PartialEq,
           Pred: DedupPredicate<I::Item>,
 {
     type Item = I::Item;

@@ -5,16 +5,6 @@ use Itertools;
 use std::mem::replace;
 use std::fmt;
 
-macro_rules! clone_fields {
-    ($name:ident, $base:expr, $($field:ident),+) => (
-        $name {
-            $(
-                $field : $base . $field .clone()
-            ),*
-        }
-    );
-}
-
 /// Head element and Tail iterator pair
 ///
 /// `PartialEq`, `Eq`, `PartialOrd` and `Ord` are implemented by comparing sequences based on
@@ -65,9 +55,7 @@ impl<I> Clone for HeadTail<I>
     where I: Iterator + Clone,
           I::Item: Clone
 {
-    fn clone(&self) -> Self {
-        clone_fields!(HeadTail, self, head, tail)
-    }
+    clone_fields!(head, tail);
 }
 
 /// Make `data` a heap (min-heap w.r.t the sorting).
@@ -197,9 +185,7 @@ impl<I, F> Clone for KMergeBy<I, F>
           I::Item: Clone,
           F: Clone,
 {
-    fn clone(&self) -> KMergeBy<I, F> {
-        clone_fields!(KMergeBy, self, heap, less_than)
-    }
+    clone_fields!(heap, less_than);
 }
 
 impl<I, F> Iterator for KMergeBy<I, F>
