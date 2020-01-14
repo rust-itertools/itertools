@@ -66,7 +66,7 @@ where
         // If this is the first iteration, return early
         if self.first {
             // In empty edge cases, stop iterating immediately
-            return if self.k == 0 || self.pool.is_done() {
+            return if self.k != 0 && !self.pool.get_next() {
                 None
             // Otherwise, yield the initial state
             } else {
@@ -77,8 +77,7 @@ where
 
         // Check if we need to consume more from the iterator
         // This will run while we increment our first index digit
-        if !self.pool.is_done() {
-            self.pool.get_next();
+        if self.pool.get_next() {
             self.max_index = self.pool.len() - 1;
         }
 
