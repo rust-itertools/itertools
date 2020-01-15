@@ -24,10 +24,11 @@ test = false
 either = { version = "1.0", default-features = false }
 
 [dev-dependencies]
-rand = "0.6"
+rand = "0.7"
+criterion = "0.3"
 
 [dev-dependencies.quickcheck]
-version = "0.7"
+version = "0.9"
 default-features = false
 
 [dev-dependencies.permutohedron]
@@ -39,3 +40,27 @@ use_std = []
 
 [profile]
 bench = { debug = true }
+
+[[bench]]
+name = "tuple_combinations"
+harness = false
+
+[[bench]]
+name = "tuples"
+harness = false
+
+[[bench]]
+name = "fold_specialization"
+harness = false
+
+[[bench]]
+name = "combinations_with_replacement"
+harness = false
+
+[[bench]]
+name = "tree_fold1"
+harness = false
+
+[[bench]]
+name = "bench1"
+harness = false

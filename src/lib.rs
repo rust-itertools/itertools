@@ -42,7 +42,7 @@
 //!
 //! ## Rust Version
 //!
-//! This version of itertools requires Rust 1.24 or later.
+//! This version of itertools requires Rust 1.32 or later.
 //!
 //! [`Iterator`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html
 #![doc(html_root_url="https://docs.rs/itertools/0.8/")]
@@ -1692,7 +1692,7 @@ pub trait Itertools : Iterator {
     /// ```
     fn format_with<F>(self, sep: &str, format: F) -> FormatWith<Self, F>
         where Self: Sized,
-              F: FnMut(Self::Item, &mut FnMut(&fmt::Display) -> fmt::Result) -> fmt::Result,
+              F: FnMut(Self::Item, &mut dyn FnMut(&dyn fmt::Display) -> fmt::Result) -> fmt::Result,
     {
         format::new_format(self, sep, format)
     }

@@ -30,7 +30,7 @@ pub struct Format<'a, I> {
 
 pub fn new_format<'a, I, F>(iter: I, separator: &'a str, f: F) -> FormatWith<'a, I, F>
     where I: Iterator,
-          F: FnMut(I::Item, &mut FnMut(&fmt::Display) -> fmt::Result) -> fmt::Result
+          F: FnMut(I::Item, &mut dyn FnMut(&dyn fmt::Display) -> fmt::Result) -> fmt::Result
 {
     FormatWith {
         sep: separator,
@@ -49,7 +49,7 @@ pub fn new_format_default<'a, I>(iter: I, separator: &'a str) -> Format<'a, I>
 
 impl<'a, I, F> fmt::Display for FormatWith<'a, I, F>
     where I: Iterator,
-          F: FnMut(I::Item, &mut FnMut(&fmt::Display) -> fmt::Result) -> fmt::Result
+          F: FnMut(I::Item, &mut dyn  FnMut(&dyn fmt::Display) -> fmt::Result) -> fmt::Result
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let (mut iter, mut format) = match self.inner.borrow_mut().take() {
@@ -58,13 +58,13 @@ impl<'a, I, F> fmt::Display for FormatWith<'a, I, F>
         };
 
         if let Some(fst) = iter.next() {
-            format(fst, &mut |disp: &fmt::Display| disp.fmt(f))?;
+            format(fst, &mut |disp: &dyn fmt::Display| disp.fmt(f))?;
             for elt in iter {
                 if self.sep.len() > 0 {
 
                     f.write_str(self.sep)?;
                 }
-                format(elt, &mut |disp: &fmt::Display| disp.fmt(f))?;
+                format(elt, &mut |disp: &dyn fmt::Display| disp.fmt(f))?;
             }
         }
         Ok(())

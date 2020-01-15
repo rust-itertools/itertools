@@ -198,12 +198,12 @@ fn trait_pointers() {
         }
     }
 
-    let mut it = Box::new(0..10) as Box<Iterator<Item=i32>>;
+    let mut it = Box::new(0..10) as Box<dyn Iterator<Item=i32>>;
     assert_eq!(it.next(), Some(0));
 
     {
         /* make sure foreach works on non-Sized */
-        let jt: &mut Iterator<Item = i32> = &mut *it;
+        let jt: &mut dyn Iterator<Item = i32> = &mut *it;
         assert_eq!(jt.next(), Some(1));
 
         {

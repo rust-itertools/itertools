@@ -86,7 +86,7 @@ impl qc::Arbitrary for Inexact {
         }
     }
 
-    fn shrink(&self) -> Box<Iterator<Item=Self>> {
+    fn shrink(&self) -> Box<dyn Iterator<Item=Self>> {
         let underestimate_value = self.underestimate;
         let overestimate_value = self.overestimate;
         Box::new(
@@ -177,7 +177,7 @@ impl<T, HK> qc::Arbitrary for Iter<T, HK>
         Iter::new(T::arbitrary(g)..T::arbitrary(g), HK::arbitrary(g))
     }
 
-    fn shrink(&self) -> Box<Iterator<Item=Iter<T, HK>>>
+    fn shrink(&self) -> Box<dyn Iterator<Item=Iter<T, HK>>>
     {
         let r = self.iterator.clone();
         let hint_kind = self.hint_kind;
@@ -1076,7 +1076,7 @@ impl qc::Arbitrary for Val {
         let (x, y) = <(u32, u32)>::arbitrary(g);
         Val(x, y)
     }
-    fn shrink(&self) -> Box<Iterator<Item = Self>> {
+    fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
         Box::new((self.0, self.1).shrink().map(|(x, y)| Val(x, y)))
     }
 }
