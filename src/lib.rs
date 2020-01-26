@@ -116,6 +116,7 @@ pub mod structs {
     #[cfg(feature = "use_std")]
     pub use multipeek_impl::MultiPeek;
     pub use pad_tail::PadUsing;
+    pub use peeking_fold_while::PeekingFoldWhile;
     pub use peeking_take_while::PeekingTakeWhile;
     #[cfg(feature = "use_std")]
     pub use permutations::Permutations;
@@ -189,6 +190,7 @@ mod minmax;
 #[cfg(feature = "use_std")]
 mod multipeek_impl;
 mod pad_tail;
+mod peeking_fold_while;
 mod peeking_take_while;
 #[cfg(feature = "use_std")]
 mod permutations;
@@ -1058,6 +1060,39 @@ pub trait Itertools : Iterator {
               F: FnMut(&Self::Item) -> bool,
     {
         peeking_take_while::peeking_take_while(self, accept)
+    }
+
+    /// An iterator method that applies a function to each element
+    /// as long as it returns successfully, producing a single value.
+    ///
+    /// Unlike `try_fold()`, `peeking_fold_while()` does not consume the element
+    /// that causes the function to short-circuit.
+    ///
+    /// `peeking_fold_while()` is particularly useful when the short-circuit
+    /// condition depends on the accumulated value.
+    ///
+    /// # Example
+    /// ```
+    /// let a = [10, 20, 30, 100, 40, 50];
+    ///
+    /// // Using `try_fold()`
+    /// let mut it = a.iter();
+    /// let sum = it.try_fold(0i8, |acc, &x| acc.checked_add(x).ok_or(acc));
+    /// assert_eq!(sum, Err(60));
+    /// assert_eq!(it.next(), Some(&40));
+    ///
+    /// // Using `peeking_fold_while()`
+    /// use itertools::Itertools;
+    /// let mut it = a.iter().peekable();
+    /// let sum = it.peeking_fold_while(0i8, |acc, &&x| acc.checked_add(x).ok_or(acc));
+    /// assert_eq!(sum, Err(60));
+    /// assert_eq!(it.next(), Some(&100));
+    /// ```
+    fn peeking_fold_while<T, E, F>(&mut self, init: T, f: F) -> Result<T, E>
+        where Self: PeekingFoldWhile,
+              F: FnMut(T, &Self::Item) -> Result<T, E>,
+    {
+        PeekingFoldWhile::peeking_fold_while(self, init, f)
     }
 
     /// Return an iterator adaptor that borrows from a `Clone`-able iterator
