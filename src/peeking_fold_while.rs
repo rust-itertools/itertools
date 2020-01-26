@@ -51,6 +51,7 @@ impl<I> PeekingFoldWhile for PutBack<I>
     }
 }
 
+#[cfg(feature = "use_std")]
 impl<I> PeekingFoldWhile for PutBackN<I>
     where I: Iterator
 {
