@@ -82,10 +82,8 @@ impl<I> Iterator for Combinations<I>
 
             // Increment index, and reset the ones to its right
             self.indices[i] += 1;
-            let mut j = i + 1;
-            while j < self.indices.len() {
+            for j in i+1..self.indices.len() {
                 self.indices[j] = self.indices[j - 1] + 1;
-                j += 1;
             }
         }
 
