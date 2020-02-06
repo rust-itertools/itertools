@@ -31,10 +31,6 @@ impl<I> fmt::Debug for Combinations<I>
 pub fn combinations<I>(iter: I, k: usize) -> Combinations<I>
     where I: Iterator
 {
-    let mut indices: Vec<usize> = Vec::with_capacity(k);
-    for i in 0..k {
-        indices.push(i);
-    }
     let mut pool: LazyBuffer<I> = LazyBuffer::new(iter);
 
     for _ in 0..k {
@@ -45,7 +41,7 @@ pub fn combinations<I>(iter: I, k: usize) -> Combinations<I>
 
     Combinations {
         k: k,
-        indices: indices,
+        indices: (0..k).collect(),
         pool: pool,
         first: true,
     }
