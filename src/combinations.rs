@@ -90,10 +90,6 @@ impl<I> Iterator for Combinations<I>
         }
 
         // Create result vector based on the indices
-        let mut result = Vec::with_capacity(self.indices.len());
-        for i in self.indices.iter() {
-            result.push(self.pool[*i].clone());
-        }
-        Some(result)
+        Some(self.indices.iter().map(|i| self.pool[*i].clone()).collect())
     }
 }
