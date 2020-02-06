@@ -7,7 +7,6 @@ use super::lazy_buffer::LazyBuffer;
 /// See [`.combinations()`](../trait.Itertools.html#method.combinations) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Combinations<I: Iterator> {
-    k: usize,
     indices: Vec<usize>,
     pool: LazyBuffer<I>,
     first: bool,
@@ -17,14 +16,14 @@ impl<I> Clone for Combinations<I>
     where I: Clone + Iterator,
           I::Item: Clone,
 {
-    clone_fields!(k, indices, pool, first);
+    clone_fields!(indices, pool, first);
 }
 
 impl<I> fmt::Debug for Combinations<I>
     where I: Iterator + fmt::Debug,
           I::Item: fmt::Debug,
 {
-    debug_fmt_fields!(Combinations, k, indices, pool, first);
+    debug_fmt_fields!(Combinations, indices, pool, first);
 }
 
 /// Create a new `Combinations` from a clonable iterator.
@@ -40,7 +39,6 @@ pub fn combinations<I>(iter: I, k: usize) -> Combinations<I>
     }
 
     Combinations {
-        k: k,
         indices: (0..k).collect(),
         pool: pool,
         first: true,
@@ -60,11 +58,11 @@ impl<I> Iterator for Combinations<I>
                 return None;
             }
             self.first = false;
-        } else if self.k == 0 {
+        } else if self.indices.len() == 0 {
             return None;
         } else {
             // Scan from the end, looking for an index to increment
-            let mut i: usize = self.k - 1;
+            let mut i: usize = self.indices.len() - 1;
 
             // Check if we need to consume more from the iterator
             if self.indices[i] == pool_len - 1 && !self.pool.is_done() {
@@ -73,7 +71,7 @@ impl<I> Iterator for Combinations<I>
                 }
             }
 
-            while self.indices[i] == i + pool_len - self.k {
+            while self.indices[i] == i + pool_len - self.indices.len() {
                 if i > 0 {
                     i -= 1;
                 } else {
@@ -85,14 +83,14 @@ impl<I> Iterator for Combinations<I>
             // Increment index, and reset the ones to its right
             self.indices[i] += 1;
             let mut j = i + 1;
-            while j < self.k {
+            while j < self.indices.len() {
                 self.indices[j] = self.indices[j - 1] + 1;
                 j += 1;
             }
         }
 
         // Create result vector based on the indices
-        let mut result = Vec::with_capacity(self.k);
+        let mut result = Vec::with_capacity(self.indices.len());
         for i in self.indices.iter() {
             result.push(self.pool[*i].clone());
         }
