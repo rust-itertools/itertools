@@ -51,8 +51,6 @@ impl<I> Iterator for Combinations<I>
 {
     type Item = Vec<I::Item>;
     fn next(&mut self) -> Option<Self::Item> {
-        let mut pool_len = self.pool.len();
-
         if self.first {
             if self.pool.is_done() {
                 return None;
@@ -65,13 +63,11 @@ impl<I> Iterator for Combinations<I>
             let mut i: usize = self.indices.len() - 1;
 
             // Check if we need to consume more from the iterator
-            if self.indices[i] == pool_len - 1 && !self.pool.is_done() {
-                if self.pool.get_next() {
-                    pool_len += 1;
-                }
+            if self.indices[i] == self.pool.len() - 1 && !self.pool.is_done() {
+                self.pool.get_next(); // may change pool size
             }
 
-            while self.indices[i] == i + pool_len - self.indices.len() {
+            while self.indices[i] == i + self.pool.len() - self.indices.len() {
                 if i > 0 {
                     i -= 1;
                 } else {
