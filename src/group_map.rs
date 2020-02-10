@@ -3,7 +3,6 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::iter::Iterator;
-use HashMapIntoIter;
 
 /// Return a `HashMap` of keys mapped to a list of their corresponding values.
 ///
@@ -23,18 +22,14 @@ pub fn into_group_map<I, K, V>(iter: I) -> HashMap<K, Vec<V>>
     lookup
 }
 
-pub fn into_group_map_by<I, K, V>(iter: I, f: impl Fn(&V) -> K) ->HashMapIntoIter<K,Vec<V>>
+pub fn into_group_map_by<I, K, V>(iter: I, f: impl Fn(&V) -> K) -> HashMap<K, Vec<V>>
     where
         I: Iterator<Item=V>,
         K: Hash + Eq,
 {
-    let mut lookup = HashMap::new();
-
-    for val in iter {
-        let key = f(&val);
-        lookup.entry(key).or_insert(Vec::new()).push(val);
-    }
-
-    lookup.into_iter()
+    into_group_map(
+        iter.map(|v| (f(&v), v))
+    )
 }
+
 

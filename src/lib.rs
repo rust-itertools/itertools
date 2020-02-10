@@ -67,9 +67,6 @@ use std::fmt::Write;
 #[cfg(feature = "use_std")]
 type VecIntoIter<T> = ::std::vec::IntoIter<T>;
 
-#[cfg(feature = "use_std")]
-type HashMapIntoIter<K, V> = ::std::collections::hash_map::IntoIter<K, V>;
-
 use std::iter::FromIterator;
 
 #[macro_use]
@@ -2196,9 +2193,8 @@ pub trait Itertools: Iterator {
     /// use std::collections::HashMap;
     ///
     /// let data = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
-    /// let lookup: HashMap<u32,Vec<(u32, u32)>> = data.clone().into_iter().into_group_map_by(|a|
-    /// a.0)
-    /// .collect();
+    /// let lookup: HashMap<u32,Vec<(u32, u32)>> =
+    ///     data.clone().into_iter().into_group_map_by(|a| a.0);
     ///
     /// assert_eq!(lookup[&0], vec![(0,10),(0,20)]);
     /// assert_eq!(lookup.get(&1), None);
@@ -2208,11 +2204,12 @@ pub trait Itertools: Iterator {
     /// assert_eq!(
     ///     data.into_iter()
     ///     .into_group_map_by(|x| x.0)
+    ///     .into_iter()
     ///     .map(|(key, values)| (key, values.into_iter().fold(0,|acc, (_,v)| acc + v )))
     ///     .collect::<HashMap<u32,u32>>()[&0], 30)
     /// ```
     #[cfg(feature = "use_std")]
-    fn into_group_map_by<K, V, F>(self, f: F) -> HashMapIntoIter<K, Vec<V>>
+    fn into_group_map_by<K, V, F>(self, f: F) -> HashMap<K, Vec<V>>
         where
             Self: Iterator<Item=V> + Sized,
             K: Hash + Eq,
