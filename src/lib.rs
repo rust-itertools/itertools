@@ -2208,7 +2208,7 @@ pub trait Itertools: Iterator {
     /// assert_eq!(
     ///     data.into_iter()
     ///     .into_group_map_by(|x| x.0)
-    ///     .map(|(key, values)| (key, values.into_iter().sum()))
+    ///     .map(|(key, values)| (key, values.into_iter().fold(0,|acc, (_,v)| acc + v )))
     ///     .collect::<HashMap<u32,u32>>()[&0], 30)
     /// ```
     #[cfg(feature = "use_std")]
