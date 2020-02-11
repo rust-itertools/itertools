@@ -63,7 +63,7 @@ impl<I> Iterator for Combinations<I>
             let mut i: usize = self.indices.len() - 1;
 
             // Check if we need to consume more from the iterator
-            if self.indices[i] == self.pool.len() - 1 && !self.pool.is_done() {
+            if self.indices[i] == self.pool.len() - 1 {
                 self.pool.get_next(); // may change pool size
             }
 
