@@ -2420,6 +2420,154 @@ pub trait Itertools : Iterator {
             .map(|x| x.0)
     }
 
+    /// Return the positions of the minimum and maximum elements in
+    /// the iterator.
+    ///
+    /// The return type [`MinMaxResult`] is an enum of three variants:
+    ///
+    /// - `NoElements` if the iterator is empty.
+    /// - `OneElement(xpos)` if the iterator has exactly one element.
+    /// - `MinMax(xpos, ypos)` is returned otherwise, where the
+    ///    element at `xpos` ≤ the element at `ypos`. While the
+    ///    referenced elements themselves may be equal, `xpos` cannot
+    ///    be equal to `ypos`.
+    ///
+    /// On an iterator of length `n`, `position_minmax` does `1.5 * n`
+    /// comparisons, and so is faster than calling `positon_min` and
+    /// `position_max` separately which does `2 * n` comparisons.
+    ///
+    /// For the minimum, if several elements are equally minimum, the
+    /// position of the first of them is returned. For the maximum, if
+    /// several elements are equally maximum, the position of the last
+    /// of them is returned.
+    ///
+    /// The elements can be floats but no particular result is
+    /// guaranteed if an element is NaN.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{NoElements, OneElement, MinMax};
+    ///
+    /// let a: [i32; 0] = [];
+    /// assert_eq!(a.iter().position_minmax(), NoElements);
+    ///
+    /// let a = [10];
+    /// assert_eq!(a.iter().position_minmax(), OneElement(0));
+    ///
+    /// let a = [-3, 0, 1, 5, -10];
+    /// assert_eq!(a.iter().position_minmax(), MinMax(4, 3));
+    ///
+    /// let a = [1, 1, -1, -1];
+    /// assert_eq!(a.iter().position_minmax(), MinMax(2, 1));
+    /// ```
+    ///
+    /// [`MinMaxResult`]: enum.MinMaxResult.html
+    fn position_minmax(self) -> MinMaxResult<usize>
+        where Self: Sized, Self::Item: PartialOrd
+    {
+        use MinMaxResult::{NoElements, OneElement, MinMax};
+        match minmax::minmax_impl(self.enumerate(), |_| (), |x, y, _, _| x.1 < y.1) {
+            NoElements => NoElements,
+            OneElement(x) => OneElement(x.0),
+            MinMax(x, y) => MinMax(x.0, y.0),
+        }
+    }
+
+    /// Return the postions of the minimum and maximum elements of an
+    /// iterator, as determined by the specified function.
+    ///
+    /// The return value is a variant of [`MinMaxResult`] like for
+    /// [`position_minmax`].
+    ///
+    /// For the minimum, if several elements are equally minimum, the
+    /// position of the first of them is returned. For the maximum, if
+    /// several elements are equally maximum, the position of the last
+    /// of them is returned.
+    ///
+    /// The keys can be floats but no particular result is guaranteed
+    /// if a key is NaN.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{NoElements, OneElement, MinMax};
+    ///
+    /// let a: [i32; 0] = [];
+    /// assert_eq!(a.iter().position_minmax_by_key(|x| x.abs()), NoElements);
+    ///
+    /// let a = [10_i32];
+    /// assert_eq!(a.iter().position_minmax_by_key(|x| x.abs()), OneElement(0));
+    ///
+    /// let a = [-3_i32, 0, 1, 5, -10];
+    /// assert_eq!(a.iter().position_minmax_by_key(|x| x.abs()), MinMax(1, 4));
+    ///
+    /// let a = [1_i32, 1, -1, -1];
+    /// assert_eq!(a.iter().position_minmax_by_key(|x| x.abs()), MinMax(0, 3));
+    /// ```
+    ///
+    /// [`MinMaxResult`]: enum.MinMaxResult.html
+    /// [`position_minmax`]: #method.position_minmax
+    fn position_minmax_by_key<K, F>(self, mut key: F) -> MinMaxResult<usize>
+        where Self: Sized, K: PartialOrd, F: FnMut(&Self::Item) -> K
+    {
+        use MinMaxResult::{NoElements, OneElement, MinMax};
+        match minmax::minmax_impl(self.enumerate(), |x| key(&x.1), |_, _, xk, yk| xk < yk) {
+            NoElements => NoElements,
+            OneElement(x) => OneElement(x.0),
+            MinMax(x, y) => MinMax(x.0, y.0),
+        }
+    }
+
+    /// Return the postions of the minimum and maximum elements of an
+    /// iterator, as determined by the specified comparison function.
+    ///
+    /// The return value is a variant of [`MinMaxResult`] like for
+    /// [`position_minmax`].
+    ///
+    /// For the minimum, if several elements are equally minimum, the
+    /// position of the first of them is returned. For the maximum, if
+    /// several elements are equally maximum, the position of the last
+    /// of them is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{NoElements, OneElement, MinMax};
+    ///
+    /// let a: [i32; 0] = [];
+    /// assert_eq!(a.iter().position_minmax_by(|x, y| x.cmp(y)), NoElements);
+    ///
+    /// let a = [10_i32];
+    /// assert_eq!(a.iter().position_minmax_by(|x, y| x.cmp(y)), OneElement(0));
+    ///
+    /// let a = [-3_i32, 0, 1, 5, -10];
+    /// assert_eq!(a.iter().position_minmax_by(|x, y| x.cmp(y)), MinMax(4, 3));
+    ///
+    /// let a = [1_i32, 1, -1, -1];
+    /// assert_eq!(a.iter().position_minmax_by(|x, y| x.cmp(y)), MinMax(2, 1));
+    /// ```
+    ///
+    /// [`MinMaxResult`]: enum.MinMaxResult.html
+    /// [`position_minmax`]: #method.position_minmax
+    fn position_minmax_by<F>(self, mut compare: F) -> MinMaxResult<usize>
+        where Self: Sized, F: FnMut(&Self::Item, &Self::Item) -> Ordering
+    {
+        use MinMaxResult::{NoElements, OneElement, MinMax};
+        match minmax::minmax_impl(
+            self.enumerate(),
+            |_| (),
+            |x, y, _, _| Ordering::Less == compare(&x.1, &y.1)
+        ) {
+            NoElements => NoElements,
+            OneElement(x) => OneElement(x.0),
+            MinMax(x, y) => MinMax(x.0, y.0),
+        }
+    }
+
     /// If the iterator yields exactly one element, that element will be returned, otherwise
     /// an error will be returned containing an iterator that has the same output as the input
     /// iterator.
