@@ -23,9 +23,9 @@ pub fn pad_using<I, F>(iter: I, min: usize, filler: F) -> PadUsing<I, F>
 {
     PadUsing {
         iter: iter.fuse(),
-        min: min,
+        min,
         pos: 0,
-        filler: filler,
+        filler,
     }
 }
 

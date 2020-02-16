@@ -124,7 +124,7 @@ impl<T, HK> Iter<T, HK> where HK: HintKind
         Iter {
             iterator: it,
             fuse_flag: 0,
-            hint_kind: hint_kind
+            hint_kind,
         }
     }
 }
@@ -239,12 +239,12 @@ impl<HK> qc::Arbitrary for ShiftRange<HK>
         let hint_kind = qc::Arbitrary::arbitrary(g);
 
         ShiftRange {
-            range_start: range_start,
-            range_end: range_end,
-            start_step: start_step,
-            end_step: end_step,
-            iter_count: iter_count,
-            hint_kind: hint_kind
+            range_start,
+            range_end,
+            start_step,
+            end_step,
+            iter_count,
+            hint_kind,
         }
     }
 }

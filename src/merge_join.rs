@@ -17,7 +17,7 @@ pub fn merge_join_by<I, J, F>(left: I, right: J, cmp_fn: F)
     MergeJoinBy {
         left: put_back(left.into_iter().fuse()),
         right: put_back(right.into_iter().fuse()),
-        cmp_fn: cmp_fn
+        cmp_fn,
     }
 }
 

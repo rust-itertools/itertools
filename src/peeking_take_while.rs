@@ -89,8 +89,8 @@ pub fn peeking_take_while<I, F>(iter: &mut I, f: F) -> PeekingTakeWhile<I, F>
     where I: Iterator,
 {
     PeekingTakeWhile {
-        iter: iter,
-        f: f,
+        iter,
+        f,
     }
 }
 

@@ -177,7 +177,7 @@ pub fn kmerge_by<I, F>(iterable: I, mut less_than: F)
     let mut heap: Vec<_> = Vec::with_capacity(lower);
     heap.extend(iter.filter_map(|it| HeadTail::new(it.into_iter())));
     heapify(&mut heap, |a, b| less_than.kmerge_pred(&a.head, &b.head));
-    KMergeBy { heap: heap, less_than: less_than }
+    KMergeBy { heap, less_than }
 }
 
 impl<I, F> Clone for KMergeBy<I, F>
