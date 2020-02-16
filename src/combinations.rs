@@ -40,7 +40,7 @@ pub fn combinations<I>(iter: I, k: usize) -> Combinations<I>
 
     Combinations {
         indices: (0..k).collect(),
-        pool: pool,
+        pool,
         first: true,
     }
 }

@@ -51,7 +51,7 @@ where
         k,
         indices,
         max_index: 0,
-        pool: pool,
+        pool,
         first: true,
     }
 }

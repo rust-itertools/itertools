@@ -14,9 +14,9 @@ pub fn repeat_n<A>(element: A, n: usize) -> RepeatN<A>
     where A: Clone,
 {
     if n == 0 {
-        RepeatN { elt: None, n: n, }
+        RepeatN { elt: None, n, }
     } else {
-        RepeatN { elt: Some(element), n: n, }
+        RepeatN { elt: Some(element), n, }
     }
 }
 

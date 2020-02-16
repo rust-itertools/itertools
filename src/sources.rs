@@ -102,7 +102,7 @@ pub fn unfold<A, St, F>(initial_state: St, f: F) -> Unfold<St, F>
     where F: FnMut(&mut St) -> Option<A>
 {
     Unfold {
-        f: f,
+        f,
         state: initial_state,
     }
 }
@@ -186,6 +186,6 @@ pub fn iterate<St, F>(initial_value: St, f: F) -> Iterate<St, F>
 {
     Iterate {
         state: initial_value,
-        f: f,
+        f,
     }
 }

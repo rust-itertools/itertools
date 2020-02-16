@@ -32,7 +32,7 @@ impl<T> TupleBuffer<T>
     fn new(buf: T::Buffer) -> Self {
         TupleBuffer {
             cur: 0,
-            buf: buf,
+            buf,
         }
     }
 }
@@ -158,8 +158,8 @@ pub fn tuple_windows<I, T>(mut iter: I) -> TupleWindows<I, T>
     }
 
     TupleWindows {
-        last: last,
-        iter: iter,
+        last,
+        iter,
     }
 }
 

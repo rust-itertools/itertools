@@ -27,7 +27,7 @@ pub fn intersperse<I>(iter: I, elt: I::Item) -> Intersperse<I>
     let mut iter = iter.fuse();
     Intersperse {
         peek: iter.next(),
-        iter: iter,
+        iter,
         element: elt,
     }
 }

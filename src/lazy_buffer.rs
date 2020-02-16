@@ -13,7 +13,7 @@ where
 {
     pub fn new(it: I) -> LazyBuffer<I> {
         LazyBuffer {
-            it: it,
+            it,
             done: false,
             buffer: Vec::new(),
         }
