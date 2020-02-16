@@ -2254,6 +2254,172 @@ pub trait Itertools : Iterator {
         )
     }
 
+    /// Return the position of the maximum element in the iterator.
+    ///
+    /// If several elements are equally maximum, the position of the
+    /// last of them is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let a: [i32; 0] = [];
+    /// assert_eq!(a.iter().position_max(), None);
+    ///
+    /// let a = [-3, 0, 1, 5, -10];
+    /// assert_eq!(a.iter().position_max(), Some(3));
+    ///
+    /// let a = [1, 1, -1, -1];
+    /// assert_eq!(a.iter().position_max(), Some(1));
+    /// ```
+    fn position_max(self) -> Option<usize>
+        where Self: Sized, Self::Item: Ord
+    {
+        self.enumerate()
+            .max_by(|x, y| Ord::cmp(&x.1, &y.1))
+            .map(|x| x.0)
+    }
+
+    /// Return the position of the maximum element in the iterator, as
+    /// determined by the specified function.
+    ///
+    /// If several elements are equally maximum, the position of the
+    /// last of them is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let a: [i32; 0] = [];
+    /// assert_eq!(a.iter().position_max_by_key(|x| x.abs()), None);
+    ///
+    /// let a = [-3_i32, 0, 1, 5, -10];
+    /// assert_eq!(a.iter().position_max_by_key(|x| x.abs()), Some(4));
+    ///
+    /// let a = [1_i32, 1, -1, -1];
+    /// assert_eq!(a.iter().position_max_by_key(|x| x.abs()), Some(3));
+    /// ```
+    fn position_max_by_key<K, F>(self, mut key: F) -> Option<usize>
+        where Self: Sized, K: Ord, F: FnMut(&Self::Item) -> K
+    {
+        self.enumerate()
+            .max_by(|x, y| Ord::cmp(&key(&x.1), &key(&y.1)))
+            .map(|x| x.0)
+    }
+
+    /// Return the position of the maximum element in the iterator, as
+    /// determined by the specified comparison function.
+    ///
+    /// If several elements are equally maximum, the position of the
+    /// last of them is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let a: [i32; 0] = [];
+    /// assert_eq!(a.iter().position_max_by(|x, y| x.cmp(y)), None);
+    ///
+    /// let a = [-3_i32, 0, 1, 5, -10];
+    /// assert_eq!(a.iter().position_max_by(|x, y| x.cmp(y)), Some(3));
+    ///
+    /// let a = [1_i32, 1, -1, -1];
+    /// assert_eq!(a.iter().position_max_by(|x, y| x.cmp(y)), Some(1));
+    /// ```
+    fn position_max_by<F>(self, mut compare: F) -> Option<usize>
+        where Self: Sized, F: FnMut(&Self::Item, &Self::Item) -> Ordering
+    {
+        self.enumerate()
+            .max_by(|x, y| compare(&x.1, &y.1))
+            .map(|x| x.0)
+    }
+
+    /// Return the position of the minimum element in the iterator.
+    ///
+    /// If several elements are equally minimum, the position of the
+    /// first of them is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let a: [i32; 0] = [];
+    /// assert_eq!(a.iter().position_min(), None);
+    ///
+    /// let a = [-3, 0, 1, 5, -10];
+    /// assert_eq!(a.iter().position_min(), Some(4));
+    ///
+    /// let a = [1, 1, -1, -1];
+    /// assert_eq!(a.iter().position_min(), Some(2));
+    /// ```
+    fn position_min(self) -> Option<usize>
+        where Self: Sized, Self::Item: Ord
+    {
+        self.enumerate()
+            .min_by(|x, y| Ord::cmp(&x.1, &y.1))
+            .map(|x| x.0)
+    }
+
+    /// Return the position of the minimum element in the iterator, as
+    /// determined by the specified function.
+    ///
+    /// If several elements are equally minimum, the position of the
+    /// first of them is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let a: [i32; 0] = [];
+    /// assert_eq!(a.iter().position_min_by_key(|x| x.abs()), None);
+    ///
+    /// let a = [-3_i32, 0, 1, 5, -10];
+    /// assert_eq!(a.iter().position_min_by_key(|x| x.abs()), Some(1));
+    ///
+    /// let a = [1_i32, 1, -1, -1];
+    /// assert_eq!(a.iter().position_min_by_key(|x| x.abs()), Some(0));
+    /// ```
+    fn position_min_by_key<K, F>(self, mut key: F) -> Option<usize>
+        where Self: Sized, K: Ord, F: FnMut(&Self::Item) -> K
+    {
+        self.enumerate()
+            .min_by(|x, y| Ord::cmp(&key(&x.1), &key(&y.1)))
+            .map(|x| x.0)
+    }
+
+    /// Return the position of the minimum element in the iterator, as
+    /// determined by the specified comparison function.
+    ///
+    /// If several elements are equally minimum, the position of the
+    /// first of them is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let a: [i32; 0] = [];
+    /// assert_eq!(a.iter().position_min_by(|x, y| x.cmp(y)), None);
+    ///
+    /// let a = [-3_i32, 0, 1, 5, -10];
+    /// assert_eq!(a.iter().position_min_by(|x, y| x.cmp(y)), Some(4));
+    ///
+    /// let a = [1_i32, 1, -1, -1];
+    /// assert_eq!(a.iter().position_min_by(|x, y| x.cmp(y)), Some(2));
+    /// ```
+    fn position_min_by<F>(self, mut compare: F) -> Option<usize>
+        where Self: Sized, F: FnMut(&Self::Item, &Self::Item) -> Ordering
+    {
+        self.enumerate()
+            .min_by(|x, y| compare(&x.1, &y.1))
+            .map(|x| x.0)
+    }
+
     /// If the iterator yields exactly one element, that element will be returned, otherwise
     /// an error will be returned containing an iterator that has the same output as the input
     /// iterator.
