@@ -78,23 +78,24 @@ pub use std::iter as __std_iter;
 /// The concrete iterator types.
 pub mod structs {
     pub use adaptors::{
+        Batching,
+        Coalesce,
         Dedup,
         DedupBy,
         Interleave,
         InterleaveShortest,
-        Product,
-        PutBack,
-        Batching,
         MapInto,
         MapResults,
         Merge,
         MergeBy,
-        TakeWhileRef,
-        WhileSome,
-        Coalesce,
-        TupleCombinations,
         Positions,
+        Product,
+        PutBack,
+        SetSizeHint,
+        TakeWhileRef,
+        TupleCombinations,
         Update,
+        WhileSome,
     };
     #[allow(deprecated)]
     pub use adaptors::Step;
@@ -2116,6 +2117,40 @@ pub trait Itertools : Iterator {
         let mut v = Vec::from_iter(self);
         v.sort_by_key(f);
         v.into_iter()
+    }
+
+    /// Explicitly provide a size hint for an iterator.
+    ///
+    /// This can be useful in situations where the size hint cannot be deduced
+    /// automatically, but where the programmer knows the bounds on the number
+    /// of elements.
+    ///
+    /// ```
+    /// use itertools::{self, Itertools};
+    ///
+    /// let data = vec![1, 2, 6, 7, 2];
+    ///
+    /// let result: Vec<i32> = data.iter()
+    ///     // The `FlatMap` adapter is not able to deduce the size hint itself
+    ///     // so `size_hint()` would return `(0, None)`.
+    ///     .flat_map(|&x| {
+    ///         let repeats = if x % 2 == 0 { 1 } else { 3 };
+    ///         itertools::repeat_n(x, repeats)
+    ///     })
+    ///     // But we know the bounds on the max and min number of items in the
+    ///     // resulting iterator, so we can provide that information:
+    ///     .set_size_hint(data.len(), Some(3 * data.len()))
+    ///     // The `Vec` should not excessively re-allocate, while collecting
+    ///     // since it now knows the minimum and maximum number of items.
+    ///     .collect();
+    ///
+    /// assert_eq!(result, vec![1, 1, 1, 2, 6, 7, 7, 7, 2]);
+    /// ```
+    ///
+    fn set_size_hint(self, min: usize, max: Option<usize>) -> SetSizeHint<Self>
+        where Self: Sized,
+    {
+        adaptors::set_size_hint(self, min, max)
     }
 
     /// Collect all iterator elements into one of two

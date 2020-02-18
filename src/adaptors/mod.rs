@@ -1236,3 +1236,49 @@ where
         }
     }
 }
+
+/// An iterator adaptor that applies the given `size_hint` to an iterator.
+///
+/// See [`.set_size_hint()`](../trait.Itertools.html#method.set_size_hint.html)
+/// for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+pub struct SetSizeHint<I> {
+    iter: I,
+    size_hint: (usize, Option<usize>),
+}
+
+/// Create a new `SetSizeHint` iterator adapter
+pub fn set_size_hint<I>(iter: I, min: usize, max: Option<usize>) -> SetSizeHint<I> {
+    SetSizeHint { iter, size_hint: (min, max) }
+}
+
+impl<I> Iterator for SetSizeHint<I>
+where
+    I: Iterator,
+{
+    type Item = I::Item;
+
+    #[inline(always)]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.size_hint
+    }
+}
+
+impl<I> ExactSizeIterator for SetSizeHint<I>
+where
+    I: ExactSizeIterator,
+{ }
+
+impl<I> DoubleEndedIterator for SetSizeHint<I>
+where
+    I: DoubleEndedIterator,
+{
+    #[inline(always)]
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back()
+    }
+}
