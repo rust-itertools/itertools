@@ -2514,7 +2514,7 @@ pub trait Itertools : Iterator {
         where Self: Sized, K: PartialOrd, F: FnMut(&Self::Item) -> K
     {
         use MinMaxResult::{NoElements, OneElement, MinMax};
-        match minmax::minmax_impl(self.enumerate(), |x| key(&x.1), |_, _, xk, yk| xk < yk) {
+        match self.enumerate().minmax_by_key(|e| key(&e.1)) {
             NoElements => NoElements,
             OneElement(x) => OneElement(x.0),
             MinMax(x, y) => MinMax(x.0, y.0),
@@ -2557,11 +2557,7 @@ pub trait Itertools : Iterator {
         where Self: Sized, F: FnMut(&Self::Item, &Self::Item) -> Ordering
     {
         use MinMaxResult::{NoElements, OneElement, MinMax};
-        match minmax::minmax_impl(
-            self.enumerate(),
-            |_| (),
-            |x, y, _, _| Ordering::Less == compare(&x.1, &y.1)
-        ) {
+        match self.enumerate().minmax_by(|x, y| compare(&x.1, &y.1)) {
             NoElements => NoElements,
             OneElement(x) => OneElement(x.0),
             MinMax(x, y) => MinMax(x.0, y.0),
