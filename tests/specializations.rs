@@ -31,7 +31,7 @@ where
     V: Eq + Debug,
     IterItem: 'a,
     Iter: Iterator<Item = IterItem> + Clone + 'a,
-    F: Fn(Box<Iterator<Item = IterItem> + 'a>) -> V,
+    F: Fn(Box<dyn Iterator<Item = IterItem> + 'a>) -> V,
 {
     assert_eq!(
         mapper(Box::new(Unspecialized(iterator.clone()))),
