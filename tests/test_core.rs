@@ -12,6 +12,7 @@ use core::iter;
 use it::Itertools;
 use it::interleave;
 use it::multizip;
+use it::multizip_fallback;
 use it::free::put_back;
 
 #[test]
@@ -85,6 +86,26 @@ fn multizip3() {
     for (_, _, _, _, _) in multizip((0..3, 0..2, xs.iter(), &xs, xs.to_vec())) {
         /* test compiles */
     }
+}
+
+#[test]
+fn zip_fallback() {
+    let mut zip = multizip_fallback(((0..3, 11), (0..2, 12), (0..2i8, 13)));
+    for i in 0..2 {
+        assert!((i as usize, i, i as i8) == zip.next().unwrap());
+    }
+    assert!((2, 12, 13) == zip.next().unwrap());
+
+    let xs: [isize; 0] = [];
+    let default_int = 14;
+    let mut zip = multizip_fallback(((0..3, 11), (0..2, 12), (0..2i8, 13), (xs.iter(), &default_int)));
+    assert!((0, 0, 0, &14) == zip.next().unwrap());
+
+    let st: [&str; 1] = ["te"];
+    let default_str = "ing";
+    let mut zip = multizip_fallback(((0..1, 11), (0..1, 12), (0..1, 13), (st.iter(), &default_str)));
+    assert!((0, 0, 0, &"te") == zip.next().unwrap());
+    assert!(zip.next().is_none());
 }
 
 #[test]
