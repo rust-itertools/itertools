@@ -1,5 +1,5 @@
 use std::iter::Fuse;
-use size_hint;
+use crate::size_hint;
 
 /// An iterator adaptor that pads a sequence to a minimum length by filling
 /// missing elements using a closure.

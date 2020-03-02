@@ -3,14 +3,8 @@
 //!
 //! In particular we test the tedious size_hint and exact size correctness.
 
-#[macro_use] extern crate itertools;
-
-extern crate quickcheck;
-extern crate rand;
-
-use std::default::Default;
-
 use quickcheck as qc;
+use std::default::Default;
 use std::ops::Range;
 use std::cmp::{max, min, Ordering};
 use std::collections::HashSet;
@@ -18,6 +12,8 @@ use itertools::Itertools;
 use itertools::{
     multizip,
     EitherOrBoth,
+    iproduct,
+    izip,
 };
 use itertools::free::{
     cloned,

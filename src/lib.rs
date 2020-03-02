@@ -47,8 +47,6 @@
 //! [`Iterator`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html
 #![doc(html_root_url="https://docs.rs/itertools/0.8/")]
 
-extern crate either;
-
 #[cfg(not(feature = "use_std"))]
 extern crate core as std;
 
@@ -77,7 +75,7 @@ pub use std::iter as __std_iter;
 
 /// The concrete iterator types.
 pub mod structs {
-    pub use adaptors::{
+    pub use crate::adaptors::{
         Dedup,
         DedupBy,
         Interleave,
@@ -97,75 +95,75 @@ pub mod structs {
         Update,
     };
     #[allow(deprecated)]
-    pub use adaptors::Step;
+    pub use crate::adaptors::Step;
     #[cfg(feature = "use_std")]
-    pub use adaptors::MultiProduct;
+    pub use crate::adaptors::MultiProduct;
     #[cfg(feature = "use_std")]
-    pub use combinations::Combinations;
+    pub use crate::combinations::Combinations;
     #[cfg(feature = "use_std")]
-    pub use combinations_with_replacement::CombinationsWithReplacement;
-    pub use cons_tuples_impl::ConsTuples;
-    pub use exactly_one_err::ExactlyOneError;
-    pub use format::{Format, FormatWith};
+    pub use crate::combinations_with_replacement::CombinationsWithReplacement;
+    pub use crate::cons_tuples_impl::ConsTuples;
+    pub use crate::exactly_one_err::ExactlyOneError;
+    pub use crate::format::{Format, FormatWith};
     #[cfg(feature = "use_std")]
-    pub use groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
-    pub use intersperse::Intersperse;
+    pub use crate::groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
+    pub use crate::intersperse::Intersperse;
     #[cfg(feature = "use_std")]
-    pub use kmerge_impl::{KMerge, KMergeBy};
-    pub use merge_join::MergeJoinBy;
+    pub use crate::kmerge_impl::{KMerge, KMergeBy};
+    pub use crate::merge_join::MergeJoinBy;
     #[cfg(feature = "use_std")]
-    pub use multipeek_impl::MultiPeek;
-    pub use pad_tail::PadUsing;
-    pub use peeking_take_while::PeekingTakeWhile;
+    pub use crate::multipeek_impl::MultiPeek;
+    pub use crate::pad_tail::PadUsing;
+    pub use crate::peeking_take_while::PeekingTakeWhile;
     #[cfg(feature = "use_std")]
-    pub use permutations::Permutations;
-    pub use process_results_impl::ProcessResults;
+    pub use crate::permutations::Permutations;
+    pub use crate::process_results_impl::ProcessResults;
     #[cfg(feature = "use_std")]
-    pub use put_back_n_impl::PutBackN;
+    pub use crate::put_back_n_impl::PutBackN;
     #[cfg(feature = "use_std")]
-    pub use rciter_impl::RcIter;
-    pub use repeatn::RepeatN;
+    pub use crate::rciter_impl::RcIter;
+    pub use crate::repeatn::RepeatN;
     #[allow(deprecated)]
-    pub use sources::{RepeatCall, Unfold, Iterate};
+    pub use crate::sources::{RepeatCall, Unfold, Iterate};
     #[cfg(feature = "use_std")]
-    pub use tee::Tee;
-    pub use tuple_impl::{TupleBuffer, TupleWindows, Tuples};
+    pub use crate::tee::Tee;
+    pub use crate::tuple_impl::{TupleBuffer, TupleWindows, Tuples};
     #[cfg(feature = "use_std")]
-    pub use unique_impl::{Unique, UniqueBy};
-    pub use with_position::WithPosition;
-    pub use zip_eq_impl::ZipEq;
-    pub use zip_longest::ZipLongest;
-    pub use ziptuple::Zip;
+    pub use crate::unique_impl::{Unique, UniqueBy};
+    pub use crate::with_position::WithPosition;
+    pub use crate::zip_eq_impl::ZipEq;
+    pub use crate::zip_longest::ZipLongest;
+    pub use crate::ziptuple::Zip;
 }
 
 /// Traits helpful for using certain `Itertools` methods in generic contexts.
 pub mod traits {
-    pub use ::tuple_impl::HomogeneousTuple;
+    pub use crate::tuple_impl::HomogeneousTuple;
 }
 
 #[allow(deprecated)]
-pub use structs::*;
-pub use concat_impl::concat;
-pub use cons_tuples_impl::cons_tuples;
-pub use diff::diff_with;
-pub use diff::Diff;
+pub use crate::structs::*;
+pub use crate::concat_impl::concat;
+pub use crate::cons_tuples_impl::cons_tuples;
+pub use crate::diff::diff_with;
+pub use crate::diff::Diff;
 #[cfg(feature = "use_std")]
-pub use kmerge_impl::{kmerge_by};
-pub use minmax::MinMaxResult;
-pub use peeking_take_while::PeekingNext;
-pub use process_results_impl::process_results;
-pub use repeatn::repeat_n;
+pub use crate::kmerge_impl::{kmerge_by};
+pub use crate::minmax::MinMaxResult;
+pub use crate::peeking_take_while::PeekingNext;
+pub use crate::process_results_impl::process_results;
+pub use crate::repeatn::repeat_n;
 #[allow(deprecated)]
-pub use sources::{repeat_call, unfold, iterate};
-pub use with_position::Position;
-pub use ziptuple::multizip;
+pub use crate::sources::{repeat_call, unfold, iterate};
+pub use crate::with_position::Position;
+pub use crate::ziptuple::multizip;
 mod adaptors;
 mod either_or_both;
-pub use either_or_both::EitherOrBoth;
+pub use crate::either_or_both::EitherOrBoth;
 #[doc(hidden)]
 pub mod free;
 #[doc(inline)]
-pub use free::*;
+pub use crate::free::*;
 mod concat_impl;
 mod cons_tuples_impl;
 #[cfg(feature = "use_std")]
@@ -217,7 +215,8 @@ mod ziptuple;
 /// from iterators `(I, J, ..., M)` with element types `I::Item = A`, `J::Item = B`, etc.
 ///
 /// ```
-/// #[macro_use] extern crate itertools;
+/// # use itertools::iproduct;
+/// #
 /// # fn main() {
 /// // Iterate over the coordinates of a 4 x 4 x 4 grid
 /// // from (0, 0, 0), (0, 0, 1), .., (0, 1, 0), (0, 1, 1), .. etc until (3, 3, 3)
@@ -225,14 +224,6 @@ mod ziptuple;
 ///    // ..
 /// }
 /// # }
-/// ```
-///
-/// **Note:** To enable the macros in this crate, use the `#[macro_use]`
-/// attribute when importing the crate:
-///
-/// ```
-/// #[macro_use] extern crate itertools;
-/// # fn main() { }
 /// ```
 macro_rules! iproduct {
     (@flatten $I:expr,) => (
@@ -274,7 +265,8 @@ macro_rules! iproduct {
 /// [`multizip`]: fn.multizip.html
 ///
 /// ```
-/// #[macro_use] extern crate itertools;
+/// # use itertools::izip;
+/// #
 /// # fn main() {
 ///
 /// // iterate over three sequences side-by-side
@@ -287,14 +279,6 @@ macro_rules! iproduct {
 ///
 /// assert_eq!(results, [0 + 3, 10 + 7, 29, 36]);
 /// # }
-/// ```
-///
-/// **Note:** To enable the macros in this crate, use the `#[macro_use]`
-/// attribute when importing the crate:
-///
-/// ```
-/// #[macro_use] extern crate itertools;
-/// # fn main() { }
 /// ```
 macro_rules! izip {
     // @closure creates a tuple-flattening closure for .map() call. usage:
@@ -2467,7 +2451,7 @@ pub trait Itertools : Iterator {
     fn position_minmax(self) -> MinMaxResult<usize>
         where Self: Sized, Self::Item: PartialOrd
     {
-        use MinMaxResult::{NoElements, OneElement, MinMax};
+        use crate::MinMaxResult::{NoElements, OneElement, MinMax};
         match minmax::minmax_impl(self.enumerate(), |_| (), |x, y, _, _| x.1 < y.1) {
             NoElements => NoElements,
             OneElement(x) => OneElement(x.0),
@@ -2513,7 +2497,7 @@ pub trait Itertools : Iterator {
     fn position_minmax_by_key<K, F>(self, mut key: F) -> MinMaxResult<usize>
         where Self: Sized, K: PartialOrd, F: FnMut(&Self::Item) -> K
     {
-        use MinMaxResult::{NoElements, OneElement, MinMax};
+        use crate::MinMaxResult::{NoElements, OneElement, MinMax};
         match self.enumerate().minmax_by_key(|e| key(&e.1)) {
             NoElements => NoElements,
             OneElement(x) => OneElement(x.0),
@@ -2556,7 +2540,7 @@ pub trait Itertools : Iterator {
     fn position_minmax_by<F>(self, mut compare: F) -> MinMaxResult<usize>
         where Self: Sized, F: FnMut(&Self::Item, &Self::Item) -> Ordering
     {
-        use MinMaxResult::{NoElements, OneElement, MinMax};
+        use crate::MinMaxResult::{NoElements, OneElement, MinMax};
         match self.enumerate().minmax_by(|x, y| compare(&x.1, &y.1)) {
             NoElements => NoElements,
             OneElement(x) => OneElement(x.0),

@@ -1,5 +1,3 @@
-extern crate itertools;
-
 use itertools::Itertools;
 
 struct PanickingCounter {

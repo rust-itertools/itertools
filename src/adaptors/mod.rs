@@ -12,7 +12,7 @@ use std::fmt;
 use std::mem::replace;
 use std::iter::{Fuse, Peekable, FromIterator};
 use std::marker::PhantomData;
-use size_hint;
+use crate::size_hint;
 
 /// An iterator adaptor that alternates elements from two iterators until both
 /// run out.

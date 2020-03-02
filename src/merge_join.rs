@@ -3,7 +3,7 @@ use std::iter::Fuse;
 use std::fmt;
 
 use super::adaptors::{PutBack, put_back};
-use either_or_both::EitherOrBoth;
+use crate::either_or_both::EitherOrBoth;
 
 /// Return an iterator adaptor that merge-joins items from the two base iterators in ascending order.
 ///

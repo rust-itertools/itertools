@@ -1,8 +1,7 @@
-
 use std::iter::Peekable;
-use PutBack;
+use crate::PutBack;
 #[cfg(feature = "use_std")]
-use PutBackN;
+use crate::PutBackN;
 
 /// An iterator that allows peeking at an element before deciding to accept it.
 ///

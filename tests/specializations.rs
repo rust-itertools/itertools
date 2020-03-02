@@ -1,12 +1,7 @@
-extern crate itertools;
-
-#[macro_use]
-extern crate quickcheck;
-
 use itertools::{EitherOrBoth, Itertools};
-
 use std::fmt::Debug;
 use std::ops::BitXor;
+use quickcheck::quickcheck;
 
 struct Unspecialized<I>(I);
 impl<I> Iterator for Unspecialized<I>

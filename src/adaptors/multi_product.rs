@@ -1,7 +1,7 @@
 #![cfg(feature = "use_std")]
 
-use size_hint;
-use Itertools;
+use crate::size_hint;
+use crate::Itertools;
 
 #[derive(Clone)]
 /// An iterator adaptor that iterates over the cartesian product of
