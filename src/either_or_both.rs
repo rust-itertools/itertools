@@ -3,7 +3,7 @@ use EitherOrBoth::*;
 use either::Either;
 
 /// Value that either holds a single A or B, or both.
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub enum EitherOrBoth<A, B> {
     /// Both values are present.
     Both(A, B),
