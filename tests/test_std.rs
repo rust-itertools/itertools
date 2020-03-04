@@ -1,14 +1,14 @@
-
-#[macro_use] extern crate itertools as it;
-extern crate permutohedron;
-
-use it::Itertools;
-use it::multizip;
-use it::multipeek;
-use it::free::rciter;
-use it::free::put_back_n;
-use it::FoldWhile;
-use it::cloned;
+use permutohedron;
+use itertools as it;
+use crate::it::Itertools;
+use crate::it::multizip;
+use crate::it::multipeek;
+use crate::it::free::rciter;
+use crate::it::free::put_back_n;
+use crate::it::FoldWhile;
+use crate::it::cloned;
+use crate::it::iproduct;
+use crate::it::izip;
 
 #[test]
 fn product3() {
@@ -186,7 +186,7 @@ fn test_rciter() {
 #[allow(deprecated)]
 #[test]
 fn trait_pointers() {
-    struct ByRef<'r, I: ?Sized>(&'r mut I) where I: 'r;
+    struct ByRef<'r, I: ?Sized>(&'r mut I) ;
 
     impl<'r, X, I: ?Sized> Iterator for ByRef<'r, I> where
         I: 'r + Iterator<Item=X>
@@ -347,7 +347,7 @@ fn test_multipeek_reset() {
 
 #[test]
 fn test_multipeek_peeking_next() {
-    use it::PeekingNext;
+    use crate::it::PeekingNext;
     let nums = vec![1u8,2,3,4,5,6,7];
 
     let mut mp = multipeek(nums.iter().map(|&x| x));
@@ -685,7 +685,7 @@ fn diff_shorter() {
 #[test]
 fn minmax() {
     use std::cmp::Ordering;
-    use it::MinMaxResult;
+    use crate::it::MinMaxResult;
 
     // A peculiar type: Equality compares both tuple items, but ordering only the
     // first item.  This is so we can check the stability property easily.

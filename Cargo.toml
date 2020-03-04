@@ -13,6 +13,8 @@ keywords = ["iterator", "data-structure", "zip", "product", "group-by"]
 categories = ["algorithms", "rust-patterns"]
 exclude = ["/bors.toml"]
 
+edition = "2018"
+
 [package.metadata.release]
 no-dev-version = true
 

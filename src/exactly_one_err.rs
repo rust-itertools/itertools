@@ -1,6 +1,6 @@
 use std::iter::ExactSizeIterator;
 
-use size_hint;
+use crate::size_hint;
 
 /// Iterator returned for the error case of `IterTools::exactly_one()`
 /// This iterator yields exactly the same elements as the input iterator.

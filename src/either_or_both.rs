@@ -1,4 +1,4 @@
-use EitherOrBoth::*;
+use crate::EitherOrBoth::*;
 
 use either::Either;
 

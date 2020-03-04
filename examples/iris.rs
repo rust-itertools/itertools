@@ -3,10 +3,6 @@
 /// and does some simple manipulations.
 ///
 /// Iterators and itertools functionality are used throughout.
-///
-///
-
-extern crate itertools;
 
 use itertools::Itertools;
 use std::collections::HashMap;
