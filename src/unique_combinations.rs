@@ -5,11 +5,10 @@ use std::fmt;
 /// See [`.unique_combinations()`](../trait.Itertools.html#method.unique_combinations) for moref information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct UniqueCombinations<I: Iterator> {
-    len: usize,
-    position: Vec<usize>,
+    indices: Vec<usize>,
     pool: Vec<I::Item>,
     first: bool,
-    next_none: bool,
+    done: bool,
 }
 
 impl<I> fmt::Debug for UniqueCombinations<I>
@@ -17,7 +16,7 @@ where
     I: Iterator + fmt::Debug,
     I::Item: fmt::Debug,
 {
-    debug_fmt_fields!(Combinations, len, position, pool, first);
+    debug_fmt_fields!(Combinations, indices, pool, first, done);
 }
 
 /// Create a new `UniqueCombinations` from a iterator with clonable and sorable Items.
@@ -29,11 +28,10 @@ where
     let mut pool: Vec<_> = iter.collect();
     pool.sort_unstable();
     UniqueCombinations {
-        len,
-        position: (0..len).collect(),
+        indices: (0..len).collect(),
         pool,
         first: true,
-        next_none: false, // only used on iterators with 0 length
+        done: false, // only used on iterators with 0 length
     }
 }
 
@@ -44,12 +42,7 @@ where
 {
     #[inline]
     fn generate(&self) -> Option<Vec<I::Item>> {
-        Some(
-            self.position
-                .iter()
-                .map(|n| self.pool[*n].clone())
-                .collect(),
-        )
+        Some(self.indices.iter().map(|n| self.pool[*n].clone()).collect())
     }
 }
 
@@ -60,16 +53,17 @@ where
 {
     type Item = Vec<I::Item>;
     fn next(&mut self) -> Option<Self::Item> {
+        let len = self.indices.len();
         if self.first {
             // first pass throught
-            if self.len == 0 {
-                if self.next_none {
+            if len == 0 {
+                if self.done {
                     None
                 } else {
-                    self.next_none = true;
+                    self.done = true;
                     Some(Vec::new())
                 }
-            } else if self.len > self.pool.len() {
+            } else if len > self.pool.len() {
                 None
             } else {
                 self.first = false;
@@ -78,17 +72,16 @@ where
         } else {
             let org_len = self.pool.len();
             // check if we cant bump the back number
-            if self.pool[self.position[self.len - 1]] == self.pool[org_len - 1] {
+            if self.pool[self.indices[len - 1]] == self.pool[org_len - 1] {
                 // locate the number closest behind that needs to be bumped
-                for i in 2.. self.len + 1 {
-                    if self.pool[self.position[self.len - i]] < self.pool[org_len - i] {
-                        //find the value of the
-                        let lastpos = self.position[self.len - i];
+                for i in 2..len + 1 {
+                    if self.pool[self.indices[len - i]] < self.pool[org_len - i] {
+                        let lastpos = self.indices[len - i];
                         let val = &self.pool[lastpos];
                         for j in lastpos + 1..org_len {
                             if *val < self.pool[j] {
                                 for k in 0..i {
-                                    self.position[self.len - i + k] = j + k;
+                                    self.indices[len - i + k] = j + k;
                                 }
                                 return self.generate();
                             }
@@ -97,14 +90,15 @@ where
                 }
                 None
             } else {
-                let mut i = self.position[self.len - 1];
+                // bump the back number until value in pool increases
+                let mut i = self.indices[len - 1];
                 let current = &self.pool[i];
                 let mut next = current;
                 while current == next {
                     i += 1;
                     next = &self.pool[i];
                 }
-                self.position[self.len - 1] = i;
+                self.indices[len - 1] = i;
                 self.generate()
             }
         }
