@@ -1176,7 +1176,7 @@ pub trait Itertools: Iterator {
     /// Note: As opposed to combinations, unique_combinations consumes the whole iterator
     /// before starting to iterate.
     ///
-    /// Return an iterator adaptor that iterates over the `n`-length unique combinations of
+    /// Return an iterator adaptor that iterates over the `k`-length unique combinations of
     /// the elements from an iterator.
     ///
     /// Iterator element type is `Vec<Self::Item>`. The iterator produces a new Vec per iteration,
