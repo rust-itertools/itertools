@@ -987,6 +987,9 @@ pub trait Itertools : Iterator {
     /// Clones of visited elements are stored in a hash set in the
     /// iterator.
     ///
+    /// The iterator is stable, returning the non-duplicate items in the order
+    /// in which they occur in the adapted iterator.
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -1008,6 +1011,9 @@ pub trait Itertools : Iterator {
     /// Duplicates are detected by comparing the key they map to
     /// with the keying function `f` by hash and equality.
     /// The keys are stored in a hash set in the iterator.
+    ///
+    /// The iterator is stable, returning the non-duplicate items in the order
+    /// in which they occur in the adapted iterator.
     ///
     /// ```
     /// use itertools::Itertools;
