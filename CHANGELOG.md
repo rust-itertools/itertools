@@ -10,6 +10,7 @@
   - Implement missing specializations on the `PutBack` adaptor and on the `MergeJoinBy` iterator (#372)
   - Add `position_*` methods (#412)
   - Derive `Hash` for `EitherOrBoth` (#417)
+  - Increase minimum supported Rust version to 1.32.0
 
 ## 0.8.2
   - Use `slice::iter` instead of `into_iter` to avoid future breakage (#378, by @LukasKalbertodt)
