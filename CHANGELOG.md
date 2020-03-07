@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.9.0
+  - Fix potential overflow in `MergeJoinBy::size_hint` (#385)
+  - Add `derive(Clone)` where possible (#382)
+  - Add `try_collect` method (#394)
+  - Add `HomogeneousTuple` trait (#389)
+  - Fix `combinations(0)` and `combinations_with_replacement(0)` (#383)
+  - Don't require `ParitalEq` to the `Item` of `DedupBy` (#397)
+  - Implement missing specializations on the `PutBack` adaptor and on the `MergeJoinBy` iterator (#372)
+  - Add `position_*` methods (#412)
+  - Derive `Hash` for `EitherOrBoth` (#417)
+
 ## 0.8.2
   - Use `slice::iter` instead of `into_iter` to avoid future breakage (#378, by @LukasKalbertodt)
 ## 0.8.1
