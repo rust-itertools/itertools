@@ -10,6 +10,14 @@ pub struct UniqueCombinations<I: Iterator> {
     first: bool,
 }
 
+impl<I> Clone for UniqueCombinations<I>
+where
+    I: Iterator,
+    I::Item: Clone,
+{
+    clone_fields!(indices, pool, first);
+}
+
 impl<I> fmt::Debug for UniqueCombinations<I>
 where
     I: Iterator + fmt::Debug,
