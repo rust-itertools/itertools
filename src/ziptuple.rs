@@ -39,8 +39,9 @@ pub struct Zip<T> {
 /// assert_eq!(results, [0 + 3, 10 + 7, 29, 36]);
 /// ```
 pub fn multizip<T, U>(t: U) -> Zip<T>
-    where Zip<T>: From<U>,
-          Zip<T>: Iterator,
+where
+    Zip<T>: From<U>,
+    Zip<T>: Iterator,
 {
     Zip::from(t)
 }
@@ -58,10 +59,10 @@ macro_rules! impl_zip_iter {
         #[allow(non_snake_case)]
         #[allow(unused_assignments)]
         impl<$($B),*> Iterator for Zip<($($B,)*)>
-            where
+        where
             $(
-                $B: Iterator,
-            )*
+            $B: Iterator,
+        )*
         {
             type Item = ($($B::Item,)*);
 
@@ -78,7 +79,7 @@ macro_rules! impl_zip_iter {
                         Some(elt) => elt
                     };
                 )*
-                Some(($($B,)*))
+                    Some(($($B,)*))
             }
 
             fn size_hint(&self) -> (usize, Option<usize>)
@@ -88,15 +89,15 @@ macro_rules! impl_zip_iter {
                 $(
                     let sh = size_hint::min($B.size_hint(), sh);
                 )*
-                sh
+                    sh
             }
         }
 
         #[allow(non_snake_case)]
         impl<$($B),*> ExactSizeIterator for Zip<($($B,)*)> where
             $(
-                $B: ExactSizeIterator,
-            )*
+            $B: ExactSizeIterator,
+        )*
         { }
     );
 }

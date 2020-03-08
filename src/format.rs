@@ -1,5 +1,5 @@
-use std::fmt;
 use std::cell::RefCell;
+use std::fmt;
 
 /// Format all iterator elements lazily, separated by `sep`.
 ///
@@ -29,8 +29,9 @@ pub struct Format<'a, I> {
 }
 
 pub fn new_format<'a, I, F>(iter: I, separator: &'a str, f: F) -> FormatWith<'a, I, F>
-    where I: Iterator,
-          F: FnMut(I::Item, &mut dyn FnMut(&dyn fmt::Display) -> fmt::Result) -> fmt::Result
+where
+    I: Iterator,
+    F: FnMut(I::Item, &mut dyn FnMut(&dyn fmt::Display) -> fmt::Result) -> fmt::Result,
 {
     FormatWith {
         sep: separator,
@@ -39,7 +40,8 @@ pub fn new_format<'a, I, F>(iter: I, separator: &'a str, f: F) -> FormatWith<'a,
 }
 
 pub fn new_format_default<'a, I>(iter: I, separator: &'a str) -> Format<'a, I>
-    where I: Iterator,
+where
+    I: Iterator,
 {
     Format {
         sep: separator,
@@ -48,8 +50,9 @@ pub fn new_format_default<'a, I>(iter: I, separator: &'a str) -> Format<'a, I>
 }
 
 impl<'a, I, F> fmt::Display for FormatWith<'a, I, F>
-    where I: Iterator,
-          F: FnMut(I::Item, &mut dyn  FnMut(&dyn fmt::Display) -> fmt::Result) -> fmt::Result
+where
+    I: Iterator,
+    F: FnMut(I::Item, &mut dyn FnMut(&dyn fmt::Display) -> fmt::Result) -> fmt::Result,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let (mut iter, mut format) = match self.inner.borrow_mut().take() {
@@ -61,7 +64,6 @@ impl<'a, I, F> fmt::Display for FormatWith<'a, I, F>
             format(fst, &mut |disp: &dyn fmt::Display| disp.fmt(f))?;
             for elt in iter {
                 if self.sep.len() > 0 {
-
                     f.write_str(self.sep)?;
                 }
                 format(elt, &mut |disp: &dyn fmt::Display| disp.fmt(f))?;
@@ -72,10 +74,12 @@ impl<'a, I, F> fmt::Display for FormatWith<'a, I, F>
 }
 
 impl<'a, I> Format<'a, I>
-    where I: Iterator,
+where
+    I: Iterator,
 {
     fn format<F>(&self, f: &mut fmt::Formatter, mut cb: F) -> fmt::Result
-        where F: FnMut(&I::Item, &mut fmt::Formatter) -> fmt::Result,
+    where
+        F: FnMut(&I::Item, &mut fmt::Formatter) -> fmt::Result,
     {
         let mut iter = match self.inner.borrow_mut().take() {
             Some(t) => t,
@@ -99,8 +103,8 @@ macro_rules! impl_format {
     ($($fmt_trait:ident)*) => {
         $(
             impl<'a, I> fmt::$fmt_trait for Format<'a, I>
-                where I: Iterator,
-                      I::Item: fmt::$fmt_trait,
+            where I: Iterator,
+                  I::Item: fmt::$fmt_trait,
             {
                 fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                     self.format(f, fmt::$fmt_trait::fmt)
@@ -110,5 +114,5 @@ macro_rules! impl_format {
     }
 }
 
-impl_format!{Display Debug
-             UpperExp LowerExp UpperHex LowerHex Octal Binary Pointer}
+impl_format! {Display Debug
+UpperExp LowerExp UpperHex LowerHex Octal Binary Pointer}

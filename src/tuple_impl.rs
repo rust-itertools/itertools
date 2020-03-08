@@ -11,9 +11,7 @@ use std::marker::PhantomData;
 // See https://github.com/rust-itertools/itertools/issues/387
 
 /// Implemented for homogeneous tuples of size up to 4.
-pub trait HomogeneousTuple
-    : TupleCollect
-{}
+pub trait HomogeneousTuple: TupleCollect {}
 
 impl<T: TupleCollect> HomogeneousTuple for T {}
 
@@ -23,25 +21,25 @@ impl<T: TupleCollect> HomogeneousTuple for T {}
 /// [`Tuples::into_buffer()`](struct.Tuples.html#method.into_buffer).
 #[derive(Clone, Debug)]
 pub struct TupleBuffer<T>
-    where T: HomogeneousTuple
+where
+    T: HomogeneousTuple,
 {
     cur: usize,
     buf: T::Buffer,
 }
 
 impl<T> TupleBuffer<T>
-    where T: HomogeneousTuple
+where
+    T: HomogeneousTuple,
 {
     fn new(buf: T::Buffer) -> Self {
-        TupleBuffer {
-            cur: 0,
-            buf,
-        }
+        TupleBuffer { cur: 0, buf }
     }
 }
 
 impl<T> Iterator for TupleBuffer<T>
-    where T: HomogeneousTuple
+where
+    T: HomogeneousTuple,
 {
     type Item = T::Item;
 
@@ -60,18 +58,16 @@ impl<T> Iterator for TupleBuffer<T>
         let len = if buffer.len() == 0 {
             0
         } else {
-            buffer.iter()
-                  .position(|x| x.is_none())
-                  .unwrap_or(buffer.len())
+            buffer
+                .iter()
+                .position(|x| x.is_none())
+                .unwrap_or(buffer.len())
         };
         (len, Some(len))
     }
 }
 
-impl<T> ExactSizeIterator for TupleBuffer<T>
-    where T: HomogeneousTuple
-{
-}
+impl<T> ExactSizeIterator for TupleBuffer<T> where T: HomogeneousTuple {}
 
 /// An iterator that groups the items in tuples of a specific size.
 ///
@@ -79,8 +75,9 @@ impl<T> ExactSizeIterator for TupleBuffer<T>
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Tuples<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: HomogeneousTuple
+where
+    I: Iterator<Item = T::Item>,
+    T: HomogeneousTuple,
 {
     iter: Fuse<I>,
     buf: T::Buffer,
@@ -88,8 +85,9 @@ pub struct Tuples<I, T>
 
 /// Create a new tuples iterator.
 pub fn tuples<I, T>(iter: I) -> Tuples<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: HomogeneousTuple
+where
+    I: Iterator<Item = T::Item>,
+    T: HomogeneousTuple,
 {
     Tuples {
         iter: iter.fuse(),
@@ -98,8 +96,9 @@ pub fn tuples<I, T>(iter: I) -> Tuples<I, T>
 }
 
 impl<I, T> Iterator for Tuples<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: HomogeneousTuple
+where
+    I: Iterator<Item = T::Item>,
+    T: HomogeneousTuple,
 {
     type Item = T;
 
@@ -109,8 +108,9 @@ impl<I, T> Iterator for Tuples<I, T>
 }
 
 impl<I, T> Tuples<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: HomogeneousTuple
+where
+    I: Iterator<Item = T::Item>,
+    T: HomogeneousTuple,
 {
     /// Return a buffer with the produced items that was not enough to be grouped in a tuple.
     ///
@@ -127,7 +127,6 @@ impl<I, T> Tuples<I, T>
     }
 }
 
-
 /// An iterator over all contiguous windows that produces tuples of a specific size.
 ///
 /// See [`.tuple_windows()`](../trait.Itertools.html#method.tuple_windows) for more
@@ -135,8 +134,9 @@ impl<I, T> Tuples<I, T>
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 #[derive(Clone, Debug)]
 pub struct TupleWindows<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: HomogeneousTuple
+where
+    I: Iterator<Item = T::Item>,
+    T: HomogeneousTuple,
 {
     iter: I,
     last: Option<T>,
@@ -144,9 +144,10 @@ pub struct TupleWindows<I, T>
 
 /// Create a new tuple windows iterator.
 pub fn tuple_windows<I, T>(mut iter: I) -> TupleWindows<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: HomogeneousTuple,
-          T::Item: Clone
+where
+    I: Iterator<Item = T::Item>,
+    T: HomogeneousTuple,
+    T::Item: Clone,
 {
     use std::iter::once;
 
@@ -160,22 +161,20 @@ pub fn tuple_windows<I, T>(mut iter: I) -> TupleWindows<I, T>
         }
     }
 
-    TupleWindows {
-        last,
-        iter,
-    }
+    TupleWindows { last, iter }
 }
 
 impl<I, T> Iterator for TupleWindows<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: HomogeneousTuple + Clone,
-          T::Item: Clone
+where
+    I: Iterator<Item = T::Item>,
+    T: HomogeneousTuple + Clone,
+    T::Item: Clone,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
         if T::num_items() == 1 {
-            return T::collect_from_iter_no_buf(&mut self.iter)
+            return T::collect_from_iter_no_buf(&mut self.iter);
         }
         if let Some(ref mut last) = self.last {
             if let Some(new) = self.iter.next() {
@@ -234,10 +233,12 @@ pub trait TupleCollect: Sized {
     type Buffer: Default + AsRef<[Option<Self::Item>]> + AsMut<[Option<Self::Item>]>;
 
     fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
-        where I: IntoIterator<Item = Self::Item>;
+    where
+        I: IntoIterator<Item = Self::Item>;
 
     fn collect_from_iter_no_buf<I>(iter: I) -> Option<Self>
-        where I: IntoIterator<Item = Self::Item>;
+    where
+        I: IntoIterator<Item = Self::Item>;
 
     fn num_items() -> usize;
 
@@ -253,22 +254,22 @@ macro_rules! impl_tuple_collect {
 
             #[allow(unused_assignments, unused_mut)]
             fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
-                where I: IntoIterator<Item = $A>
+            where I: IntoIterator<Item = $A>
             {
                 let mut iter = iter.into_iter();
                 $(
                     let mut $Y = None;
                 )*
 
-                loop {
-                    $(
-                        $Y = iter.next();
-                        if $Y.is_none() {
-                            break
-                        }
-                    )*
-                    return Some(($($Y.unwrap()),*,))
-                }
+                    loop {
+                        $(
+                            $Y = iter.next();
+                            if $Y.is_none() {
+                                break
+                            }
+                        )*
+                            return Some(($($Y.unwrap()),*,))
+                    }
 
                 let mut i = 0;
                 let mut s = buf.as_mut();
@@ -278,12 +279,12 @@ macro_rules! impl_tuple_collect {
                         i += 1;
                     }
                 )*
-                return None;
+                    return None;
             }
 
             #[allow(unused_assignments)]
             fn collect_from_iter_no_buf<I>(iter: I) -> Option<Self>
-                where I: IntoIterator<Item = $A>
+            where I: IntoIterator<Item = $A>
             {
                 let mut iter = iter.into_iter();
                 loop {
@@ -294,7 +295,7 @@ macro_rules! impl_tuple_collect {
                             break;
                         };
                     )*
-                    return Some(($($Y),*,))
+                        return Some(($($Y),*,))
                 }
 
                 return None;
@@ -312,7 +313,7 @@ macro_rules! impl_tuple_collect {
                 $(
                     let tmp = replace($Y_rev, tmp);
                 )*
-                drop(tmp);
+                    drop(tmp);
             }
         }
     )

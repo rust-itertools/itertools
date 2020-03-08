@@ -1,4 +1,3 @@
-
 macro_rules! impl_cons_iter(
     ($_A:ident, $_B:ident, ) => (); // stop
 
@@ -6,7 +5,7 @@ macro_rules! impl_cons_iter(
         impl_cons_iter!($($B,)*);
         #[allow(non_snake_case)]
         impl<X, Iter, $($B),*> Iterator for ConsTuples<Iter, (($($B,)*), X)>
-            where Iter: Iterator<Item = (($($B,)*), X)>,
+        where Iter: Iterator<Item = (($($B,)*), X)>,
         {
             type Item = ($($B,)* X, );
             fn next(&mut self) -> Option<Self::Item> {
@@ -17,7 +16,7 @@ macro_rules! impl_cons_iter(
                 self.iter.size_hint()
             }
             fn fold<Acc, Fold>(self, accum: Acc, mut f: Fold) -> Acc
-                where Fold: FnMut(Acc, Self::Item) -> Acc,
+            where Fold: FnMut(Acc, Self::Item) -> Acc,
             {
                 self.iter.fold(accum, move |acc, (($($B,)*), x)| f(acc, ($($B,)* x, )))
             }
@@ -25,7 +24,7 @@ macro_rules! impl_cons_iter(
 
         #[allow(non_snake_case)]
         impl<X, Iter, $($B),*> DoubleEndedIterator for ConsTuples<Iter, (($($B,)*), X)>
-            where Iter: DoubleEndedIterator<Item = (($($B,)*), X)>,
+        where Iter: DoubleEndedIterator<Item = (($($B,)*), X)>,
         {
             fn next_back(&mut self) -> Option<Self::Item> {
                 self.iter.next().map(|(($($B,)*), x)| ($($B,)* x, ))
@@ -44,13 +43,15 @@ impl_cons_iter!(A, B, C, D, E, F, G, H,);
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 #[derive(Debug)]
 pub struct ConsTuples<I, J>
-    where I: Iterator<Item=J>,
+where
+    I: Iterator<Item = J>,
 {
     iter: I,
 }
 
 impl<I, J> Clone for ConsTuples<I, J>
-    where I: Clone + Iterator<Item=J>,
+where
+    I: Clone + Iterator<Item = J>,
 {
     clone_fields!(iter);
 }
@@ -58,7 +59,10 @@ impl<I, J> Clone for ConsTuples<I, J>
 /// Create an iterator that maps for example iterators of
 /// `((A, B), C)` to `(A, B, C)`.
 pub fn cons_tuples<I, J>(iterable: I) -> ConsTuples<I, J>
-    where I: Iterator<Item=J>
+where
+    I: Iterator<Item = J>,
 {
-    ConsTuples { iter: iterable.into_iter() }
+    ConsTuples {
+        iter: iterable.into_iter(),
+    }
 }

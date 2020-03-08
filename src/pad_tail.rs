@@ -1,5 +1,5 @@
-use std::iter::Fuse;
 use crate::size_hint;
+use std::iter::Fuse;
 
 /// An iterator adaptor that pads a sequence to a minimum length by filling
 /// missing elements using a closure.
@@ -18,8 +18,9 @@ pub struct PadUsing<I, F> {
 
 /// Create a new **PadUsing** iterator.
 pub fn pad_using<I, F>(iter: I, min: usize, filler: F) -> PadUsing<I, F>
-    where I: Iterator,
-          F: FnMut(usize) -> I::Item
+where
+    I: Iterator,
+    F: FnMut(usize) -> I::Item,
 {
     PadUsing {
         iter: iter.fuse(),
@@ -30,8 +31,9 @@ pub fn pad_using<I, F>(iter: I, min: usize, filler: F) -> PadUsing<I, F>
 }
 
 impl<I, F> Iterator for PadUsing<I, F>
-    where I: Iterator,
-          F: FnMut(usize) -> I::Item
+where
+    I: Iterator,
+    F: FnMut(usize) -> I::Item,
 {
     type Item = I::Item;
 
@@ -46,7 +48,7 @@ impl<I, F> Iterator for PadUsing<I, F>
                 } else {
                     None
                 }
-            },
+            }
             e => {
                 self.pos += 1;
                 e
@@ -61,8 +63,9 @@ impl<I, F> Iterator for PadUsing<I, F>
 }
 
 impl<I, F> DoubleEndedIterator for PadUsing<I, F>
-    where I: DoubleEndedIterator + ExactSizeIterator,
-          F: FnMut(usize) -> I::Item
+where
+    I: DoubleEndedIterator + ExactSizeIterator,
+    F: FnMut(usize) -> I::Item,
 {
     fn next_back(&mut self) -> Option<I::Item> {
         if self.min == 0 {
@@ -78,6 +81,8 @@ impl<I, F> DoubleEndedIterator for PadUsing<I, F>
 }
 
 impl<I, F> ExactSizeIterator for PadUsing<I, F>
-    where I: ExactSizeIterator,
-          F: FnMut(usize) -> I::Item
-{}
+where
+    I: ExactSizeIterator,
+    F: FnMut(usize) -> I::Item,
+{
+}

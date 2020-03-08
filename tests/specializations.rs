@@ -1,7 +1,7 @@
 use itertools::{EitherOrBoth, Itertools};
+use quickcheck::quickcheck;
 use std::fmt::Debug;
 use std::ops::BitXor;
-use quickcheck::quickcheck;
 
 struct Unspecialized<I>(I);
 impl<I> Iterator for Unspecialized<I>
