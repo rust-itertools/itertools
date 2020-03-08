@@ -8,7 +8,6 @@ pub struct UniqueCombinations<I: Iterator> {
     indices: Vec<usize>,
     pool: Vec<I::Item>,
     first: bool,
-    done: bool,
 }
 
 impl<I> fmt::Debug for UniqueCombinations<I>
@@ -16,7 +15,7 @@ where
     I: Iterator + fmt::Debug,
     I::Item: fmt::Debug,
 {
-    debug_fmt_fields!(Combinations, indices, pool, first, done);
+    debug_fmt_fields!(UniqueCombinations, indices, pool, first);
 }
 
 /// Create a new `UniqueCombinations` from a iterator with clonable and sorable Items.
@@ -31,7 +30,6 @@ where
         indices: (0..len).collect(),
         pool,
         first: true,
-        done: false, // only used on iterators with 0 length
     }
 }
 
@@ -55,30 +53,22 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         let len = self.indices.len();
         if self.first {
-            // first pass throught
-            if len == 0 {
-                if self.done {
-                    None
-                } else {
-                    self.done = true;
-                    Some(Vec::new())
-                }
-            } else if len > self.pool.len() {
-                None
-            } else {
-                self.first = false;
-                self.generate()
+            if self.indices.len() > self.pool.len() {
+                return None;
             }
+            self.first = false;
+        } else if self.indices.len() == 0 {
+            return None;
         } else {
-            let org_len = self.pool.len();
+            let pool_len = self.pool.len();
             // check if we cant bump the back number
-            if self.pool[self.indices[len - 1]] == self.pool[org_len - 1] {
+            if self.pool[self.indices[len - 1]] == self.pool[pool_len - 1] {
                 // locate the number closest behind that needs to be bumped
                 for i in 2..len + 1 {
-                    if self.pool[self.indices[len - i]] < self.pool[org_len - i] {
+                    if self.pool[self.indices[len - i]] < self.pool[pool_len - i] {
                         let lastpos = self.indices[len - i];
                         let val = &self.pool[lastpos];
-                        for j in lastpos + 1..org_len {
+                        for j in lastpos + 1..pool_len {
                             if *val < self.pool[j] {
                                 for k in 0..i {
                                     self.indices[len - i + k] = j + k;
@@ -88,19 +78,20 @@ where
                         }
                     }
                 }
-                None
+                // Reached the last combination
+                return None;
             } else {
                 // bump the back number until value in pool increases
-                let mut i = self.indices[len - 1];
-                let current = &self.pool[i];
-                let mut next = current;
-                while current == next {
+                let mut i = self.indices[len - 1] + 1;
+                let current = &self.pool[i - 1];
+                let mut next = &self.pool[i];
+                while next == current {
                     i += 1;
                     next = &self.pool[i];
                 }
                 self.indices[len - 1] = i;
-                self.generate()
             }
         }
+        self.generate()
     }
 }
