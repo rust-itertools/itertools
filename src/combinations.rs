@@ -13,22 +13,25 @@ pub struct Combinations<I: Iterator> {
 }
 
 impl<I> Clone for Combinations<I>
-    where I: Clone + Iterator,
-          I::Item: Clone,
+where
+    I: Clone + Iterator,
+    I::Item: Clone,
 {
     clone_fields!(indices, pool, first);
 }
 
 impl<I> fmt::Debug for Combinations<I>
-    where I: Iterator + fmt::Debug,
-          I::Item: fmt::Debug,
+where
+    I: Iterator + fmt::Debug,
+    I::Item: fmt::Debug,
 {
     debug_fmt_fields!(Combinations, indices, pool, first);
 }
 
 /// Create a new `Combinations` from a clonable iterator.
 pub fn combinations<I>(iter: I, k: usize) -> Combinations<I>
-    where I: Iterator
+where
+    I: Iterator,
 {
     let mut pool: LazyBuffer<I> = LazyBuffer::new(iter);
 
@@ -46,8 +49,9 @@ pub fn combinations<I>(iter: I, k: usize) -> Combinations<I>
 }
 
 impl<I> Iterator for Combinations<I>
-    where I: Iterator,
-          I::Item: Clone
+where
+    I: Iterator,
+    I::Item: Clone,
 {
     type Item = Vec<I::Item>;
     fn next(&mut self) -> Option<Self::Item> {
@@ -78,7 +82,7 @@ impl<I> Iterator for Combinations<I>
 
             // Increment index, and reset the ones to its right
             self.indices[i] += 1;
-            for j in i+1..self.indices.len() {
+            for j in i + 1..self.indices.len() {
                 self.indices[j] = self.indices[j - 1] + 1;
             }
         }
