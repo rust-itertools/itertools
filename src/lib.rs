@@ -78,6 +78,8 @@ pub mod structs {
     pub use crate::adaptors::{
         Dedup,
         DedupBy,
+        DedupWithCount,
+        DedupByWithCount,
         Interleave,
         InterleaveShortest,
         Product,
@@ -827,7 +829,6 @@ pub trait Itertools : Iterator {
         merge_join_by(self, other, cmp_fn)
     }
 
-
     /// Return an iterator adaptor that flattens an iterator of iterators by
     /// merging them in ascending order.
     ///
@@ -1008,7 +1009,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// let data = vec![(0, 1.), (1, 1.), (0, 2.), (0, 3.), (1, 3.), (1, 2.), (2, 2.)];
-    /// itertools::assert_equal(data.into_iter().dedup_by(|x, y| x.1==y.1),
+    /// itertools::assert_equal(data.into_iter().dedup_by(|x, y| x.1 == y.1),
     ///                         vec![(0, 1.), (0, 2.), (0, 3.), (1, 2.)]);
     /// ```
     fn dedup_by<Cmp>(self, cmp: Cmp) -> DedupBy<Self, Cmp>
@@ -1016,6 +1017,50 @@ pub trait Itertools : Iterator {
               Cmp: FnMut(&Self::Item, &Self::Item)->bool,
     {
         adaptors::dedup_by(self, cmp)
+    }
+
+    /// Remove duplicates from sections of consecutive identical elements, while keeping a count of
+    /// how many repeated elements were present.
+    /// If the iterator is sorted, all elements will be unique.
+    ///
+    /// Iterator element type is `(usize, Self::Item)`.
+    ///
+    /// This iterator is *fused*.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![1., 1., 2., 3., 3., 2., 2.];
+    /// itertools::assert_equal(data.into_iter().dedup_with_count(),
+    ///                         vec![(2, 1.), (1, 2.), (2, 3.), (2, 2.)]);
+    /// ```
+    fn dedup_with_count(self) -> DedupWithCount<Self>
+        where Self: Sized,
+    {
+        adaptors::dedup_with_count(self)
+    }
+
+    /// Remove duplicates from sections of consecutive identical elements, while keeping a count of
+    /// how many repeated elements were present.
+    /// This will determine equality using a comparison function.
+    /// If the iterator is sorted, all elements will be unique.
+    ///
+    /// Iterator element type is `(usize, Self::Item)`.
+    ///
+    /// This iterator is *fused*.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![(0, 1.), (1, 1.), (0, 2.), (0, 3.), (1, 3.), (1, 2.), (2, 2.)];
+    /// itertools::assert_equal(data.into_iter().dedup_by_with_count(|x, y| x.1 == y.1),
+    ///                         vec![(2, (0, 1.)), (1, (0, 2.)), (2, (0, 3.)), (2, (1, 2.))]);
+    /// ```
+    fn dedup_by_with_count<Cmp>(self, cmp: Cmp) -> DedupByWithCount<Self, Cmp>
+        where Self: Sized,
+              Cmp: FnMut(&Self::Item, &Self::Item) -> bool,
+    {
+        adaptors::dedup_by_with_count(self, cmp)
     }
 
     /// Return an iterator adaptor that filters out elements that have
