@@ -59,46 +59,36 @@ where
 {
     type Item = Vec<I::Item>;
     fn next(&mut self) -> Option<Self::Item> {
-        let len = self.indices.len();
+        let indices_len = self.indices.len();
+        let pool_len = self.pool.len();
         if self.first {
-            if self.indices.len() > self.pool.len() {
+            if indices_len > pool_len {
                 return None;
             }
             self.first = false;
-        } else if self.indices.len() == 0 {
+        } else if indices_len == 0 {
             return None;
         } else {
-            let pool_len = self.pool.len();
-            // check if we cant bump the back number
-            if self.pool[self.indices[len - 1]] == self.pool[pool_len - 1] {
-                // locate the number closest behind that needs to be bumped
-                for i in 2..len + 1 {
-                    if self.pool[self.indices[len - i]] < self.pool[pool_len - i] {
-                        let lastpos = self.indices[len - i];
-                        let val = &self.pool[lastpos];
-                        for j in lastpos + 1..pool_len {
-                            if *val < self.pool[j] {
-                                for k in 0..i {
-                                    self.indices[len - i + k] = j + k;
-                                }
-                                return self.generate();
+            // locate the back_most digit that can be bumped
+            for back_offset in 1..indices_len + 1 {
+                if self.pool[self.indices[indices_len - back_offset]]
+                    < self.pool[pool_len - back_offset]
+                {
+                    let bump_source = self.indices[indices_len - back_offset];
+                    let bump_value = &self.pool[bump_source];
+                    // locate the position where the number needs to be set
+                    for bump_target in bump_source + 1..pool_len {
+                        if *bump_value < self.pool[bump_target] {
+                            //sets all the indices right of the bump_target
+                            for k in 0..back_offset {
+                                self.indices[indices_len - back_offset + k] = bump_target + k;
                             }
+                            return self.generate();
                         }
                     }
                 }
-                // Reached the last combination
-                return None;
-            } else {
-                // bump the back number until value in pool increases
-                let mut i = self.indices[len - 1] + 1;
-                let current = &self.pool[i - 1];
-                let mut next = &self.pool[i];
-                while next == current {
-                    i += 1;
-                    next = &self.pool[i];
-                }
-                self.indices[len - 1] = i;
             }
+            return None;
         }
         self.generate()
     }
