@@ -988,7 +988,8 @@ pub trait Itertools : Iterator {
     /// iterator.
     ///
     /// The iterator is stable, returning the non-duplicate items in the order
-    /// in which they occur in the adapted iterator.
+    /// in which they occur in the adapted iterator. In a set of duplicate
+    /// items, the first item encountered is the item retained.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -1013,7 +1014,8 @@ pub trait Itertools : Iterator {
     /// The keys are stored in a hash set in the iterator.
     ///
     /// The iterator is stable, returning the non-duplicate items in the order
-    /// in which they occur in the adapted iterator.
+    /// in which they occur in the adapted iterator. In a set of duplicate
+    /// items, the first item encountered is the item retained.
     ///
     /// ```
     /// use itertools::Itertools;
