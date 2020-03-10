@@ -1,4 +1,6 @@
 language: rust
+before_script:
+- rustup component add rustfmt
 sudo: false
 matrix:
   include:
