@@ -70,7 +70,7 @@ where
             return None;
         } else {
             // locate the back_most digit that can be bumped
-            for back_offset in 1..indices_len + 1 {
+            for back_offset in 1..=indices_len {
                 if self.pool[self.indices[indices_len - back_offset]]
                     < self.pool[pool_len - back_offset]
                 {
