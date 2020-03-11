@@ -1,20 +1,28 @@
 language: rust
-sudo: false
-matrix:
-  include:
-    - rust: 1.32.0
-    - rust: stable
-    - rust: beta
-    - rust: nightly
+rust:
+  - 1.32.0
+  - stable
+  - beta
+  - nightly
 branches:
   only:
     - master
     # bors branches
     - staging
     - trying
-script:
-  - |
-      cargo build --verbose --no-default-features &&
-      cargo build --verbose --features "$FEATURES" &&
-      cargo test --verbose --features "$FEATURES" &&
-      cargo bench --no-run --verbose --features "$FEATURES"
+stages:
+  - build
+  - test
+#  - clippy
+#  - fmt
+jobs:
+  include:
+    - stage: build
+      script:
+        - cargo build --verbose --no-default-features &&
+        - cargo build --verbose --features "$FEATURES" &&
+        - cargo bench --no-run --verbose --features "$FEATURES"
+    - stage: test
+      rust: nightly
+      script:
+        - cargo test --verbose --features "$FEATURES" &&
