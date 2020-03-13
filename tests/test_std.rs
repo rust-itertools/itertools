@@ -10,6 +10,10 @@ use crate::it::Itertools;
 use itertools as it;
 use permutohedron;
 
+use std::collections::HashSet;
+
+use rand::{self, seq::SliceRandom, Rng};
+
 #[test]
 fn product3() {
     let prod = iproduct!(0..3, 0..2, 0..2);
@@ -685,6 +689,35 @@ fn combinations_with_replacement() {
         <Vec<Vec<_>>>::new(),
     );
     it::assert_equal((1..3).unique_combinations(0), vec![vec![]]);
+}
+
+#[test]
+fn combinations_and_unique_combinations_has_all_unique_values() {
+    let mut rng = &mut rand::thread_rng();
+    let a = [1, 2, 3, 4, 5];
+    let b = std::iter::repeat_with(|| a.choose(&mut rng).unwrap())
+        .take(20)
+        .collect::<Vec<_>>();
+    let comb = b
+        .iter()
+        .combinations(2)
+        .map(|mut n| {
+            n.sort();
+            n
+        })
+        .collect::<HashSet<_>>();
+    let unique_comb = b
+        .iter()
+        .unique_combinations(2)
+        .map(|mut n| {
+            n.sort();
+            n
+        })
+        .collect::<HashSet<_>>();
+    assert_eq!(
+        comb, unique_comb,
+        "Either unique_combinations or combinations is not returning all possible tokens"
+    );
 }
 
 #[test]
