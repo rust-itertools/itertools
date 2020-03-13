@@ -1169,24 +1169,20 @@ impl<I, F, T, E> Iterator for FilterResults<I, F>
         (0, self.iter.size_hint().1)
     }
 
-    fn fold<Acc, Fold>(self, init: Acc, mut fold_f: Fold) -> Acc
+    fn fold<Acc, Fold>(self, init: Acc, fold_f: Fold) -> Acc
         where Fold: FnMut(Acc, Self::Item) -> Acc,
     {
         let mut f = self.f;
-        self.iter.fold(init, move |acc, v| {
-            if v.as_ref().map(&mut f).unwrap_or(true) {
-                fold_f(acc, v)
-            } else {
-                acc
-            }
-        })
+        self.iter.filter(|v| {
+            v.as_ref().map(&mut f).unwrap_or(true)
+        }).fold(init, fold_f)
     }
 
     fn collect<C>(self) -> C
         where C: FromIterator<Self::Item>
     {
         let mut f = self.f;
-        self.iter.filter(move |v| {
+        self.iter.filter(|v| {
             v.as_ref().map(&mut f).unwrap_or(true)
         }).collect()
     }
@@ -1200,6 +1196,14 @@ impl<I, F, T, E> Iterator for FilterResults<I, F>
 pub struct FilterMapResults<I, F> {
     iter: I,
     f: F
+}
+
+fn transpose_result<T, E>(result: Result<Option<T>, E>) -> Option<Result<T, E>> {
+    match result {
+        Ok(Some(v)) => Some(Ok(v)),
+        Ok(None) => None,
+        Err(e) => Some(Err(e)),
+    }
 }
 
 /// Create a new `FilterResults` iterator.
@@ -1237,24 +1241,22 @@ impl<I, F, T, U, E> Iterator for FilterMapResults<I, F>
         (0, self.iter.size_hint().1)
     }
 
-    fn fold<Acc, Fold>(self, init: Acc, mut fold_f: Fold) -> Acc
+    fn fold<Acc, Fold>(self, init: Acc, fold_f: Fold) -> Acc
         where Fold: FnMut(Acc, Self::Item) -> Acc,
     {
         let mut f = self.f;
-        self.iter.fold(init, move |acc, v| {
-            if let Some(v) = v.map(&mut f).transpose() {
-                fold_f(acc, v)
-            } else {
-                acc
-            }
-        })
+        self.iter.filter_map(|v| {
+            transpose_result(v.map(&mut f))
+        }).fold(init, fold_f)
     }
 
     fn collect<C>(self) -> C
         where C: FromIterator<Self::Item>
     {
         let mut f = self.f;
-        self.iter.filter_map(move |v| v.map(&mut f).transpose()).collect()
+        self.iter.filter_map(|v| {
+            transpose_result(v.map(&mut f))
+        }).collect()
     }
 }
 
