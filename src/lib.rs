@@ -127,7 +127,7 @@ pub mod structs {
     pub use crate::sources::{RepeatCall, Unfold, Iterate};
     #[cfg(feature = "use_std")]
     pub use crate::tee::Tee;
-    pub use crate::tuple_impl::{TupleBuffer, TupleWindows, Tuples};
+    pub use crate::tuple_impl::{TupleBuffer, TupleWindows, CircularTupleWindows, Tuples};
     #[cfg(feature = "use_std")]
     pub use crate::unique_impl::{Unique, UniqueBy};
     pub use crate::with_position::WithPosition;
@@ -584,6 +584,40 @@ pub trait Itertools : Iterator {
         tuple_impl::tuple_windows(self)
     }
 
+    /// Return an iterator over all windows, wrapping back to the first
+    /// elements when the window would otherwise exceed the length of the
+    /// iterator, producing tuples of a specific size (up to 4).
+    ///
+    /// `circular_tuple_windows` clones the iterator elements so that they can be
+    /// part of successive windows, this makes it most suited for iterators
+    /// of references and other values that are cheap to copy.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// let mut v = Vec::new();
+    /// for (a, b) in (1..5).circular_tuple_windows() {
+    ///     v.push((a, b));
+    /// }
+    /// assert_eq!(v, vec![(1, 2), (2, 3), (3, 4), (4, 1)]);
+    ///
+    /// let mut it = (1..5).circular_tuple_windows();
+    /// assert_eq!(Some((1, 2, 3)), it.next());
+    /// assert_eq!(Some((2, 3, 4)), it.next());
+    /// assert_eq!(Some((3, 4, 1)), it.next());
+    /// assert_eq!(Some((4, 1, 2)), it.next());
+    /// assert_eq!(None, it.next());
+    ///
+    /// // this requires a type hint
+    /// let it = (1..5).circular_tuple_windows::<(_, _, _)>();
+    /// itertools::assert_equal(it, vec![(1, 2, 3), (2, 3, 4), (3, 4, 1), (4, 1, 2)]);
+    /// ```
+    fn circular_tuple_windows<T>(self) -> CircularTupleWindows<Self, T>
+        where Self: Sized + Clone + Iterator<Item = T::Item> + ExactSizeIterator,
+              T: tuple_impl::TupleCollect + Clone,
+              T::Item: Clone
+    {
+        tuple_impl::circular_tuple_windows(self)
+    }
     /// Return an iterator that groups the items in tuples of a specific size
     /// (up to 4).
     ///
