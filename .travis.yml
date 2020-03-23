@@ -6,6 +6,7 @@ matrix:
     - rust: stable
     - rust: beta
     - rust: nightly
+cache: cargo # https://docs.travis-ci.com/user/languages/rust/#dependency-management
 branches:
   only:
     - master
