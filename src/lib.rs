@@ -80,12 +80,13 @@ pub mod structs {
         DedupBy,
         Interleave,
         InterleaveShortest,
-        FilterMapResults,
-        FilterResults,
+        FilterMapOk,
+        FilterOk,
         Product,
         PutBack,
         Batching,
         MapInto,
+        MapOk,
         MapResults,
         Merge,
         MergeBy,
@@ -721,6 +722,14 @@ pub trait Itertools : Iterator {
         adaptors::map_into(self)
     }
 
+    #[deprecated(note="Use .map_ok() instead", since="0.10")]
+    fn map_results<F, T, U, E>(self, f: F) -> MapOk<Self, F>
+        where Self: Iterator<Item = Result<T, E>> + Sized,
+              F: FnMut(T) -> U,
+    {
+        self.map_ok(f)
+    }
+
     /// Return an iterator adaptor that applies the provided closure
     /// to every `Result::Ok` value. `Result::Err` values are
     /// unchanged.
@@ -729,14 +738,14 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// let input = vec![Ok(41), Err(false), Ok(11)];
-    /// let it = input.into_iter().map_results(|i| i + 1);
+    /// let it = input.into_iter().map_ok(|i| i + 1);
     /// itertools::assert_equal(it, vec![Ok(42), Err(false), Ok(12)]);
     /// ```
-    fn map_results<F, T, U, E>(self, f: F) -> MapResults<Self, F>
+    fn map_ok<F, T, U, E>(self, f: F) -> MapOk<Self, F>
         where Self: Iterator<Item = Result<T, E>> + Sized,
               F: FnMut(T) -> U,
     {
-        adaptors::map_results(self, f)
+        adaptors::map_ok(self, f)
     }
 
     /// Return an iterator adaptor that filters every `Result::Ok`
@@ -747,14 +756,14 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// let input = vec![Ok(22), Err(false), Ok(11)];
-    /// let it = input.into_iter().filter_results(|&i| i > 20);
+    /// let it = input.into_iter().filter_ok(|&i| i > 20);
     /// itertools::assert_equal(it, vec![Ok(22), Err(false)]);
     /// ```
-    fn filter_results<F, T, E>(self, f: F) -> FilterResults<Self, F>
+    fn filter_ok<F, T, E>(self, f: F) -> FilterOk<Self, F>
         where Self: Iterator<Item = Result<T, E>> + Sized,
               F: FnMut(&T) -> bool,
     {
-        adaptors::filter_results(self, f)
+        adaptors::filter_ok(self, f)
     }
 
     /// Return an iterator adaptor that filters and transforms every
@@ -765,14 +774,14 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// let input = vec![Ok(22), Err(false), Ok(11)];
-    /// let it = input.into_iter().filter_map_results(|i| if i > 20 { Some(i * 2) } else { None });
+    /// let it = input.into_iter().filter_map_ok(|i| if i > 20 { Some(i * 2) } else { None });
     /// itertools::assert_equal(it, vec![Ok(44), Err(false)]);
     /// ```
-    fn filter_map_results<F, T, U, E>(self, f: F) -> FilterMapResults<Self, F>
+    fn filter_map_ok<F, T, U, E>(self, f: F) -> FilterMapOk<Self, F>
         where Self: Iterator<Item = Result<T, E>> + Sized,
               F: FnMut(T) -> Option<U>,
     {
-        adaptors::filter_map_results(self, f)
+        adaptors::filter_map_ok(self, f)
     }
 
     /// Return an iterator adaptor that merges the two base iterators in
@@ -1761,6 +1770,14 @@ pub trait Itertools : Iterator {
         format::new_format(self, sep, format)
     }
 
+    #[deprecated(note="Use .fold_ok() instead", since="0.10")]
+    fn fold_results<A, E, B, F>(&mut self, mut start: B, mut f: F) -> Result<B, E>
+        where Self: Iterator<Item = Result<A, E>>,
+              F: FnMut(B, A) -> B
+    {
+        self.fold_ok(start, f)
+    }
+
     /// Fold `Result` values from an iterator.
     ///
     /// Only `Ok` values are folded. If no error is encountered, the folded
@@ -1793,17 +1810,17 @@ pub trait Itertools : Iterator {
     /// assert_eq!(
     ///     values.iter()
     ///           .map(Ok::<_, ()>)
-    ///           .fold_results(0, Add::add),
+    ///           .fold_ok(0, Add::add),
     ///     Ok(3)
     /// );
     /// assert!(
     ///     values.iter()
     ///           .map(|&x| if x >= 0 { Ok(x) } else { Err("Negative number") })
-    ///           .fold_results(0, Add::add)
+    ///           .fold_ok(0, Add::add)
     ///           .is_err()
     /// );
     /// ```
-    fn fold_results<A, E, B, F>(&mut self, mut start: B, mut f: F) -> Result<B, E>
+    fn fold_ok<A, E, B, F>(&mut self, mut start: B, mut f: F) -> Result<B, E>
         where Self: Iterator<Item = Result<A, E>>,
               F: FnMut(B, A) -> B
     {
@@ -1822,7 +1839,7 @@ pub trait Itertools : Iterator {
     /// value is returned inside `Some`. Otherwise, the operation terminates
     /// and returns `None`. No iterator elements are consumed after the `None`.
     ///
-    /// This is the `Option` equivalent to `fold_results`.
+    /// This is the `Option` equivalent to `fold_ok`.
     ///
     /// ```
     /// use std::ops::Add;

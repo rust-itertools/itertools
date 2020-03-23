@@ -1074,28 +1074,31 @@ where
     I::Item: Into<R>,
 {}
 
-/// An iterator adapter to apply a transformation within a nested `Result`.
+#[deprecated(note="Use MapOk instead", since="0.10")]
+pub type MapResults<I, F> = MapOk<I, F>;
+
+/// An iterator adapter to apply a transformation within a nested `Result::Ok`.
 ///
-/// See [`.map_results()`](../trait.Itertools.html#method.map_results) for more information.
+/// See [`.map_ok()`](../trait.Itertools.html#method.map_ok) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct MapResults<I, F> {
+pub struct MapOk<I, F> {
     iter: I,
     f: F
 }
 
-/// Create a new `MapResults` iterator.
-pub fn map_results<I, F, T, U, E>(iter: I, f: F) -> MapResults<I, F>
+/// Create a new `MapOk` iterator.
+pub fn map_ok<I, F, T, U, E>(iter: I, f: F) -> MapOk<I, F>
     where I: Iterator<Item = Result<T, E>>,
           F: FnMut(T) -> U,
 {
-    MapResults {
+    MapOk {
         iter,
         f,
     }
 }
 
-impl<I, F, T, U, E> Iterator for MapResults<I, F>
+impl<I, F, T, U, E> Iterator for MapOk<I, F>
     where I: Iterator<Item = Result<T, E>>,
           F: FnMut(T) -> U,
 {
@@ -1124,28 +1127,28 @@ impl<I, F, T, U, E> Iterator for MapResults<I, F>
     }
 }
 
-/// An iterator adapter to filter values within a nested `Result`.
+/// An iterator adapter to filter values within a nested `Result::Ok`.
 ///
-/// See [`.filter_results()`](../trait.Itertools.html#method.filter_results) for more information.
+/// See [`.filter_ok()`](../trait.Itertools.html#method.filter_ok) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct FilterResults<I, F> {
+pub struct FilterOk<I, F> {
     iter: I,
     f: F
 }
 
-/// Create a new `FilterResults` iterator.
-pub fn filter_results<I, F, T, E>(iter: I, f: F) -> FilterResults<I, F>
+/// Create a new `FilterOk` iterator.
+pub fn filter_ok<I, F, T, E>(iter: I, f: F) -> FilterOk<I, F>
     where I: Iterator<Item = Result<T, E>>,
           F: FnMut(&T) -> bool,
 {
-    FilterResults {
+    FilterOk {
         iter,
         f,
     }
 }
 
-impl<I, F, T, E> Iterator for FilterResults<I, F>
+impl<I, F, T, E> Iterator for FilterOk<I, F>
     where I: Iterator<Item = Result<T, E>>,
           F: FnMut(&T) -> bool,
 {
@@ -1188,12 +1191,11 @@ impl<I, F, T, E> Iterator for FilterResults<I, F>
     }
 }
 
-/// An iterator adapter to filter and apply a transformation on values within a nested `Result`.
+/// An iterator adapter to filter and apply a transformation on values within a nested `Result::Ok`.
 ///
-/// See [`.filter_map_results()`](../trait.Itertools.html#method.filter_map_results) for more information.
-#[derive(Clone)]
+/// See [`.filter_map_ok()`](../trait.Itertools.html#method.filter_map_ok) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct FilterMapResults<I, F> {
+pub struct FilterMapOk<I, F> {
     iter: I,
     f: F
 }
@@ -1206,18 +1208,18 @@ fn transpose_result<T, E>(result: Result<Option<T>, E>) -> Option<Result<T, E>> 
     }
 }
 
-/// Create a new `FilterResults` iterator.
-pub fn filter_map_results<I, F, T, U, E>(iter: I, f: F) -> FilterMapResults<I, F>
+/// Create a new `FilterOk` iterator.
+pub fn filter_map_ok<I, F, T, U, E>(iter: I, f: F) -> FilterMapOk<I, F>
     where I: Iterator<Item = Result<T, E>>,
           F: FnMut(T) -> Option<U>,
 {
-    FilterMapResults {
+    FilterMapOk {
         iter,
         f,
     }
 }
 
-impl<I, F, T, U, E> Iterator for FilterMapResults<I, F>
+impl<I, F, T, U, E> Iterator for FilterMapOk<I, F>
     where I: Iterator<Item = Result<T, E>>,
           F: FnMut(T) -> Option<U>,
 {
