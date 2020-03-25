@@ -134,6 +134,7 @@ pub mod structs {
     pub use crate::zip_eq_impl::ZipEq;
     pub use crate::zip_longest::ZipLongest;
     pub use crate::ziptuple::Zip;
+    pub use crate::zip_with::ZipWith;
 }
 
 /// Traits helpful for using certain `Itertools` methods in generic contexts.
@@ -207,6 +208,7 @@ mod with_position;
 mod zip_eq_impl;
 mod zip_longest;
 mod ziptuple;
+mod zip_with;
 
 #[macro_export]
 /// Create an iterator over the “cartesian product” of iterators.
@@ -435,6 +437,27 @@ pub trait Itertools : Iterator {
               Self: Sized
     {
         zip_eq(self, other)
+    }
+
+    /// Create an  iterator which zips two iterators using a function to produce
+    /// an arbitrary result type. The resulting iterator will be as large as the
+    /// smallest of the two iterators given.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let mut zipped = [1, 2, 9].iter().zip_with([4, 5, 6].iter(), |x,y| x+y);
+    /// for x in vec![5, 7, 15] { 
+    ///     assert_eq!(x, zipped.next().expect("unexpected zip_with result")) 
+    /// };
+    /// ```
+    #[inline]
+    fn zip_with<J, F, S>(self, other: J, zipper: F) -> ZipWith<Self, J::IntoIter, F> 
+        where J: Sized + IntoIterator,
+              F: Fn(Self::Item, J::Item) -> S,
+              Self: Sized
+    {
+        zip_with::zip_with(self.into_iter(), other.into_iter(), zipper)
     }
 
     /// A “meta iterator adaptor”. Its closure receives a reference to the
