@@ -2625,6 +2625,28 @@ pub trait Itertools : Iterator {
             None => Err(ExactlyOneError::new((None, None), self)),
         }
     }
+
+    /// An iterator adaptor that allows the user to peek at multiple `.next()`
+    /// values without advancing the base iterator.
+    ///
+    /// # Examples
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut iter = (0..10).multipeek();
+    /// assert_eq!(iter.peek(), Some(&0));
+    /// assert_eq!(iter.peek(), Some(&1));
+    /// assert_eq!(iter.peek(), Some(&2));
+    /// assert_eq!(iter.next(), Some(0));
+    /// assert_eq!(iter.peek(), Some(&1));
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn multipeek(self) -> MultiPeek<Self>
+    where
+        Self: Sized,
+    {
+        multipeek_impl::multipeek(self)
+    }
 }
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }
