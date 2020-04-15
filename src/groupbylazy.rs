@@ -1,5 +1,6 @@
 use std::cell::{Cell, RefCell};
 use std::vec;
+use std::iter::Peekable;
 
 /// A trait to unify FnMut for GroupBy with the chunk key in IntoChunks
 trait KeyFunction<A> {
@@ -567,5 +568,86 @@ impl<'a, I> Iterator for Chunk<'a, I>
             return elt;
         }
         self.parent.step(self.index)
+    }
+}
+
+/// An iterator over chunks of another iterator. The size of each chunk is variable, and
+/// is determined by a closure passed to the iterator
+///
+/// See [`.chunk_while()`](../trait.Itertools.html#method.chunk_while) for more information.
+pub struct ChunkWhile<'a, I, B, F>
+where
+    I: Iterator,
+    <I as Iterator>::Item: 'a,
+{
+    iter: Peekable<I>,
+    state: B,
+    initial_state: B,
+    f: F,
+    accum: Vec<<I as Iterator>::Item>,
+    quit: bool,
+    _data: std::marker::PhantomData<&'a ()>,
+}
+
+pub fn new_chunk_while<'a, J, B, F>(iter: J, initial_state: B, f: F)  -> ChunkWhile<'a, <J as IntoIterator>::IntoIter, B, F>
+where
+    J: IntoIterator,
+    F: FnMut(&B, &<J as IntoIterator>::Item) -> Option<B>,
+    B: Clone + 'a,
+{
+    ChunkWhile {
+        iter: iter.into_iter().peekable(),
+        initial_state: initial_state.clone(),
+        state: initial_state,
+        f,
+        accum: Vec::new(),
+        quit: false,
+        _data: std::marker::PhantomData,
+    }
+}
+
+impl<'a, I, B, F> Iterator for ChunkWhile<'a, I, B, F>
+where
+    I: Iterator,
+    <I as Iterator>::Item: 'a,
+    F: FnMut(&B, &<I as Iterator>::Item) -> Option<B>,
+    B: Clone + 'a,
+{
+    type Item = Vec<<I as Iterator>::Item>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.quit {
+            return None;
+        }
+        let ret: Vec<<I as Iterator>::Item>;
+        loop {
+            let elem = match self.iter.peek() {
+                Some(elem) => elem,
+                None => {
+                    // source iterator is done, so if we have anything left
+                    // in the accumulator, return it, else just quit
+                    self.quit = true;
+                    if self.accum.is_empty() {
+                        return None;
+                    } else {
+                        ret = self.accum.drain(0..).collect();
+                        break
+                    }
+                }
+            };
+            match (self.f)(&self.state, elem) {
+                Some(state) => {
+                    self.state = state;
+                    let elem = self.iter.next()?; // if we've gotten this far, this should never be `None`, but might as well not panic needlessly
+                    self.accum.push(elem);
+                },
+                None => {
+                    ret = self.accum.drain(0..).collect();
+                    self.state = self.initial_state.clone();
+                    break
+                },
+            }
+        }
+        Some(ret)
     }
 }

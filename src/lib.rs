@@ -106,7 +106,7 @@ pub mod structs {
     pub use crate::exactly_one_err::ExactlyOneError;
     pub use crate::format::{Format, FormatWith};
     #[cfg(feature = "use_std")]
-    pub use crate::groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
+    pub use crate::groupbylazy::{IntoChunks, Chunk, Chunks, ChunkWhile, GroupBy, Group, Groups};
     pub use crate::intersperse::Intersperse;
     #[cfg(feature = "use_std")]
     pub use crate::kmerge_impl::{KMerge, KMergeBy};
@@ -2646,6 +2646,40 @@ pub trait Itertools : Iterator {
         Self: Sized,
     {
         multipeek_impl::multipeek(self)
+    }
+
+    /// An iterator over chunks of another iterator. The size of each chunk is variable, and
+    /// is determined by a closure passed to the iterator
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// const MAX_SUM_PER_CHUNK: usize = 10;
+    /// const MAX_LENGTH_PER_CHUNK: usize = 4;
+    ///
+    /// let mut iter = (1..12).step_by(2).chunk_while((0, 0), |(chunk_len, chunk_size), elem| {
+    ///     let new_size = chunk_size + elem;
+    ///     if new_size >= MAX_SUM_PER_CHUNK {
+    ///         None
+    ///     } else if *chunk_len == MAX_LENGTH_PER_CHUNK {
+    ///         None
+    ///     } else {
+    ///         Some((chunk_len + 1, new_size))
+    ///     }
+    /// });
+    /// assert_eq!(iter.next(), Some(vec![1, 3, 5]));
+    /// assert_eq!(iter.next(), Some(vec![7, 9]));
+    /// assert_eq!(iter.next(), Some(vec![11]));
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn chunk_while<'a, B, F>(self, initial_state: B, f: F)  -> ChunkWhile<'a, Self, B, F>
+    where
+        F: FnMut(&B, &Self::Item) -> Option<B>,
+        B: Clone + 'a,
+        Self: Sized,
+    {
+        groupbylazy::new_chunk_while(self, initial_state, f)
     }
 }
 
