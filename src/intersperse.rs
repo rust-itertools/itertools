@@ -1,7 +1,6 @@
 use std::iter::Fuse;
 use super::size_hint;
 
-#[derive(Clone)]
 /// An iterator adaptor to insert a particular value
 /// between each element of the adapted iterator.
 ///
@@ -11,7 +10,7 @@ use super::size_hint;
 ///
 /// See [`.intersperse()`](../trait.Itertools.html#method.intersperse) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Intersperse<I>
     where I: Iterator
 {
@@ -87,7 +86,7 @@ impl<I> Iterator for Intersperse<I>
 ///
 /// See [`.intersperse_with()`](../trait.Itertools.html#method.intersperse_with) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct IntersperseWith<I, ElemF>
     where I: Iterator,
     ElemF: FnMut() -> I::Item,
