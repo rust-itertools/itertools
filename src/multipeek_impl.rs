@@ -82,11 +82,7 @@ impl<I> Iterator for MultiPeek<I>
 
     fn next(&mut self) -> Option<I::Item> {
         self.index = 0;
-        if self.buf.is_empty() {
-            self.iter.next()
-        } else {
-            self.buf.pop_front()
-        }
+        self.buf.pop_front().or_else(|| self.iter.next())
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
