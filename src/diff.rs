@@ -13,8 +13,9 @@ use crate::structs::PutBack;
 /// `Diff` represents the way in which the elements yielded by the iterator `I` differ to some
 /// iterator `J`.
 pub enum Diff<I, J>
-    where I: Iterator,
-          J: Iterator
+where
+    I: Iterator,
+    J: Iterator,
 {
     /// The index of the first non-matching element along with both iterator's remaining elements
     /// starting with the first mis-match.
@@ -23,6 +24,16 @@ pub enum Diff<I, J>
     Shorter(usize, PutBack<I>),
     /// The total number of elements that were in `I` along with the remaining elements of `J`.
     Longer(usize, PutBack<J>),
+}
+
+impl<I: Iterator, J: Iterator> std::fmt::Debug for Diff<I, J> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+        match self {
+            Diff::FirstMismatch(p, _, _) => f.write_str(&format!("found mismatch at: {}", p)),
+            Diff::Shorter(p, _) => f.write_str(&format!("iterator j only had {} items", p)),
+            Diff::Longer(p, _) => f.write_str(&format!("iterator i only had {} items", p)),
+        }
+    }
 }
 
 /// Compares every element yielded by both `i` and `j` with the given function in lock-step and
@@ -37,11 +48,11 @@ pub enum Diff<I, J>
 ///
 /// If `i` becomes exhausted before `j` becomes exhausted, the number of elements in `i` along with
 /// the remaining `j` elements will be returned as `Diff::Longer`.
-pub fn diff_with<I, J, F>(i: I, j: J, is_equal: F)
-    -> Option<Diff<I::IntoIter, J::IntoIter>>
-    where I: IntoIterator,
-          J: IntoIterator,
-          F: Fn(&I::Item, &J::Item) -> bool
+pub fn diff_with<I, J, F>(i: I, j: J, is_equal: F) -> Option<Diff<I::IntoIter, J::IntoIter>>
+where
+    I: IntoIterator,
+    J: IntoIterator,
+    F: Fn(&I::Item, &J::Item) -> bool,
 {
     let mut i = i.into_iter();
     let mut j = j.into_iter();
@@ -49,13 +60,16 @@ pub fn diff_with<I, J, F>(i: I, j: J, is_equal: F)
     while let Some(i_elem) = i.next() {
         match j.next() {
             None => return Some(Diff::Shorter(idx, put_back(i).with_value(i_elem))),
-            Some(j_elem) => if !is_equal(&i_elem, &j_elem) {
-                let remaining_i = put_back(i).with_value(i_elem);
-                let remaining_j = put_back(j).with_value(j_elem);
-                return Some(Diff::FirstMismatch(idx, remaining_i, remaining_j));
-            },
+            Some(j_elem) => {
+                if !is_equal(&i_elem, &j_elem) {
+                    let remaining_i = put_back(i).with_value(i_elem);
+                    let remaining_j = put_back(j).with_value(j_elem);
+                    return Some(Diff::FirstMismatch(idx, remaining_i, remaining_j));
+                }
+            }
         }
         idx += 1;
     }
-    j.next().map(|j_elem| Diff::Longer(idx, put_back(j).with_value(j_elem)))
+    j.next()
+        .map(|j_elem| Diff::Longer(idx, put_back(j).with_value(j_elem)))
 }
