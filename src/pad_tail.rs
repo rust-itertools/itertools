@@ -64,7 +64,7 @@ impl<I, F> DoubleEndedIterator for PadUsing<I, F>
     where I: DoubleEndedIterator + ExactSizeIterator,
           F: FnMut(usize) -> I::Item
 {
-    fn next_back(&mut self) -> Option<I::Item> {
+    fn next_back(&mut self) -> Option<Self::Item> {
         if self.min == 0 {
             self.iter.next_back()
         } else if self.iter.len() >= self.min {

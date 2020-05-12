@@ -78,7 +78,7 @@ impl<I> DoubleEndedIterator for RcIter<I>
     where I: DoubleEndedIterator
 {
     #[inline]
-    fn next_back(&mut self) -> Option<I::Item> {
+    fn next_back(&mut self) -> Option<Self::Item> {
         self.rciter.borrow_mut().next_back()
     }
 }
