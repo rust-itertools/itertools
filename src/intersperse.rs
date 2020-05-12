@@ -38,7 +38,7 @@ impl<I> Iterator for Intersperse<I>
 {
     type Item = I::Item;
     #[inline]
-    fn next(&mut self) -> Option<I::Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         if self.peek.is_some() {
             self.peek.take()
         } else {

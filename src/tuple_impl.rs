@@ -103,7 +103,7 @@ impl<I, T> Iterator for Tuples<I, T>
 {
     type Item = T;
 
-    fn next(&mut self) -> Option<T> {
+    fn next(&mut self) -> Option<Self::Item> {
         T::collect_from_iter(&mut self.iter, &mut self.buf)
     }
 }
@@ -173,7 +173,7 @@ impl<I, T> Iterator for TupleWindows<I, T>
 {
     type Item = T;
 
-    fn next(&mut self) -> Option<T> {
+    fn next(&mut self) -> Option<Self::Item> {
         if T::num_items() == 1 {
             return T::collect_from_iter_no_buf(&mut self.iter)
         }
@@ -224,7 +224,7 @@ impl<I, T> Iterator for CircularTupleWindows<I, T>
 {
     type Item = T;
 
-    fn next(&mut self) -> Option<T> {
+    fn next(&mut self) -> Option<Self::Item> {
         self.iter.next()
     }
 }

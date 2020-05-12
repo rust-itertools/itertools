@@ -60,7 +60,7 @@ impl<A, I> Iterator for RcIter<I>
 {
     type Item = A;
     #[inline]
-    fn next(&mut self) -> Option<A> {
+    fn next(&mut self) -> Option<Self::Item> {
         self.rciter.borrow_mut().next()
     }
 

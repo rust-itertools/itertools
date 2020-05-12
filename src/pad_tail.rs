@@ -36,7 +36,7 @@ impl<I, F> Iterator for PadUsing<I, F>
     type Item = I::Item;
 
     #[inline]
-    fn next(&mut self) -> Option<I::Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         match self.iter.next() {
             None => {
                 if self.pos < self.min {

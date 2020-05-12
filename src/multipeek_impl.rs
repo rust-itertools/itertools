@@ -80,7 +80,7 @@ impl<I> Iterator for MultiPeek<I>
 {
     type Item = I::Item;
 
-    fn next(&mut self) -> Option<I::Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         self.index = 0;
         self.buf.pop_front().or_else(|| self.iter.next())
     }

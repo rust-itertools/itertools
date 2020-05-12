@@ -54,7 +54,7 @@ impl<I, V, F> Iterator for UniqueBy<I, V, F>
 {
     type Item = I::Item;
 
-    fn next(&mut self) -> Option<I::Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         while let Some(v) = self.iter.next() {
             let key = (self.f)(&v);
             if self.used.insert(key, ()).is_none() {
@@ -82,7 +82,7 @@ impl<I> Iterator for Unique<I>
 {
     type Item = I::Item;
 
-    fn next(&mut self) -> Option<I::Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         while let Some(v) = self.iter.iter.next() {
             if let Entry::Vacant(entry) = self.iter.used.entry(v) {
                 let elt = entry.key().clone();
