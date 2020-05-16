@@ -110,6 +110,26 @@ fn dedup() {
 }
 
 #[test]
+fn coalesce() {
+    let data = vec![-1., -2., -3., 3., 1., 0., -1.];
+    let it = data.iter().cloned().coalesce(|x, y|
+        if (x >= 0.) == (y >= 0.) {
+            Ok(x + y)
+        } else {
+            Err((x, y))
+        }
+    );
+    itertools::assert_equal(it.clone(), vec![-6., 4., -1.]);
+    assert_eq!(
+        it.fold(vec![], |mut v, n| {
+            v.push(n);
+            v
+        }),
+        vec![-6., 4., -1.]
+    );
+}
+
+#[test]
 fn dedup_by() {
     let xs = [(0, 0), (0, 1), (1, 1), (2, 1), (0, 2), (3, 1), (0, 3), (1, 3)];
     let ys = [(0, 0), (0, 1), (0, 2), (3, 1), (0, 3)];
