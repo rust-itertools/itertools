@@ -607,18 +607,18 @@ impl<I, J, F> Iterator for MergeBy<I, J, F>
 }
 
 #[derive(Clone, Debug)]
-pub struct CoalesceCore<I>
+pub struct CoalesceCore<I, T>
     where I: Iterator
 {
     iter: I,
-    last: Option<I::Item>,
+    last: Option<T>,
 }
 
-impl<I> CoalesceCore<I>
+impl<I, T> CoalesceCore<I, T>
     where I: Iterator
 {
-    fn next_with<F>(&mut self, mut f: F) -> Option<I::Item>
-        where F: FnMut(I::Item, I::Item) -> Result<I::Item, (I::Item, I::Item)>
+    fn next_with<F>(&mut self, mut f: F) -> Option<T>
+        where F: FnMut(T, I::Item) -> Result<T, (T, T)>
     {
         // this fuses the iterator
         let mut last = match self.last.take() {
@@ -652,7 +652,7 @@ impl<I> CoalesceCore<I>
 pub struct Coalesce<I, F>
     where I: Iterator
 {
-    iter: CoalesceCore<I>,
+    iter: CoalesceCore<I, I::Item>,
     f: F,
 }
 
@@ -705,7 +705,7 @@ impl<I, F> Iterator for Coalesce<I, F>
 pub struct DedupBy<I, Pred>
     where I: Iterator
 {
-    iter: CoalesceCore<I>,
+    iter: CoalesceCore<I, I::Item>,
     dedup_pred: Pred,
 }
 
