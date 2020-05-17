@@ -696,6 +696,23 @@ impl<I, F> Iterator for Coalesce<I, F>
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.iter.size_hint()
     }
+
+    fn fold<Acc, FnAcc>(self, acc: Acc, mut fn_acc: FnAcc) -> Acc
+        where FnAcc: FnMut(Acc, Self::Item) -> Acc,
+    {
+        if let Some(last) = self.iter.last {
+            let mut f = self.f;
+            let (last, acc) = self.iter.iter.fold((last, acc), |(last, acc), elt| {
+                match f(last, elt) {
+                    Ok(joined) => (joined, acc),
+                    Err((last_, next_)) => (next_, fn_acc(acc, last_)),
+                }
+            });
+            fn_acc(acc, last)
+        } else {
+            acc
+        }
+    }
 }
 
 /// An iterator adaptor that removes repeated duplicates, determining equality using a comparison function.
