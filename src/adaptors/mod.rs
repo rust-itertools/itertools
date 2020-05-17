@@ -649,12 +649,12 @@ impl<I, T> CoalesceCore<I, T>
 ///
 /// See [`.coalesce()`](../trait.Itertools.html#method.coalesce) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub type Coalesce<I, F> = CoalesceBy<I, F>;
+pub type Coalesce<I, F> = CoalesceBy<I, F, <I as Iterator>::Item>;
 
-pub struct CoalesceBy<I, F>
+pub struct CoalesceBy<I, F, T>
     where I: Iterator
 {
-    iter: CoalesceCore<I, I::Item>,
+    iter: CoalesceCore<I, T>,
     f: F,
 }
 
@@ -670,16 +670,15 @@ impl<F, Item, T> CoalescePredicate<Item, T> for F
     }
 }
 
-impl<I: Clone, F: Clone> Clone for CoalesceBy<I, F>
+impl<I: Clone, F: Clone, T: Clone> Clone for CoalesceBy<I, F, T>
     where I: Iterator,
-          I::Item: Clone
 {
     clone_fields!(iter, f);
 }
 
-impl<I, F> fmt::Debug for CoalesceBy<I, F>
+impl<I, F, T> fmt::Debug for CoalesceBy<I, F, T>
     where I: Iterator + fmt::Debug,
-          I::Item: fmt::Debug,
+          T: fmt::Debug,
 {
     debug_fmt_fields!(CoalesceBy, iter);
 }
@@ -697,11 +696,11 @@ pub fn coalesce<I, F>(mut iter: I, f: F) -> Coalesce<I, F>
     }
 }
 
-impl<I, F> Iterator for CoalesceBy<I, F>
+impl<I, F, T> Iterator for CoalesceBy<I, F, T>
     where I: Iterator,
-          F: CoalescePredicate<I::Item, I::Item>
+          F: CoalescePredicate<I::Item, T>
 {
-    type Item = I::Item;
+    type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
         let f = &mut self.f;
