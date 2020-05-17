@@ -799,11 +799,21 @@ pub fn dedup<I>(iter: I) -> Dedup<I>
 /// See [`.dedup_by_with_count()`](../trait.Itertools.html#method.dedup_by_with_count) or
 /// [`.dedup_with_count()`](../trait.Itertools.html#method.dedup_with_count) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct DedupByWithCount<I, Pred>
-    where I: Iterator
+pub type DedupByWithCount<I, Pred> = CoalesceBy<I, DedupPredWithCount2CoalescePred<Pred>, (usize, <I as Iterator>::Item)>;
+
+#[derive(Clone)]
+pub struct DedupPredWithCount2CoalescePred<DP>(DP);
+
+impl<DP, T> CoalescePredicate<T, (usize, T)> for DedupPredWithCount2CoalescePred<DP>
+    where DP: DedupPredicate<T>
 {
-    iter: CoalesceCore<I, (usize, I::Item)>,
-    dedup_pred: Pred,
+    fn coalesce_pair(&mut self, (c, t): (usize, T), item: T) -> Result<(usize, T), ((usize, T), (usize, T))> {
+        if self.0.dedup_pair(&t, &item) {
+            Ok((c + 1, t))
+        } else {
+            Err(((c, t), (1, item)))
+        }
+    }
 }
 
 /// An iterator adaptor that removes repeated duplicates, while keeping a count of how many
@@ -821,7 +831,7 @@ pub fn dedup_by_with_count<I, Pred>(mut iter: I, dedup_pred: Pred) -> DedupByWit
             last: iter.next().map(|v| (1, v)),
             iter,
         },
-        dedup_pred,
+        f: DedupPredWithCount2CoalescePred(dedup_pred),
     }
 }
 
@@ -830,38 +840,6 @@ pub fn dedup_with_count<I>(iter: I) -> DedupWithCount<I>
     where I: Iterator
 {
     dedup_by_with_count(iter, DedupEq)
-}
-
-impl<I, Pred> fmt::Debug for DedupByWithCount<I, Pred>
-    where I: Iterator + fmt::Debug,
-          I::Item: fmt::Debug,
-{
-    debug_fmt_fields!(Dedup, iter);
-}
-
-impl<I: Clone, Pred: Clone> Clone for DedupByWithCount<I, Pred>
-    where I: Iterator,
-          I::Item: Clone,
-{
-    clone_fields!(iter, dedup_pred);
-}
-
-impl<I, Pred> Iterator for DedupByWithCount<I, Pred>
-    where I: Iterator,
-          Pred: DedupPredicate<I::Item>,
-{
-    type Item = (usize, I::Item);
-
-    fn next(&mut self) -> Option<(usize, I::Item)> {
-        let ref mut dedup_pred = self.dedup_pred;
-        self.iter.next_with(|(c, x), y| {
-            if dedup_pred.dedup_pair(&x, &y) { Ok((c + 1, x)) } else { Err(((c, x), (1, y))) }
-        })
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.iter.size_hint()
-    }
 }
 
 impl<I: Iterator, Pred: DedupPredicate<I::Item>> FusedIterator for DedupByWithCount<I, Pred> {}
