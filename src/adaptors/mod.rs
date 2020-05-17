@@ -656,6 +656,18 @@ pub struct Coalesce<I, F>
     f: F,
 }
 
+pub trait CoalescePredicate<Item, T> {
+    fn coalesce_pair(&mut self, t: T, item: Item) -> Result<T, (T, T)>;
+}
+
+impl<F, Item, T> CoalescePredicate<Item, T> for F
+    where F: FnMut(T, Item) -> Result<T, (T, T)>
+{
+    fn coalesce_pair(&mut self, t: T, item: Item) -> Result<T, (T, T)> {
+        self(t, item)
+    }
+}
+
 impl<I: Clone, F: Clone> Clone for Coalesce<I, F>
     where I: Iterator,
           I::Item: Clone
@@ -685,12 +697,13 @@ pub fn coalesce<I, F>(mut iter: I, f: F) -> Coalesce<I, F>
 
 impl<I, F> Iterator for Coalesce<I, F>
     where I: Iterator,
-          F: FnMut(I::Item, I::Item) -> Result<I::Item, (I::Item, I::Item)>
+          F: CoalescePredicate<I::Item, I::Item>
 {
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next_with(&mut self.f)
+        let f = &mut self.f;
+        self.iter.next_with(|last, item| f.coalesce_pair(last, item))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -703,7 +716,7 @@ impl<I, F> Iterator for Coalesce<I, F>
         if let Some(last) = self.iter.last {
             let mut f = self.f;
             let (last, acc) = self.iter.iter.fold((last, acc), |(last, acc), elt| {
-                match f(last, elt) {
+                match f.coalesce_pair(last, elt) {
                     Ok(joined) => (joined, acc),
                     Err((last_, next_)) => (next_, fn_acc(acc, last_)),
                 }
