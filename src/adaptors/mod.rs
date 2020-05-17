@@ -9,7 +9,6 @@ mod multi_product;
 pub use self::multi_product::*;
 
 use std::fmt;
-use std::mem::replace;
 use std::iter::{Fuse, Peekable, FromIterator, FusedIterator};
 use std::marker::PhantomData;
 use crate::size_hint;
@@ -733,11 +732,21 @@ impl<I, F, T> Iterator for CoalesceBy<I, F, T>
 ///
 /// See [`.dedup_by()`](../trait.Itertools.html#method.dedup_by) or [`.dedup()`](../trait.Itertools.html#method.dedup) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct DedupBy<I, Pred>
-    where I: Iterator
+pub type DedupBy<I, Pred> = CoalesceBy<I, DedupPred2CoalescePred<Pred>, <I as Iterator>::Item>;
+
+#[derive(Clone)]
+pub struct DedupPred2CoalescePred<DP>(DP);
+
+impl<DP, T> CoalescePredicate<T, T> for DedupPred2CoalescePred<DP>
+    where DP: DedupPredicate<T>
 {
-    iter: CoalesceCore<I, I::Item>,
-    dedup_pred: Pred,
+    fn coalesce_pair(&mut self, t: T, item: T) -> Result<T, (T, T)> {
+        if self.0.dedup_pair(&t, &item) {
+            Ok(t)
+        } else {
+            Err((t, item))
+        }
+    }
 }
 
 pub trait DedupPredicate<T> { // TODO replace by Fn(&T, &T)->bool once Rust supports it
@@ -764,13 +773,6 @@ impl<T, F: FnMut(&T, &T)->bool> DedupPredicate<T> for F {
 /// See [`.dedup()`](../trait.Itertools.html#method.dedup) for more information.
 pub type Dedup<I>=DedupBy<I, DedupEq>;
 
-impl<I: Clone, Pred: Clone> Clone for DedupBy<I, Pred>
-    where I: Iterator,
-          I::Item: Clone,
-{
-    clone_fields!(iter, dedup_pred);
-}
-
 /// Create a new `DedupBy`.
 pub fn dedup_by<I, Pred>(mut iter: I, dedup_pred: Pred) -> DedupBy<I, Pred>
     where I: Iterator,
@@ -780,7 +782,7 @@ pub fn dedup_by<I, Pred>(mut iter: I, dedup_pred: Pred) -> DedupBy<I, Pred>
             last: iter.next(),
             iter,
         },
-        dedup_pred,
+        f: DedupPred2CoalescePred(dedup_pred),
     }
 }
 
@@ -789,49 +791,6 @@ pub fn dedup<I>(iter: I) -> Dedup<I>
     where I: Iterator
 {
     dedup_by(iter, DedupEq)
-}
-
-impl<I, Pred> fmt::Debug for DedupBy<I, Pred>
-    where I: Iterator + fmt::Debug,
-          I::Item: fmt::Debug,
-{
-    debug_fmt_fields!(Dedup, iter);
-}
-
-impl<I, Pred> Iterator for DedupBy<I, Pred>
-    where I: Iterator,
-          Pred: DedupPredicate<I::Item>,
-{
-    type Item = I::Item;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let ref mut dedup_pred = self.dedup_pred;
-        self.iter.next_with(|x, y| {
-            if dedup_pred.dedup_pair(&x, &y) { Ok(x) } else { Err((x, y)) }
-        })
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.iter.size_hint()
-    }
-
-    fn fold<Acc, G>(self, mut accum: Acc, mut f: G) -> Acc
-        where G: FnMut(Acc, Self::Item) -> Acc,
-    {
-        if let Some(mut last) = self.iter.last {
-            let mut dedup_pred = self.dedup_pred;
-            accum = self.iter.iter.fold(accum, |acc, elt| {
-                if dedup_pred.dedup_pair(&elt, &last) {
-                    acc
-                } else {
-                    f(acc, replace(&mut last, elt))
-                }
-            });
-            f(accum, last)
-        } else {
-            accum
-        }
-    }
 }
 
 /// An iterator adaptor that removes repeated duplicates, while keeping a count of how many
