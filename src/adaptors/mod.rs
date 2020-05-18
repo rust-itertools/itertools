@@ -10,7 +10,7 @@ pub use self::multi_product::*;
 
 use std::fmt;
 use std::mem::replace;
-use std::iter::{Fuse, Peekable, FromIterator};
+use std::iter::{Fuse, Peekable, FromIterator, FusedIterator};
 use std::marker::PhantomData;
 use crate::size_hint;
 
@@ -310,13 +310,13 @@ pub fn cartesian_product<I, J>(mut i: I, j: J) -> Product<I, J>
     }
 }
 
-
 impl<I, J> Iterator for Product<I, J>
     where I: Iterator,
           J: Clone + Iterator,
           I::Item: Clone
 {
     type Item = (I::Item, J::Item);
+
     fn next(&mut self) -> Option<(I::Item, J::Item)> {
         let elt_b = match self.b.next() {
             None => {
@@ -607,18 +607,18 @@ impl<I, J, F> Iterator for MergeBy<I, J, F>
 }
 
 #[derive(Clone, Debug)]
-pub struct CoalesceCore<I>
+pub struct CoalesceCore<I, T>
     where I: Iterator
 {
     iter: I,
-    last: Option<I::Item>,
+    last: Option<T>,
 }
 
-impl<I> CoalesceCore<I>
+impl<I, T> CoalesceCore<I, T>
     where I: Iterator
 {
-    fn next_with<F>(&mut self, mut f: F) -> Option<I::Item>
-        where F: FnMut(I::Item, I::Item) -> Result<I::Item, (I::Item, I::Item)>
+    fn next_with<F>(&mut self, mut f: F) -> Option<T>
+        where F: FnMut(T, I::Item) -> Result<T, (T, T)>
     {
         // this fuses the iterator
         let mut last = match self.last.take() {
@@ -652,7 +652,7 @@ impl<I> CoalesceCore<I>
 pub struct Coalesce<I, F>
     where I: Iterator
 {
-    iter: CoalesceCore<I>,
+    iter: CoalesceCore<I, I::Item>,
     f: F,
 }
 
@@ -705,7 +705,7 @@ impl<I, F> Iterator for Coalesce<I, F>
 pub struct DedupBy<I, Pred>
     where I: Iterator
 {
-    iter: CoalesceCore<I>,
+    iter: CoalesceCore<I, I::Item>,
     dedup_pred: Pred,
 }
 
@@ -718,7 +718,7 @@ pub struct DedupEq;
 
 impl<T: PartialEq> DedupPredicate<T> for DedupEq {
     fn dedup_pair(&mut self, a: &T, b: &T) -> bool {
-        a==b
+        a == b
     }
 }
 
@@ -802,6 +802,79 @@ impl<I, Pred> Iterator for DedupBy<I, Pred>
         }
     }
 }
+
+/// An iterator adaptor that removes repeated duplicates, while keeping a count of how many
+/// repeated elements were present. This will determine equality using a comparison function.
+///
+/// See [`.dedup_by_with_count()`](../trait.Itertools.html#method.dedup_by_with_count) or
+/// [`.dedup_with_count()`](../trait.Itertools.html#method.dedup_with_count) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+pub struct DedupByWithCount<I, Pred>
+    where I: Iterator
+{
+    iter: CoalesceCore<I, (usize, I::Item)>,
+    dedup_pred: Pred,
+}
+
+/// An iterator adaptor that removes repeated duplicates, while keeping a count of how many
+/// repeated elements were present.
+///
+/// See [`.dedup_with_count()`](../trait.Itertools.html#method.dedup_with_count) for more information.
+pub type DedupWithCount<I> = DedupByWithCount<I, DedupEq>;
+
+/// Create a new `DedupByWithCount`.
+pub fn dedup_by_with_count<I, Pred>(mut iter: I, dedup_pred: Pred) -> DedupByWithCount<I, Pred>
+    where I: Iterator,
+{
+    DedupByWithCount {
+        iter: CoalesceCore {
+            last: iter.next().map(|v| (1, v)),
+            iter,
+        },
+        dedup_pred,
+    }
+}
+
+/// Create a new `DedupWithCount`.
+pub fn dedup_with_count<I>(iter: I) -> DedupWithCount<I>
+    where I: Iterator
+{
+    dedup_by_with_count(iter, DedupEq)
+}
+
+impl<I, Pred> fmt::Debug for DedupByWithCount<I, Pred>
+    where I: Iterator + fmt::Debug,
+          I::Item: fmt::Debug,
+{
+    debug_fmt_fields!(Dedup, iter);
+}
+
+impl<I: Clone, Pred: Clone> Clone for DedupByWithCount<I, Pred>
+    where I: Iterator,
+          I::Item: Clone,
+{
+    clone_fields!(iter, dedup_pred);
+}
+
+impl<I, Pred> Iterator for DedupByWithCount<I, Pred>
+    where I: Iterator,
+          Pred: DedupPredicate<I::Item>,
+{
+    type Item = (usize, I::Item);
+
+    fn next(&mut self) -> Option<(usize, I::Item)> {
+        let ref mut dedup_pred = self.dedup_pred;
+        self.iter.next_with(|(c, x), y| {
+            if dedup_pred.dedup_pair(&x, &y) { Ok((c + 1, x)) } else { Err(((c, x), (1, y))) }
+        })
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+}
+
+impl<I: Iterator, Pred: DedupPredicate<I::Item>> FusedIterator for DedupByWithCount<I, Pred> {}
 
 /// An iterator adaptor that borrows from a `Clone`-able iterator
 /// to only pick off elements while the predicate returns `true`.

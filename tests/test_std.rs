@@ -116,6 +116,33 @@ fn dedup_by() {
 }
 
 #[test]
+fn dedup_with_count() {
+    let xs: [i32; 8] = [0, 1, 1, 1, 2, 1, 3, 3];
+    let ys: [(usize, &i32); 5] = [(1, &0), (3, &1), (1, &2), (1, &1), (2, &3)];
+
+    it::assert_equal(ys.iter().cloned(), xs.iter().dedup_with_count());
+
+    let xs: [i32; 5] = [0, 0, 0, 0, 0];
+    let ys: [(usize, &i32); 1] = [(5, &0)];
+
+    it::assert_equal(ys.iter().cloned(), xs.iter().dedup_with_count());
+}
+
+
+#[test]
+fn dedup_by_with_count() {
+    let xs = [(0, 0), (0, 1), (1, 1), (2, 1), (0, 2), (3, 1), (0, 3), (1, 3)];
+    let ys = [(1, &(0, 0)), (3, &(0, 1)), (1, &(0, 2)), (1, &(3, 1)), (2, &(0, 3))];
+
+    it::assert_equal(ys.iter().cloned(), xs.iter().dedup_by_with_count(|x, y| x.1==y.1));
+
+    let xs = [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5)];
+    let ys = [( 5, &(0, 1))];
+
+    it::assert_equal(ys.iter().cloned(), xs.iter().dedup_by_with_count(|x, y| x.0==y.0));
+}
+
+#[test]
 fn all_equal() {
     assert!("".chars().all_equal());
     assert!("A".chars().all_equal());
