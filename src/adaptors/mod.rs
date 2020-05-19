@@ -605,37 +605,6 @@ impl<I, J, F> Iterator for MergeBy<I, J, F>
     }
 }
 
-impl<I, F, T> CoalesceBy<I, F, T>
-    where I: Iterator
-{
-    fn next_with(&mut self) -> Option<T>
-        where F: CoalescePredicate<I::Item, T>
-    {
-        // this fuses the iterator
-        let mut last = match self.last.take() {
-            None => return None,
-            Some(x) => x,
-        };
-        for next in &mut self.iter {
-            match self.f.coalesce_pair(last, next) {
-                Ok(joined) => last = joined,
-                Err((last_, next_)) => {
-                    self.last = Some(next_);
-                    return Some(last_);
-                }
-            }
-        }
-
-        Some(last)
-    }
-
-    fn size_hint_internal(&self) -> (usize, Option<usize>) {
-        let (low, hi) = size_hint::add_scalar(self.iter.size_hint(),
-                                              self.last.is_some() as usize);
-        ((low > 0) as usize, hi)
-    }
-}
-
 /// An iterator adaptor that may join together adjacent elements.
 ///
 /// See [`.coalesce()`](../trait.Itertools.html#method.coalesce) for more information.
@@ -693,11 +662,27 @@ impl<I, F, T> Iterator for CoalesceBy<I, F, T>
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.next_with()
+        // this fuses the iterator
+        let mut last = match self.last.take() {
+            None => return None,
+            Some(x) => x,
+        };
+        for next in &mut self.iter {
+            match self.f.coalesce_pair(last, next) {
+                Ok(joined) => last = joined,
+                Err((last_, next_)) => {
+                    self.last = Some(next_);
+                    return Some(last_);
+                }
+            }
+        }
+        Some(last)
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        self.size_hint_internal()
+        let (low, hi) = size_hint::add_scalar(self.iter.size_hint(),
+                                              self.last.is_some() as usize);
+        ((low > 0) as usize, hi)
     }
 
     fn fold<Acc, FnAcc>(self, acc: Acc, mut fn_acc: FnAcc) -> Acc
