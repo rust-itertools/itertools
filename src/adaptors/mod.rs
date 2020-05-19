@@ -1096,7 +1096,7 @@ impl_tuple_combination!(Tuple4Combination Tuple3Combination ; A, A, A, A, A; a b
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct MapInto<I, R> {
     iter: I,
-    _res: PhantomData<fn() -> R>,
+    _res: PhantomData<R>,
 }
 
 /// Create a new [`MapInto`](struct.MapInto.html) iterator.
