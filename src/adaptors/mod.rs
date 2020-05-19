@@ -605,19 +605,11 @@ impl<I, J, F> Iterator for MergeBy<I, J, F>
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct CoalesceCore<I, T>
+impl<I, F, T> CoalesceBy<I, F, T>
     where I: Iterator
 {
-    iter: I,
-    last: Option<T>,
-}
-
-impl<I, T> CoalesceCore<I, T>
-    where I: Iterator
-{
-    fn next_with<F>(&mut self, mut f: F) -> Option<T>
-        where F: FnMut(T, I::Item) -> Result<T, (T, T)>
+    fn next_with(&mut self) -> Option<T>
+        where F: CoalescePredicate<I::Item, T>
     {
         // this fuses the iterator
         let mut last = match self.last.take() {
@@ -625,7 +617,7 @@ impl<I, T> CoalesceCore<I, T>
             Some(x) => x,
         };
         for next in &mut self.iter {
-            match f(last, next) {
+            match self.f.coalesce_pair(last, next) {
                 Ok(joined) => last = joined,
                 Err((last_, next_)) => {
                     self.last = Some(next_);
@@ -637,7 +629,7 @@ impl<I, T> CoalesceCore<I, T>
         Some(last)
     }
 
-    fn size_hint(&self) -> (usize, Option<usize>) {
+    fn size_hint_internal(&self) -> (usize, Option<usize>) {
         let (low, hi) = size_hint::add_scalar(self.iter.size_hint(),
                                               self.last.is_some() as usize);
         ((low > 0) as usize, hi)
@@ -653,7 +645,8 @@ pub type Coalesce<I, F> = CoalesceBy<I, F, <I as Iterator>::Item>;
 pub struct CoalesceBy<I, F, T>
     where I: Iterator
 {
-    iter: CoalesceCore<I, T>,
+    iter: I,
+    last: Option<T>,
     f: F,
 }
 
@@ -672,7 +665,7 @@ impl<F, Item, T> CoalescePredicate<Item, T> for F
 impl<I: Clone, F: Clone, T: Clone> Clone for CoalesceBy<I, F, T>
     where I: Iterator,
 {
-    clone_fields!(iter, f);
+    clone_fields!(last, iter, f);
 }
 
 impl<I, F, T> fmt::Debug for CoalesceBy<I, F, T>
@@ -687,10 +680,8 @@ pub fn coalesce<I, F>(mut iter: I, f: F) -> Coalesce<I, F>
     where I: Iterator
 {
     Coalesce {
-        iter: CoalesceCore {
-            last: iter.next(),
-            iter,
-        },
+        last: iter.next(),
+        iter,
         f,
     }
 }
@@ -702,20 +693,19 @@ impl<I, F, T> Iterator for CoalesceBy<I, F, T>
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let f = &mut self.f;
-        self.iter.next_with(|last, item| f.coalesce_pair(last, item))
+        self.next_with()
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        self.iter.size_hint()
+        self.size_hint_internal()
     }
 
     fn fold<Acc, FnAcc>(self, acc: Acc, mut fn_acc: FnAcc) -> Acc
         where FnAcc: FnMut(Acc, Self::Item) -> Acc,
     {
-        if let Some(last) = self.iter.last {
+        if let Some(last) = self.last {
             let mut f = self.f;
-            let (last, acc) = self.iter.iter.fold((last, acc), |(last, acc), elt| {
+            let (last, acc) = self.iter.fold((last, acc), |(last, acc), elt| {
                 match f.coalesce_pair(last, elt) {
                     Ok(joined) => (joined, acc),
                     Err((last_, next_)) => (next_, fn_acc(acc, last_)),
@@ -778,10 +768,8 @@ pub fn dedup_by<I, Pred>(mut iter: I, dedup_pred: Pred) -> DedupBy<I, Pred>
     where I: Iterator,
 {
     DedupBy {
-        iter: CoalesceCore {
-            last: iter.next(),
-            iter,
-        },
+        last: iter.next(),
+        iter,
         f: DedupPred2CoalescePred(dedup_pred),
     }
 }
@@ -827,10 +815,8 @@ pub fn dedup_by_with_count<I, Pred>(mut iter: I, dedup_pred: Pred) -> DedupByWit
     where I: Iterator,
 {
     DedupByWithCount {
-        iter: CoalesceCore {
-            last: iter.next().map(|v| (1, v)),
-            iter,
-        },
+        last: iter.next().map(|v| (1, v)),
+        iter,
         f: DedupPredWithCount2CoalescePred(dedup_pred),
     }
 }
