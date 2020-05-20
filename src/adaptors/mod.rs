@@ -649,7 +649,9 @@ impl<I, T> CoalesceCore<I, T>
 ///
 /// See [`.coalesce()`](../trait.Itertools.html#method.coalesce) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct Coalesce<I, F>
+pub type Coalesce<I, F> = CoalesceBy<I, F>;
+
+pub struct CoalesceBy<I, F>
     where I: Iterator
 {
     iter: CoalesceCore<I, I::Item>,
@@ -668,18 +670,18 @@ impl<F, Item, T> CoalescePredicate<Item, T> for F
     }
 }
 
-impl<I: Clone, F: Clone> Clone for Coalesce<I, F>
+impl<I: Clone, F: Clone> Clone for CoalesceBy<I, F>
     where I: Iterator,
           I::Item: Clone
 {
     clone_fields!(iter, f);
 }
 
-impl<I, F> fmt::Debug for Coalesce<I, F>
+impl<I, F> fmt::Debug for CoalesceBy<I, F>
     where I: Iterator + fmt::Debug,
           I::Item: fmt::Debug,
 {
-    debug_fmt_fields!(Coalesce, iter);
+    debug_fmt_fields!(CoalesceBy, iter);
 }
 
 /// Create a new `Coalesce`.
@@ -695,7 +697,7 @@ pub fn coalesce<I, F>(mut iter: I, f: F) -> Coalesce<I, F>
     }
 }
 
-impl<I, F> Iterator for Coalesce<I, F>
+impl<I, F> Iterator for CoalesceBy<I, F>
     where I: Iterator,
           F: CoalescePredicate<I::Item, I::Item>
 {
