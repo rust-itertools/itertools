@@ -703,6 +703,8 @@ impl<I, F, T> Iterator for CoalesceBy<I, F, T>
     }
 }
 
+impl<I: Iterator, F: CoalescePredicate<I::Item, T>, T> FusedIterator for CoalesceBy<I, F, T> {}
+
 /// An iterator adaptor that removes repeated duplicates, determining equality using a comparison function.
 ///
 /// See [`.dedup_by()`](../trait.Itertools.html#method.dedup_by) or [`.dedup()`](../trait.Itertools.html#method.dedup) for more information.
@@ -812,8 +814,6 @@ pub fn dedup_with_count<I>(iter: I) -> DedupWithCount<I>
 {
     dedup_by_with_count(iter, DedupEq)
 }
-
-impl<I: Iterator, Pred: DedupPredicate<I::Item>> FusedIterator for DedupByWithCount<I, Pred> {}
 
 /// An iterator adaptor that borrows from a `Clone`-able iterator
 /// to only pick off elements while the predicate returns `true`.
