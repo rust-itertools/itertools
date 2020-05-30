@@ -245,7 +245,6 @@ pub trait TupleCollect: Sized {
 }
 
 macro_rules! impl_tuple_collect {
-    () => ();
     ($N:expr; $A:ident ; $($X:ident),* ; $($Y:ident),* ; $($Y_rev:ident),*) => (
         impl<$A> TupleCollect for ($($X),*,) {
             type Item = $A;
