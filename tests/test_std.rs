@@ -59,6 +59,9 @@ fn unique_by() {
     let xs = ["aaa", "bbbbb", "aa", "ccc", "bbbb", "aaaaa", "cccc"];
     let ys = ["aaa", "bbbbb", "ccc"];
     it::assert_equal(ys.iter(), xs.iter().unique_by(|x| x[..2].to_string()));
+    it::assert_equal(ys.iter(), xs.iter().rev().unique_by(|x| x[..2].to_string()).rev());
+    let ys_rev = ["cccc", "aaaaa", "bbbb"];
+    it::assert_equal(ys_rev.iter(), xs.iter().unique_by(|x| x[..2].to_string()).rev());
 }
 
 #[test]
@@ -66,9 +69,16 @@ fn unique() {
     let xs = [0, 1, 2, 3, 2, 1, 3];
     let ys = [0, 1, 2, 3];
     it::assert_equal(ys.iter(), xs.iter().unique());
+    it::assert_equal(ys.iter(), xs.iter().rev().unique().rev());
+    let ys_rev = [3, 1, 2, 0];
+    it::assert_equal(ys_rev.iter(), xs.iter().unique().rev());
+
     let xs = [0, 1];
     let ys = [0, 1];
     it::assert_equal(ys.iter(), xs.iter().unique());
+    it::assert_equal(ys.iter(), xs.iter().rev().unique().rev());
+    let ys_rev = [1, 0];
+    it::assert_equal(ys_rev.iter(), xs.iter().unique().rev());
 }
 
 #[test]
