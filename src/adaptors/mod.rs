@@ -56,7 +56,7 @@ impl<I, J> Iterator for Interleave<I, J>
 {
     type Item = I::Item;
     #[inline]
-    fn next(&mut self) -> Option<I::Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         self.flag = !self.flag;
         if self.flag {
             match self.a.next() {
@@ -113,7 +113,7 @@ impl<I, J> Iterator for InterleaveShortest<I, J>
     type Item = I::Item;
 
     #[inline]
-    fn next(&mut self) -> Option<I::Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         match self.phase {
             false => match self.it0.next() {
                 None => None,
@@ -221,7 +221,7 @@ impl<I> Iterator for PutBack<I>
 {
     type Item = I::Item;
     #[inline]
-    fn next(&mut self) -> Option<I::Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         match self.top {
             None => self.iter.next(),
             ref mut some => some.take(),
@@ -317,7 +317,7 @@ impl<I, J> Iterator for Product<I, J>
 {
     type Item = (I::Item, J::Item);
 
-    fn next(&mut self) -> Option<(I::Item, J::Item)> {
+    fn next(&mut self) -> Option<Self::Item> {
         let elt_b = match self.b.next() {
             None => {
                 self.b = self.b_orig.clone();
@@ -401,7 +401,7 @@ impl<B, F, I> Iterator for Batching<I, F>
 {
     type Item = B;
     #[inline]
-    fn next(&mut self) -> Option<B> {
+    fn next(&mut self) -> Option<Self::Item> {
         (self.f)(&mut self.iter)
     }
 
@@ -448,7 +448,7 @@ impl<I> Iterator for Step<I>
 {
     type Item = I::Item;
     #[inline]
-    fn next(&mut self) -> Option<I::Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         let elt = self.iter.next();
         if self.skip > 0 {
             self.iter.nth(self.skip - 1);
@@ -577,7 +577,7 @@ impl<I, J, F> Iterator for MergeBy<I, J, F>
 {
     type Item = I::Item;
 
-    fn next(&mut self) -> Option<I::Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         let less_than = match self.fused {
             Some(lt) => lt,
             None => match (self.a.peek(), self.b.peek()) {
@@ -689,7 +689,7 @@ impl<I, F> Iterator for Coalesce<I, F>
 {
     type Item = I::Item;
 
-    fn next(&mut self) -> Option<I::Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         self.iter.next_with(&mut self.f)
     }
 
@@ -773,7 +773,7 @@ impl<I, Pred> Iterator for DedupBy<I, Pred>
 {
     type Item = I::Item;
 
-    fn next(&mut self) -> Option<I::Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         let ref mut dedup_pred = self.dedup_pred;
         self.iter.next_with(|x, y| {
             if dedup_pred.dedup_pair(&x, &y) { Ok(x) } else { Err((x, y)) }
@@ -905,7 +905,7 @@ impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F>
 {
     type Item = I::Item;
 
-    fn next(&mut self) -> Option<I::Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         let old = self.iter.clone();
         match self.iter.next() {
             None => None,
@@ -946,7 +946,7 @@ impl<I, A> Iterator for WhileSome<I>
 {
     type Item = A;
 
-    fn next(&mut self) -> Option<A> {
+    fn next(&mut self) -> Option<Self::Item> {
         match self.iter.next() {
             None | Some(None) => None,
             Some(elt) => elt,
@@ -1113,7 +1113,7 @@ impl<I, R> Iterator for MapInto<I, R>
 {
     type Item = R;
 
-    fn next(&mut self) -> Option<R> {
+    fn next(&mut self) -> Option<Self::Item> {
         self.iter
             .next()
             .map(|i| i.into())

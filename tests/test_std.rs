@@ -230,7 +230,7 @@ fn trait_pointers() {
         I: 'r + Iterator<Item=X>
     {
         type Item = X;
-        fn next(&mut self) -> Option<X>
+        fn next(&mut self) -> Option<Self::Item>
         {
             self.0.next()
         }

@@ -52,7 +52,7 @@ impl<A, F> Iterator for RepeatCall<F>
     type Item = A;
 
     #[inline]
-    fn next(&mut self) -> Option<A> {
+    fn next(&mut self) -> Option<Self::Item> {
         Some((self.f)())
     }
 
@@ -128,7 +128,7 @@ impl<A, St, F> Iterator for Unfold<St, F>
     type Item = A;
 
     #[inline]
-    fn next(&mut self) -> Option<A> {
+    fn next(&mut self) -> Option<Self::Item> {
         (self.f)(&mut self.state)
     }
 

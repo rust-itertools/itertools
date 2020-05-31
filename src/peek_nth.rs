@@ -77,7 +77,7 @@ where
 {
     type Item = I::Item;
 
-    fn next(&mut self) -> Option<I::Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         self.buf.pop_front().or_else(|| self.iter.next())
     }
 

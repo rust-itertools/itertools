@@ -47,7 +47,7 @@ impl<I: Iterator> PutBackN<I> {
 impl<I: Iterator> Iterator for PutBackN<I> {
     type Item = I::Item;
     #[inline]
-    fn next(&mut self) -> Option<I::Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         self.top.pop().or_else(|| self.iter.next())
     }
 
