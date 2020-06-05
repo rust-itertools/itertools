@@ -157,7 +157,6 @@ pub use crate::minmax::MinMaxResult;
 pub use crate::peeking_take_while::PeekingNext;
 pub use crate::process_results_impl::process_results;
 pub use crate::repeatn::repeat_n;
-pub use crate::range::Range;
 #[allow(deprecated)]
 pub use crate::sources::{repeat_call, unfold, iterate};
 pub use crate::with_position::Position;
@@ -416,6 +415,9 @@ pub trait Itertools : Iterator {
     /// // It works with other types of ranges, too
     /// range = vec.iter().range(..2).copied().collect();
     /// assert_eq!(&range, &[3, 1]);
+	///
+    /// range = vec.iter().range(0..1).copied().collect();
+    /// assert_eq!(&range, &[3]);
     ///
     /// range = vec.iter().range(2..).copied().collect();
     /// assert_eq!(&range, &[4, 1, 5]);
@@ -423,11 +425,12 @@ pub trait Itertools : Iterator {
     /// range = vec.iter().range(..).copied().collect();
     /// assert_eq!(range, vec);
     /// ```
-    fn range<R>(self, r: R) -> Range<Self, R>
-        where R: core::ops::RangeBounds<usize>,
-              Self: Sized
+	fn range<R>(self, range: R)
+		-> R::IterTo
+		where R: range::IntoRangeIter<Self>,
+			  Self: Sized
     {
-        range::range(self, r)
+        range::range(self, range)
     }
 
     /// Create an iterator which iterates over both this and the specified
