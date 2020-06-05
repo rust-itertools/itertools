@@ -450,6 +450,8 @@ pub trait Itertools : Iterator {
     /// Similar to [`Iterator::skip`] and [`Iterator::take`],
     /// but some may consider it to be more readable.
     ///
+	/// # Examples
+	///
     /// ```
     /// use itertools::Itertools;
     ///
