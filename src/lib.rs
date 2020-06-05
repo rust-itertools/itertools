@@ -28,7 +28,7 @@
 //! use itertools::interleave;
 //!
 //! for elt in interleave(&[1, 2, 3], &[2, 3, 4]) {
-//!     /* loop body */
+//!        /* loop body */
 //! }
 //! ```
 //!
@@ -37,8 +37,8 @@
 //! - `use_std`
 //!   - Enabled by default.
 //!   - Disable to compile itertools using `#![no_std]`. This disables
-//!     any items that depend on collections (like `group_by`, `unique`,
-//!     `kmerge`, `join` and many more).
+//!        any items that depend on collections (like `group_by`, `unique`,
+//!        `kmerge`, `join` and many more).
 //!
 //! ## Rust Version
 //!
@@ -138,6 +138,7 @@ pub mod structs {
     pub use crate::zip_eq_impl::ZipEq;
     pub use crate::zip_longest::ZipLongest;
     pub use crate::ziptuple::Zip;
+    pub use crate::range::Range;
 }
 
 /// Traits helpful for using certain `Itertools` methods in generic contexts.
@@ -161,6 +162,7 @@ pub use crate::repeatn::repeat_n;
 pub use crate::sources::{repeat_call, unfold, iterate};
 pub use crate::with_position::Position;
 pub use crate::ziptuple::multizip;
+pub use crate::range::range;
 mod adaptors;
 mod either_or_both;
 pub use crate::either_or_both::EitherOrBoth;
@@ -213,6 +215,7 @@ mod with_position;
 mod zip_eq_impl;
 mod zip_longest;
 mod ziptuple;
+mod range;
 
 #[macro_export]
 /// Create an iterator over the “cartesian product” of iterators.
@@ -280,7 +283,7 @@ macro_rules! iproduct {
 /// let inputs = [3, 7, 9, 6];
 ///
 /// for (r, index, input) in izip!(&mut results, 0..10, &inputs) {
-///     *r = index * 10 + input;
+///        *r = index * 10 + input;
 /// }
 ///
 /// assert_eq!(results, [0 + 3, 10 + 7, 29, 36]);
@@ -443,6 +446,36 @@ pub trait Itertools : Iterator {
         zip_eq(self, other)
     }
 
+    /// Limits an iterator to a given range.
+    /// Similar to [`Iterator::skip`] and [`Iterator::take`],
+    /// but some may consider it to be more readable.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let vec = vec![3, 1, 4, 1, 5];
+    ///
+    /// let mut range: Vec<_> = 
+    ///        vec.iter().range(1..=3).copied().collect();
+    /// assert_eq!(&range, &[1, 4, 1]);
+    ///
+    /// // It works with other types of ranges, too
+    /// range = vec.iter().range(..2).copied().collect();
+    /// assert_eq!(&range, &[3, 1]);
+    ///
+    /// range = vec.iter().range(2..).copied().collect();
+    /// assert_eq!(&range, &[4, 1, 5]);
+    ///
+    /// range = vec.iter().range(..).copied().collect();
+    /// assert_eq!(range, vec);
+    /// ```
+    fn range<R>(self, r: R) -> Range<Self, R>
+        where R: core::ops::RangeBounds<usize>,
+              Self: Sized
+    {
+        range::range(self, r)
+    }
+
     /// A “meta iterator adaptor”. Its closure receives a reference to the
     /// iterator and may pick off as many elements as it likes, to produce the
     /// next iterator element.
@@ -454,14 +487,14 @@ pub trait Itertools : Iterator {
     ///
     /// // An adaptor that gathers elements in pairs
     /// let pit = (0..4).batching(|it| {
-    ///            match it.next() {
-    ///                None => None,
-    ///                Some(x) => match it.next() {
-    ///                    None => None,
-    ///                    Some(y) => Some((x, y)),
-    ///                }
-    ///            }
-    ///        });
+    ///               match it.next() {
+    ///                   None => None,
+    ///                   Some(x) => match it.next() {
+    ///                       None => None,
+    ///                       Some(y) => Some((x, y)),
+    ///                   }
+    ///               }
+    ///           });
     ///
     /// itertools::assert_equal(pit, vec![(0, 1), (2, 3)]);
     /// ```
@@ -497,13 +530,13 @@ pub trait Itertools : Iterator {
     ///
     /// // group data into runs of larger than zero or not.
     /// let data = vec![1, 3, -2, -2, 1, 0, 1, 2];
-    /// // groups:     |---->|------>|--------->|
+    /// // groups:       |---->|------>|--------->|
     ///
     /// // Note: The `&` is significant here, `GroupBy` is iterable
     /// // only by reference. You can also call `.into_iter()` explicitly.
     /// let mut data_grouped = Vec::new();
     /// for (key, group) in &data.into_iter().group_by(|elt| *elt >= 0) {
-    ///     data_grouped.push((key, group.collect()));
+    ///        data_grouped.push((key, group.collect()));
     /// }
     /// assert_eq!(data_grouped, vec![(true, vec![1, 3]), (false, vec![-2, -2]), (true, vec![1, 0, 1, 2])]);
     /// ```
@@ -539,8 +572,8 @@ pub trait Itertools : Iterator {
     /// // Note: The `&` is significant here, `IntoChunks` is iterable
     /// // only by reference. You can also call `.into_iter()` explicitly.
     /// for chunk in &data.into_iter().chunks(3) {
-    ///     // Check that the sum of each chunk is 4.
-    ///     assert_eq!(4, chunk.sum());
+    ///        // Check that the sum of each chunk is 4.
+    ///        assert_eq!(4, chunk.sum());
     /// }
     /// ```
     #[cfg(feature = "use_std")]
@@ -562,7 +595,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     /// let mut v = Vec::new();
     /// for (a, b) in (1..5).tuple_windows() {
-    ///     v.push((a, b));
+    ///        v.push((a, b));
     /// }
     /// assert_eq!(v, vec![(1, 2), (2, 3), (3, 4)]);
     ///
@@ -602,7 +635,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     /// let mut v = Vec::new();
     /// for (a, b) in (1..5).circular_tuple_windows() {
-    ///     v.push((a, b));
+    ///        v.push((a, b));
     /// }
     /// assert_eq!(v, vec![(1, 2), (2, 3), (3, 4), (4, 1)]);
     ///
@@ -633,7 +666,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     /// let mut v = Vec::new();
     /// for (a, b) in (1..5).tuples() {
-    ///     v.push((a, b));
+    ///        v.push((a, b));
     /// }
     /// assert_eq!(v, vec![(1, 2), (3, 4)]);
     ///
@@ -801,7 +834,7 @@ pub trait Itertools : Iterator {
     ///   and remove `i` from its source iterator
     /// - Emit `EitherOrBoth::Right(j)` when `i > j`,
     ///   and remove `j` from its source iterator
-    /// - Emit `EitherOrBoth::Both(i, j)` when  `i == j`,
+    /// - Emit `EitherOrBoth::Both(i, j)` when    `i == j`,
     ///   and remove both `i` and `j` from their respective source iterators
     ///
     /// ```
@@ -811,11 +844,11 @@ pub trait Itertools : Iterator {
     /// let ki = (0..10).step(3);
     /// let ku = (0..10).step(5);
     /// let ki_ku = ki.merge_join_by(ku, |i, j| i.cmp(j)).map(|either| {
-    ///     match either {
-    ///         Left(_) => "Ki",
-    ///         Right(_) => "Ku",
-    ///         Both(_, _) => "KiKu"
-    ///     }
+    ///        match either {
+    ///            Left(_) => "Ki",
+    ///            Right(_) => "Ku",
+    ///            Both(_, _) => "KiKu"
+    ///        }
     /// });
     ///
     /// itertools::assert_equal(ki_ku, vec!["KiKu", "Ki", "Ku", "Ki", "Ki"]);
@@ -919,7 +952,7 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     /// let mut multi_prod = (0..3).map(|i| (i * 2)..(i * 2 + 2))
-    ///     .multi_cartesian_product();
+    ///        .multi_cartesian_product();
     /// assert_eq!(multi_prod.next(), Some(vec![0, 2, 4]));
     /// assert_eq!(multi_prod.next(), Some(vec![0, 2, 5]));
     /// assert_eq!(multi_prod.next(), Some(vec![0, 3, 4]));
@@ -961,12 +994,12 @@ pub trait Itertools : Iterator {
     /// // sum same-sign runs together
     /// let data = vec![-1., -2., -3., 3., 1., 0., -1.];
     /// itertools::assert_equal(data.into_iter().coalesce(|x, y|
-    ///         if (x >= 0.) == (y >= 0.) {
-    ///             Ok(x + y)
-    ///         } else {
-    ///             Err((x, y))
-    ///         }),
-    ///         vec![-6., 4., -1.]);
+    ///            if (x >= 0.) == (y >= 0.) {
+    ///                Ok(x + y)
+    ///            } else {
+    ///                Err((x, y))
+    ///            }),
+    ///            vec![-6., 4., -1.]);
     /// ```
     fn coalesce<F>(self, f: F) -> Coalesce<Self, F>
         where Self: Sized,
@@ -988,7 +1021,7 @@ pub trait Itertools : Iterator {
     ///
     /// let data = vec![1., 1., 2., 3., 3., 2., 2.];
     /// itertools::assert_equal(data.into_iter().dedup(),
-    ///                         vec![1., 2., 3., 2.]);
+    ///                            vec![1., 2., 3., 2.]);
     /// ```
     fn dedup(self) -> Dedup<Self>
         where Self: Sized,
@@ -1010,7 +1043,7 @@ pub trait Itertools : Iterator {
     ///
     /// let data = vec![(0, 1.), (1, 1.), (0, 2.), (0, 3.), (1, 3.), (1, 2.), (2, 2.)];
     /// itertools::assert_equal(data.into_iter().dedup_by(|x, y| x.1 == y.1),
-    ///                         vec![(0, 1.), (0, 2.), (0, 3.), (1, 2.)]);
+    ///                            vec![(0, 1.), (0, 2.), (0, 3.), (1, 2.)]);
     /// ```
     fn dedup_by<Cmp>(self, cmp: Cmp) -> DedupBy<Self, Cmp>
         where Self: Sized,
@@ -1032,7 +1065,7 @@ pub trait Itertools : Iterator {
     ///
     /// let data = vec![1., 1., 2., 3., 3., 2., 2.];
     /// itertools::assert_equal(data.into_iter().dedup_with_count(),
-    ///                         vec![(2, 1.), (1, 2.), (2, 3.), (2, 2.)]);
+    ///                            vec![(2, 1.), (1, 2.), (2, 3.), (2, 2.)]);
     /// ```
     fn dedup_with_count(self) -> DedupWithCount<Self>
         where Self: Sized,
@@ -1054,7 +1087,7 @@ pub trait Itertools : Iterator {
     ///
     /// let data = vec![(0, 1.), (1, 1.), (0, 2.), (0, 3.), (1, 3.), (1, 2.), (2, 2.)];
     /// itertools::assert_equal(data.into_iter().dedup_by_with_count(|x, y| x.1 == y.1),
-    ///                         vec![(2, (0, 1.)), (1, (0, 2.)), (2, (0, 3.)), (2, (1, 2.))]);
+    ///                            vec![(2, (0, 1.)), (1, (0, 2.)), (2, (0, 3.)), (2, (1, 2.))]);
     /// ```
     fn dedup_by_with_count<Cmp>(self, cmp: Cmp) -> DedupByWithCount<Self, Cmp>
         where Self: Sized,
@@ -1079,7 +1112,7 @@ pub trait Itertools : Iterator {
     ///
     /// let data = vec![10, 20, 30, 20, 40, 10, 50];
     /// itertools::assert_equal(data.into_iter().unique(),
-    ///                         vec![10, 20, 30, 40, 50]);
+    ///                            vec![10, 20, 30, 40, 50]);
     /// ```
     #[cfg(feature = "use_std")]
     fn unique(self) -> Unique<Self>
@@ -1105,7 +1138,7 @@ pub trait Itertools : Iterator {
     ///
     /// let data = vec!["a", "bb", "aa", "c", "ccc"];
     /// itertools::assert_equal(data.into_iter().unique_by(|s| s.len()),
-    ///                         vec!["a", "bb", "ccc"]);
+    ///                            vec!["a", "bb", "ccc"]);
     /// ```
     #[cfg(feature = "use_std")]
     fn unique_by<V, F>(self, f: F) -> UniqueBy<Self, V, F>
@@ -1148,7 +1181,7 @@ pub trait Itertools : Iterator {
     /// let mut hexadecimals = "0123456789abcdef".chars();
     ///
     /// let decimals = hexadecimals.take_while_ref(|c| c.is_numeric())
-    ///                            .collect::<String>();
+    ///                               .collect::<String>();
     /// assert_eq!(decimals, "0123456789");
     /// assert_eq!(hexadecimals.next(), Some('a'));
     ///
@@ -1170,8 +1203,8 @@ pub trait Itertools : Iterator {
     ///
     /// // List all hexadecimal digits
     /// itertools::assert_equal(
-    ///     (0..).map(|i| std::char::from_digit(i, 16)).while_some(),
-    ///     "0123456789abcdef".chars());
+    ///        (0..).map(|i| std::char::from_digit(i, 16)).while_some(),
+    ///        "0123456789abcdef".chars());
     ///
     /// ```
     fn while_some<A>(self) -> WhileSome<Self>
@@ -1191,7 +1224,7 @@ pub trait Itertools : Iterator {
     ///
     /// let mut v = Vec::new();
     /// for (a, b) in (1..5).tuple_combinations() {
-    ///     v.push((a, b));
+    ///        v.push((a, b));
     /// }
     /// assert_eq!(v, vec![(1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)]);
     ///
@@ -1232,10 +1265,10 @@ pub trait Itertools : Iterator {
     ///
     /// let it = (1..5).combinations(3);
     /// itertools::assert_equal(it, vec![
-    ///     vec![1, 2, 3],
-    ///     vec![1, 2, 4],
-    ///     vec![1, 3, 4],
-    ///     vec![2, 3, 4],
+    ///        vec![1, 2, 3],
+    ///        vec![1, 2, 4],
+    ///        vec![1, 3, 4],
+    ///        vec![2, 3, 4],
     /// ]);
     /// ```
     ///
@@ -1245,9 +1278,9 @@ pub trait Itertools : Iterator {
     ///
     /// let it = vec![1, 2, 2].into_iter().combinations(2);
     /// itertools::assert_equal(it, vec![
-    ///     vec![1, 2], // Note: these are the same
-    ///     vec![1, 2], // Note: these are the same
-    ///     vec![2, 2],
+    ///        vec![1, 2], // Note: these are the same
+    ///        vec![1, 2], // Note: these are the same
+    ///        vec![2, 2],
     /// ]);
     /// ```
     #[cfg(feature = "use_std")]
@@ -1269,12 +1302,12 @@ pub trait Itertools : Iterator {
     ///
     /// let it = (1..4).combinations_with_replacement(2);
     /// itertools::assert_equal(it, vec![
-    ///     vec![1, 1],
-    ///     vec![1, 2],
-    ///     vec![1, 3],
-    ///     vec![2, 2],
-    ///     vec![2, 3],
-    ///     vec![3, 3],
+    ///        vec![1, 1],
+    ///        vec![1, 2],
+    ///        vec![1, 3],
+    ///        vec![2, 2],
+    ///        vec![2, 3],
+    ///        vec![3, 3],
     /// ]);
     /// ```
     #[cfg(feature = "use_std")]
@@ -1300,12 +1333,12 @@ pub trait Itertools : Iterator {
     ///
     /// let perms = (5..8).permutations(2);
     /// itertools::assert_equal(perms, vec![
-    ///     vec![5, 6],
-    ///     vec![5, 7],
-    ///     vec![6, 5],
-    ///     vec![6, 7],
-    ///     vec![7, 5],
-    ///     vec![7, 6],
+    ///        vec![5, 6],
+    ///        vec![5, 7],
+    ///        vec![6, 5],
+    ///        vec![6, 7],
+    ///        vec![7, 5],
+    ///        vec![7, 6],
     /// ]);
     /// ```
     ///
@@ -1316,8 +1349,8 @@ pub trait Itertools : Iterator {
     ///
     /// let it = vec![2, 2].into_iter().permutations(2);
     /// itertools::assert_equal(it, vec![
-    ///     vec![2, 2], // Note: these are the same
-    ///     vec![2, 2], // Note: these are the same
+    ///        vec![2, 2], // Note: these are the same
+    ///        vec![2, 2], // Note: these are the same
     /// ]);
     /// ```
     ///
@@ -1366,10 +1399,10 @@ pub trait Itertools : Iterator {
     ///
     /// let it = (0..4).with_position();
     /// itertools::assert_equal(it,
-    ///                         vec![Position::First(0),
-    ///                              Position::Middle(1),
-    ///                              Position::Middle(2),
-    ///                              Position::Last(3)]);
+    ///                            vec![Position::First(0),
+    ///                                 Position::Middle(1),
+    ///                                 Position::Middle(2),
+    ///                                 Position::Last(3)]);
     ///
     /// let it = (0..1).with_position();
     /// itertools::assert_equal(it, vec![Position::Only(0)]);
@@ -1451,9 +1484,9 @@ pub trait Itertools : Iterator {
     /// let iter = 1..3;
     ///
     /// if let Some((x, y)) = iter.collect_tuple() {
-    ///     assert_eq!((x, y), (1, 2))
+    ///        assert_eq!((x, y), (1, 2))
     /// } else {
-    ///     panic!("Expected two elements")
+    ///        panic!("Expected two elements")
     /// }
     /// ```
     fn collect_tuple<T>(mut self) -> Option<T>
@@ -1604,7 +1637,7 @@ pub trait Itertools : Iterator {
     ///
     /// let input = vec![vec![1], vec![2, 3], vec![4, 5, 6]];
     /// assert_eq!(input.into_iter().concat(),
-    ///            vec![1, 2, 3, 4, 5, 6]);
+    ///               vec![1, 2, 3, 4, 5, 6]);
     /// ```
     fn concat(self) -> Self::Item
         where Self: Sized,
@@ -1632,14 +1665,14 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// fn process_dir_entries(entries: &[fs::DirEntry]) {
-    ///     // ...
+    ///        // ...
     /// }
     ///
     /// fn do_stuff() -> std::io::Result<()> {
-    ///     let entries: Vec<_> = fs::read_dir(".")?.try_collect()?;
-    ///     process_dir_entries(&entries);
+    ///        let entries: Vec<_> = fs::read_dir(".")?.try_collect()?;
+    ///        process_dir_entries(&entries);
     ///
-    ///     Ok(())
+    ///        Ok(())
     /// }
     /// ```
     #[cfg(feature = "use_std")]
@@ -1724,8 +1757,8 @@ pub trait Itertools : Iterator {
     ///
     /// let data = [1.1, 2.71828, -3.];
     /// assert_eq!(
-    ///     format!("{:.2}", data.iter().format(", ")),
-    ///            "1.10, 2.72, -3.00");
+    ///        format!("{:.2}", data.iter().format(", ")),
+    ///               "1.10, 2.72, -3.00");
     /// ```
     fn format(self, sep: &str) -> Format<Self>
         where Self: Sized,
@@ -1752,16 +1785,16 @@ pub trait Itertools : Iterator {
     /// let data = [1.1, 2.71828, -3.];
     /// let data_formatter = data.iter().format_with(", ", |elt, f| f(&format_args!("{:.2}", elt)));
     /// assert_eq!(format!("{}", data_formatter),
-    ///            "1.10, 2.72, -3.00");
+    ///               "1.10, 2.72, -3.00");
     ///
     /// // .format_with() is recursively composable
     /// let matrix = [[1., 2., 3.],
-    ///               [4., 5., 6.]];
+    ///                  [4., 5., 6.]];
     /// let matrix_formatter = matrix.iter().format_with("\n", |row, f| {
-    ///                                 f(&row.iter().format_with(", ", |elt, g| g(&elt)))
-    ///                              });
+    ///                                    f(&row.iter().format_with(", ", |elt, g| g(&elt)))
+    ///                                 });
     /// assert_eq!(format!("{}", matrix_formatter),
-    ///            "1, 2, 3\n4, 5, 6");
+    ///               "1, 2, 3\n4, 5, 6");
     ///
     ///
     /// ```
@@ -1802,16 +1835,16 @@ pub trait Itertools : Iterator {
     ///
     /// let values = [1, 2, -2, -1, 2, 1];
     /// assert_eq!(
-    ///     values.iter()
-    ///           .map(Ok::<_, ()>)
-    ///           .fold_results(0, Add::add),
-    ///     Ok(3)
+    ///        values.iter()
+    ///              .map(Ok::<_, ()>)
+    ///              .fold_results(0, Add::add),
+    ///        Ok(3)
     /// );
     /// assert!(
-    ///     values.iter()
-    ///           .map(|&x| if x >= 0 { Ok(x) } else { Err("Negative number") })
-    ///           .fold_results(0, Add::add)
-    ///           .is_err()
+    ///        values.iter()
+    ///              .map(|&x| if x >= 0 { Ok(x) } else { Err("Negative number") })
+    ///              .fold_results(0, Add::add)
+    ///              .is_err()
     /// );
     /// ```
     fn fold_results<A, E, B, F>(&mut self, mut start: B, mut f: F) -> Result<B, E>
@@ -1893,8 +1926,8 @@ pub trait Itertools : Iterator {
     /// └─f └─f └─f │
     ///   │   │   │ │
     ///   └───f   └─f
-    ///       │     │
-    ///       └─────f
+    ///          │        │
+    ///          └─────f
     /// ```
     ///
     /// Which, for non-associative functions, will typically produce a different
@@ -1914,17 +1947,17 @@ pub trait Itertools : Iterator {
     /// // The same tree as above
     /// let num_strings = (1..8).map(|x| x.to_string());
     /// assert_eq!(num_strings.tree_fold1(|x, y| format!("f({}, {})", x, y)),
-    ///     Some(String::from("f(f(f(1, 2), f(3, 4)), f(f(5, 6), 7))")));
+    ///        Some(String::from("f(f(f(1, 2), f(3, 4)), f(f(5, 6), 7))")));
     ///
     /// // Like fold1, an empty iterator produces None
     /// assert_eq!((0..0).tree_fold1(|x, y| x * y), None);
     ///
     /// // tree_fold1 matches fold1 for associative operations...
     /// assert_eq!((0..10).tree_fold1(|x, y| x + y),
-    ///     (0..10).fold1(|x, y| x + y));
+    ///        (0..10).fold1(|x, y| x + y));
     /// // ...but not for non-associative ones
     /// assert_ne!((0..10).tree_fold1(|x, y| x - y),
-    ///     (0..10).fold1(|x, y| x - y));
+    ///        (0..10).fold1(|x, y| x - y));
     /// ```
     fn tree_fold1<F>(mut self, mut f: F) -> Option<Self::Item>
         where F: FnMut(Self::Item, Self::Item) -> Self::Item,
@@ -1969,7 +2002,7 @@ pub trait Itertools : Iterator {
                     Ok(y) => x = f(x, y),
 
                     // If we ran out of items, combine whatever we did manage
-                    // to get.  It's better combined with the current value
+                    // to get.    It's better combined with the current value
                     // than something in a parent frame, because the tree in
                     // the parent is always as least as big as this one.
                     Err(None) => return Err(Some(x)),
@@ -2000,20 +2033,20 @@ pub trait Itertools : Iterator {
     ///
     /// // for loop:
     /// for i in &numbers {
-    ///     if *i > 5 {
-    ///         break;
-    ///     }
-    ///     result = result + i;
+    ///        if *i > 5 {
+    ///            break;
+    ///        }
+    ///        result = result + i;
     /// }
     ///
     /// // fold:
     /// let result2 = numbers.iter().fold(0, |acc, x| {
-    ///     if *x > 5 { acc } else { acc + x }
+    ///        if *x > 5 { acc } else { acc + x }
     /// });
     ///
     /// // fold_while:
     /// let result3 = numbers.iter().fold_while(0, |acc, x| {
-    ///     if *x > 5 { Done(acc) } else { Continue(acc + x) }
+    ///        if *x > 5 { Done(acc) } else { Continue(acc + x) }
     /// }).into_inner();
     ///
     /// // they're the same
@@ -2112,7 +2145,7 @@ pub trait Itertools : Iterator {
     /// // sort the letters of the text in ascending order
     /// let text = "bdacfe";
     /// itertools::assert_equal(text.chars().sorted(),
-    ///                         "abcdef".chars());
+    ///                            "abcdef".chars());
     /// ```
     #[cfg(feature = "use_std")]
     fn sorted(self) -> VecIntoIter<Self::Item>
@@ -2142,12 +2175,12 @@ pub trait Itertools : Iterator {
     /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 27)];
     ///
     /// let oldest_people_first = people
-    ///     .into_iter()
-    ///     .sorted_by(|a, b| Ord::cmp(&b.1, &a.1))
-    ///     .map(|(person, _age)| person);
+    ///        .into_iter()
+    ///        .sorted_by(|a, b| Ord::cmp(&b.1, &a.1))
+    ///        .map(|(person, _age)| person);
     ///
     /// itertools::assert_equal(oldest_people_first,
-    ///                         vec!["Jill", "Jack", "Jane", "John"]);
+    ///                            vec!["Jill", "Jack", "Jane", "John"]);
     /// ```
     #[cfg(feature = "use_std")]
     fn sorted_by<F>(self, cmp: F) -> VecIntoIter<Self::Item>
@@ -2175,12 +2208,12 @@ pub trait Itertools : Iterator {
     /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 27)];
     ///
     /// let oldest_people_first = people
-    ///     .into_iter()
-    ///     .sorted_by_key(|x| -x.1)
-    ///     .map(|(person, _age)| person);
+    ///        .into_iter()
+    ///        .sorted_by_key(|x| -x.1)
+    ///        .map(|(person, _age)| person);
     ///
     /// itertools::assert_equal(oldest_people_first,
-    ///                         vec!["Jill", "Jack", "Jane", "John"]);
+    ///                            vec!["Jill", "Jack", "Jane", "John"]);
     /// ```
     #[cfg(feature = "use_std")]
     fn sorted_by_key<K, F>(self, f: F) -> VecIntoIter<Self::Item>
@@ -2203,13 +2236,13 @@ pub trait Itertools : Iterator {
     /// let successes_and_failures = vec![Ok(1), Err(false), Err(true), Ok(2)];
     ///
     /// let (successes, failures): (Vec<_>, Vec<_>) = successes_and_failures
-    ///     .into_iter()
-    ///     .partition_map(|r| {
-    ///         match r {
-    ///             Ok(v) => Either::Left(v),
-    ///             Err(v) => Either::Right(v),
-    ///         }
-    ///     });
+    ///        .into_iter()
+    ///        .partition_map(|r| {
+    ///            match r {
+    ///                Ok(v) => Either::Left(v),
+    ///                Err(v) => Either::Right(v),
+    ///            }
+    ///        });
     ///
     /// assert_eq!(successes, [1, 2]);
     /// assert_eq!(failures, [false, true]);
@@ -2300,7 +2333,7 @@ pub trait Itertools : Iterator {
     /// The return value is a variant of `MinMaxResult` like for `minmax()`.
     ///
     /// For the minimum, the first minimal element is returned.  For the maximum,
-    /// the last maximal element wins.  This matches the behavior of the standard
+    /// the last maximal element wins.    This matches the behavior of the standard
     /// `Iterator::min()` and `Iterator::max()` methods.
     ///
     /// The keys can be floats but no particular result is guaranteed
@@ -2317,7 +2350,7 @@ pub trait Itertools : Iterator {
     /// The return value is a variant of `MinMaxResult` like for `minmax()`.
     ///
     /// For the minimum, the first minimal element is returned.  For the maximum,
-    /// the last maximal element wins.  This matches the behavior of the standard
+    /// the last maximal element wins.    This matches the behavior of the standard
     /// `Iterator::min()` and `Iterator::max()` methods.
     fn minmax_by<F>(self, mut compare: F) -> MinMaxResult<Self::Item>
         where Self: Sized, F: FnMut(&Self::Item, &Self::Item) -> Ordering
