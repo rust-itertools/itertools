@@ -79,8 +79,8 @@ impl<I> IntoRangeIter<I> for RangeFull
 /// for more information.
 pub fn range<I, R>(iter: I, range: R)
     -> R::IterTo
-    where I: Iterator,
-          R: IntoRangeIter<I>
+    where I: IntoIterator,
+          R: IntoRangeIter<I::IntoIter>
 {
-	range.into_range_iter(iter)
+	range.into_range_iter(iter.into_iter())
 }
