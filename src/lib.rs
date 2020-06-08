@@ -424,9 +424,12 @@ pub trait Itertools : Iterator {
     ///
     /// range = vec.iter().range(..).copied().collect();
     /// assert_eq!(range, vec);
+	///
+    /// let value = vec.iter().range(3).copied();
+    /// assert_eq!(value, Some(1));
     /// ```
 	fn range<R>(self, range: R)
-		-> R::IterTo
+		-> R::Output
 		where R: range::IntoRangeIter<Self>,
 			  Self: Sized
     {
