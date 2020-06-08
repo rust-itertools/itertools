@@ -18,7 +18,7 @@ mod private_iter_index {
 
 /// Used by the ``range`` function to know which iterator
 /// to turn different ranges into.
-pub trait IterIndex<T> : private_iter_index::Sealed {
+pub trait IteratorIndex<T> : private_iter_index::Sealed {
     /// The type that [`get`] or [`Itertools::get`]
     /// returns when called with this type of index.
     type Output;
@@ -27,26 +27,26 @@ pub trait IterIndex<T> : private_iter_index::Sealed {
     ///
     /// Prefer calling [`get`] or [`Itertools::get`] instead
     /// of calling this directly.
-    fn get(self, from: T) -> Self::Output;
+    fn index(self, from: T) -> Self::Output;
 }
 
-impl<I> IterIndex<I> for Range<usize>
+impl<I> IteratorIndex<I> for Range<usize>
     where I: Iterator
 {
     type Output = Take<Skip<I>>;
 
-    fn get(self, iter: I) -> Self::Output {
+    fn index(self, iter: I) -> Self::Output {
         iter.skip(self.start)
             .take(self.end.saturating_sub(self.start))
     }
 }
 
-impl<I> IterIndex<I> for RangeInclusive<usize>
+impl<I> IteratorIndex<I> for RangeInclusive<usize>
     where I: Iterator
 {
     type Output = Take<Skip<I>>;
 
-    fn get(self, iter: I) -> Self::Output {
+    fn index(self, iter: I) -> Self::Output {
         iter.skip(*self.start())
             .take(
                 (1 + *self.end())
@@ -55,52 +55,52 @@ impl<I> IterIndex<I> for RangeInclusive<usize>
     }
 }
 
-impl<I> IterIndex<I> for RangeTo<usize>
+impl<I> IteratorIndex<I> for RangeTo<usize>
     where I: Iterator
 {
     type Output = Take<I>;
 
-    fn get(self, iter: I) -> Self::Output {
+    fn index(self, iter: I) -> Self::Output {
         iter.take(self.end)
     }
 }
 
-impl<I> IterIndex<I> for RangeToInclusive<usize>
+impl<I> IteratorIndex<I> for RangeToInclusive<usize>
     where I: Iterator
 {
     type Output = Take<I>;
 
-    fn get(self, iter: I) -> Self::Output {
+    fn index(self, iter: I) -> Self::Output {
         iter.take(self.end + 1)
     }
 }
 
-impl<I> IterIndex<I> for RangeFrom<usize>
+impl<I> IteratorIndex<I> for RangeFrom<usize>
     where I: Iterator
 {
     type Output = Skip<I>;
 
-    fn get(self, iter: I) -> Self::Output {
+    fn index(self, iter: I) -> Self::Output {
         iter.skip(self.start)
     }
 }
 
-impl<I> IterIndex<I> for RangeFull
+impl<I> IteratorIndex<I> for RangeFull
     where I: Iterator
 {
     type Output = I;
 
-    fn get(self, iter: I) -> Self::Output {
+    fn index(self, iter: I) -> Self::Output {
         iter
     }
 }
 
-impl<I> IterIndex<I> for usize
+impl<I> IteratorIndex<I> for usize
     where I: Iterator
 {
     type Output = Option<I::Item>;
 
-    fn get(self, mut iter: I) -> Self::Output {
+    fn index(self, mut iter: I) -> Self::Output {
         iter.nth(self)
     }
 }
@@ -112,7 +112,7 @@ impl<I> IterIndex<I> for usize
 pub fn get<I, R>(iter: I, index: R)
     -> R::Output
     where I: IntoIterator,
-          R: IterIndex<I::IntoIter>
+          R: IteratorIndex<I::IntoIter>
 {
-    index.get(iter.into_iter())
+    index.index(iter.into_iter())
 }

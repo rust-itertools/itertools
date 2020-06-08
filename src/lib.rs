@@ -143,7 +143,7 @@ pub mod structs {
 /// Traits helpful for using certain `Itertools` methods in generic contexts.
 pub mod traits {
     pub use crate::tuple_impl::HomogeneousTuple;
-    pub use crate::iter_index::IterIndex;
+    pub use crate::iter_index::IteratorIndex;
 }
 
 #[allow(deprecated)]
@@ -440,7 +440,7 @@ pub trait Itertools : Iterator {
     /// [`nth`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.nth
     fn get<R>(self, index: R)
         -> R::Output
-        where R: iter_index::IterIndex<Self>,
+        where R: iter_index::IteratorIndex<Self>,
               Self: Sized
     {
         iter_index::get(self, index)
