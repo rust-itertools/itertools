@@ -143,6 +143,7 @@ pub mod structs {
 /// Traits helpful for using certain `Itertools` methods in generic contexts.
 pub mod traits {
     pub use crate::tuple_impl::HomogeneousTuple;
+	pub use crate::iter_index::IterIndex;
 }
 
 #[allow(deprecated)]
@@ -176,7 +177,7 @@ mod combinations;
 mod combinations_with_replacement;
 mod exactly_one_err;
 mod diff;
-mod range;
+mod iter_index;
 mod format;
 #[cfg(feature = "use_std")]
 mod group_map;
@@ -397,9 +398,7 @@ pub trait Itertools : Iterator {
         intersperse::intersperse(self, element)
     }
 
-    /// Limits an iterator to a given range.
-    /// Similar to [`Iterator::skip`] and [`Iterator::take`],
-    /// but some may consider it to be more readable.
+	/// Works similarly to [`slice::get`] but on iterators.
     ///
 	/// # Examples
 	///
@@ -409,31 +408,31 @@ pub trait Itertools : Iterator {
     /// let vec = vec![3, 1, 4, 1, 5];
     ///
     /// let mut range: Vec<_> = 
-    ///        vec.iter().range(1..=3).copied().collect();
+    ///        vec.iter().get(1..=3).copied().collect();
     /// assert_eq!(&range, &[1, 4, 1]);
     ///
     /// // It works with other types of ranges, too
-    /// range = vec.iter().range(..2).copied().collect();
+    /// range = vec.iter().get(..2).copied().collect();
     /// assert_eq!(&range, &[3, 1]);
 	///
-    /// range = vec.iter().range(0..1).copied().collect();
+    /// range = vec.iter().get(0..1).copied().collect();
     /// assert_eq!(&range, &[3]);
     ///
-    /// range = vec.iter().range(2..).copied().collect();
+    /// range = vec.iter().get(2..).copied().collect();
     /// assert_eq!(&range, &[4, 1, 5]);
     ///
-    /// range = vec.iter().range(..).copied().collect();
+    /// range = vec.iter().get(..).copied().collect();
     /// assert_eq!(range, vec);
 	///
-    /// let value = vec.iter().range(3).copied();
+    /// let value = vec.iter().get(3).copied();
     /// assert_eq!(value, Some(1));
     /// ```
-	fn range<R>(self, range: R)
+	fn get<R>(self, index: R)
 		-> R::Output
-		where R: range::IntoRangeIter<Self>,
+		where R: iter_index::IterIndex<Self>,
 			  Self: Sized
     {
-        range::range(self, range)
+        iter_index::get(self, index)
     }
 
     /// Create an iterator which iterates over both this and the specified
