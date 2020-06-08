@@ -143,7 +143,7 @@ pub mod structs {
 /// Traits helpful for using certain `Itertools` methods in generic contexts.
 pub mod traits {
     pub use crate::tuple_impl::HomogeneousTuple;
-	pub use crate::iter_index::IterIndex;
+    pub use crate::iter_index::IterIndex;
 }
 
 #[allow(deprecated)]
@@ -399,16 +399,16 @@ pub trait Itertools : Iterator {
         intersperse::intersperse(self, element)
     }
 
-	/// Returns an element at a specific location, or returns an iterator
-	/// over a subsection of the iterator.
-	///
-	/// Works similarly to [`slice::get`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
-	///
-	/// It's a generalisation of [`take`], [`skip`] and [`nth`], and uses these
-	/// under the hood.
+    /// Returns an element at a specific location, or returns an iterator
+    /// over a subsection of the iterator.
     ///
-	/// # Examples
-	///
+    /// Works similarly to [`slice::get`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
+    ///
+    /// It's a generalisation of [`take`], [`skip`] and [`nth`], and uses these
+    /// under the hood.
+    ///
+    /// # Examples
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -421,7 +421,7 @@ pub trait Itertools : Iterator {
     /// // It works with other types of ranges, too
     /// range = vec.iter().get(..2).copied().collect();
     /// assert_eq!(&range, &[3, 1]);
-	///
+    ///
     /// range = vec.iter().get(0..1).copied().collect();
     /// assert_eq!(&range, &[3]);
     ///
@@ -430,18 +430,18 @@ pub trait Itertools : Iterator {
     ///
     /// range = vec.iter().get(..).copied().collect();
     /// assert_eq!(range, vec);
-	///
+    ///
     /// let value = vec.iter().get(3).copied();
     /// assert_eq!(value, Some(1));
     /// ```
-	///
-	/// [`take`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.take
-	/// [`skip`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.skip
-	/// [`nth`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.nth
-	fn get<R>(self, index: R)
-		-> R::Output
-		where R: iter_index::IterIndex<Self>,
-			  Self: Sized
+    ///
+    /// [`take`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.take
+    /// [`skip`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.skip
+    /// [`nth`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.nth
+    fn get<R>(self, index: R)
+        -> R::Output
+        where R: iter_index::IterIndex<Self>,
+              Self: Sized
     {
         iter_index::get(self, index)
     }
