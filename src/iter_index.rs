@@ -18,16 +18,18 @@ mod private_iter_index {
 
 /// Used by the ``range`` function to know which iterator
 /// to turn different ranges into.
-pub trait IteratorIndex<T> : private_iter_index::Sealed {
+pub trait IteratorIndex<I> : private_iter_index::Sealed 
+    where I: Iterator
+{
     /// The type that [`get`] or [`Itertools::get`]
     /// returns when called with this type of index.
-    type Output;
+    type Output: Iterator<Item = I::Item>;
 
     /// Returns an iterator(or value) in the specified range.
     ///
     /// Prefer calling [`get`] or [`Itertools::get`] instead
     /// of calling this directly.
-    fn index(self, from: T) -> Self::Output;
+    fn index(self, from: I) -> Self::Output;
 }
 
 impl<I> IteratorIndex<I> for Range<usize>
@@ -98,10 +100,10 @@ impl<I> IteratorIndex<I> for RangeFull
 impl<I> IteratorIndex<I> for usize
     where I: Iterator
 {
-    type Output = Option<I::Item>;
+    type Output = <Option<I::Item> as IntoIterator>::IntoIter;
 
     fn index(self, mut iter: I) -> Self::Output {
-        iter.nth(self)
+        iter.nth(self).into_iter()
     }
 }
 

@@ -431,8 +431,8 @@ pub trait Itertools : Iterator {
     /// range = vec.iter().get(..).copied().collect();
     /// assert_eq!(range, vec);
     ///
-    /// let value = vec.iter().get(3).copied();
-    /// assert_eq!(value, Some(1));
+    /// range = vec.iter().get(3).copied().collect();
+    /// assert_eq!(&range, &[1]);
     /// ```
     ///
     /// [`take`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.take
