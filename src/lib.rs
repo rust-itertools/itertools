@@ -158,6 +158,7 @@ pub use crate::minmax::MinMaxResult;
 pub use crate::peeking_take_while::PeekingNext;
 pub use crate::process_results_impl::process_results;
 pub use crate::repeatn::repeat_n;
+pub use crate::iter_index::get;
 #[allow(deprecated)]
 pub use crate::sources::{repeat_call, unfold, iterate};
 pub use crate::with_position::Position;
@@ -398,7 +399,13 @@ pub trait Itertools : Iterator {
         intersperse::intersperse(self, element)
     }
 
-	/// Works similarly to [`slice::get`] but on iterators.
+	/// Returns an element at a specific location, or returns an iterator
+	/// over a subsection of the iterator.
+	///
+	/// Works similarly to [`slice::get`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
+	///
+	/// It's a generalisation of [`take`], [`skip`] and [`nth`], and uses these
+	/// under the hood.
     ///
 	/// # Examples
 	///
@@ -427,6 +434,10 @@ pub trait Itertools : Iterator {
     /// let value = vec.iter().get(3).copied();
     /// assert_eq!(value, Some(1));
     /// ```
+	///
+	/// [`take`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.take
+	/// [`skip`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.skip
+	/// [`nth`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.nth
 	fn get<R>(self, index: R)
 		-> R::Output
 		where R: iter_index::IterIndex<Self>,

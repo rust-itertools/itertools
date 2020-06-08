@@ -19,11 +19,13 @@ mod private_iter_index {
 /// Used by the ``range`` function to know which iterator
 /// to turn different ranges into.
 pub trait IterIndex<T> : private_iter_index::Sealed {
+	/// The type that [`get`] or [`Itertools::get`]
+	/// returns when called with this type of index.
 	type Output;
 
 	/// Returns an iterator(or value) in the specified range.
 	///
-	/// Prefer calling [`range`] or [`Itertools::range`] instead
+	/// Prefer calling [`get`] or [`Itertools::get`] instead
 	/// of calling this directly.
 	fn get(self, from: T) -> Self::Output;
 }
@@ -103,12 +105,14 @@ impl<I> IterIndex<I> for usize
 	}
 }
 
-/// Limits an iterator to a range. See [`Itertools::range`]
-/// for more information.
-pub fn get<I, R>(iter: I, range: R)
+/// Returns an element of the iterator or an iterator
+/// over a subsection of the iterator. 
+///
+/// See [`Itertools::get`] for more information.
+pub fn get<I, R>(iter: I, index: R)
     -> R::Output
     where I: IntoIterator,
           R: IterIndex<I::IntoIter>
 {
-	range.get(iter.into_iter())
+	index.get(iter.into_iter())
 }
