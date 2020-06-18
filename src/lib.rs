@@ -748,6 +748,7 @@ pub trait Itertools : Iterator {
         adaptors::map_into(self)
     }
 
+    /// See [`.map_ok()`](#method.map_ok).
     #[deprecated(note="Use .map_ok() instead", since="0.10")]
     fn map_results<F, T, U, E>(self, f: F) -> MapOk<Self, F>
         where Self: Iterator<Item = Result<T, E>> + Sized,
@@ -1839,6 +1840,7 @@ pub trait Itertools : Iterator {
         format::new_format(self, sep, format)
     }
 
+    /// See [`.fold_ok()`](#method.fold_ok).
     #[deprecated(note="Use .fold_ok() instead", since="0.10")]
     fn fold_results<A, E, B, F>(&mut self, start: B, f: F) -> Result<B, E>
         where Self: Iterator<Item = Result<A, E>>,
