@@ -1086,28 +1086,31 @@ where
     I::Item: Into<R>,
 {}
 
-/// An iterator adapter to apply a transformation within a nested `Result`.
+#[deprecated(note="Use MapOk instead", since="0.10")]
+pub type MapResults<I, F> = MapOk<I, F>;
+
+/// An iterator adapter to apply a transformation within a nested `Result::Ok`.
 ///
-/// See [`.map_results()`](../trait.Itertools.html#method.map_results) for more information.
+/// See [`.map_ok()`](../trait.Itertools.html#method.map_ok) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct MapResults<I, F> {
+pub struct MapOk<I, F> {
     iter: I,
     f: F
 }
 
-/// Create a new `MapResults` iterator.
-pub fn map_results<I, F, T, U, E>(iter: I, f: F) -> MapResults<I, F>
+/// Create a new `MapOk` iterator.
+pub fn map_ok<I, F, T, U, E>(iter: I, f: F) -> MapOk<I, F>
     where I: Iterator<Item = Result<T, E>>,
           F: FnMut(T) -> U,
 {
-    MapResults {
+    MapOk {
         iter,
         f,
     }
 }
 
-impl<I, F, T, U, E> Iterator for MapResults<I, F>
+impl<I, F, T, U, E> Iterator for MapOk<I, F>
     where I: Iterator<Item = Result<T, E>>,
           F: FnMut(T) -> U,
 {
@@ -1133,6 +1136,141 @@ impl<I, F, T, U, E> Iterator for MapResults<I, F>
     {
         let mut f = self.f;
         self.iter.map(move |v| v.map(&mut f)).collect()
+    }
+}
+
+/// An iterator adapter to filter values within a nested `Result::Ok`.
+///
+/// See [`.filter_ok()`](../trait.Itertools.html#method.filter_ok) for more information.
+#[derive(Clone)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+pub struct FilterOk<I, F> {
+    iter: I,
+    f: F
+}
+
+/// Create a new `FilterOk` iterator.
+pub fn filter_ok<I, F, T, E>(iter: I, f: F) -> FilterOk<I, F>
+    where I: Iterator<Item = Result<T, E>>,
+          F: FnMut(&T) -> bool,
+{
+    FilterOk {
+        iter,
+        f,
+    }
+}
+
+impl<I, F, T, E> Iterator for FilterOk<I, F>
+    where I: Iterator<Item = Result<T, E>>,
+          F: FnMut(&T) -> bool,
+{
+    type Item = Result<T, E>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            match self.iter.next() {
+                Some(Ok(v)) => {
+                    if (self.f)(&v) {
+                        return Some(Ok(v));
+                    }
+                },
+                Some(Err(e)) => return Some(Err(e)),
+                None => return None,
+            }
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, self.iter.size_hint().1)
+    }
+
+    fn fold<Acc, Fold>(self, init: Acc, fold_f: Fold) -> Acc
+        where Fold: FnMut(Acc, Self::Item) -> Acc,
+    {
+        let mut f = self.f;
+        self.iter.filter(|v| {
+            v.as_ref().map(&mut f).unwrap_or(true)
+        }).fold(init, fold_f)
+    }
+
+    fn collect<C>(self) -> C
+        where C: FromIterator<Self::Item>
+    {
+        let mut f = self.f;
+        self.iter.filter(|v| {
+            v.as_ref().map(&mut f).unwrap_or(true)
+        }).collect()
+    }
+}
+
+/// An iterator adapter to filter and apply a transformation on values within a nested `Result::Ok`.
+///
+/// See [`.filter_map_ok()`](../trait.Itertools.html#method.filter_map_ok) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+pub struct FilterMapOk<I, F> {
+    iter: I,
+    f: F
+}
+
+fn transpose_result<T, E>(result: Result<Option<T>, E>) -> Option<Result<T, E>> {
+    match result {
+        Ok(Some(v)) => Some(Ok(v)),
+        Ok(None) => None,
+        Err(e) => Some(Err(e)),
+    }
+}
+
+/// Create a new `FilterOk` iterator.
+pub fn filter_map_ok<I, F, T, U, E>(iter: I, f: F) -> FilterMapOk<I, F>
+    where I: Iterator<Item = Result<T, E>>,
+          F: FnMut(T) -> Option<U>,
+{
+    FilterMapOk {
+        iter,
+        f,
+    }
+}
+
+impl<I, F, T, U, E> Iterator for FilterMapOk<I, F>
+    where I: Iterator<Item = Result<T, E>>,
+          F: FnMut(T) -> Option<U>,
+{
+    type Item = Result<U, E>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            match self.iter.next() {
+                Some(Ok(v)) => {
+                    if let Some(v) = (self.f)(v) {
+                        return Some(Ok(v));
+                    }
+                },
+                Some(Err(e)) => return Some(Err(e)),
+                None => return None,
+            }
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, self.iter.size_hint().1)
+    }
+
+    fn fold<Acc, Fold>(self, init: Acc, fold_f: Fold) -> Acc
+        where Fold: FnMut(Acc, Self::Item) -> Acc,
+    {
+        let mut f = self.f;
+        self.iter.filter_map(|v| {
+            transpose_result(v.map(&mut f))
+        }).fold(init, fold_f)
+    }
+
+    fn collect<C>(self) -> C
+        where C: FromIterator<Self::Item>
+    {
+        let mut f = self.f;
+        self.iter.filter_map(|v| {
+            transpose_result(v.map(&mut f))
+        }).collect()
     }
 }
 
