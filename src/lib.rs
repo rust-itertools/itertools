@@ -1841,7 +1841,7 @@ pub trait Itertools : Iterator {
     }
 
     #[deprecated(note="Use .fold_ok() instead", since="0.10")]
-    fn fold_results<A, E, B, F>(&mut self, mut start: B, mut f: F) -> Result<B, E>
+    fn fold_results<A, E, B, F>(&mut self, start: B, f: F) -> Result<B, E>
         where Self: Iterator<Item = Result<A, E>>,
               F: FnMut(B, A) -> B
     {
