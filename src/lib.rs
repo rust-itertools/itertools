@@ -89,7 +89,6 @@ pub mod structs {
         Batching,
         MapInto,
         MapOk,
-        MapResults,
         Merge,
         MergeBy,
         TakeWhileRef,
@@ -100,7 +99,7 @@ pub mod structs {
         Update,
     };
     #[allow(deprecated)]
-    pub use crate::adaptors::Step;
+    pub use crate::adaptors::{MapResults, Step};
     #[cfg(feature = "use_std")]
     pub use crate::adaptors::MultiProduct;
     #[cfg(feature = "use_std")]
@@ -749,6 +748,7 @@ pub trait Itertools : Iterator {
         adaptors::map_into(self)
     }
 
+    /// See [`.map_ok()`](#method.map_ok).
     #[deprecated(note="Use .map_ok() instead", since="0.10")]
     fn map_results<F, T, U, E>(self, f: F) -> MapOk<Self, F>
         where Self: Iterator<Item = Result<T, E>> + Sized,
@@ -1840,8 +1840,9 @@ pub trait Itertools : Iterator {
         format::new_format(self, sep, format)
     }
 
+    /// See [`.fold_ok()`](#method.fold_ok).
     #[deprecated(note="Use .fold_ok() instead", since="0.10")]
-    fn fold_results<A, E, B, F>(&mut self, mut start: B, mut f: F) -> Result<B, E>
+    fn fold_results<A, E, B, F>(&mut self, start: B, f: F) -> Result<B, E>
         where Self: Iterator<Item = Result<A, E>>,
               F: FnMut(B, A) -> B
     {

@@ -1086,6 +1086,7 @@ where
     I::Item: Into<R>,
 {}
 
+/// See [`MapOk`](struct.MapOk.html).
 #[deprecated(note="Use MapOk instead", since="0.10")]
 pub type MapResults<I, F> = MapOk<I, F>;
 
