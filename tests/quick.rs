@@ -754,6 +754,29 @@ quickcheck! {
 }
 
 quickcheck! {
+    fn dedup_via_coalesce(a: Vec<i32>) -> bool {
+        let mut b = a.clone();
+        b.dedup();
+        itertools::equal(
+            &b,
+            a
+                .iter()
+                .coalesce(|x, y| {
+                    if x==y {
+                        Ok(x)
+                    } else {
+                        Err((x, y))
+                    }
+                })
+                .fold(vec![], |mut v, n| {
+                    v.push(n);
+                    v
+                })
+        )
+    }
+}
+
+quickcheck! {
     fn equal_dedup(a: Vec<i32>) -> bool {
         let mut b = a.clone();
         b.dedup();
