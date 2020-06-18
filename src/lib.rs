@@ -89,7 +89,6 @@ pub mod structs {
         Batching,
         MapInto,
         MapOk,
-        MapResults,
         Merge,
         MergeBy,
         TakeWhileRef,
@@ -100,7 +99,7 @@ pub mod structs {
         Update,
     };
     #[allow(deprecated)]
-    pub use crate::adaptors::Step;
+    pub use crate::adaptors::{MapResults, Step};
     #[cfg(feature = "use_std")]
     pub use crate::adaptors::MultiProduct;
     #[cfg(feature = "use_std")]
