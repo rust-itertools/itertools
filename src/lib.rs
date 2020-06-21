@@ -130,7 +130,7 @@ pub mod structs {
     pub use crate::rciter_impl::RcIter;
     pub use crate::repeatn::RepeatN;
     #[allow(deprecated)]
-    pub use crate::sources::{RepeatCall, Unfold, Iterate};
+    pub use crate::sources::{RepeatCall, Unfold, Iterate, TryIterate};
     #[cfg(feature = "use_std")]
     pub use crate::tee::Tee;
     pub use crate::tuple_impl::{TupleBuffer, TupleWindows, CircularTupleWindows, Tuples};
@@ -160,7 +160,7 @@ pub use crate::peeking_take_while::PeekingNext;
 pub use crate::process_results_impl::process_results;
 pub use crate::repeatn::repeat_n;
 #[allow(deprecated)]
-pub use crate::sources::{repeat_call, unfold, iterate};
+pub use crate::sources::{repeat_call, unfold, iterate, try_iterate};
 pub use crate::with_position::Position;
 pub use crate::ziptuple::multizip;
 mod adaptors;

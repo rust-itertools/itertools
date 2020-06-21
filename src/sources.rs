@@ -189,3 +189,62 @@ pub fn iterate<St, F>(initial_value: St, f: F) -> Iterate<St, F>
         f,
     }
 }
+
+/// An iterator that applies function to value and yields results until the function returns
+/// `None`.
+///
+/// This `struct` is created by the [`try_iterate()`] function. See its documentation for more.
+///
+/// [`try_iterate()`]: ../fn.try_iterate.html
+#[derive(Clone)]
+#[must_use = "iterators are lazy and do nothing unless consumed"]
+pub struct TryIterate<St, F> {
+    state: Option<St>,
+    f: F,
+}
+
+impl<St, F> fmt::Debug for TryIterate<St, F>
+where
+    St: fmt::Debug,
+{
+    debug_fmt_fields!(TryIterate, state);
+}
+
+impl<St, F> Iterator for TryIterate<St, F>
+where
+    F: FnMut(&St) -> Option<St>,
+{
+    type Item = St;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        let new_state = match &self.state {
+            Some(st) => (self.f)(st),
+            None => None,
+        };
+        mem::replace(&mut self.state, new_state)
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (1, None)
+    }
+}
+
+/// Creates a new iterator that applies function to value and yields results until the
+/// function returns `None`.
+///
+/// ```
+/// use itertools::try_iterate;
+///
+/// itertools::assert_equal(try_iterate(5, |&i| i.checked_sub(1)), vec![5, 4, 3, 2, 1, 0]);
+/// ```
+pub fn try_iterate<St, F>(initial_value: St, f: F) -> TryIterate<St, F>
+where
+    F: FnMut(&St) -> Option<St>,
+{
+    TryIterate {
+        state: Some(initial_value),
+        f,
+    }
+}
