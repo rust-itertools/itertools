@@ -131,12 +131,6 @@ impl<A, St, F> Iterator for Unfold<St, F>
     fn next(&mut self) -> Option<Self::Item> {
         (self.f)(&mut self.state)
     }
-
-    #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        // no possible known bounds at this point
-        (0, None)
-    }
 }
 
 /// An iterator that infinitely applies function to value and yields results.

@@ -403,12 +403,6 @@ impl<B, F, I> Iterator for Batching<I, F>
     fn next(&mut self) -> Option<Self::Item> {
         (self.f)(&mut self.iter)
     }
-
-    #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        // No information about closue behavior
-        (0, None)
-    }
 }
 
 /// An iterator adaptor that steps a number elements in the base iterator
