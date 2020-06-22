@@ -854,8 +854,7 @@ impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F>
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let (_, hi) = self.iter.size_hint();
-        (0, hi)
+        (0, self.iter.size_hint().1)
     }
 }
 
@@ -887,8 +886,7 @@ impl<I, A> Iterator for WhileSome<I>
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let sh = self.iter.size_hint();
-        (0, sh.1)
+        (0, self.iter.size_hint().1)
     }
 }
 
