@@ -1,6 +1,19 @@
 use std::iter::Fuse;
 use super::size_hint;
 
+pub trait IntersperseElement<Item> {
+    fn generate(&mut self) -> Item;
+}
+
+#[derive(Debug, Clone)]
+pub struct IntersperseElementSimple<Item>(Item);
+
+impl<Item: Clone> IntersperseElement<Item> for IntersperseElementSimple<Item> {
+    fn generate(&mut self) -> Item {
+        self.0.clone()
+    }
+}
+
 /// An iterator adaptor to insert a particular value
 /// between each element of the adapted iterator.
 ///
@@ -9,71 +22,18 @@ use super::size_hint;
 /// This iterator is *fused*.
 ///
 /// See [`.intersperse()`](../trait.Itertools.html#method.intersperse) for more information.
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-#[derive(Clone, Debug)]
-pub struct Intersperse<I>
-    where I: Iterator
-{
-    element: I::Item,
-    iter: Fuse<I>,
-    peek: Option<I::Item>,
-}
+pub type Intersperse<I> = IntersperseWith<I, IntersperseElementSimple<<I as Iterator>::Item>>;
 
 /// Create a new Intersperse iterator
 pub fn intersperse<I>(iter: I, elt: I::Item) -> Intersperse<I>
-    where I: Iterator
+    where I: Iterator,
 {
-    let mut iter = iter.fuse();
-    Intersperse {
-        peek: iter.next(),
-        iter,
-        element: elt,
-    }
+    intersperse_with(iter, IntersperseElementSimple(elt))
 }
 
-impl<I> Iterator for Intersperse<I>
-    where I: Iterator,
-          I::Item: Clone
-{
-    type Item = I::Item;
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.peek.is_some() {
-            self.peek.take()
-        } else {
-            self.peek = self.iter.next();
-            if self.peek.is_some() {
-                Some(self.element.clone())
-            } else {
-                None
-            }
-        }
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        // 2 * SH + { 1 or 0 }
-        let has_peek = self.peek.is_some() as usize;
-        let sh = self.iter.size_hint();
-        size_hint::add_scalar(size_hint::add(sh, sh), has_peek)
-    }
-
-    fn fold<B, F>(mut self, init: B, mut f: F) -> B where
-        Self: Sized, F: FnMut(B, Self::Item) -> B,
-    {
-        let mut accum = init;
-
-        if let Some(x) = self.peek.take() {
-            accum = f(accum, x);
-        }
-
-        let element = &self.element;
-
-        self.iter.fold(accum,
-            |accum, x| {
-                let accum = f(accum, element.clone());
-                let accum = f(accum, x);
-                accum
-        })
+impl<Item, F: FnMut()->Item> IntersperseElement<Item> for F {
+    fn generate(&mut self) -> Item {
+        self()
     }
 }
 
@@ -89,7 +49,6 @@ impl<I> Iterator for Intersperse<I>
 #[derive(Clone, Debug)]
 pub struct IntersperseWith<I, ElemF>
     where I: Iterator,
-    ElemF: FnMut() -> I::Item,
 {
     element: ElemF,
     iter: Fuse<I>,
@@ -99,7 +58,6 @@ pub struct IntersperseWith<I, ElemF>
 /// Create a new IntersperseWith iterator
 pub fn intersperse_with<I, ElemF>(iter: I, elt: ElemF) -> IntersperseWith<I, ElemF>
     where I: Iterator,
-    ElemF: FnMut() -> I::Item
 {
     let mut iter = iter.fuse();
     IntersperseWith {
@@ -111,7 +69,7 @@ pub fn intersperse_with<I, ElemF>(iter: I, elt: ElemF) -> IntersperseWith<I, Ele
 
 impl<I, ElemF> Iterator for IntersperseWith<I, ElemF>
     where I: Iterator,
-          ElemF: FnMut() -> I::Item
+          ElemF: IntersperseElement<I::Item>
 {
     type Item = I::Item;
     #[inline]
@@ -121,7 +79,7 @@ impl<I, ElemF> Iterator for IntersperseWith<I, ElemF>
         } else {
             self.peek = self.iter.next();
             if self.peek.is_some() {
-                Some((self.element)())
+                Some(self.element.generate())
             } else {
                 None
             }
@@ -148,7 +106,7 @@ impl<I, ElemF> Iterator for IntersperseWith<I, ElemF>
 
         self.iter.fold(accum,
             |accum, x| {
-                let accum = f(accum, (element)());
+                let accum = f(accum, element.generate());
                 let accum = f(accum, x);
                 accum
         })
