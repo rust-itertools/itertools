@@ -81,7 +81,7 @@ impl<I, V, F> DoubleEndedIterator for UniqueBy<I, V, F>
           V: Eq + Hash,
           F: FnMut(&I::Item) -> V
 {
-    fn next_back(&mut self) -> Option<I::Item> {
+    fn next_back(&mut self) -> Option<Self::Item> {
         while let Some(v) = self.iter.next_back() {
             let key = (self.f)(&v);
             if self.used.insert(key, ()).is_none() {
@@ -124,7 +124,7 @@ impl<I> DoubleEndedIterator for Unique<I>
     where I: DoubleEndedIterator,
           I::Item: Eq + Hash + Clone
 {
-    fn next_back(&mut self) -> Option<I::Item> {
+    fn next_back(&mut self) -> Option<Self::Item> {
         while let Some(v) = self.iter.iter.next_back() {
             if let Entry::Vacant(entry) = self.iter.used.entry(v) {
                 let elt = entry.key().clone();

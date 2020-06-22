@@ -69,8 +69,7 @@ impl<A, I> Iterator for RcIter<I>
         // To work sanely with other API that assume they own an iterator,
         // so it can't change in other places, we can't guarantee as much
         // in our size_hint. Other clones may drain values under our feet.
-        let (_, hi) = self.rciter.borrow().size_hint();
-        (0, hi)
+        (0, self.rciter.borrow().size_hint().1)
     }
 }
 
