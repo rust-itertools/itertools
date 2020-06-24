@@ -412,7 +412,7 @@ impl<B, F, I> Iterator for Batching<I, F>
 /// then skipping forward *n-1* elements.
 ///
 /// See [`.step()`](../trait.Itertools.html#method.step) for more information.
-#[deprecated(note="Use std .step_by() instead", since="0.8")]
+#[deprecated(note="Use std .step_by() instead", since="0.8.0")]
 #[allow(deprecated)]
 #[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]

@@ -7,7 +7,7 @@ use std::mem;
 
 /// See [`repeat_call`](../fn.repeat_call.html) for more information.
 #[derive(Clone)]
-#[deprecated(note="Use std repeat_with() instead", since="0.8")]
+#[deprecated(note="Use std repeat_with() instead", since="0.8.0")]
 pub struct RepeatCall<F> {
     f: F,
 }
@@ -39,7 +39,7 @@ impl<F> fmt::Debug for RepeatCall<F>
 ///     vec![1, 1, 1, 1, 1]
 /// );
 /// ```
-#[deprecated(note="Use std repeat_with() instead", since="0.8")]
+#[deprecated(note="Use std repeat_with() instead", since="0.8.0")]
 pub fn repeat_call<F, A>(function: F) -> RepeatCall<F>
     where F: FnMut() -> A
 {
