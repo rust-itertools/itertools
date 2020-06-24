@@ -62,7 +62,7 @@ impl<T> Iterator for TupleBuffer<T>
         } else {
             buffer.iter()
                   .position(|x| x.is_none())
-                  .unwrap_or(buffer.len())
+                  .unwrap_or_else(|| buffer.len())
         };
         (len, Some(len))
     }
