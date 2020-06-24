@@ -28,7 +28,7 @@ pub struct Format<'a, I> {
     inner: RefCell<Option<I>>,
 }
 
-pub fn new_format<'a, I, F>(iter: I, separator: &'a str, f: F) -> FormatWith<'a, I, F>
+pub fn new_format<I, F>(iter: I, separator: &str, f: F) -> FormatWith<'_, I, F>
     where I: Iterator,
           F: FnMut(I::Item, &mut dyn FnMut(&dyn fmt::Display) -> fmt::Result) -> fmt::Result
 {
@@ -38,7 +38,7 @@ pub fn new_format<'a, I, F>(iter: I, separator: &'a str, f: F) -> FormatWith<'a,
     }
 }
 
-pub fn new_format_default<'a, I>(iter: I, separator: &'a str) -> Format<'a, I>
+pub fn new_format_default<I>(iter: I, separator: &str) -> Format<'_, I>
     where I: Iterator,
 {
     Format {
