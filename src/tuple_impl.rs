@@ -212,7 +212,7 @@ pub fn circular_tuple_windows<I, T>(iter: I) -> CircularTupleWindows<I, T>
     let iter = tuple_windows(iter.cycle()).take(len);
 
     CircularTupleWindows {
-        iter: iter,
+        iter,
         phantom_data: PhantomData{}
     }
 }
