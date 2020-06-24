@@ -113,22 +113,11 @@ impl<I, J> Iterator for InterleaveShortest<I, J>
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        match self.phase {
-            false => match self.it0.next() {
-                None => None,
-                e => {
-                    self.phase = true;
-                    e
-                }
-            },
-            true => match self.it1.next() {
-                None => None,
-                e => {
-                    self.phase = false;
-                    e
-                }
-            },
+        let e = if self.phase { self.it1.next() } else { self.it0.next() };
+        if e.is_some() {
+            self.phase = !self.phase;
         }
+        e
     }
 
     #[inline]
