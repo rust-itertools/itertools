@@ -57,7 +57,7 @@ impl<T> Iterator for TupleBuffer<T>
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         let buffer = &self.buf.as_ref()[self.cur..];
-        let len = if buffer.len() == 0 {
+        let len = if buffer.is_empty() {
             0
         } else {
             buffer.iter()
