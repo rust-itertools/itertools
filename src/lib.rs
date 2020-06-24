@@ -2105,7 +2105,7 @@ pub trait Itertools : Iterator {
               F: FnMut(B, Self::Item) -> FoldWhile<B>
     {
         let mut acc = init;
-        while let Some(item) = self.next() {
+        for item in self {
             match f(acc, item) {
                 FoldWhile::Continue(res) => acc = res,
                 res @ FoldWhile::Done(_) => return res,
