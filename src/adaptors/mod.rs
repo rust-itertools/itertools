@@ -31,13 +31,7 @@ pub struct Interleave<I, J> {
 ///
 /// `IntoIterator` enabled version of `i.interleave(j)`.
 ///
-/// ```
-/// use itertools::interleave;
-///
-/// for elt in interleave(&[1, 2, 3], &[2, 3, 4]) {
-///     /* loop body */
-/// }
-/// ```
+/// See [`.interleave()`](trait.Itertools.html#method.interleave) for more information.
 pub fn interleave<I, J>(i: I, j: J) -> Interleave<<I as IntoIterator>::IntoIter, <J as IntoIterator>::IntoIter>
     where I: IntoIterator,
           J: IntoIterator<Item = I::Item>
