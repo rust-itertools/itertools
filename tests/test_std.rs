@@ -913,3 +913,25 @@ fn tree_fold1() {
         assert_eq!(actual, expected);
     }
 }
+
+#[test]
+fn filter_common() {
+    let filter_list = vec![5, 5, 5, 5, 5];
+    for n in 1..=5 {
+        let mut iter = std::iter::repeat(5).take(n).filter_common(filter_list.clone());
+        assert_eq!(iter.next(), None);
+    }
+    let filter_list = vec![1, 2, 3, 4, 5];
+    let mut iter = vec![1, 2, 3, 4, 5, 4, 3, 2, 1].into_iter().filter_common(filter_list);
+    assert_eq!(iter.next(), Some(4));
+    assert_eq!(iter.next(), Some(3));
+    assert_eq!(iter.next(), Some(2));
+    assert_eq!(iter.next(), Some(1));
+    assert_eq!(iter.next(), None);
+    let filter_list = vec![1, 2, 2, 3, 3, 3, 4, 4, 4, 4];
+    let mut iter = vec![1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4].into_iter().filter_common(filter_list);
+    assert_eq!(iter.next(), Some(1));
+    assert_eq!(iter.next(), Some(1));
+    assert_eq!(iter.next(), Some(2));
+    assert_eq!(iter.next(), None);
+}

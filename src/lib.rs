@@ -108,6 +108,8 @@ pub mod structs {
     pub use crate::combinations_with_replacement::CombinationsWithReplacement;
     pub use crate::cons_tuples_impl::ConsTuples;
     pub use crate::exactly_one_err::ExactlyOneError;
+    #[cfg(feature = "use_std")]
+    pub use crate::filter_common::FilterCommon;
     pub use crate::format::{Format, FormatWith};
     #[cfg(feature = "use_std")]
     pub use crate::groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
@@ -178,6 +180,8 @@ mod combinations;
 mod combinations_with_replacement;
 mod exactly_one_err;
 mod diff;
+#[cfg(feature = "use_std")]
+mod filter_common;
 mod format;
 #[cfg(feature = "use_std")]
 mod group_map;
@@ -2772,6 +2776,31 @@ pub trait Itertools : Iterator {
         Self: Sized,
     {
         multipeek_impl::multipeek(self)
+    }
+
+    /// Filters items from the original iterator that exist in the filter list.
+    /// Elements are removed from the vec when they are matched, meaning if there are n instances
+    /// of an element in the iterator and k instances in the filter list, then the last (n - k)
+    /// instances will remain in the new iterator.
+    ///
+    /// # Examples
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let filter_list = vec![1i32, 2, 2];
+    /// let mut iter = vec![0i32, 0, 1, 1, 2, 2].into_iter().filter_common(filter_list);
+    /// assert_eq!(iter.next(), Some(0));
+    /// assert_eq!(iter.next(), Some(0));
+    /// assert_eq!(iter.next(), Some(1));
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn filter_common<K>(self, filter_list: Vec<K>) -> FilterCommon<Self, K>
+        where
+            Self: Sized,
+            K: PartialEq<Self::Item>
+    {
+        filter_common::filter_common(self, filter_list)
     }
 }
 
