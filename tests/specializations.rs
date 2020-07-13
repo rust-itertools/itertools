@@ -116,7 +116,7 @@ fn merge_join_by_test(i1: Vec<usize>, i2: Vec<usize>, known_expected_size: Optio
         eob.left().unwrap_or(0)
     }
     fn eob_right_z(eob: EitherOrBoth<usize, usize>) -> usize {
-        eob.left().unwrap_or(0)
+        eob.right().unwrap_or(0)
     }
     fn eob_both_z(eob: EitherOrBoth<usize, usize>) -> usize {
         let (a, b) = eob.both().unwrap_or((0, 0));
