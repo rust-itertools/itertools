@@ -876,17 +876,13 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     /// use itertools::EitherOrBoth::{Left, Right, Both};
     ///
-    /// let ki = (0..10).step(3);
-    /// let ku = (0..10).step(5);
-    /// let ki_ku = ki.merge_join_by(ku, |i, j| i.cmp(j)).map(|either| {
-    ///     match either {
-    ///         Left(_) => "Ki",
-    ///         Right(_) => "Ku",
-    ///         Both(_, _) => "KiKu"
-    ///     }
-    /// });
+    /// let multiples_of_2 = (0..10).step(2);
+    /// let multiples_of_3 = (0..10).step(3);
     ///
-    /// itertools::assert_equal(ki_ku, vec!["KiKu", "Ki", "Ku", "Ki", "Ki"]);
+    /// itertools::assert_equal(
+    ///     multiples_of_2.merge_join_by(multiples_of_3, |i, j| i.cmp(j)),
+    ///     vec![Both(0, 0), Left(2), Right(3), Left(4), Both(6, 6), Left(8), Right(9)]
+    /// );
     /// ```
     #[inline]
     fn merge_join_by<J, F>(self, other: J, cmp_fn: F) -> MergeJoinBy<Self, J::IntoIter, F>
