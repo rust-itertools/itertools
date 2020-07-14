@@ -1,6 +1,5 @@
-use itertools::{EitherOrBoth, Itertools};
+use itertools::Itertools;
 use std::fmt::Debug;
-use std::ops::BitXor;
 use quickcheck::quickcheck;
 
 struct Unspecialized<I>(I);
@@ -63,21 +62,19 @@ fn check_specialized_count_last_nth_sizeh<'a, IterItem, Iter>(
     }
 }
 
-fn check_specialized_fold_xor<'a, IterItem, Iter>(it: &Iter)
+fn check_specialized_fold<IterItem, Iter>(it: &Iter)
 where
-    IterItem: 'a
-        + BitXor
-        + Eq
-        + Debug
-        + BitXor<<IterItem as BitXor>::Output, Output = <IterItem as BitXor>::Output>
-        + Clone,
-    <IterItem as BitXor>::Output:
-        BitXor<Output = <IterItem as BitXor>::Output> + Eq + Debug + Clone,
-    Iter: Iterator<Item = IterItem> + Clone + 'a,
+    IterItem: Eq + Debug + Clone,
+    Iter: Iterator<Item = IterItem> + Clone,
 {
-    check_specialized(it, |mut i| {
-        let first = i.next().map(|f| f.clone() ^ (f.clone() ^ f));
-        i.fold(first, |acc, v: IterItem| acc.map(move |a| v ^ a))
+    check_specialized(it, |i| {
+        let mut parameters_from_fold = vec![];
+        let fold_result = i.fold(vec![], |mut acc, v: IterItem| {
+            parameters_from_fold.push((acc.clone(), v.clone()));
+            acc.push(v);
+            acc
+        });
+        (parameters_from_fold, fold_result)
     });
 }
 
@@ -86,13 +83,13 @@ fn put_back_test(test_vec: Vec<i32>, known_expected_size: Option<usize>) {
         // Lexical lifetimes support
         let pb = itertools::put_back(test_vec.iter());
         check_specialized_count_last_nth_sizeh(&pb, known_expected_size);
-        check_specialized_fold_xor(&pb);
+        check_specialized_fold(&pb);
     }
 
     let mut pb = itertools::put_back(test_vec.into_iter());
     pb.put_back(1);
     check_specialized_count_last_nth_sizeh(&pb, known_expected_size.map(|x| x + 1));
-    check_specialized_fold_xor(&pb)
+    check_specialized_fold(&pb)
 }
 
 #[test]
@@ -111,28 +108,12 @@ fn merge_join_by_test(i1: Vec<usize>, i2: Vec<usize>, known_expected_size: Optio
     let i2 = i2.into_iter();
     let mjb = i1.clone().merge_join_by(i2.clone(), std::cmp::Ord::cmp);
     check_specialized_count_last_nth_sizeh(&mjb, known_expected_size);
-    // Rust 1.24 compatibility:
-    fn eob_left_z(eob: EitherOrBoth<usize, usize>) -> usize {
-        eob.left().unwrap_or(0)
-    }
-    fn eob_right_z(eob: EitherOrBoth<usize, usize>) -> usize {
-        eob.right().unwrap_or(0)
-    }
-    fn eob_both_z(eob: EitherOrBoth<usize, usize>) -> usize {
-        let (a, b) = eob.both().unwrap_or((0, 0));
-        assert_eq!(a, b);
-        a
-    }
-    check_specialized_fold_xor(&mjb.clone().map(eob_left_z));
-    check_specialized_fold_xor(&mjb.clone().map(eob_right_z));
-    check_specialized_fold_xor(&mjb.clone().map(eob_both_z));
+    check_specialized_fold(&mjb);
 
     // And the other way around
     let mjb = i2.merge_join_by(i1, std::cmp::Ord::cmp);
     check_specialized_count_last_nth_sizeh(&mjb, known_expected_size);
-    check_specialized_fold_xor(&mjb.clone().map(eob_left_z));
-    check_specialized_fold_xor(&mjb.clone().map(eob_right_z));
-    check_specialized_fold_xor(&mjb.clone().map(eob_both_z));
+    check_specialized_fold(&mjb);
 }
 
 #[test]
