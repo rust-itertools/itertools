@@ -72,37 +72,17 @@ fn test_specializations<IterItem, Iter>(
     }
 }
 
-fn put_back_test(test_vec: Vec<i32>) {
-    {
-        // Lexical lifetimes support
-        let pb = itertools::put_back(test_vec.iter());
-        test_specializations(&pb);
-    }
-
-    let mut pb = itertools::put_back(test_vec.into_iter());
-    pb.put_back(1);
-    test_specializations(&pb);
-}
-
 quickcheck! {
     fn put_back_qc(test_vec: Vec<i32>) -> () {
-        put_back_test(test_vec)
+        test_specializations(&itertools::put_back(test_vec.iter()));
+        let mut pb = itertools::put_back(test_vec.into_iter());
+        pb.put_back(1);
+        test_specializations(&pb);
     }
-}
-
-fn merge_join_by_test(i1: Vec<usize>, i2: Vec<usize>) {
-    let i1 = i1.into_iter();
-    let i2 = i2.into_iter();
-    let mjb = i1.clone().merge_join_by(i2.clone(), std::cmp::Ord::cmp);
-    test_specializations(&mjb);
-
-    // And the other way around
-    let mjb = i2.merge_join_by(i1, std::cmp::Ord::cmp);
-    test_specializations(&mjb);
 }
 
 quickcheck! {
     fn merge_join_by_qc(i1: Vec<usize>, i2: Vec<usize>) -> () {
-        merge_join_by_test(i1, i2)
+        test_specializations(&i1.into_iter().merge_join_by(i2.into_iter(), std::cmp::Ord::cmp));
     }
 }
