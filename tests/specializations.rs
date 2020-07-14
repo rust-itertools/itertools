@@ -18,7 +18,6 @@ where
 fn check_specialized<'a, V, IterItem, Iter, F>(iterator: &Iter, mapper: F)
 where
     V: Eq + Debug,
-    IterItem: 'a,
     Iter: Iterator<Item = IterItem> + Clone + 'a,
     F: Fn(Box<dyn Iterator<Item = IterItem> + 'a>) -> V,
 {
@@ -28,12 +27,12 @@ where
     )
 }
 
-fn check_specialized_count_last_nth_sizeh<'a, IterItem, Iter>(
+fn check_specialized_count_last_nth_sizeh<IterItem, Iter>(
     it: &Iter,
     known_expected_size: Option<usize>,
 ) where
-    IterItem: 'a + Eq + Debug,
-    Iter: Iterator<Item = IterItem> + Clone + 'a,
+    IterItem: Eq + Debug,
+    Iter: Iterator<Item = IterItem> + Clone,
 {
     let size = it.clone().count();
     if let Some(expected_size) = known_expected_size {
