@@ -31,7 +31,7 @@ fn check_specialized_count_last_nth_sizeh<IterItem, Iter>(
     it: &Iter,
     known_expected_size: Option<usize>,
 ) where
-    IterItem: Eq + Debug,
+    IterItem: Eq + Debug + Clone,
     Iter: Iterator<Item = IterItem> + Clone,
 {
     let size = it.clone().count();
@@ -54,13 +54,6 @@ fn check_specialized_count_last_nth_sizeh<IterItem, Iter>(
         }
         it_sh.next();
     }
-}
-
-fn check_specialized_fold<IterItem, Iter>(it: &Iter)
-where
-    IterItem: Eq + Debug + Clone,
-    Iter: Iterator<Item = IterItem> + Clone,
-{
     check_specialized(it, |i| {
         let mut parameters_from_fold = vec![];
         let fold_result = i.fold(vec![], |mut acc, v: IterItem| {
@@ -77,13 +70,11 @@ fn put_back_test(test_vec: Vec<i32>, known_expected_size: Option<usize>) {
         // Lexical lifetimes support
         let pb = itertools::put_back(test_vec.iter());
         check_specialized_count_last_nth_sizeh(&pb, known_expected_size);
-        check_specialized_fold(&pb);
     }
 
     let mut pb = itertools::put_back(test_vec.into_iter());
     pb.put_back(1);
     check_specialized_count_last_nth_sizeh(&pb, known_expected_size.map(|x| x + 1));
-    check_specialized_fold(&pb)
 }
 
 #[test]
@@ -102,12 +93,10 @@ fn merge_join_by_test(i1: Vec<usize>, i2: Vec<usize>, known_expected_size: Optio
     let i2 = i2.into_iter();
     let mjb = i1.clone().merge_join_by(i2.clone(), std::cmp::Ord::cmp);
     check_specialized_count_last_nth_sizeh(&mjb, known_expected_size);
-    check_specialized_fold(&mjb);
 
     // And the other way around
     let mjb = i2.merge_join_by(i1, std::cmp::Ord::cmp);
     check_specialized_count_last_nth_sizeh(&mjb, known_expected_size);
-    check_specialized_fold(&mjb);
 }
 
 #[test]
