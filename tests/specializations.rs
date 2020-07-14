@@ -29,15 +29,11 @@ where
 
 fn test_specializations<IterItem, Iter>(
     it: &Iter,
-    known_expected_size: Option<usize>,
 ) where
     IterItem: Eq + Debug + Clone,
     Iter: Iterator<Item = IterItem> + Clone,
 {
     let size = it.clone().count();
-    if let Some(expected_size) = known_expected_size {
-        assert_eq!(size, expected_size);
-    }
     check_specialized(it, |i| i.count());
     check_specialized(it, |i| i.last());
     for n in 0..size + 2 {
@@ -65,49 +61,49 @@ fn test_specializations<IterItem, Iter>(
     });
 }
 
-fn put_back_test(test_vec: Vec<i32>, known_expected_size: Option<usize>) {
+fn put_back_test(test_vec: Vec<i32>) {
     {
         // Lexical lifetimes support
         let pb = itertools::put_back(test_vec.iter());
-        test_specializations(&pb, known_expected_size);
+        test_specializations(&pb);
     }
 
     let mut pb = itertools::put_back(test_vec.into_iter());
     pb.put_back(1);
-    test_specializations(&pb, known_expected_size.map(|x| x + 1));
+    test_specializations(&pb);
 }
 
 #[test]
 fn put_back() {
-    put_back_test(vec![7, 4, 1], Some(3));
+    put_back_test(vec![7, 4, 1]);
 }
 
 quickcheck! {
     fn put_back_qc(test_vec: Vec<i32>) -> () {
-        put_back_test(test_vec, None)
+        put_back_test(test_vec)
     }
 }
 
-fn merge_join_by_test(i1: Vec<usize>, i2: Vec<usize>, known_expected_size: Option<usize>) {
+fn merge_join_by_test(i1: Vec<usize>, i2: Vec<usize>) {
     let i1 = i1.into_iter();
     let i2 = i2.into_iter();
     let mjb = i1.clone().merge_join_by(i2.clone(), std::cmp::Ord::cmp);
-    test_specializations(&mjb, known_expected_size);
+    test_specializations(&mjb);
 
     // And the other way around
     let mjb = i2.merge_join_by(i1, std::cmp::Ord::cmp);
-    test_specializations(&mjb, known_expected_size);
+    test_specializations(&mjb);
 }
 
 #[test]
 fn merge_join_by() {
     let i1 = vec![1, 3, 5, 7, 8, 9];
     let i2 = vec![0, 3, 4, 5];
-    merge_join_by_test(i1, i2, Some(8));
+    merge_join_by_test(i1, i2);
 }
 
 quickcheck! {
     fn merge_join_by_qc(i1: Vec<usize>, i2: Vec<usize>) -> () {
-        merge_join_by_test(i1, i2, None)
+        merge_join_by_test(i1, i2)
     }
 }
