@@ -84,11 +84,6 @@ fn put_back_test(test_vec: Vec<i32>) {
     test_specializations(&pb);
 }
 
-#[test]
-fn put_back() {
-    put_back_test(vec![7, 4, 1]);
-}
-
 quickcheck! {
     fn put_back_qc(test_vec: Vec<i32>) -> () {
         put_back_test(test_vec)
@@ -104,13 +99,6 @@ fn merge_join_by_test(i1: Vec<usize>, i2: Vec<usize>) {
     // And the other way around
     let mjb = i2.merge_join_by(i1, std::cmp::Ord::cmp);
     test_specializations(&mjb);
-}
-
-#[test]
-fn merge_join_by() {
-    let i1 = vec![1, 3, 5, 7, 8, 9];
-    let i2 = vec![0, 3, 4, 5];
-    merge_join_by_test(i1, i2);
 }
 
 quickcheck! {
