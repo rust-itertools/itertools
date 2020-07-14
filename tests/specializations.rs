@@ -27,7 +27,7 @@ where
     )
 }
 
-fn check_specialized_count_last_nth_sizeh<IterItem, Iter>(
+fn test_specializations<IterItem, Iter>(
     it: &Iter,
     known_expected_size: Option<usize>,
 ) where
@@ -69,12 +69,12 @@ fn put_back_test(test_vec: Vec<i32>, known_expected_size: Option<usize>) {
     {
         // Lexical lifetimes support
         let pb = itertools::put_back(test_vec.iter());
-        check_specialized_count_last_nth_sizeh(&pb, known_expected_size);
+        test_specializations(&pb, known_expected_size);
     }
 
     let mut pb = itertools::put_back(test_vec.into_iter());
     pb.put_back(1);
-    check_specialized_count_last_nth_sizeh(&pb, known_expected_size.map(|x| x + 1));
+    test_specializations(&pb, known_expected_size.map(|x| x + 1));
 }
 
 #[test]
@@ -92,11 +92,11 @@ fn merge_join_by_test(i1: Vec<usize>, i2: Vec<usize>, known_expected_size: Optio
     let i1 = i1.into_iter();
     let i2 = i2.into_iter();
     let mjb = i1.clone().merge_join_by(i2.clone(), std::cmp::Ord::cmp);
-    check_specialized_count_last_nth_sizeh(&mjb, known_expected_size);
+    test_specializations(&mjb, known_expected_size);
 
     // And the other way around
     let mjb = i2.merge_join_by(i1, std::cmp::Ord::cmp);
-    check_specialized_count_last_nth_sizeh(&mjb, known_expected_size);
+    test_specializations(&mjb, known_expected_size);
 }
 
 #[test]
