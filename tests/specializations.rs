@@ -13,11 +13,6 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next()
     }
-
-    #[inline(always)]
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.0.size_hint()
-    }
 }
 
 fn check_specialized<'a, V, IterItem, Iter, F>(iterator: &Iter, mapper: F)
