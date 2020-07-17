@@ -584,6 +584,8 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     /// let mut v = Vec::new();
+    ///
+    /// // pairwise iteration
     /// for (a, b) in (1..5).tuple_windows() {
     ///     v.push((a, b));
     /// }
