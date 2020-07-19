@@ -5,8 +5,10 @@
 //! except according to those terms.
 
 mod coalesce;
+mod map;
 mod multi_product;
 pub use self::coalesce::*;
+pub use self::map::*;
 #[cfg(feature = "use_std")]
 pub use self::multi_product::*;
 
@@ -805,122 +807,6 @@ macro_rules! impl_tuple_combination {
 impl_tuple_combination!(Tuple2Combination Tuple1Combination ; A, A, A ; a);
 impl_tuple_combination!(Tuple3Combination Tuple2Combination ; A, A, A, A ; a b);
 impl_tuple_combination!(Tuple4Combination Tuple3Combination ; A, A, A, A, A; a b c);
-
-pub trait MapSpecialCaseFn<T> {
-    type Out;
-    fn call(&mut self, t: T) -> Self::Out;
-}
-
-#[derive(Clone)]
-pub struct MapSpecialCaseFnInto<U>(PhantomData<U>);
-
-impl<T: Into<U>, U> MapSpecialCaseFn<T> for MapSpecialCaseFnInto<U> {
-    type Out = U;
-    fn call(&mut self, t: T) -> Self::Out {
-        t.into()
-    }
-}
-
-#[derive(Clone)]
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct MapSpecialCase<I, F> {
-    iter: I,
-    f: F,
-}
-
-/// An iterator adapter to apply `Into` conversion to each element.
-///
-/// See [`.map_into()`](../trait.Itertools.html#method.map_into) for more information.
-pub type MapInto<I, R> = MapSpecialCase<I, MapSpecialCaseFnInto<R>>;
-
-/// Create a new [`MapInto`](struct.MapInto.html) iterator.
-pub fn map_into<I, R>(iter: I) -> MapInto<I, R> {
-    MapSpecialCase {
-        iter,
-        f: MapSpecialCaseFnInto(PhantomData),
-    }
-}
-
-impl<I, R> Iterator for MapSpecialCase<I, R>
-    where I: Iterator,
-          R: MapSpecialCaseFn<I::Item>,
-{
-    type Item = R::Out;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iter
-            .next()
-            .map( |i| self.f.call(i))
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.iter.size_hint()
-    }
-
-    fn fold<Acc, Fold>(self, init: Acc, mut fold_f: Fold) -> Acc
-        where Fold: FnMut(Acc, Self::Item) -> Acc,
-    {
-        let mut f = self.f;
-        self.iter.fold(init, move |acc, v| fold_f(acc, f.call(v)))
-    }
-
-    fn collect<C>(self) -> C
-        where C: FromIterator<Self::Item>
-    {
-        let mut f = self.f;
-        self.iter.map(move |v| f.call(v)).collect()
-    }
-}
-
-impl<I, R> DoubleEndedIterator for MapSpecialCase<I, R>
-    where I: DoubleEndedIterator,
-          R: MapSpecialCaseFn<I::Item>,
-{
-    fn next_back(&mut self) -> Option<Self::Item> {
-        self.iter
-            .next_back()
-            .map(|i| self.f.call(i))
-    }
-}
-
-impl<I, R> ExactSizeIterator for MapSpecialCase<I, R>
-where
-    I: ExactSizeIterator,
-    R: MapSpecialCaseFn<I::Item>,
-{}
-
-/// See [`MapOk`](struct.MapOk.html).
-#[deprecated(note="Use MapOk instead", since="0.10")]
-pub type MapResults<I, F> = MapOk<I, F>;
-
-#[derive(Clone)]
-pub struct MapSpecialCaseFnOk<F>(F);
-
-impl<F, T, U, E> MapSpecialCaseFn<Result<T, E>> for MapSpecialCaseFnOk<F>
-    where
-        F: FnMut(T)->U
-{
-    type Out = Result<U, E>;
-    fn call(&mut self, t: Result<T, E>) -> Self::Out {
-        t.map(|v| self.0(v))
-    }
-}
-
-/// An iterator adapter to apply a transformation within a nested `Result::Ok`.
-///
-/// See [`.map_ok()`](../trait.Itertools.html#method.map_ok) for more information.
-pub type MapOk<I, F> = MapSpecialCase<I, MapSpecialCaseFnOk<F>>;
-
-/// Create a new `MapOk` iterator.
-pub fn map_ok<I, F, T, U, E>(iter: I, f: F) -> MapOk<I, F>
-    where I: Iterator<Item = Result<T, E>>,
-          F: FnMut(T) -> U,
-{
-    MapSpecialCase {
-        iter,
-        f: MapSpecialCaseFnOk(f),
-    }
-}
 
 /// An iterator adapter to filter values within a nested `Result::Ok`.
 ///
