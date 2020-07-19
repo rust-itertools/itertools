@@ -863,6 +863,13 @@ impl<I, R> Iterator for MapSpecialCase<I, R>
         let mut f = self.f;
         self.iter.fold(init, move |acc, v| fold_f(acc, f.call(v)))
     }
+
+    fn collect<C>(self) -> C
+        where C: FromIterator<Self::Item>
+    {
+        let mut f = self.f;
+        self.iter.map(move |v| f.call(v)).collect()
+    }
 }
 
 impl<I, R> DoubleEndedIterator for MapSpecialCase<I, R>
