@@ -806,34 +806,51 @@ impl_tuple_combination!(Tuple2Combination Tuple1Combination ; A, A, A ; a);
 impl_tuple_combination!(Tuple3Combination Tuple2Combination ; A, A, A, A ; a b);
 impl_tuple_combination!(Tuple4Combination Tuple3Combination ; A, A, A, A, A; a b c);
 
-/// An iterator adapter to apply `Into` conversion to each element.
-///
-/// See [`.map_into()`](../trait.Itertools.html#method.map_into) for more information.
-#[derive(Clone)]
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct MapInto<I, R> {
-    iter: I,
-    _res: PhantomData<R>,
+pub trait MapSpecialCaseFn<T> {
+    type Out;
+    fn call(&mut self, t: T) -> Self::Out;
 }
 
-/// Create a new [`MapInto`](struct.MapInto.html) iterator.
-pub fn map_into<I, R>(iter: I) -> MapInto<I, R> {
-    MapInto {
-        iter,
-        _res: PhantomData,
+#[derive(Clone)]
+pub struct MapSpecialCaseFnInto<U>(PhantomData<U>);
+
+impl<T: Into<U>, U> MapSpecialCaseFn<T> for MapSpecialCaseFnInto<U> {
+    type Out = U;
+    fn call(&mut self, t: T) -> Self::Out {
+        t.into()
     }
 }
 
-impl<I, R> Iterator for MapInto<I, R>
+#[derive(Clone)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+pub struct MapSpecialCase<I, F> {
+    iter: I,
+    f: F,
+}
+
+/// An iterator adapter to apply `Into` conversion to each element.
+///
+/// See [`.map_into()`](../trait.Itertools.html#method.map_into) for more information.
+pub type MapInto<I, R> = MapSpecialCase<I, MapSpecialCaseFnInto<R>>;
+
+/// Create a new [`MapInto`](struct.MapInto.html) iterator.
+pub fn map_into<I, R>(iter: I) -> MapInto<I, R> {
+    MapSpecialCase {
+        iter,
+        f: MapSpecialCaseFnInto(PhantomData),
+    }
+}
+
+impl<I, R> Iterator for MapSpecialCase<I, R>
     where I: Iterator,
-          I::Item: Into<R>,
+          R: MapSpecialCaseFn<I::Item>,
 {
-    type Item = R;
+    type Item = R::Out;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.iter
             .next()
-            .map(|i| i.into())
+            .map( |i| self.f.call(i))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -843,25 +860,26 @@ impl<I, R> Iterator for MapInto<I, R>
     fn fold<Acc, Fold>(self, init: Acc, mut fold_f: Fold) -> Acc
         where Fold: FnMut(Acc, Self::Item) -> Acc,
     {
-        self.iter.fold(init, move |acc, v| fold_f(acc, v.into()))
+        let mut f = self.f;
+        self.iter.fold(init, move |acc, v| fold_f(acc, f.call(v)))
     }
 }
 
-impl<I, R> DoubleEndedIterator for MapInto<I, R>
+impl<I, R> DoubleEndedIterator for MapSpecialCase<I, R>
     where I: DoubleEndedIterator,
-          I::Item: Into<R>,
+          R: MapSpecialCaseFn<I::Item>,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter
             .next_back()
-            .map(|i| i.into())
+            .map(|i| self.f.call(i))
     }
 }
 
-impl<I, R> ExactSizeIterator for MapInto<I, R>
+impl<I, R> ExactSizeIterator for MapSpecialCase<I, R>
 where
     I: ExactSizeIterator,
-    I::Item: Into<R>,
+    R: MapSpecialCaseFn<I::Item>,
 {}
 
 /// See [`MapOk`](struct.MapOk.html).
