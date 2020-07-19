@@ -893,53 +893,32 @@ where
 #[deprecated(note="Use MapOk instead", since="0.10")]
 pub type MapResults<I, F> = MapOk<I, F>;
 
+#[derive(Clone)]
+pub struct MapSpecialCaseFnOk<F>(F);
+
+impl<F, T, U, E> MapSpecialCaseFn<Result<T, E>> for MapSpecialCaseFnOk<F>
+    where
+        F: FnMut(T)->U
+{
+    type Out = Result<U, E>;
+    fn call(&mut self, t: Result<T, E>) -> Self::Out {
+        t.map(|v| self.0(v))
+    }
+}
+
 /// An iterator adapter to apply a transformation within a nested `Result::Ok`.
 ///
 /// See [`.map_ok()`](../trait.Itertools.html#method.map_ok) for more information.
-#[derive(Clone)]
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct MapOk<I, F> {
-    iter: I,
-    f: F
-}
+pub type MapOk<I, F> = MapSpecialCase<I, MapSpecialCaseFnOk<F>>;
 
 /// Create a new `MapOk` iterator.
 pub fn map_ok<I, F, T, U, E>(iter: I, f: F) -> MapOk<I, F>
     where I: Iterator<Item = Result<T, E>>,
           F: FnMut(T) -> U,
 {
-    MapOk {
+    MapSpecialCase {
         iter,
-        f,
-    }
-}
-
-impl<I, F, T, U, E> Iterator for MapOk<I, F>
-    where I: Iterator<Item = Result<T, E>>,
-          F: FnMut(T) -> U,
-{
-    type Item = Result<U, E>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().map(|v| v.map(&mut self.f))
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.iter.size_hint()
-    }
-
-    fn fold<Acc, Fold>(self, init: Acc, mut fold_f: Fold) -> Acc
-        where Fold: FnMut(Acc, Self::Item) -> Acc,
-    {
-        let mut f = self.f;
-        self.iter.fold(init, move |acc, v| fold_f(acc, v.map(&mut f)))
-    }
-
-    fn collect<C>(self) -> C
-        where C: FromIterator<Self::Item>
-    {
-        let mut f = self.f;
-        self.iter.map(move |v| v.map(&mut f)).collect()
+        f: MapSpecialCaseFnOk(f),
     }
 }
 
