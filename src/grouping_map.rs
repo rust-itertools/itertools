@@ -4,7 +4,6 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::iter::Iterator;
 
-#[doc(hidden)]
 /// A wrapper to allow for an easy [`into_grouping_map_by`](../trait.Itertools.html#method.into_grouping_map_by)
 pub struct MapForGrouping<I, F>(I, F);
 
