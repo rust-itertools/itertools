@@ -113,6 +113,8 @@ where
 
     /// Groups elements from the `GroupingMap` source by key and collects the elements of each group in
     /// an instance of `C`. The iteration order is preserved when inserting elements. 
+    /// 
+    /// Return a `HashMap` associating the key of each group with the collection containing the elements of that group.
     pub fn collect<C>(self) -> HashMap<K, C>
     where
         C: Default + Extend<V>,
