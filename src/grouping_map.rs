@@ -48,22 +48,23 @@ where
     /// ```
     /// use itertools::Itertools;
     /// 
-    /// let data = vec![10, 5, 7, 9, 0, 4, 2];
+    /// let data = vec![2, 8, 5, 7, 9, 0, 4, 10];
     /// let lookup = data.into_iter()
     ///     .map(|n| (n % 4, n))
     ///     .into_grouping_map()
     ///     .aggregate(|acc, _, val| {
-    ///         match val {
-    ///             0 | 2 => None,
-    ///             _ => Some(acc.unwrap_or(0) + val)
+    ///         if val == 0 || val == 10 {
+    ///             None
+    ///         } else {
+    ///             Some(acc.unwrap_or(0) + val)
     ///         }
     ///     });
     /// 
-    /// assert_eq!(lookup[&0], 4);
-    /// assert_eq!(lookup[&1], 14);
-    /// assert!(!lookup.contains_key(&2));
-    /// assert_eq!(lookup[&3], 7);
-    /// assert_eq!(lookup.len(), 3);
+    /// assert_eq!(lookup[&0], 4);        // 0 resets the accumulator so only 4 is summed
+    /// assert_eq!(lookup[&1], 14);       // 5 + 9
+    /// assert_eq!(lookup.get(&2), None); // 10 resets the accumulator and nothing is summed afterward
+    /// assert_eq!(lookup[&3], 7);        // 7
+    /// assert_eq!(lookup.len(), 3);      // The final keys are only 0, 1 and 2
     /// ```
     pub fn aggregate<FO, R>(self, mut operation: FO) -> HashMap<K, R>
     where
