@@ -4,6 +4,29 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::iter::Iterator;
 
+#[doc(hidden)]
+/// A wrapper to allow for an easy [`into_grouping_map_by`](../trait.Itertools.html#method.into_grouping_map_by)
+pub struct MapForGrouping<I, F>(I, F);
+
+impl<I, F> MapForGrouping<I, F> {
+    pub(crate) fn new(iter: I, key_mapper: F) -> Self {
+        Self(iter, key_mapper)
+    }
+}
+
+impl<K, V, I, F> Iterator for MapForGrouping<I, F>
+where
+    I: Iterator<Item = V>,
+    K: Hash + Eq,
+    F: FnMut(&V) -> K,
+{
+    type Item = (K, V);
+    fn next(&mut self) -> Option<Self::Item> {
+        let val = self.0.next()?;
+        Some(((self.1)(&val), val))
+    }
+}
+
 /// Creates a new `GroupingMap` from `iter`
 pub fn new<I, K, V>(iter: I) -> GroupingMap<I>
 where
