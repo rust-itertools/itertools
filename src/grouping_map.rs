@@ -30,7 +30,7 @@ where
     I: Iterator<Item = (K, V)>,
     K: Hash + Eq,
 {
-    pub fn aggregate<FO, R>(mut self, mut operation: FO) -> HashMap<K, R>
+    pub fn aggregate<FO, R>(self, mut operation: FO) -> HashMap<K, R>
     where
         FO: FnMut(Option<R>, &K, V) -> Option<R>,
     {
