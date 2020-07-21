@@ -110,6 +110,8 @@ pub mod structs {
     pub use crate::exactly_one_err::ExactlyOneError;
     pub use crate::format::{Format, FormatWith};
     #[cfg(feature = "use_std")]
+    pub use crate::grouping_map::GroupingMap;
+    #[cfg(feature = "use_std")]
     pub use crate::groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
     pub use crate::intersperse::{Intersperse, IntersperseWith};
     #[cfg(feature = "use_std")]
@@ -179,6 +181,8 @@ mod combinations_with_replacement;
 mod exactly_one_err;
 mod diff;
 mod format;
+#[cfg(feature = "use_std")]
+mod grouping_map;
 #[cfg(feature = "use_std")]
 mod group_map;
 #[cfg(feature = "use_std")]
@@ -2326,6 +2330,14 @@ pub trait Itertools : Iterator {
               K: Hash + Eq,
     {
         group_map::into_group_map(self)
+    }
+
+    #[cfg(feature = "use_std")]
+    fn into_grouping_map<K, V>(self) -> GroupingMap<Self>
+        where Self: Iterator<Item=(K, V)> + Sized,
+            K: Hash + Eq,
+    {
+        grouping_map::new(self)
     }
 
     /// Return the minimum and maximum elements in the iterator.
