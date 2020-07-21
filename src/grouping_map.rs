@@ -62,6 +62,18 @@ where
         destination_map
     }
 
+    /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
+    /// of each group sequentially, passing the previously accumulated value, a reference to the key
+    /// and the current element as arguments, and stores the results in a new map.
+    ///
+    /// `init` is the value from which will be cloned the initial value of each accumulator.
+    ///
+    /// `operation` is a function that is invoked on each element with the following parameters:
+    ///  - the current value of the accumulator of the group;
+    ///  - a reference to the key of the group this element belongs to;
+    ///  - the element from the source being accumulated.
+    ///
+    /// Return a `HashMap` associating the key of each group with the result of folding the group elements.
     pub fn fold<FO, R>(self, init: R, mut operation: FO) -> HashMap<K, R>
     where
         R: Clone,
