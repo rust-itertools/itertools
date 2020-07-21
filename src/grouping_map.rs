@@ -380,25 +380,25 @@ impl<I, K, V> GroupingMap<I>
         self.min_by(|v1, v2| f(&v1).cmp(&f(&v2)))
     }
 
-    pub fn minmax(self) -> HashMap<K, V>
+    pub fn minmax(self) -> HashMap<K, MinMaxResult<V>>
         where V: Ord,
     {
         self.minmax_by(V::cmp)
     }
 
-    pub fn minmax_by<F>(self, mut compare: F) -> HashMap<K, V>
+    pub fn minmax_by<F>(self, mut compare: F) -> HashMap<K, MinMaxResult<V>>
         where F: FnMut(&V, &V) -> Ordering,
     {
         self.aggregate(|acc, _, val| {
-            match acc {
-                MinMaxResult::OneElement(e) => {
+            Some(match acc {
+                Some(MinMaxResult::OneElement(e)) => {
                     if compare(&val, &e) == Ordering::Less {
                         MinMaxResult::MinMax(val, e)
                     } else {
                         MinMaxResult::MinMax(e, val)
                     }
                 },
-                MinMaxResult::MinMax(min, max) => {
+                Some(MinMaxResult::MinMax(min, max)) => {
                     if compare(&val, &min) == Ordering::Less {
                         MinMaxResult::MinMax(val, max)
                     } else if compare(&val, &min) == Ordering::Greater {
@@ -406,13 +406,14 @@ impl<I, K, V> GroupingMap<I>
                     } else {
                         MinMaxResult::MinMax(min, max)
                     }
-                }
-                MinMaxResult::NoElements => unreachable!()
-            }
+                },
+                None => MinMaxResult::OneElement(val),
+                Some(MinMaxResult::NoElements) => unreachable!()
+            })
         })
     }
 
-    pub fn minmax_by_key<F, CK>(self, mut f: F) -> HashMap<K, V>
+    pub fn minmax_by_key<F, CK>(self, mut f: F) -> HashMap<K, MinMaxResult<V>>
         where F: FnMut(&V) -> CK,
               CK: Ord,
     {
