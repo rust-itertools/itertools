@@ -2332,6 +2332,10 @@ pub trait Itertools : Iterator {
         group_map::into_group_map(self)
     }
 
+    /// Constructs a `GroupingMap` to be used later with one of the efficient 
+    /// group-and-fold operations it allows to perform.
+    /// 
+    /// See [`GroupingMap`](./structs/struct.GroupingMap.html) for more informations.
     #[cfg(feature = "use_std")]
     fn into_grouping_map<K, V>(self) -> GroupingMap<Self>
         where Self: Iterator<Item=(K, V)> + Sized,
