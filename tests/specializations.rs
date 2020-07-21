@@ -86,3 +86,15 @@ quickcheck! {
         test_specializations(&i1.into_iter().merge_join_by(i2.into_iter(), std::cmp::Ord::cmp));
     }
 }
+
+quickcheck! {
+    fn map_into(v: Vec<u8>) -> () {
+        test_specializations(&v.into_iter().map_into::<u32>());
+    }
+}
+
+quickcheck! {
+    fn map_ok(v: Vec<Result<u8, char>>) -> () {
+        test_specializations(&v.into_iter().map_ok(|u| u.checked_add(1)));
+    }
+}
