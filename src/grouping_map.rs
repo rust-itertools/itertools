@@ -27,7 +27,7 @@ where
     I: Iterator<Item = (K, V)>,
     K: Hash + Eq,
 {
-    /// This is the generic way to perform any operations on a `Grouping`.
+    /// This is the generic way to perform any operations on a `GroupingMap`.
     /// It's suggested to use this method only to implement custom operations
     /// when the already provided ones are not enough.
     /// 
