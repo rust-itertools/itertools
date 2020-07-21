@@ -15,10 +15,9 @@ impl<I, F> MapForGrouping<I, F> {
 }
 
 impl<K, V, I, F> Iterator for MapForGrouping<I, F>
-where
-    I: Iterator<Item = V>,
-    K: Hash + Eq,
-    F: FnMut(&V) -> K,
+    where I: Iterator<Item = V>,
+          K: Hash + Eq,
+          F: FnMut(&V) -> K,
 {
     type Item = (K, V);
     fn next(&mut self) -> Option<Self::Item> {
@@ -29,9 +28,8 @@ where
 
 /// Creates a new `GroupingMap` from `iter`
 pub fn new<I, K, V>(iter: I) -> GroupingMap<I>
-where
-    I: Iterator<Item = (K, V)>,
-    K: Hash + Eq,
+    where I: Iterator<Item = (K, V)>,
+          K: Hash + Eq,
 {
     GroupingMap { iter }
 }
@@ -47,9 +45,8 @@ pub struct GroupingMap<I> {
 }
 
 impl<I, K, V> GroupingMap<I>
-where
-    I: Iterator<Item = (K, V)>,
-    K: Hash + Eq,
+    where I: Iterator<Item = (K, V)>,
+          K: Hash + Eq,
 {
     /// This is the generic way to perform any operations on a `GroupingMap`.
     /// It's suggested to use this method only to implement custom operations
@@ -90,8 +87,7 @@ where
     /// assert_eq!(lookup.len(), 3);      // The final keys are only 0, 1 and 2
     /// ```
     pub fn aggregate<FO, R>(self, mut operation: FO) -> HashMap<K, R>
-    where
-        FO: FnMut(Option<R>, &K, V) -> Option<R>,
+        where FO: FnMut(Option<R>, &K, V) -> Option<R>,
     {
         let mut destination_map = HashMap::new();
 
@@ -131,9 +127,8 @@ where
     /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn fold<FO, R>(self, init: R, mut operation: FO) -> HashMap<K, R>
-    where
-        R: Clone,
-        FO: FnMut(R, &K, V) -> R,
+        where R: Clone,
+              FO: FnMut(R, &K, V) -> R,
     {
         self.aggregate(|acc, key, val| {
             let acc = acc.unwrap_or_else(|| init.clone());
@@ -169,8 +164,7 @@ where
     /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn fold_first<FO>(self, mut operation: FO) -> HashMap<K, V>
-    where
-        FO: FnMut(V, &K, V) -> V,
+        where FO: FnMut(V, &K, V) -> V,
     {
         self.aggregate(|acc, key, val| {
             Some(match acc {
@@ -199,8 +193,7 @@ where
     /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn collect<C>(self) -> HashMap<K, C>
-    where
-        C: Default + Extend<V>,
+        where C: Default + Extend<V>,
     {
         self.aggregate(|acc, _, v| {
             let mut acc = acc.unwrap_or_else(C::default);
