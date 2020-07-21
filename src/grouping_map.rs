@@ -92,6 +92,20 @@ where
     ///  - the element from the source being accumulated.
     ///
     /// Return a `HashMap` associating the key of each group with the result of folding the group elements.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = (1..=7)
+    ///     .map(|n| (n % 3, n))
+    ///     .into_grouping_map()
+    ///     .fold(0, |acc, _, val| acc + val);
+    /// 
+    /// assert_eq!(lookup[&0], 9);
+    /// assert_eq!(lookup[&1], 12);
+    /// assert_eq!(lookup[&2], 7);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn fold<FO, R>(self, init: R, mut operation: FO) -> HashMap<K, R>
     where
         R: Clone,
