@@ -246,6 +246,7 @@ impl<I, K, V> GroupingMap<I>
     /// assert_eq!(lookup[&0], 12);
     /// assert_eq!(lookup[&1], 7);
     /// assert_eq!(lookup[&2], 8);
+    /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn max(self) -> HashMap<K, V>
         where V: Ord,
@@ -270,6 +271,7 @@ impl<I, K, V> GroupingMap<I>
     /// assert_eq!(lookup[&0], 3);
     /// assert_eq!(lookup[&1], 1);
     /// assert_eq!(lookup[&2], 5);
+    /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn max_by<F>(self, mut compare: F) -> HashMap<K, V>
         where F: FnMut(&V, &V) -> Ordering,
@@ -297,6 +299,7 @@ impl<I, K, V> GroupingMap<I>
     /// assert_eq!(lookup[&0], 3);
     /// assert_eq!(lookup[&1], 7);
     /// assert_eq!(lookup[&2], 5);
+    /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn max_by_key<F, CK>(self, mut f: F) -> HashMap<K, V>
         where F: FnMut(&V) -> CK,
@@ -321,6 +324,7 @@ impl<I, K, V> GroupingMap<I>
     /// assert_eq!(lookup[&0], 3);
     /// assert_eq!(lookup[&1], 1);
     /// assert_eq!(lookup[&2], 5);
+    /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn min(self) -> HashMap<K, V>
         where V: Ord,
@@ -345,6 +349,7 @@ impl<I, K, V> GroupingMap<I>
     /// assert_eq!(lookup[&0], 12);
     /// assert_eq!(lookup[&1], 7);
     /// assert_eq!(lookup[&2], 8);
+    /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn min_by<F>(self, mut compare: F) -> HashMap<K, V>
         where F: FnMut(&V, &V) -> Ordering,
@@ -372,6 +377,7 @@ impl<I, K, V> GroupingMap<I>
     /// assert_eq!(lookup[&0], 12);
     /// assert_eq!(lookup[&1], 4);
     /// assert_eq!(lookup[&2], 8);
+    /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn min_by_key<F, CK>(self, mut f: F) -> HashMap<K, V>
         where F: FnMut(&V) -> CK,
