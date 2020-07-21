@@ -1,6 +1,6 @@
 #![warn(missing_docs)]
-#![crate_name = "itertools"]
-#![cfg_attr(not(feature = "use_std"), no_std)]
+#![crate_name="itertools"]
+#![cfg_attr(not(feature="use_std"), no_std)]
 
 //! Extra iterator adaptors, functions and macros.
 //!
@@ -54,17 +54,17 @@ extern crate core as std;
 
 pub use either::Either;
 
-#[cfg(feature = "use_std")]
+#[cfg(feature="use_std")]
 use std::collections::HashMap;
 use std::iter::{IntoIterator, once};
 use std::cmp::Ordering;
 use std::fmt;
-#[cfg(feature = "use_std")]
+#[cfg(feature="use_std")]
 use std::hash::Hash;
-#[cfg(feature = "use_std")]
+#[cfg(feature="use_std")]
 use std::fmt::Write;
 
-#[cfg(feature = "use_std")]
+#[cfg(feature="use_std")]
 type VecIntoIter<T> = ::std::vec::IntoIter<T>;
 
 use std::iter::FromIterator;
@@ -99,39 +99,39 @@ pub mod structs {
     };
     #[allow(deprecated)]
     pub use adaptors::Step;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature="use_std")]
     pub use adaptors::MultiProduct;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature="use_std")]
     pub use combinations::Combinations;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature="use_std")]
     pub use combinations_with_replacement::CombinationsWithReplacement;
     pub use cons_tuples_impl::ConsTuples;
     pub use exactly_one_err::ExactlyOneError;
     pub use format::{Format, FormatWith};
-    #[cfg(feature = "use_std")]
+    #[cfg(feature="use_std")]
     pub use groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
     pub use intersperse::Intersperse;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature="use_std")]
     pub use kmerge_impl::{KMerge, KMergeBy};
     pub use merge_join::MergeJoinBy;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature="use_std")]
     pub use multipeek_impl::MultiPeek;
     pub use pad_tail::PadUsing;
     pub use peeking_take_while::PeekingTakeWhile;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature="use_std")]
     pub use permutations::Permutations;
     pub use process_results_impl::ProcessResults;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature="use_std")]
     pub use put_back_n_impl::PutBackN;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature="use_std")]
     pub use rciter_impl::RcIter;
     pub use repeatn::RepeatN;
     #[allow(deprecated)]
     pub use sources::{RepeatCall, Unfold, Iterate};
-    #[cfg(feature = "use_std")]
+    #[cfg(feature="use_std")]
     pub use tee::Tee;
     pub use tuple_impl::{TupleBuffer, TupleWindows, Tuples};
-    #[cfg(feature = "use_std")]
+    #[cfg(feature="use_std")]
     pub use unique_impl::{Unique, UniqueBy};
     pub use with_position::WithPosition;
     pub use zip_eq_impl::ZipEq;
