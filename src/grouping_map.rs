@@ -13,14 +13,11 @@ where
     GroupingMap { iter }
 }
 
-/// `GroupingMap` is an intermediate struct for efficient "group-and-fold" operations.
+/// `GroupingMap` is an intermediate struct for efficient group-and-fold operations.
 /// It groups elements by their key and at the same time fold each group
 /// using some aggregating operation.
 /// 
 /// No method on this struct performs temporary allocations.
-/// 
-// See [`.into_grouping_map()`](../trait.Itertools.html#method.into_grouping_map)
-// for more information.
 pub struct GroupingMap<I> {
     iter: I,
 }
