@@ -110,7 +110,7 @@ pub mod structs {
     pub use crate::exactly_one_err::ExactlyOneError;
     pub use crate::format::{Format, FormatWith};
     #[cfg(feature = "use_std")]
-    pub use crate::grouping_map::{GroupingMap, MapForGrouping};
+    pub use crate::grouping_map::GroupingMap;
     #[cfg(feature = "use_std")]
     pub use crate::groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
     pub use crate::intersperse::{Intersperse, IntersperseWith};
@@ -155,6 +155,8 @@ pub use crate::concat_impl::concat;
 pub use crate::cons_tuples_impl::cons_tuples;
 pub use crate::diff::diff_with;
 pub use crate::diff::Diff;
+#[cfg(feature = "use_std")]
+pub use crate::grouping_map::MapForGrouping;
 #[cfg(feature = "use_std")]
 pub use crate::kmerge_impl::{kmerge_by};
 pub use crate::minmax::MinMaxResult;
