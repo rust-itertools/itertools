@@ -27,6 +27,10 @@ where
     I: Iterator<Item = (K, V)>,
     K: Hash + Eq,
 {
+    /// This is the generic way to perform any operations on a `Grouping`.
+    /// It's suggested to use this method only to implement custom operations
+    /// when the already provided ones are not enough.
+    /// 
     /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
     /// of each group sequentially, passing the previously accumulated value, a reference to the key
     /// and the current element as arguments, and stores the results in an `HashMap`.
@@ -40,9 +44,6 @@ where
     ///
     /// Return a `HashMap` associating the key of each group with the result of aggregation of the group elements.
     /// If there's no result then there won't be an entry associated to that key.
-    ///
-    /// This is the generic way to perform any operations on a `Grouping`.
-    /// It's suggested to use it only to implement custom operations when the already provided ones are not enough.
     pub fn aggregate<FO, R>(self, mut operation: FO) -> HashMap<K, R>
     where
         FO: FnMut(Option<R>, &K, V) -> Option<R>,
