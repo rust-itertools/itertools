@@ -229,12 +229,47 @@ impl<I, K, V> GroupingMap<I>
         self.fold(0, |acc, _, _| acc + 1)
     }
 
+    /// Groups elements from the `GroupingMap` source by key and finds the maximum of each group.
+    /// 
+    /// If several elements are equally maximum, the last element is picked.
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the maximum of that group.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .max();
+    /// 
+    /// assert_eq!(lookup[&0], 12);
+    /// assert_eq!(lookup[&1], 7);
+    /// assert_eq!(lookup[&2], 8);
+    /// ```
     pub fn max(self) -> HashMap<K, V>
         where V: Ord,
     {
         self.fold_first(|acc, _, val| std::cmp::max(acc, val))
     }
 
+    /// Groups elements from the `GroupingMap` source by key and finds the maximum of each group
+    /// with respect to the specified comparison function.
+    /// 
+    /// If several elements are equally maximum, the last element is picked.
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the maximum of that group.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .max_by(|x, y| y.cmp(x));
+    /// 
+    /// assert_eq!(lookup[&0], 3);
+    /// assert_eq!(lookup[&1], 1);
+    /// assert_eq!(lookup[&2], 5);
+    /// ```
     pub fn max_by<F>(self, mut compare: F) -> HashMap<K, V>
         where F: FnMut(&V, &V) -> Ordering,
     {
@@ -244,6 +279,24 @@ impl<I, K, V> GroupingMap<I>
         })
     }
 
+    /// Groups elements from the `GroupingMap` source by key and finds the element of each group
+    /// that gives the maximum from the specified function.
+    /// 
+    /// If several elements are equally maximum, the last element is picked.
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the maximum of that group.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .max_by_key(|&val| val % 4);
+    /// 
+    /// assert_eq!(lookup[&0], 3);
+    /// assert_eq!(lookup[&1], 7);
+    /// assert_eq!(lookup[&2], 5);
+    /// ```
     pub fn max_by_key<F, CK>(self, mut f: F) -> HashMap<K, V>
         where F: FnMut(&V) -> CK,
               CK: Ord,
@@ -251,12 +304,47 @@ impl<I, K, V> GroupingMap<I>
         self.max_by(|v1, v2| f(&v1).cmp(&f(&v2)))
     }
 
+    /// Groups elements from the `GroupingMap` source by key and finds the minimum of each group.
+    /// 
+    /// If several elements are equally minimum, the first element is picked.
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the minimum of that group.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .min();
+    /// 
+    /// assert_eq!(lookup[&0], 3);
+    /// assert_eq!(lookup[&1], 1);
+    /// assert_eq!(lookup[&2], 5);
+    /// ```
     pub fn min(self) -> HashMap<K, V>
         where V: Ord,
     {
         self.fold_first(|acc, _, val| std::cmp::min(acc, val))
     }
 
+    /// Groups elements from the `GroupingMap` source by key and finds the minimum of each group
+    /// with respect to the specified comparison function.
+    /// 
+    /// If several elements are equally minimum, the first element is picked.
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the minimum of that group.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .min_by(|x, y| y.cmp(x));
+    /// 
+    /// assert_eq!(lookup[&0], 12);
+    /// assert_eq!(lookup[&1], 7);
+    /// assert_eq!(lookup[&2], 8);
+    /// ```
     pub fn min_by<F>(self, mut compare: F) -> HashMap<K, V>
         where F: FnMut(&V, &V) -> Ordering,
     {
@@ -266,6 +354,24 @@ impl<I, K, V> GroupingMap<I>
         })
     }
 
+    /// Groups elements from the `GroupingMap` source by key and finds the element of each group
+    /// that gives the minimum from the specified function.
+    /// 
+    /// If several elements are equally minimum, the first element is picked.
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the minimum of that group.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .min_by_key(|&val| val % 4);
+    /// 
+    /// assert_eq!(lookup[&0], 12);
+    /// assert_eq!(lookup[&1], 4);
+    /// assert_eq!(lookup[&2], 8);
+    /// ```
     pub fn min_by_key<F, CK>(self, mut f: F) -> HashMap<K, V>
         where F: FnMut(&V) -> CK,
               CK: Ord,
