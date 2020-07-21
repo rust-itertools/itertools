@@ -103,9 +103,9 @@ where
     ///     .into_grouping_map()
     ///     .fold(0, |acc, _, val| acc + val);
     /// 
-    /// assert_eq!(lookup[&0], 9);
-    /// assert_eq!(lookup[&1], 12);
-    /// assert_eq!(lookup[&2], 7);
+    /// assert_eq!(lookup[&0], 9);   // 3 + 6
+    /// assert_eq!(lookup[&1], 12);  // 1 + 4 + 7
+    /// assert_eq!(lookup[&2], 7);   // 2 + 5
     /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn fold<FO, R>(self, init: R, mut operation: FO) -> HashMap<K, R>
