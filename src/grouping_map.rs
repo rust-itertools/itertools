@@ -82,9 +82,9 @@ impl<I, K, V> GroupingMap<I>
     ///     });
     /// 
     /// assert_eq!(lookup[&0], 4);        // 0 resets the accumulator so only 4 is summed
-    /// assert_eq!(lookup[&1], 14);       // 5 + 9
+    /// assert_eq!(lookup[&1], 5 + 9);
     /// assert_eq!(lookup.get(&2), None); // 10 resets the accumulator and nothing is summed afterward
-    /// assert_eq!(lookup[&3], 7);        // 7
+    /// assert_eq!(lookup[&3], 7);
     /// assert_eq!(lookup.len(), 3);      // The final keys are only 0, 1 and 2
     /// ```
     pub fn aggregate<FO, R>(self, mut operation: FO) -> HashMap<K, R>
@@ -122,9 +122,9 @@ impl<I, K, V> GroupingMap<I>
     ///     .into_grouping_map_by(|&n| n % 3)
     ///     .fold(0, |acc, _, val| acc + val);
     /// 
-    /// assert_eq!(lookup[&0], 9);   // 3 + 6
-    /// assert_eq!(lookup[&1], 12);  // 1 + 4 + 7
-    /// assert_eq!(lookup[&2], 7);   // 2 + 5
+    /// assert_eq!(lookup[&0], 3 + 6);
+    /// assert_eq!(lookup[&1], 1 + 4 + 7);
+    /// assert_eq!(lookup[&2], 2 + 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn fold<FO, R>(self, init: R, mut operation: FO) -> HashMap<K, R>
@@ -159,9 +159,9 @@ impl<I, K, V> GroupingMap<I>
     ///     .into_grouping_map_by(|&n| n % 3)
     ///     .fold_first(|acc, _, val| acc + val);
     /// 
-    /// assert_eq!(lookup[&0], 9);   // 3 + 6
-    /// assert_eq!(lookup[&1], 12);  // 1 + 4 + 7
-    /// assert_eq!(lookup[&2], 7);   // 2 + 5
+    /// assert_eq!(lookup[&0], 3 + 6);
+    /// assert_eq!(lookup[&1], 1 + 4 + 7);
+    /// assert_eq!(lookup[&2], 2 + 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn fold_first<FO>(self, mut operation: FO) -> HashMap<K, V>
@@ -188,9 +188,9 @@ impl<I, K, V> GroupingMap<I>
     ///     .into_grouping_map_by(|&n| n % 3)
     ///     .collect::<HashSet<_>>();
     /// 
-    /// assert_eq!(lookup[&0], vec![0, 3, 6].into_iter().collect());
-    /// assert_eq!(lookup[&1], vec![1, 4].into_iter().collect());
-    /// assert_eq!(lookup[&2], vec![2, 5].into_iter().collect());
+    /// assert_eq!(lookup[&0], vec![0, 3, 6].into_iter().collect::<HashSet<_>>());
+    /// assert_eq!(lookup[&1], vec![1, 4].into_iter().collect::<HashSet<_>>());
+    /// assert_eq!(lookup[&2], vec![2, 5].into_iter().collect::<HashSet<_>>());
     /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn collect<C>(self) -> HashMap<K, C>
