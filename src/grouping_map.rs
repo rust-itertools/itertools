@@ -63,6 +63,7 @@ where
     /// assert_eq!(lookup[&1], 14);
     /// assert!(!lookup.contains_key(&2));
     /// assert_eq!(lookup[&3], 7);
+    /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn aggregate<FO, R>(self, mut operation: FO) -> HashMap<K, R>
     where
