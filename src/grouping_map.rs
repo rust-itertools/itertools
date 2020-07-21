@@ -30,6 +30,22 @@ where
     I: Iterator<Item = (K, V)>,
     K: Hash + Eq,
 {
+    /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
+    /// of each group sequentially, passing the key, the previously accumulated value
+    /// and the current element as arguments, and stores the results in an `HashMap`.
+    ///
+    /// The `operation` function is invoked on each element with the following parameters:
+    ///  - a reference to the key of the group this element belongs to;
+    ///  - the current value of the accumulator of the group or `None` if it's the first element
+    ///    encountered in the group;
+    ///  - the element from the source being aggregated;
+    /// If `operation` returns `Some(element)` then the accumulator is updated with `element`,
+    /// otherwise the previous accumulation is discarded.
+    ///
+    /// Return a `HashMap` associating the key of each group with the result of aggregation of the group elements.
+    ///
+    /// This is the generic way to perform any operations on a `Grouping`.
+    /// It's suggested to use it only to implement custom operations when the already provided ones are not enough.
     pub fn aggregate<FO, R>(self, mut operation: FO) -> HashMap<K, R>
     where
         FO: FnMut(Option<R>, &K, V) -> Option<R>,
