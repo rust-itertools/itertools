@@ -41,6 +41,7 @@ where
 /// using some aggregating operation.
 /// 
 /// No method on this struct performs temporary allocations.
+#[must_use = "GroupingMap is lazy and do nothing unless consumed"]
 pub struct GroupingMap<I> {
     iter: I,
 }
@@ -73,8 +74,7 @@ where
     /// 
     /// let data = vec![2, 8, 5, 7, 9, 0, 4, 10];
     /// let lookup = data.into_iter()
-    ///     .map(|n| (n % 4, n))
-    ///     .into_grouping_map()
+    ///     .into_grouping_map_by(|&n| n % 4)
     ///     .aggregate(|acc, _, val| {
     ///         if val == 0 || val == 10 {
     ///             None
@@ -122,8 +122,7 @@ where
     /// use itertools::Itertools;
     /// 
     /// let lookup = (1..=7)
-    ///     .map(|n| (n % 3, n))
-    ///     .into_grouping_map()
+    ///     .into_grouping_map_by(|&n| n % 3)
     ///     .fold(0, |acc, _, val| acc + val);
     /// 
     /// assert_eq!(lookup[&0], 9);   // 3 + 6
@@ -161,8 +160,7 @@ where
     /// use itertools::Itertools;
     /// 
     /// let lookup = (1..=7)
-    ///     .map(|n| (n % 3, n))
-    ///     .into_grouping_map()
+    ///     .into_grouping_map_by(|&n| n % 3)
     ///     .fold_first(|acc, _, val| acc + val);
     /// 
     /// assert_eq!(lookup[&0], 9);   // 3 + 6
@@ -192,8 +190,7 @@ where
     /// use std::collections::HashSet;
     /// 
     /// let lookup = vec![0, 1, 2, 3, 4, 5, 6, 2, 3, 6].into_iter()
-    ///     .map(|n| (n % 3, n))
-    ///     .into_grouping_map()
+    ///     .into_grouping_map_by(|&n| n % 3)
     ///     .collect::<HashSet<_>>();
     /// 
     /// assert_eq!(lookup[&0], vec![0, 3, 6].into_iter().collect());
@@ -220,8 +217,7 @@ where
     /// use itertools::Itertools;
     /// 
     /// let lookup = "This is a string".chars()
-    ///     .map(|c| (c, c))
-    ///     .into_grouping_map()
+    ///     .into_grouping_map_by(|&c| c)
     ///     .count();
     /// 
     /// assert_eq!(lookup[&'T'], 1);
