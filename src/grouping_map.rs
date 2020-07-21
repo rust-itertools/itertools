@@ -1,5 +1,6 @@
 #![cfg(feature = "use_std")]
 
+use crate::MinMaxResult;
 use std::collections::HashMap;
 use std::cmp::Ordering;
 use std::hash::Hash;
@@ -377,5 +378,44 @@ impl<I, K, V> GroupingMap<I>
               CK: Ord,
     {
         self.min_by(|v1, v2| f(&v1).cmp(&f(&v2)))
+    }
+
+    pub fn minmax(self) -> HashMap<K, V>
+        where V: Ord,
+    {
+        self.minmax_by(V::cmp)
+    }
+
+    pub fn minmax_by<F>(self, mut compare: F) -> HashMap<K, V>
+        where F: FnMut(&V, &V) -> Ordering,
+    {
+        self.aggregate(|acc, _, val| {
+            match acc {
+                MinMaxResult::OneElement(e) => {
+                    if compare(&val, &e) == Ordering::Less {
+                        MinMaxResult::MinMax(val, e)
+                    } else {
+                        MinMaxResult::MinMax(e, val)
+                    }
+                },
+                MinMaxResult::MinMax(min, max) => {
+                    if compare(&val, &min) == Ordering::Less {
+                        MinMaxResult::MinMax(val, max)
+                    } else if compare(&val, &min) == Ordering::Greater {
+                        MinMaxResult::MinMax(min, val)
+                    } else {
+                        MinMaxResult::MinMax(min, max)
+                    }
+                }
+                MinMaxResult::NoElements => unreachable!()
+            }
+        })
+    }
+
+    pub fn minmax_by_key<F, CK>(self, mut f: F) -> HashMap<K, V>
+        where F: FnMut(&V) -> CK,
+              CK: Ord,
+    {
+        self.minmax_by(|v1, v2| f(&v1).cmp(&f(&v2)))
     }
 }
