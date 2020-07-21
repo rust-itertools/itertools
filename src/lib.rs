@@ -2339,7 +2339,7 @@ pub trait Itertools : Iterator {
     #[cfg(feature = "use_std")]
     fn into_grouping_map<K, V>(self) -> GroupingMap<Self>
         where Self: Iterator<Item=(K, V)> + Sized,
-            K: Hash + Eq,
+              K: Hash + Eq,
     {
         grouping_map::new(self)
     }
