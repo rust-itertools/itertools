@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::iter::Iterator;
 
+/// Creates a new `GroupingMap` from `iter`
 pub fn new<I, K, V>(iter: I) -> GroupingMap<I>
 where
     I: Iterator<Item = (K, V)>,
@@ -12,6 +13,14 @@ where
     GroupingMap { iter }
 }
 
+/// `GroupingMap` is an intermediate struct for efficient "group-and-fold" operations.
+/// It groups elements by their key and at the same time fold each group
+/// using some aggregating operation.
+/// 
+/// No method on this struct performs temporary allocations.
+/// 
+// See [`.into_grouping_map()`](../trait.Itertools.html#method.into_grouping_map)
+// for more information.
 pub struct GroupingMap<I> {
     iter: I,
 }
