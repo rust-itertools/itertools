@@ -163,6 +163,21 @@ where
     /// an instance of `C`. The iteration order is preserved when inserting elements. 
     /// 
     /// Return a `HashMap` associating the key of each group with the collection containing the elements of that group.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// use std::collections::HashSet;
+    /// 
+    /// let lookup = vec![0, 1, 2, 3, 4, 5, 6, 2, 3, 6].into_iter()
+    ///     .map(|n| (n % 3, n))
+    ///     .into_grouping_map()
+    ///     .collect::<HashSet<_>>();
+    /// 
+    /// assert_eq!(lookup[&0], vec![0, 3, 6].into_iter().collect());
+    /// assert_eq!(lookup[&1], vec![1, 4].into_iter().collect());
+    /// assert_eq!(lookup[&2], vec![2, 5].into_iter().collect());
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn collect<C>(self) -> HashMap<K, C>
     where
         C: Default + Extend<V>,
