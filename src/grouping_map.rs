@@ -85,6 +85,20 @@ where
         })
     }
 
+    /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
+    /// of each group sequentially, passing the previously accumulated value, a reference to the key
+    /// and the current element as arguments, and stores the results in a new map.
+    ///
+    /// This is similar to [`fold`] but the initial value of the accumulator is the first element of the group.
+    ///
+    /// `operation` is a function that is invoked on each element with the following parameters:
+    ///  - the current value of the accumulator of the group;
+    ///  - a reference to the key of the group this element belongs to;
+    ///  - the element from the source being accumulated.
+    ///
+    /// Return a `HashMap` associating the key of each group with the result of folding the group elements.
+    /// 
+    /// [`fold`]: #tymethod.fold
     pub fn fold_first<FO>(self, mut operation: FO) -> HashMap<K, V>
     where
         FO: FnMut(V, &K, V) -> V,
