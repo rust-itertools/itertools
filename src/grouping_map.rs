@@ -1,6 +1,7 @@
 #![cfg(feature = "use_std")]
 
 use std::collections::HashMap;
+use std::cmp::Ordering;
 use std::hash::Hash;
 use std::iter::Iterator;
 
@@ -226,5 +227,49 @@ impl<I, K, V> GroupingMap<I>
     /// ```
     pub fn count(self) -> HashMap<K, usize> {
         self.fold(0, |acc, _, _| acc + 1)
+    }
+
+    pub fn max(self) -> HashMap<K, V>
+        where V: Ord,
+    {
+        self.fold_first(|acc, _, val| std::cmp::max(acc, val))
+    }
+
+    pub fn max_by<F>(self, mut compare: F) -> HashMap<K, V>
+        where F: FnMut(&V, &V) -> Ordering,
+    {
+        self.fold_first(|acc, _, val| match compare(&acc, &val) {
+            Ordering::Less | Ordering::Equal => val,
+            Ordering::Greater => acc
+        })
+    }
+
+    pub fn max_by_key<F, CK>(self, mut f: F) -> HashMap<K, V>
+        where F: FnMut(&V) -> CK,
+              CK: Ord,
+    {
+        self.max_by(|v1, v2| f(&v1).cmp(&f(&v2)))
+    }
+
+    pub fn min(self) -> HashMap<K, V>
+        where V: Ord,
+    {
+        self.fold_first(|acc, _, val| std::cmp::min(acc, val))
+    }
+
+    pub fn min_by<F>(self, mut compare: F) -> HashMap<K, V>
+        where F: FnMut(&V, &V) -> Ordering,
+    {
+        self.fold_first(|acc, _, val| match compare(&acc, &val) {
+            Ordering::Less | Ordering::Equal => acc,
+            Ordering::Greater => val
+        })
+    }
+
+    pub fn min_by_key<F, CK>(self, mut f: F) -> HashMap<K, V>
+        where F: FnMut(&V) -> CK,
+              CK: Ord,
+    {
+        self.min_by(|v1, v2| f(&v1).cmp(&f(&v2)))
     }
 }
