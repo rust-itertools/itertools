@@ -1,5 +1,5 @@
 #![warn(missing_docs)]
-#![crate_name = "itertools"]
+#![crate_name="itertools"]
 #![cfg_attr(not(feature = "use_std"), no_std)]
 
 //! Extra iterator adaptors, functions and macros.
@@ -45,7 +45,7 @@
 //! This version of itertools requires Rust 1.32 or later.
 //!
 //! [`Iterator`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html
-#![doc(html_root_url = "https://docs.rs/itertools/0.8/")]
+#![doc(html_root_url="https://docs.rs/itertools/0.8/")]
 
 extern crate either;
 
@@ -680,7 +680,7 @@ pub trait Itertools : Iterator {
     /// let it = (0..8).step(3);
     /// itertools::assert_equal(it, vec![0, 3, 6]);
     /// ```
-    #[deprecated(note = "Use std .step_by() instead", since = "0.8")]
+    #[deprecated(note="Use std .step_by() instead", since = "0.8")]
     #[allow(deprecated)]
     fn step(self, n: usize) -> Step<Self>
         where Self: Sized
@@ -854,7 +854,7 @@ pub trait Itertools : Iterator {
     /// ```
     #[cfg(feature = "use_std")]
     fn kmerge_by<F>(self, first: F)
-                    -> KMergeBy<<Self::Item as IntoIterator>::IntoIter, F>
+        -> KMergeBy<<Self::Item as IntoIterator>::IntoIter, F>
         where Self: Sized,
               Self::Item: IntoIterator,
               F: FnMut(&<Self::Item as IntoIterator>::Item,
@@ -992,7 +992,7 @@ pub trait Itertools : Iterator {
     /// ```
     fn dedup_by<Cmp>(self, cmp: Cmp) -> DedupBy<Self, Cmp>
         where Self: Sized,
-              Cmp: FnMut(&Self::Item, &Self::Item) -> bool,
+              Cmp: FnMut(&Self::Item, &Self::Item)->bool,
     {
         adaptors::dedup_by(self, cmp)
     }
@@ -1511,7 +1511,7 @@ pub trait Itertools : Iterator {
     ///
     /// itertools::assert_equal(rx.iter(), vec![1, 3, 5, 7, 9]);
     /// ```
-    #[deprecated(note = "Use .for_each() instead", since = "0.8")]
+    #[deprecated(note="Use .for_each() instead", since="0.8")]
     fn foreach<F>(self, f: F)
         where F: FnMut(Self::Item),
               Self: Sized,
@@ -1950,7 +1950,7 @@ pub trait Itertools : Iterator {
     /// The big difference between the computations of `result2` and `result3` is that while
     /// `fold()` called the provided closure for every item of the callee iterator,
     /// `fold_while()` actually stopped iterating as soon as it encountered `Fold::Done(_)`.
-    #[deprecated(note = "Use .try_fold() instead", since = "0.8")]
+    #[deprecated(note="Use .try_fold() instead", since="0.8")]
     fn fold_while<B, F>(&mut self, init: B, mut f: F) -> FoldWhile<B>
         where Self: Sized,
               F: FnMut(B, Self::Item) -> FoldWhile<B>
@@ -2387,7 +2387,7 @@ pub fn assert_equal<I, J>(a: I, b: J)
                     _ => false,
                 };
                 assert!(equal, "Failed assertion {a:?} == {b:?} for iteration {i}",
-                        i = i, a = a, b = b);
+                        i=i, a=a, b=b);
                 i += 1;
             }
         }
