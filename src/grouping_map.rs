@@ -250,7 +250,7 @@ impl<I, K, V> GroupingMap<I>
     pub fn max(self) -> HashMap<K, V>
         where V: Ord,
     {
-        self.fold_first(|acc, _, val| std::cmp::max(acc, val))
+        self.max_by(V::cmp)
     }
 
     /// Groups elements from the `GroupingMap` source by key and finds the maximum of each group
@@ -325,7 +325,7 @@ impl<I, K, V> GroupingMap<I>
     pub fn min(self) -> HashMap<K, V>
         where V: Ord,
     {
-        self.fold_first(|acc, _, val| std::cmp::min(acc, val))
+        self.min_by(V::cmp)
     }
 
     /// Groups elements from the `GroupingMap` source by key and finds the minimum of each group
