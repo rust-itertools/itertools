@@ -124,6 +124,9 @@ where
         })
     }
 
+    /// Groups elements from the `GroupingMap` source by key and counts them.
+    /// 
+    /// Return a `HashMap` associating the key of each group with the number of elements in that group.
     pub fn count(self) -> HashMap<K, usize> {
         self.fold(0, |acc, _, _| acc + 1)
     }
