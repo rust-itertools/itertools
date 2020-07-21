@@ -133,6 +133,20 @@ where
     /// Return a `HashMap` associating the key of each group with the result of folding the group elements.
     /// 
     /// [`fold`]: #tymethod.fold
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = (1..=7)
+    ///     .map(|n| (n % 3, n))
+    ///     .into_grouping_map()
+    ///     .fold_first(|acc, _, val| acc + val);
+    /// 
+    /// assert_eq!(lookup[&0], 9);   // 3 + 6
+    /// assert_eq!(lookup[&1], 12);  // 1 + 4 + 7
+    /// assert_eq!(lookup[&2], 7);   // 2 + 5
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn fold_first<FO>(self, mut operation: FO) -> HashMap<K, V>
     where
         FO: FnMut(V, &K, V) -> V,
