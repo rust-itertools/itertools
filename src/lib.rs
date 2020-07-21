@@ -680,7 +680,7 @@ pub trait Itertools : Iterator {
     /// let it = (0..8).step(3);
     /// itertools::assert_equal(it, vec![0, 3, 6]);
     /// ```
-    #[deprecated(note="Use std .step_by() instead", since = "0.8")]
+    #[deprecated(note="Use std .step_by() instead", since="0.8")]
     #[allow(deprecated)]
     fn step(self, n: usize) -> Step<Self>
         where Self: Sized
@@ -858,7 +858,7 @@ pub trait Itertools : Iterator {
         where Self: Sized,
               Self::Item: IntoIterator,
               F: FnMut(&<Self::Item as IntoIterator>::Item,
-                  &<Self::Item as IntoIterator>::Item) -> bool
+                       &<Self::Item as IntoIterator>::Item) -> bool
     {
         kmerge_by(self, first)
     }
