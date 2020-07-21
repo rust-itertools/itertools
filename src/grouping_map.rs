@@ -44,6 +44,26 @@ where
     ///
     /// Return a `HashMap` associating the key of each group with the result of aggregation of the group elements.
     /// If there's no result then there won't be an entry associated to that key.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let data = vec![10, 5, 7, 9, 0, 4, 2];
+    /// let lookup = data.into_iter()
+    ///     .map(|n| (n % 4, n))
+    ///     .into_grouping_map()
+    ///     .aggregate(|acc, _, val| {
+    ///         match val {
+    ///             0 | 2 => None,
+    ///             _ => Some(acc.unwrap_or(0) + val)
+    ///         }
+    ///     });
+    /// 
+    /// assert_eq!(lookup[&0], 4);
+    /// assert_eq!(lookup[&1], 14);
+    /// assert!(!lookup.contains_key(&2));
+    /// assert_eq!(lookup[&3], 7);
+    /// ```
     pub fn aggregate<FO, R>(self, mut operation: FO) -> HashMap<K, R>
     where
         FO: FnMut(Option<R>, &K, V) -> Option<R>,
