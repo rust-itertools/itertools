@@ -380,12 +380,32 @@ impl<I, K, V> GroupingMap<I>
         self.min_by(|v1, v2| f(&v1).cmp(&f(&v2)))
     }
 
+    /// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of
+    /// each group.
+    /// 
+    /// See [.minmax_by()](../trait.Itertools.html#method.minmax) for the non-grouping version.
+    /// 
+    /// Differences from the non grouping version:
+    /// - It never produces a `MinMaxResult::NoElements`
+    /// - It doesn't have any speedup
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group.
     pub fn minmax(self) -> HashMap<K, MinMaxResult<V>>
         where V: Ord,
     {
         self.minmax_by(V::cmp)
     }
 
+    /// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of
+    /// each group with respect to the specified comparison function.
+    /// 
+    /// See [.minmax()](../trait.Itertools.html#method.minmax) for the non-grouping version.
+    /// 
+    /// Differences from the non grouping version:
+    /// - It never produces a `MinMaxResult::NoElements`
+    /// - It doesn't have any speedup
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group.
     pub fn minmax_by<F>(self, mut compare: F) -> HashMap<K, MinMaxResult<V>>
         where F: FnMut(&V, &V) -> Ordering,
     {
@@ -413,6 +433,16 @@ impl<I, K, V> GroupingMap<I>
         })
     }
 
+    /// Groups elements from the `GroupingMap` source by key and find the elements of each group
+    /// that gives the minimum and maximum from the specified function.
+    /// 
+    /// See [.minmax()](../trait.Itertools.html#method.minmax) for the non-grouping version.
+    /// 
+    /// Differences from the non grouping version:
+    /// - It never produces a `MinMaxResult::NoElements`
+    /// - It doesn't have any speedup
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group.
     pub fn minmax_by_key<F, CK>(self, mut f: F) -> HashMap<K, MinMaxResult<V>>
         where F: FnMut(&V) -> CK,
               CK: Ord,
