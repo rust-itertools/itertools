@@ -31,18 +31,18 @@ where
     K: Hash + Eq,
 {
     /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
-    /// of each group sequentially, passing the key, the previously accumulated value
+    /// of each group sequentially, passing the previously accumulated value, a reference to the key
     /// and the current element as arguments, and stores the results in an `HashMap`.
     ///
     /// The `operation` function is invoked on each element with the following parameters:
+    ///  - the current value of the accumulator of the group if there is currently one;
     ///  - a reference to the key of the group this element belongs to;
-    ///  - the current value of the accumulator of the group or `None` if it's the first element
-    ///    encountered in the group;
     ///  - the element from the source being aggregated;
     /// If `operation` returns `Some(element)` then the accumulator is updated with `element`,
     /// otherwise the previous accumulation is discarded.
     ///
     /// Return a `HashMap` associating the key of each group with the result of aggregation of the group elements.
+    /// If there's no result then there won't be an entry associated to that key.
     ///
     /// This is the generic way to perform any operations on a `Grouping`.
     /// It's suggested to use it only to implement custom operations when the already provided ones are not enough.
