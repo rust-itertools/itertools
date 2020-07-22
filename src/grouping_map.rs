@@ -36,6 +36,14 @@ pub fn new<I, K, V>(iter: I) -> GroupingMap<I>
 }
 
 /// `GroupingMap` is an intermediate struct for efficient group-and-fold operations.
+/// It groups elements by the key returned by the specified function and at the same
+/// time fold each group using some aggregating operation.
+/// 
+/// No method on this type performs temporary allocations.
+#[must_use = "GroupingMapBy is lazy and do nothing unless consumed"]
+pub type GroupingMapBy<I, F> = GroupingMap<MapForGrouping<I, F>>;
+
+/// `GroupingMap` is an intermediate struct for efficient group-and-fold operations.
 /// It groups elements by their key and at the same time fold each group
 /// using some aggregating operation.
 /// 
