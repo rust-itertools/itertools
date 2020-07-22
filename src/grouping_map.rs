@@ -258,7 +258,7 @@ impl<I, K, V> GroupingMap<I>
     pub fn max(self) -> HashMap<K, V>
         where V: Ord,
     {
-        self.max_by(V::cmp)
+        self.max_by(|_, v1, v2| V::cmp(v1, v2))
     }
 
     /// Groups elements from the `GroupingMap` source by key and finds the maximum of each group
@@ -273,7 +273,7 @@ impl<I, K, V> GroupingMap<I>
     /// 
     /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
     ///     .into_grouping_map_by(|&n| n % 3)
-    ///     .max_by(|x, y| y.cmp(x));
+    ///     .max_by(|_key, x, y| y.cmp(x));
     /// 
     /// assert_eq!(lookup[&0], 3);
     /// assert_eq!(lookup[&1], 1);
@@ -281,9 +281,9 @@ impl<I, K, V> GroupingMap<I>
     /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn max_by<F>(self, mut compare: F) -> HashMap<K, V>
-        where F: FnMut(&V, &V) -> Ordering,
+        where F: FnMut(&K, &V, &V) -> Ordering,
     {
-        self.fold_first(|acc, _, val| match compare(&acc, &val) {
+        self.fold_first(|acc, key, val| match compare(key, &acc, &val) {
             Ordering::Less | Ordering::Equal => val,
             Ordering::Greater => acc
         })
@@ -301,7 +301,7 @@ impl<I, K, V> GroupingMap<I>
     /// 
     /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
     ///     .into_grouping_map_by(|&n| n % 3)
-    ///     .max_by_key(|&val| val % 4);
+    ///     .max_by_key(|_key, &val| val % 4);
     /// 
     /// assert_eq!(lookup[&0], 3);
     /// assert_eq!(lookup[&1], 7);
@@ -309,10 +309,10 @@ impl<I, K, V> GroupingMap<I>
     /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn max_by_key<F, CK>(self, mut f: F) -> HashMap<K, V>
-        where F: FnMut(&V) -> CK,
+        where F: FnMut(&K, &V) -> CK,
               CK: Ord,
     {
-        self.max_by(|v1, v2| f(&v1).cmp(&f(&v2)))
+        self.max_by(|key, v1, v2| f(key, &v1).cmp(&f(key, &v2)))
     }
 
     /// Groups elements from the `GroupingMap` source by key and finds the minimum of each group.
@@ -336,7 +336,7 @@ impl<I, K, V> GroupingMap<I>
     pub fn min(self) -> HashMap<K, V>
         where V: Ord,
     {
-        self.min_by(V::cmp)
+        self.min_by(|_, v1, v2| V::cmp(v1, v2))
     }
 
     /// Groups elements from the `GroupingMap` source by key and finds the minimum of each group
@@ -351,7 +351,7 @@ impl<I, K, V> GroupingMap<I>
     /// 
     /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
     ///     .into_grouping_map_by(|&n| n % 3)
-    ///     .min_by(|x, y| y.cmp(x));
+    ///     .min_by(|_key, x, y| y.cmp(x));
     /// 
     /// assert_eq!(lookup[&0], 12);
     /// assert_eq!(lookup[&1], 7);
@@ -359,9 +359,9 @@ impl<I, K, V> GroupingMap<I>
     /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn min_by<F>(self, mut compare: F) -> HashMap<K, V>
-        where F: FnMut(&V, &V) -> Ordering,
+        where F: FnMut(&K, &V, &V) -> Ordering,
     {
-        self.fold_first(|acc, _, val| match compare(&acc, &val) {
+        self.fold_first(|acc, key, val| match compare(key, &acc, &val) {
             Ordering::Less | Ordering::Equal => acc,
             Ordering::Greater => val
         })
@@ -379,7 +379,7 @@ impl<I, K, V> GroupingMap<I>
     /// 
     /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
     ///     .into_grouping_map_by(|&n| n % 3)
-    ///     .min_by_key(|&val| val % 4);
+    ///     .min_by_key(|_key, &val| val % 4);
     /// 
     /// assert_eq!(lookup[&0], 12);
     /// assert_eq!(lookup[&1], 4);
@@ -387,10 +387,10 @@ impl<I, K, V> GroupingMap<I>
     /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn min_by_key<F, CK>(self, mut f: F) -> HashMap<K, V>
-        where F: FnMut(&V) -> CK,
+        where F: FnMut(&K, &V) -> CK,
               CK: Ord,
     {
-        self.min_by(|v1, v2| f(&v1).cmp(&f(&v2)))
+        self.min_by(|key, v1, v2| f(key, &v1).cmp(&f(key, &v2)))
     }
 
     /// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of
@@ -420,7 +420,7 @@ impl<I, K, V> GroupingMap<I>
     pub fn minmax(self) -> HashMap<K, MinMaxResult<V>>
         where V: Ord,
     {
-        self.minmax_by(V::cmp)
+        self.minmax_by(|_, v1, v2| V::cmp(v1, v2))
     }
 
     /// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of
@@ -440,7 +440,7 @@ impl<I, K, V> GroupingMap<I>
     /// 
     /// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()
     ///     .into_grouping_map_by(|&n| n % 3)
-    ///     .minmax_by(|x, y| y.cmp(x));
+    ///     .minmax_by(|_key, x, y| y.cmp(x));
     /// 
     /// assert_eq!(lookup[&0], MinMax(12, 3));
     /// assert_eq!(lookup[&1], MinMax(7, 1));
@@ -448,21 +448,21 @@ impl<I, K, V> GroupingMap<I>
     /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn minmax_by<F>(self, mut compare: F) -> HashMap<K, MinMaxResult<V>>
-        where F: FnMut(&V, &V) -> Ordering,
+        where F: FnMut(&K, &V, &V) -> Ordering,
     {
-        self.aggregate(|acc, _, val| {
+        self.aggregate(|acc, key, val| {
             Some(match acc {
                 Some(MinMaxResult::OneElement(e)) => {
-                    if compare(&val, &e) == Ordering::Less {
+                    if compare(key, &val, &e) == Ordering::Less {
                         MinMaxResult::MinMax(val, e)
                     } else {
                         MinMaxResult::MinMax(e, val)
                     }
                 }
                 Some(MinMaxResult::MinMax(min, max)) => {
-                    if compare(&val, &min) == Ordering::Less {
+                    if compare(key, &val, &min) == Ordering::Less {
                         MinMaxResult::MinMax(val, max)
-                    } else if compare(&val, &min) == Ordering::Greater {
+                    } else if compare(key, &val, &min) == Ordering::Greater {
                         MinMaxResult::MinMax(min, val)
                     } else {
                         MinMaxResult::MinMax(min, max)
@@ -491,7 +491,7 @@ impl<I, K, V> GroupingMap<I>
     /// 
     /// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()
     ///     .into_grouping_map_by(|&n| n % 3)
-    ///     .minmax_by_key(|&val| val % 4);
+    ///     .minmax_by_key(|_key, &val| val % 4);
     /// 
     /// assert_eq!(lookup[&0], MinMax(12, 3));
     /// assert_eq!(lookup[&1], MinMax(4, 7));
@@ -499,10 +499,10 @@ impl<I, K, V> GroupingMap<I>
     /// assert_eq!(lookup.len(), 3);
     /// ```
     pub fn minmax_by_key<F, CK>(self, mut f: F) -> HashMap<K, MinMaxResult<V>>
-        where F: FnMut(&V) -> CK,
+        where F: FnMut(&K, &V) -> CK,
               CK: Ord,
     {
-        self.minmax_by(|v1, v2| f(&v1).cmp(&f(&v2)))
+        self.minmax_by(|key, v1, v2| f(key, &v1).cmp(&f(key, &v2)))
     }
     
     /// Groups elements from the `GroupingMap` source by key and sums them.
