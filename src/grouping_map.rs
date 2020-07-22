@@ -80,7 +80,7 @@ impl<I, K, V> GroupingMap<I>
     /// let data = vec![2, 8, 5, 7, 9, 0, 4, 10];
     /// let lookup = data.into_iter()
     ///     .into_grouping_map_by(|&n| n % 4)
-    ///     .aggregate(|acc, _, val| {
+    ///     .aggregate(|acc, _key, val| {
     ///         if val == 0 || val == 10 {
     ///             None
     ///         } else {
@@ -127,7 +127,7 @@ impl<I, K, V> GroupingMap<I>
     /// 
     /// let lookup = (1..=7)
     ///     .into_grouping_map_by(|&n| n % 3)
-    ///     .fold(0, |acc, _, val| acc + val);
+    ///     .fold(0, |acc, _key, val| acc + val);
     /// 
     /// assert_eq!(lookup[&0], 3 + 6);
     /// assert_eq!(lookup[&1], 1 + 4 + 7);
@@ -164,7 +164,7 @@ impl<I, K, V> GroupingMap<I>
     /// 
     /// let lookup = (1..=7)
     ///     .into_grouping_map_by(|&n| n % 3)
-    ///     .fold_first(|acc, _, val| acc + val);
+    ///     .fold_first(|acc, _key, val| acc + val);
     /// 
     /// assert_eq!(lookup[&0], 3 + 6);
     /// assert_eq!(lookup[&1], 1 + 4 + 7);
