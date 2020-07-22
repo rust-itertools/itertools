@@ -426,11 +426,7 @@ impl<I, K, V> GroupingMap<I>
     /// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of
     /// each group with respect to the specified comparison function.
     /// 
-    /// See [.minmax()](../trait.Itertools.html#method.minmax) for the non-grouping version.
-    /// 
-    /// Differences from the non grouping version:
-    /// - It never produces a `MinMaxResult::NoElements`
-    /// - It doesn't have any speedup
+    /// It has the same differences from the non-grouping version as `minmax`.
     /// 
     /// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group.
     /// 
@@ -477,11 +473,7 @@ impl<I, K, V> GroupingMap<I>
     /// Groups elements from the `GroupingMap` source by key and find the elements of each group
     /// that gives the minimum and maximum from the specified function.
     /// 
-    /// See [.minmax()](../trait.Itertools.html#method.minmax) for the non-grouping version.
-    /// 
-    /// Differences from the non grouping version:
-    /// - It never produces a `MinMaxResult::NoElements`
-    /// - It doesn't have any speedup
+    /// It has the same differences from the non-grouping version as `minmax`.
     /// 
     /// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group.
     /// 
