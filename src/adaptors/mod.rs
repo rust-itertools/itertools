@@ -5,8 +5,12 @@
 //! except according to those terms.
 
 mod coalesce;
+mod map;
 mod multi_product;
 pub use self::coalesce::*;
+pub use self::map::{map_into, map_ok, MapInto, MapOk};
+#[allow(deprecated)]
+pub use self::map::MapResults;
 #[cfg(feature = "use_std")]
 pub use self::multi_product::*;
 
@@ -805,118 +809,6 @@ macro_rules! impl_tuple_combination {
 impl_tuple_combination!(Tuple2Combination Tuple1Combination ; A, A, A ; a);
 impl_tuple_combination!(Tuple3Combination Tuple2Combination ; A, A, A, A ; a b);
 impl_tuple_combination!(Tuple4Combination Tuple3Combination ; A, A, A, A, A; a b c);
-
-/// An iterator adapter to apply `Into` conversion to each element.
-///
-/// See [`.map_into()`](../trait.Itertools.html#method.map_into) for more information.
-#[derive(Clone)]
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct MapInto<I, R> {
-    iter: I,
-    _res: PhantomData<R>,
-}
-
-/// Create a new [`MapInto`](struct.MapInto.html) iterator.
-pub fn map_into<I, R>(iter: I) -> MapInto<I, R> {
-    MapInto {
-        iter,
-        _res: PhantomData,
-    }
-}
-
-impl<I, R> Iterator for MapInto<I, R>
-    where I: Iterator,
-          I::Item: Into<R>,
-{
-    type Item = R;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iter
-            .next()
-            .map(|i| i.into())
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.iter.size_hint()
-    }
-
-    fn fold<Acc, Fold>(self, init: Acc, mut fold_f: Fold) -> Acc
-        where Fold: FnMut(Acc, Self::Item) -> Acc,
-    {
-        self.iter.fold(init, move |acc, v| fold_f(acc, v.into()))
-    }
-}
-
-impl<I, R> DoubleEndedIterator for MapInto<I, R>
-    where I: DoubleEndedIterator,
-          I::Item: Into<R>,
-{
-    fn next_back(&mut self) -> Option<Self::Item> {
-        self.iter
-            .next_back()
-            .map(|i| i.into())
-    }
-}
-
-impl<I, R> ExactSizeIterator for MapInto<I, R>
-where
-    I: ExactSizeIterator,
-    I::Item: Into<R>,
-{}
-
-/// See [`MapOk`](struct.MapOk.html).
-#[deprecated(note="Use MapOk instead", since="0.10")]
-pub type MapResults<I, F> = MapOk<I, F>;
-
-/// An iterator adapter to apply a transformation within a nested `Result::Ok`.
-///
-/// See [`.map_ok()`](../trait.Itertools.html#method.map_ok) for more information.
-#[derive(Clone)]
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct MapOk<I, F> {
-    iter: I,
-    f: F
-}
-
-/// Create a new `MapOk` iterator.
-pub fn map_ok<I, F, T, U, E>(iter: I, f: F) -> MapOk<I, F>
-    where I: Iterator<Item = Result<T, E>>,
-          F: FnMut(T) -> U,
-{
-    MapOk {
-        iter,
-        f,
-    }
-}
-
-impl<I, F, T, U, E> Iterator for MapOk<I, F>
-    where I: Iterator<Item = Result<T, E>>,
-          F: FnMut(T) -> U,
-{
-    type Item = Result<U, E>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().map(|v| v.map(&mut self.f))
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.iter.size_hint()
-    }
-
-    fn fold<Acc, Fold>(self, init: Acc, mut fold_f: Fold) -> Acc
-        where Fold: FnMut(Acc, Self::Item) -> Acc,
-    {
-        let mut f = self.f;
-        self.iter.fold(init, move |acc, v| fold_f(acc, v.map(&mut f)))
-    }
-
-    fn collect<C>(self) -> C
-        where C: FromIterator<Self::Item>
-    {
-        let mut f = self.f;
-        self.iter.map(move |v| v.map(&mut f)).collect()
-    }
-}
 
 /// An iterator adapter to filter values within a nested `Result::Ok`.
 ///
