@@ -65,6 +65,7 @@ use std::hash::Hash;
 use std::fmt::Write;
 #[cfg(feature = "use_std")]
 type VecIntoIter<T> = ::std::vec::IntoIter<T>;
+#[cfg(feature = "use_std")]
 use std::iter::FromIterator;
 
 #[macro_use]
