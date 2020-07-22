@@ -1200,19 +1200,6 @@ quickcheck! {
         assert_eq!(lookup_grouping_map, lookup_grouping_map_by);
     }
 
-    fn correct_grouping_map_by_modulo_key(a: Vec<u8>, modulo: u8) -> () {
-        let modulo = if modulo == 0 { 1 } else { modulo }; // Avoid `% 0`
-        let count = a.len();
-        let lookup = a.into_iter().into_grouping_map_by(|i| i % modulo).collect::<Vec<_>>();
-
-        assert_eq!(lookup.len(), (0..modulo).filter(|i| lookup.contains_key(i)).count());
-        assert_eq!(lookup.values().flat_map(|vals| vals.iter()).count(), count);
-
-        for (&key, vals) in lookup.iter() {
-            assert!(vals.iter().all(|&val| val % modulo == key));
-        }
-    }
-
     fn correct_grouping_map_by_aggregate_modulo_key(a: Vec<u8>, modulo: u8) -> () {
         let modulo = if modulo < 2 { 2 } else { modulo } as u64; // Avoid `% 0`
         let lookup = a.iter()
