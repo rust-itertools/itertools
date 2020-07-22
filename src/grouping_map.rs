@@ -399,6 +399,9 @@ impl<I, K, V> GroupingMap<I>
     /// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of
     /// each group.
     /// 
+    /// If several elements are equally maximum, the last element is picked.
+    /// If several elements are equally minimum, the first element is picked.
+    /// 
     /// See [.minmax_by()](../trait.Itertools.html#method.minmax) for the non-grouping version.
     /// 
     /// Differences from the non grouping version:
@@ -428,6 +431,9 @@ impl<I, K, V> GroupingMap<I>
 
     /// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of
     /// each group with respect to the specified comparison function.
+    /// 
+    /// If several elements are equally maximum, the last element is picked.
+    /// If several elements are equally minimum, the first element is picked.
     /// 
     /// It has the same differences from the non-grouping version as `minmax`.
     /// 
@@ -475,6 +481,9 @@ impl<I, K, V> GroupingMap<I>
 
     /// Groups elements from the `GroupingMap` source by key and find the elements of each group
     /// that gives the minimum and maximum from the specified function.
+    /// 
+    /// If several elements are equally maximum, the last element is picked.
+    /// If several elements are equally minimum, the first element is picked.
     /// 
     /// It has the same differences from the non-grouping version as `minmax`.
     /// 
