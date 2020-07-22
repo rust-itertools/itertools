@@ -71,8 +71,9 @@ impl<I, K, V> GroupingMap<I>
     /// If `operation` returns `Some(element)` then the accumulator is updated with `element`,
     /// otherwise the previous accumulation is discarded.
     ///
-    /// Return a `HashMap` associating the key of each group with the result of aggregation of the group elements.
-    /// If there's no result then there won't be an entry associated to that key.
+    /// Return a `HashMap` associating the key of each group with the result of aggregation of
+    /// that group's elements. If the aggregation of the last element of a group discards the
+    /// accumulator then there won't be an entry associated to that group's key.
     /// 
     /// ```
     /// use itertools::Itertools;
@@ -120,7 +121,7 @@ impl<I, K, V> GroupingMap<I>
     ///  - a reference to the key of the group this element belongs to;
     ///  - the element from the source being accumulated.
     ///
-    /// Return a `HashMap` associating the key of each group with the result of folding the group elements.
+    /// Return a `HashMap` associating the key of each group with the result of folding that group's elements.
     /// 
     /// ```
     /// use itertools::Itertools;
@@ -155,7 +156,7 @@ impl<I, K, V> GroupingMap<I>
     ///  - a reference to the key of the group this element belongs to;
     ///  - the element from the source being accumulated.
     ///
-    /// Return a `HashMap` associating the key of each group with the result of folding the group elements.
+    /// Return a `HashMap` associating the key of each group with the result of folding that group's elements.
     /// 
     /// [`fold`]: #tymethod.fold
     /// 
@@ -185,7 +186,7 @@ impl<I, K, V> GroupingMap<I>
     /// Groups elements from the `GroupingMap` source by key and collects the elements of each group in
     /// an instance of `C`. The iteration order is preserved when inserting elements. 
     /// 
-    /// Return a `HashMap` associating the key of each group with the collection containing the elements of that group.
+    /// Return a `HashMap` associating the key of each group with the collection containing that group's elements.
     /// 
     /// ```
     /// use itertools::Itertools;
@@ -212,7 +213,7 @@ impl<I, K, V> GroupingMap<I>
 
     /// Groups elements from the `GroupingMap` source by key and counts them.
     /// 
-    /// Return a `HashMap` associating the key of each group with the number of elements in that group.
+    /// Return a `HashMap` associating the key of each group with the number of that group's elements.
     /// 
     /// ```
     /// use itertools::Itertools;
@@ -241,7 +242,7 @@ impl<I, K, V> GroupingMap<I>
     /// 
     /// If several elements are equally maximum, the last element is picked.
     /// 
-    /// Returns a `HashMap` associating the key of each group with the maximum of that group.
+    /// Returns a `HashMap` associating the key of each group with the maximum of that group's elements.
     /// 
     /// ```
     /// use itertools::Itertools;
@@ -266,7 +267,7 @@ impl<I, K, V> GroupingMap<I>
     /// 
     /// If several elements are equally maximum, the last element is picked.
     /// 
-    /// Returns a `HashMap` associating the key of each group with the maximum of that group.
+    /// Returns a `HashMap` associating the key of each group with the maximum of that group's elements.
     /// 
     /// ```
     /// use itertools::Itertools;
@@ -294,7 +295,7 @@ impl<I, K, V> GroupingMap<I>
     /// 
     /// If several elements are equally maximum, the last element is picked.
     /// 
-    /// Returns a `HashMap` associating the key of each group with the maximum of that group.
+    /// Returns a `HashMap` associating the key of each group with the maximum of that group's elements.
     /// 
     /// ```
     /// use itertools::Itertools;
@@ -319,7 +320,7 @@ impl<I, K, V> GroupingMap<I>
     /// 
     /// If several elements are equally minimum, the first element is picked.
     /// 
-    /// Returns a `HashMap` associating the key of each group with the minimum of that group.
+    /// Returns a `HashMap` associating the key of each group with the minimum of that group's elements.
     /// 
     /// ```
     /// use itertools::Itertools;
@@ -344,7 +345,7 @@ impl<I, K, V> GroupingMap<I>
     /// 
     /// If several elements are equally minimum, the first element is picked.
     /// 
-    /// Returns a `HashMap` associating the key of each group with the minimum of that group.
+    /// Returns a `HashMap` associating the key of each group with the minimum of that group's elements.
     /// 
     /// ```
     /// use itertools::Itertools;
@@ -372,7 +373,7 @@ impl<I, K, V> GroupingMap<I>
     /// 
     /// If several elements are equally minimum, the first element is picked.
     /// 
-    /// Returns a `HashMap` associating the key of each group with the minimum of that group.
+    /// Returns a `HashMap` associating the key of each group with the minimum of that group's elements.
     /// 
     /// ```
     /// use itertools::Itertools;
@@ -402,7 +403,7 @@ impl<I, K, V> GroupingMap<I>
     /// - It never produces a `MinMaxResult::NoElements`
     /// - It doesn't have any speedup
     /// 
-    /// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group.
+    /// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group's elements.
     /// 
     /// ```
     /// use itertools::Itertools;
@@ -428,7 +429,7 @@ impl<I, K, V> GroupingMap<I>
     /// 
     /// It has the same differences from the non-grouping version as `minmax`.
     /// 
-    /// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group.
+    /// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group's elements.
     /// 
     /// ```
     /// use itertools::Itertools;
@@ -475,7 +476,7 @@ impl<I, K, V> GroupingMap<I>
     /// 
     /// It has the same differences from the non-grouping version as `minmax`.
     /// 
-    /// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group.
+    /// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group's elements.
     /// 
     /// ```
     /// use itertools::Itertools;
@@ -502,7 +503,7 @@ impl<I, K, V> GroupingMap<I>
     /// This is just a shorthand for `self.fold_first(|acc, _, val| acc + val)`.
     /// It is more limited than `Iterator::sum` since it doesn't use the `Sum` trait.
     /// 
-    /// Returns a `HashMap` associating the key of each group with the sum of that group.
+    /// Returns a `HashMap` associating the key of each group with the sum of that group's elements.
     /// 
     /// ```
     /// use itertools::Itertools;
@@ -527,7 +528,7 @@ impl<I, K, V> GroupingMap<I>
     /// This is just a shorthand for `self.fold_first(|acc, _, val| acc * val)`.
     /// It is more limited than `Iterator::product` since it doesn't use the `Product` trait.
     /// 
-    /// Returns a `HashMap` associating the key of each group with the product of that group.
+    /// Returns a `HashMap` associating the key of each group with the product of that group's elements.
     /// 
     /// ```
     /// use itertools::Itertools;
