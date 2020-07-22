@@ -56,7 +56,7 @@ impl<I, K, V> GroupingMap<I>
     where I: Iterator<Item = (K, V)>,
           K: Hash + Eq,
 {
-    /// This is the generic way to perform any operations on a `GroupingMap`.
+    /// This is the generic way to perform any operation on a `GroupingMap`.
     /// It's suggested to use this method only to implement custom operations
     /// when the already provided ones are not enough.
     /// 
@@ -68,6 +68,7 @@ impl<I, K, V> GroupingMap<I>
     ///  - the current value of the accumulator of the group if there is currently one;
     ///  - a reference to the key of the group this element belongs to;
     ///  - the element from the source being aggregated;
+    /// 
     /// If `operation` returns `Some(element)` then the accumulator is updated with `element`,
     /// otherwise the previous accumulation is discarded.
     ///
