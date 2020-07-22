@@ -36,7 +36,7 @@ pub fn new<I, K, V>(iter: I) -> GroupingMap<I>
     GroupingMap { iter }
 }
 
-/// `GroupingMap` is an intermediate struct for efficient group-and-fold operations.
+/// `GroupingMapBy` is an intermediate struct for efficient group-and-fold operations.
 /// It groups elements by the key returned by the specified function and at the same
 /// time fold each group using some aggregating operation.
 /// 
