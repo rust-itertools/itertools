@@ -460,7 +460,7 @@ impl<I, K, V> GroupingMap<I>
                     } else {
                         MinMaxResult::MinMax(e, val)
                     }
-                },
+                }
                 Some(MinMaxResult::MinMax(min, max)) => {
                     if compare(&val, &min) == Ordering::Less {
                         MinMaxResult::MinMax(val, max)
@@ -469,9 +469,9 @@ impl<I, K, V> GroupingMap<I>
                     } else {
                         MinMaxResult::MinMax(min, max)
                     }
-                },
+                }
                 None => MinMaxResult::OneElement(val),
-                Some(MinMaxResult::NoElements) => unreachable!()
+                Some(MinMaxResult::NoElements) => unreachable!(),
             })
         })
     }
