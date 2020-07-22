@@ -510,7 +510,7 @@ impl<I, K, V> GroupingMap<I>
     /// This is just a shorthand for `self.fold_first(|acc, _, val| acc + val)`.
     /// It is more limited than `Iterator::sum` since it doesn't use the `Sum` trait.
     /// 
-    /// Returns a `HashMap` associating the key of each group with the sum of each group.
+    /// Returns a `HashMap` associating the key of each group with the sum of that group.
     /// 
     /// ```
     /// use itertools::Itertools;
@@ -535,7 +535,7 @@ impl<I, K, V> GroupingMap<I>
     /// This is just a shorthand for `self.fold_first(|acc, _, val| acc * val)`.
     /// It is more limited than `Iterator::product` since it doesn't use the `Product` trait.
     /// 
-    /// Returns a `HashMap` associating the key of each group with the product of each group.
+    /// Returns a `HashMap` associating the key of each group with the product of that group.
     /// 
     /// ```
     /// use itertools::Itertools;
