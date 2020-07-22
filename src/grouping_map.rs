@@ -402,7 +402,7 @@ impl<I, K, V> GroupingMap<I>
     /// If several elements are equally maximum, the last element is picked.
     /// If several elements are equally minimum, the first element is picked.
     /// 
-    /// See [.minmax_by()](../trait.Itertools.html#method.minmax) for the non-grouping version.
+    /// See [.minmax()](../trait.Itertools.html#method.minmax) for the non-grouping version.
     /// 
     /// Differences from the non grouping version:
     /// - It never produces a `MinMaxResult::NoElements`
