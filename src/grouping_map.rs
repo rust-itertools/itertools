@@ -404,6 +404,20 @@ impl<I, K, V> GroupingMap<I>
     /// - It doesn't have any speedup
     /// 
     /// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{OneElement, MinMax};
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .minmax();
+    /// 
+    /// assert_eq!(lookup[&0], MinMax(3, 12));
+    /// assert_eq!(lookup[&1], MinMax(1, 7));
+    /// assert_eq!(lookup[&2], OneElement(5));
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn minmax(self) -> HashMap<K, MinMaxResult<V>>
         where V: Ord,
     {
@@ -420,6 +434,20 @@ impl<I, K, V> GroupingMap<I>
     /// - It doesn't have any speedup
     /// 
     /// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{OneElement, MinMax};
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .minmax_by(|x, y| y.cmp(x));
+    /// 
+    /// assert_eq!(lookup[&0], MinMax(12, 3));
+    /// assert_eq!(lookup[&1], MinMax(7, 1));
+    /// assert_eq!(lookup[&2], OneElement(5));
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn minmax_by<F>(self, mut compare: F) -> HashMap<K, MinMaxResult<V>>
         where F: FnMut(&V, &V) -> Ordering,
     {
@@ -457,6 +485,20 @@ impl<I, K, V> GroupingMap<I>
     /// - It doesn't have any speedup
     /// 
     /// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{OneElement, MinMax};
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .minmax_by_key(|&val| val % 4);
+    /// 
+    /// assert_eq!(lookup[&0], MinMax(12, 3));
+    /// assert_eq!(lookup[&1], MinMax(4, 7));
+    /// assert_eq!(lookup[&2], OneElement(5));
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn minmax_by_key<F, CK>(self, mut f: F) -> HashMap<K, MinMaxResult<V>>
         where F: FnMut(&V) -> CK,
               CK: Ord,
