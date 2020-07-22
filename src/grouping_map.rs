@@ -204,11 +204,13 @@ impl<I, K, V> GroupingMap<I>
     pub fn collect<C>(self) -> HashMap<K, C>
         where C: Default + Extend<V>,
     {
-        self.aggregate(|acc, _, v| {
-            let mut acc = acc.unwrap_or_else(C::default);
-            acc.extend(Some(v));
-            Some(acc)
-        })
+        let mut destination_map = HashMap::new();
+
+        for (key, val) in self.iter {
+            destination_map.entry(key).or_insert_with(C::default).extend(Some(val));
+        }
+
+        destination_map
     }
 
     /// Groups elements from the `GroupingMap` source by key and counts them.
