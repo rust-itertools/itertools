@@ -1346,4 +1346,29 @@ quickcheck! {
             );
         }
     }
+
+    // This should check that if multiple elements are equally minimum or maximum
+    // then `max`, `min` and `minmax` pick the first minimum and the last maximum.
+    // This is to be consistent with `std::iter::max` and `std::iter::min`.
+    fn correct_grouping_map_by_min_max_minmax_order_modulo_key() -> () {
+        use itertools::MinMaxResult;
+
+        let lookup = (0..=10)
+            .into_grouping_map_by(|_| 0)
+            .max_by(|_, _, _| Ordering::Equal);
+
+        assert_eq!(lookup[&0], 10);
+
+        let lookup = (0..=10)
+            .into_grouping_map_by(|_| 0)
+            .min_by(|_, _, _| Ordering::Equal);
+
+        assert_eq!(lookup[&0], 0);
+        
+        let lookup = (0..=10)
+            .into_grouping_map_by(|_| 0)
+            .minmax_by(|_, _, _| Ordering::Equal);
+
+        assert_eq!(lookup[&0], MinMaxResult::MinMax(0, 10));
+    }
 }
