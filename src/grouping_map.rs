@@ -23,8 +23,7 @@ impl<K, V, I, F> Iterator for MapForGrouping<I, F>
 {
     type Item = (K, V);
     fn next(&mut self) -> Option<Self::Item> {
-        let val = self.0.next()?;
-        Some(((self.1)(&val), val))
+        self.0.next().map(|val| ((self.1)(&val), val))
     }
 }
 
