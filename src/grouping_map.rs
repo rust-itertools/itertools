@@ -37,10 +37,8 @@ pub fn new<I, K, V>(iter: I) -> GroupingMap<I>
 }
 
 /// `GroupingMapBy` is an intermediate struct for efficient group-and-fold operations.
-/// It groups elements by the key returned by the specified function and at the same
-/// time fold each group using some aggregating operation.
 /// 
-/// No method on this type performs temporary allocations.
+/// See [`GroupingMap`](./struct.GroupingMap.html) for more informations.
 #[must_use = "GroupingMapBy is lazy and do nothing unless consumed"]
 pub type GroupingMapBy<I, F> = GroupingMap<MapForGrouping<I, F>>;
 
