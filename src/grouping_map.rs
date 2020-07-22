@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use std::cmp::Ordering;
 use std::hash::Hash;
 use std::iter::Iterator;
+use std::ops::{Add, Mul};
 
 /// A wrapper to allow for an easy [`into_grouping_map_by`](../trait.Itertools.html#method.into_grouping_map_by)
 pub struct MapForGrouping<I, F>(I, F);
@@ -504,5 +505,55 @@ impl<I, K, V> GroupingMap<I>
               CK: Ord,
     {
         self.minmax_by(|v1, v2| f(&v1).cmp(&f(&v2)))
+    }
+    
+    /// Groups elements from the `GroupingMap` source by key and sums them.
+    /// 
+    /// This is just a shorthand for `self.fold_first(|acc, _, val| acc + val)`.
+    /// It is more limited than `Iterator::sum` since it doesn't use the `Sum` trait.
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the sum of each group.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .sum();
+    /// 
+    /// assert_eq!(lookup[&0], 3 + 9 + 12);
+    /// assert_eq!(lookup[&1], 1 + 4 + 7);
+    /// assert_eq!(lookup[&2], 5 + 8);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    pub fn sum(self) -> HashMap<K, V>
+        where V: Add<V, Output = V>
+    {
+        self.fold_first(|acc, _, val| acc + val)
+    }
+
+    /// Groups elements from the `GroupingMap` source by key and multiply them.
+    /// 
+    /// This is just a shorthand for `self.fold_first(|acc, _, val| acc * val)`.
+    /// It is more limited than `Iterator::product` since it doesn't use the `Product` trait.
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the product of each group.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .product();
+    /// 
+    /// assert_eq!(lookup[&0], 3 * 9 * 12);
+    /// assert_eq!(lookup[&1], 1 * 4 * 7);
+    /// assert_eq!(lookup[&2], 5 * 8);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    pub fn product(self) -> HashMap<K, V>
+        where V: Mul<V, Output = V>,
+    {
+        self.fold_first(|acc, _, val| acc * val)
     }
 }
