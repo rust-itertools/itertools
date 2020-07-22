@@ -459,7 +459,7 @@ impl<I, K, V> GroupingMap<I>
                 Some(MinMaxResult::MinMax(min, max)) => {
                     if compare(key, &val, &min) == Ordering::Less {
                         MinMaxResult::MinMax(val, max)
-                    } else if compare(key, &val, &min) == Ordering::Greater {
+                    } else if compare(key, &val, &max) == Ordering::Greater {
                         MinMaxResult::MinMax(min, val)
                     } else {
                         MinMaxResult::MinMax(min, max)
