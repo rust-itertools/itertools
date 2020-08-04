@@ -8,6 +8,7 @@ use std::iter::Iterator;
 use std::ops::{Add, Mul};
 
 /// A wrapper to allow for an easy [`into_grouping_map_by`](../trait.Itertools.html#method.into_grouping_map_by)
+#[derive(Clone, Debug)]
 pub struct MapForGrouping<I, F>(I, F);
 
 impl<I, F> MapForGrouping<I, F> {
@@ -46,6 +47,7 @@ pub type GroupingMapBy<I, F> = GroupingMap<MapForGrouping<I, F>>;
 /// using some aggregating operation.
 /// 
 /// No method on this struct performs temporary allocations.
+#[derive(Clone, Debug)]
 #[must_use = "GroupingMap is lazy and do nothing unless consumed"]
 pub struct GroupingMap<I> {
     iter: I,
