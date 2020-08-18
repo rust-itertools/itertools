@@ -913,16 +913,3 @@ fn tree_fold1() {
         assert_eq!(actual, expected);
     }
 }
-
-#[test]
-fn counts() {
-    let a: [usize; 0] = [];
-    assert_eq!(0, a.iter().counts().len());
-    let b = [1, 1, 1, 2, 2, 3];
-    let b_counts = b.iter().counts();
-    assert_eq!(3, b_counts.len());
-    assert_eq!(Some(&3), b_counts.get(&1));
-    assert_eq!(Some(&2), b_counts.get(&2));
-    assert_eq!(Some(&1), b_counts.get(&3));
-    assert_eq!(None, b_counts.get(&4));
-}
