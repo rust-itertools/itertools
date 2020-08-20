@@ -2807,6 +2807,30 @@ pub trait Itertools : Iterator {
     {
         multipeek_impl::multipeek(self)
     }
+
+    /// Collect the items in this iterator and return a `HashMap` which
+    /// contains each item that appears in the iterator and the number
+    /// of times it appears.
+    ///
+    /// # Examples
+    /// ```
+    /// # use itertools::Itertools;
+    /// let counts = [1, 1, 1, 3, 3, 5].into_iter().counts();
+    /// assert_eq!(counts[&1], 3);
+    /// assert_eq!(counts[&3], 2);
+    /// assert_eq!(counts[&5], 1);
+    /// assert_eq!(counts.get(&0), None);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn counts(self) -> HashMap<Self::Item, usize>
+    where
+        Self: Sized,
+        Self::Item: Eq + Hash,
+    {
+        let mut counts = HashMap::new();
+        self.for_each(|item| *counts.entry(item).or_default() += 1);
+        counts
+    }
 }
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }
