@@ -1545,3 +1545,24 @@ quickcheck! {
         assert_eq!(lookup[&0], MinMaxResult::MinMax(0, 10));
     }
 }
+
+quickcheck! {
+    #[test]
+    fn counts(nums: Vec<isize>) -> TestResult {
+        let counts = nums.iter().counts();
+        for (&item, &count) in counts.iter() {
+            if count <= 0 {
+                return TestResult::failed();
+            }
+            if count != nums.iter().filter(|&x| x == item).count() {
+                return TestResult::failed();
+            }
+        }
+        for item in nums.iter() {
+            if !counts.contains_key(item) {
+                return TestResult::failed();
+            }
+        }
+        TestResult::passed()
+    }
+}
