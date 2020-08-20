@@ -1303,26 +1303,6 @@ quickcheck! {
         assert_eq!(lookup_grouping_map, lookup_group_map);
     }
 
-    fn correct_grouping_map_by_count_modulo_key(a: Vec<u8>, modulo: u8) -> () {
-        let modulo = if modulo == 0 { 1 } else { modulo }; // Avoid `% 0`
-        let count = a.len();
-        let lookup = a.iter().copied().into_grouping_map_by(|i| i % modulo).count();
-
-        let group_map_lookup = a.iter().copied()
-            .map(|i| (i % modulo, i))
-            .into_group_map()
-            .into_iter()
-            .map(|(key, vals)| (key, vals.len()))
-            .collect::<HashMap<_,_>>();
-        assert_eq!(lookup, group_map_lookup);
-
-        assert_eq!(lookup.values().sum::<usize>(), count);
-
-        for (&key, &count) in lookup.iter() {
-            assert_eq!(count, a.iter().filter(|&val| val % modulo == key).count());
-        }
-    }
-
     fn correct_grouping_map_by_max_modulo_key(a: Vec<u8>, modulo: u8) -> () {
         let modulo = if modulo == 0 { 1 } else { modulo }; // Avoid `% 0`
         let lookup = a.iter().copied().into_grouping_map_by(|i| i % modulo).max();

@@ -215,33 +215,6 @@ impl<I, K, V> GroupingMap<I>
         destination_map
     }
 
-    /// Groups elements from the `GroupingMap` source by key and counts them.
-    /// 
-    /// Return a `HashMap` associating the key of each group with the number of that group's elements.
-    /// 
-    /// ```
-    /// use itertools::Itertools;
-    /// 
-    /// let lookup = "This is a string".chars()
-    ///     .into_grouping_map_by(|&c| c)
-    ///     .count();
-    /// 
-    /// assert_eq!(lookup[&'T'], 1);
-    /// assert_eq!(lookup[&'h'], 1);
-    /// assert_eq!(lookup[&'i'], 3);
-    /// assert_eq!(lookup[&'s'], 3);
-    /// assert_eq!(lookup[&' '], 3);
-    /// assert_eq!(lookup[&'a'], 1);
-    /// assert_eq!(lookup[&'t'], 1);
-    /// assert_eq!(lookup[&'r'], 1);
-    /// assert_eq!(lookup[&'n'], 1);
-    /// assert_eq!(lookup[&'g'], 1);
-    /// assert_eq!(lookup.len(), 10);
-    /// ```
-    pub fn count(self) -> HashMap<K, usize> {
-        self.fold(0, |acc, _, _| acc + 1)
-    }
-
     /// Groups elements from the `GroupingMap` source by key and finds the maximum of each group.
     /// 
     /// If several elements are equally maximum, the last element is picked.
