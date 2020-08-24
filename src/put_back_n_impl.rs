@@ -1,5 +1,7 @@
 use crate::size_hint;
 
+use crate::lib::Vec;
+
 /// An iterator adaptor that allows putting multiple
 /// items in front of the iterator.
 ///

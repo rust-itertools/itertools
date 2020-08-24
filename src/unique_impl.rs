@@ -1,6 +1,6 @@
 
-use std::collections::HashMap;
-use std::collections::hash_map::{Entry};
+use crate::lib::{Entry, HashMap};
+
 use std::hash::Hash;
 use std::fmt;
 

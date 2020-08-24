@@ -1,3 +1,4 @@
+#![cfg(feature = "use_std")]
 use itertools::Itertools;
 use itertools::{put_back, put_back_n};
 

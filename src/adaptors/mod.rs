@@ -11,7 +11,6 @@ pub use self::coalesce::*;
 pub use self::map::{map_into, map_ok, MapInto, MapOk};
 #[allow(deprecated)]
 pub use self::map::MapResults;
-#[cfg(feature = "use_std")]
 pub use self::multi_product::*;
 
 use std::fmt;

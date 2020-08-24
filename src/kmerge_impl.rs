@@ -1,5 +1,6 @@
 use crate::size_hint;
 use crate::Itertools;
+use crate::lib::Vec;
 
 use std::mem::replace;
 use std::fmt;

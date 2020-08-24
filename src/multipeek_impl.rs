@@ -1,7 +1,10 @@
+
+#![cfg(feature = "use_std")]
 use std::iter::Fuse;
 use std::collections::VecDeque;
 use crate::size_hint;
 use crate::PeekingNext;
+
 
 /// See [`multipeek()`](../fn.multipeek.html) for more information.
 #[derive(Clone, Debug)]

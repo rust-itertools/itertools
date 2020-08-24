@@ -1,6 +1,7 @@
+use crate::lib::VecDeque;
+#[cfg(feature = "use_std")]
 use crate::size_hint;
 use crate::PeekingNext;
-use std::collections::VecDeque;
 use std::iter::Fuse;
 
 /// See [`peek_nth()`](../fn.peek_nth.html) for more information.

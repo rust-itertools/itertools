@@ -24,6 +24,7 @@ test = false
 
 [dependencies]
 either = { version = "1.0", default-features = false }
+hashbrown = { version = "0.8", optional = true}
 
 [dev-dependencies]
 rand = "0.7"
@@ -38,6 +39,7 @@ version = "0.2"
 
 [features]
 default = ["use_std"]
+use_alloc = ["hashbrown"]
 use_std = []
 
 [profile]

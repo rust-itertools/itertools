@@ -1,6 +1,5 @@
-#![cfg(feature = "use_std")]
 
-use std::collections::HashMap;
+use crate::lib::{HashMap, Vec};
 use std::hash::Hash;
 use std::iter::Iterator;
 
@@ -21,6 +20,7 @@ pub fn into_group_map<I, K, V>(iter: I) -> HashMap<K, Vec<V>>
     lookup
 }
 
+#[cfg(feature = "use_std")]
 pub fn into_group_map_by<I, K, V>(iter: I, f: impl Fn(&V) -> K) -> HashMap<K, Vec<V>>
     where
         I: Iterator<Item=V>,

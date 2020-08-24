@@ -1,6 +1,8 @@
 
 use std::iter::IntoIterator;
-use std::rc::Rc;
+
+use crate::lib::Rc;
+
 use std::cell::RefCell;
 
 /// A wrapper for `Rc<RefCell<I>>`, that implements the `Iterator` trait.
@@ -44,6 +46,7 @@ pub struct RcIter<I> {
 /// iterator methods. It can only happen if the `RcIter` is reentered in
 /// `.next()`, i.e. if it somehow participates in an “iterator knot”
 /// where it is an adaptor of itself.
+#[cfg(feature = "use_std")]
 pub fn rciter<I>(iterable: I) -> RcIter<I::IntoIter>
     where I: IntoIterator
 {

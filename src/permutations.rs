@@ -1,6 +1,8 @@
 use std::fmt;
 use std::iter::once;
 
+use crate::lib::Vec;
+
 use super::lazy_buffer::LazyBuffer;
 
 /// An iterator adaptor that iterates through all the `k`-permutations of the

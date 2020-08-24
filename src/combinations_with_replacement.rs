@@ -1,5 +1,9 @@
 use std::fmt;
 
+#[cfg(not(feature = "use_std"))]
+use crate::lib::vec;
+use crate::lib::Vec;
+
 use super::lazy_buffer::LazyBuffer;
 
 /// An iterator to iterate through all the `n`-length combinations in an iterator, with replacement.

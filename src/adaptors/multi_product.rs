@@ -1,5 +1,5 @@
-#![cfg(feature = "use_std")]
 
+use crate::lib::Vec;
 use crate::size_hint;
 use crate::Itertools;
 

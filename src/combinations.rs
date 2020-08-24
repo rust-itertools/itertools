@@ -1,4 +1,5 @@
 use std::fmt;
+use crate::lib::Vec;
 
 use super::lazy_buffer::LazyBuffer;
 
