@@ -1,3 +1,4 @@
+use alloc::vec::Vec;
 use std::fmt;
 
 use super::lazy_buffer::LazyBuffer;
@@ -44,7 +45,7 @@ where
     I: Iterator,
     I::Item: Clone,
 {
-    let indices: Vec<usize> = vec![0; k];
+    let indices: Vec<usize> = alloc::vec![0; k];
     let pool: LazyBuffer<I> = LazyBuffer::new(iter);
 
     CombinationsWithReplacement {

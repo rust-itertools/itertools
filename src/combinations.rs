@@ -1,6 +1,7 @@
 use std::fmt;
 
 use super::lazy_buffer::LazyBuffer;
+use alloc::vec::Vec;
 
 /// An iterator to iterate through all the `k`-length combinations in an iterator.
 ///

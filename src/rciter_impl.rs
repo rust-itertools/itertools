@@ -1,6 +1,6 @@
 
 use std::iter::IntoIterator;
-use std::rc::Rc;
+use alloc::rc::Rc;
 use std::cell::RefCell;
 
 /// A wrapper for `Rc<RefCell<I>>`, that implements the `Iterator` trait.

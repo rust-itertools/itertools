@@ -1,7 +1,9 @@
-#![cfg(feature = "use_std")]
+#![cfg(feature = "use_alloc")]
 
 use crate::size_hint;
 use crate::Itertools;
+
+use alloc::vec::Vec;
 
 #[derive(Clone)]
 /// An iterator adaptor that iterates over the cartesian product of
