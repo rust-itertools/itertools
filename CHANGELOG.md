@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.10.0
+  - Undeprecate `fold_while` (#476)
+
+  - Tuple-related adapters work for tuples of arity up to 12 (#475)
+
+  - `use_alloc` feature for users who have `alloc`, but not `std` (#474)
+
+  - Add `Itertools::k_smallest` (#473)
+
+  - Add `Itertools::into_grouping_map` and `GroupingMap` (#465)
+  - Add `Itertools::into_grouping_map_by` and `GroupingMapBy` (#465)
+
+  - Add `Itertools::counts` (#468)
+
+  - Add implementation of `DoubleEndedIterator` for `Unique` (#442)
+  - Add implementation of `DoubleEndedIterator` for `UniqueBy` (#442)
+
+  - Add `Itertools::multipeek` (#435)
+
+  - Add `Itertools::dedup_with_count` and `DedupWithCount` (#423)
+  - Add `Itertools::dedup_by_with_count` and `DedupByWithCount` (#423)
+
+  - Add `Itertools::intersperse_with` and `IntersperseWith` (#381)
+
+  - Add `Itertools::filter_ok` and `FilterOk` (#377)
+  - Add `Itertools::filter_map_ok` and `FilterMapOk` (#377)
+  - Deprecate `Itertools::fold_results`, use `Itertools::fold_ok` instead (#377)
+  - Deprecate `Itertools::map_results`, use `Itertools::map_ok` instead (#377)
+  - Deprecate `FoldResults`, use `FoldOk` instead (#377)
+  - Deprecate `MapResults`, use `MapOk` instead (#377)
+
+  - Add `Itertools::circular_tuple_windows` and `CircularTupleWindows` (#350)
+
+  - Add `peek_nth` and `PeekNth` (#303)
+
 ## 0.9.0
   - Fix potential overflow in `MergeJoinBy::size_hint` (#385)
   - Add `derive(Clone)` where possible (#382)
