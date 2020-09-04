@@ -68,7 +68,7 @@ where
 pub type MapOk<I, F> = MapSpecialCase<I, MapSpecialCaseFnOk<F>>;
 
 /// See [`MapOk`](struct.MapOk.html).
-#[deprecated(note = "Use MapOk instead", since = "0.10")]
+#[deprecated(note = "Use MapOk instead", since = "0.10.0")]
 pub type MapResults<I, F> = MapOk<I, F>;
 
 impl<F, T, U, E> MapSpecialCaseFn<Result<T, E>> for MapSpecialCaseFnOk<F>

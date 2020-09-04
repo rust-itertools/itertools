@@ -113,22 +113,11 @@ impl<I, J> Iterator for InterleaveShortest<I, J>
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        match self.phase {
-            false => match self.it0.next() {
-                None => None,
-                e => {
-                    self.phase = true;
-                    e
-                }
-            },
-            true => match self.it1.next() {
-                None => None,
-                e => {
-                    self.phase = false;
-                    e
-                }
-            },
+        let e = if self.phase { self.it1.next() } else { self.it0.next() };
+        if e.is_some() {
+            self.phase = !self.phase;
         }
+        e
     }
 
     #[inline]
@@ -412,7 +401,7 @@ impl<B, F, I> Iterator for Batching<I, F>
 /// then skipping forward *n-1* elements.
 ///
 /// See [`.step()`](../trait.Itertools.html#method.step) for more information.
-#[deprecated(note="Use std .step_by() instead", since="0.8")]
+#[deprecated(note="Use std .step_by() instead", since="0.8.0")]
 #[allow(deprecated)]
 #[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]

@@ -56,7 +56,7 @@ impl<I> Iterator for Combinations<I>
                 return None;
             }
             self.first = false;
-        } else if self.indices.len() == 0 {
+        } else if self.indices.is_empty() {
             return None;
         } else {
             // Scan from the end, looking for an index to increment

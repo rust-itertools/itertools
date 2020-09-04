@@ -161,7 +161,7 @@ impl<I> Iterator for MultiProduct<I>
     }
 
     fn count(self) -> usize {
-        if self.0.len() == 0 {
+        if self.0.is_empty() {
             return 0;
         }
 
@@ -183,7 +183,7 @@ impl<I> Iterator for MultiProduct<I>
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         // Not ExactSizeIterator because size may be larger than usize
-        if self.0.len() == 0 {
+        if self.0.is_empty() {
             return (0, Some(0));
         }
 

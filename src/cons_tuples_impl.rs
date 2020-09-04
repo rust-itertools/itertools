@@ -57,8 +57,8 @@ impl<I, J> Clone for ConsTuples<I, J>
 
 /// Create an iterator that maps for example iterators of
 /// `((A, B), C)` to `(A, B, C)`.
-pub fn cons_tuples<I, J>(iterable: I) -> ConsTuples<I, J>
-    where I: Iterator<Item=J>
+pub fn cons_tuples<I, J>(iterable: I) -> ConsTuples<I::IntoIter, J>
+    where I: IntoIterator<Item=J>
 {
     ConsTuples { iter: iterable.into_iter() }
 }

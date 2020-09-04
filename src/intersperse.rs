@@ -62,7 +62,7 @@ pub fn intersperse_with<I, ElemF>(iter: I, elt: ElemF) -> IntersperseWith<I, Ele
     let mut iter = iter.fuse();
     IntersperseWith {
         peek: iter.next(),
-        iter: iter,
+        iter,
         element: elt,
     }
 }

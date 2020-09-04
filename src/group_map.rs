@@ -15,7 +15,7 @@ pub fn into_group_map<I, K, V>(iter: I) -> HashMap<K, Vec<V>>
     let mut lookup = HashMap::new();
 
     for (key, val) in iter {
-        lookup.entry(key).or_insert(Vec::new()).push(val);
+        lookup.entry(key).or_insert_with(Vec::new).push(val);
     }
 
     lookup
@@ -30,5 +30,3 @@ pub fn into_group_map_by<I, K, V>(iter: I, f: impl Fn(&V) -> K) -> HashMap<K, Ve
         iter.map(|v| (f(&v), v))
     )
 }
-
-
