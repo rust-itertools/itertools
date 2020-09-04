@@ -2,15 +2,17 @@ language: rust
 sudo: false
 matrix:
   include:
-    - rust: 1.32.0
+    - rust: 1.36.0
       script:
         - |
             cargo build --verbose --no-default-features &&
+            cargo build --verbose --no-default-features --features "use_alloc" &&
             cargo build --verbose --features "$FEATURES"
     - rust: stable
       script:
         - |
             cargo build --verbose --no-default-features &&
+            cargo build --verbose --no-default-features --features "use_alloc" &&
             cargo build --verbose --features "$FEATURES" &&
             cargo test --verbose --features "$FEATURES" &&
             cargo bench --no-run --verbose --features "$FEATURES"
@@ -18,6 +20,7 @@ matrix:
       script:
         - |
             cargo build --verbose --no-default-features &&
+            cargo build --verbose --no-default-features --features "use_alloc" &&
             cargo build --verbose --features "$FEATURES" &&
             cargo test --verbose --features "$FEATURES" &&
             cargo bench --no-run --verbose --features "$FEATURES"
