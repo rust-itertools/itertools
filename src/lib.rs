@@ -1250,7 +1250,7 @@ pub trait Itertools : Iterator {
     /// elements from an iterator.
     ///
     /// Iterator element can be any homogeneous tuple of type `Self::Item` with
-    /// size up to 4.
+    /// size up to 12.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -1485,7 +1485,7 @@ pub trait Itertools : Iterator {
 
     // non-adaptor methods
     /// Advances the iterator and returns the next items grouped in a tuple of
-    /// a specific size (up to 4).
+    /// a specific size (up to 12).
     ///
     /// If there are enough elements to be grouped in a tuple, then the tuple is
     /// returned inside `Some`, otherwise `None` is returned.
@@ -1505,7 +1505,7 @@ pub trait Itertools : Iterator {
     }
 
     /// Collects all items from the iterator into a tuple of a specific size
-    /// (up to 4).
+    /// (up to 12).
     ///
     /// If the number of elements inside the iterator is **exactly** equal to
     /// the tuple size, then the tuple is returned inside `Some`, otherwise
