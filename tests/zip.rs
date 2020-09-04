@@ -75,5 +75,3 @@ fn zip_eq_panic2()
 
     zip_eq(&a, &b).count();
 }
-
-
