@@ -795,9 +795,30 @@ macro_rules! impl_tuple_combination {
     )
 }
 
-impl_tuple_combination!(Tuple2Combination Tuple1Combination ; A, A, A ; a);
-impl_tuple_combination!(Tuple3Combination Tuple2Combination ; A, A, A, A ; a b);
-impl_tuple_combination!(Tuple4Combination Tuple3Combination ; A, A, A, A, A; a b c);
+// This snippet generates the twelve `impl_tuple_combination!` invocations:
+//    use core::iter;
+//    use itertools::Itertools;
+//
+//    for i in 2..=12 {
+//        println!("impl_tuple_combination!(Tuple{arity}Combination Tuple{prev}Combination; {tys}; {idents});",
+//            arity = i,
+//            prev = i - 1,
+//            tys = iter::repeat("A").take(i + 1).join(", "),
+//            idents = ('a'..'z').take(i - 1).join(" "),
+//        );
+//    }
+// It could probably be replaced by a bit more macro cleverness.
+impl_tuple_combination!(Tuple2Combination Tuple1Combination; A, A, A; a);
+impl_tuple_combination!(Tuple3Combination Tuple2Combination; A, A, A, A; a b);
+impl_tuple_combination!(Tuple4Combination Tuple3Combination; A, A, A, A, A; a b c);
+impl_tuple_combination!(Tuple5Combination Tuple4Combination; A, A, A, A, A, A; a b c d);
+impl_tuple_combination!(Tuple6Combination Tuple5Combination; A, A, A, A, A, A, A; a b c d e);
+impl_tuple_combination!(Tuple7Combination Tuple6Combination; A, A, A, A, A, A, A, A; a b c d e f);
+impl_tuple_combination!(Tuple8Combination Tuple7Combination; A, A, A, A, A, A, A, A, A; a b c d e f g);
+impl_tuple_combination!(Tuple9Combination Tuple8Combination; A, A, A, A, A, A, A, A, A, A; a b c d e f g h);
+impl_tuple_combination!(Tuple10Combination Tuple9Combination; A, A, A, A, A, A, A, A, A, A, A; a b c d e f g h i);
+impl_tuple_combination!(Tuple11Combination Tuple10Combination; A, A, A, A, A, A, A, A, A, A, A, A; a b c d e f g h i j);
+impl_tuple_combination!(Tuple12Combination Tuple11Combination; A, A, A, A, A, A, A, A, A, A, A, A, A; a b c d e f g h i j k);
 
 /// An iterator adapter to filter values within a nested `Result::Ok`.
 ///
