@@ -260,7 +260,9 @@ macro_rules! rev_for_each_ident{
 }
 
 macro_rules! impl_tuple_collect {
-    ($($Y:ident),*) => (
+    ($dummy:ident,) => {}; // stop
+    ($dummy:ident, $($Y:ident,)*) => (
+        impl_tuple_collect!($($Y,)*);
         impl<A> TupleCollect for ($(ignore_ident!($Y, A),)*) {
             type Item = A;
             type Buffer = [Option<A>; count_ident!($($Y,)*) - 1];
@@ -322,16 +324,4 @@ macro_rules! impl_tuple_collect {
         }
     )
 }
-
-impl_tuple_collect!(a);
-impl_tuple_collect!(a, b);
-impl_tuple_collect!(a, b, c);
-impl_tuple_collect!(a, b, c, d);
-impl_tuple_collect!(a, b, c, d, e);
-impl_tuple_collect!(a, b, c, d, e, f);
-impl_tuple_collect!(a, b, c, d, e, f, g);
-impl_tuple_collect!(a, b, c, d, e, f, g, h);
-impl_tuple_collect!(a, b, c, d, e, f, g, h, i);
-impl_tuple_collect!(a, b, c, d, e, f, g, h, i, j);
-impl_tuple_collect!(a, b, c, d, e, f, g, h, i, j, k);
-impl_tuple_collect!(a, b, c, d, e, f, g, h, i, j, k, l);
+impl_tuple_collect!(dummy, a, b, c, d, e, f, g, h, i, j, k, l,);
