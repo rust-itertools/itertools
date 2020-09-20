@@ -108,7 +108,7 @@ macro_rules! impl_zip_iter {
             #[inline]
             fn next_back(&mut self) -> Option<Self::Item> {
                 let ($(ref mut $B,)*) = self.t;
-                let size = *[$( $B.len(), )*].into_iter().min().unwrap();
+                let size = *[$( $B.len(), )*].iter().min().unwrap();
 
                 $(
                     if $B.len() != size {
