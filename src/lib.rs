@@ -2831,6 +2831,46 @@ pub trait Itertools : Iterator {
         self.for_each(|item| *counts.entry(item).or_default() += 1);
         counts
     }
+
+    /// An alternative to [`fold()`] - `fold_mut()` also applies a function
+    /// producing a single value. The main difference is that the closure
+    /// passed to `fold_mut()` accepts a `&mut` to the accumulator instead
+    /// of consuming the accumulator. This can simplify some closures
+    /// that might otherwise be forced to return the accumulator awkwardly:
+    /// ```
+    /// let evens = [1, 2, 3, 4, 5, 6].iter().fold(Vec::new(), |mut evens, num| {
+    ///   if num % 2 == 0 {
+    ///     evens.push(num);
+    ///   }
+    ///   evens // potentially awkward return
+    /// });
+    /// ```
+    ///
+    /// `fold_mut()` may also be more performant in situations where the
+    /// accumulator is "large" as passing it by `&mut` can be cheaper than moving it.
+    ///
+    /// # Examples
+    /// ```
+    /// # use itertools::Itertools;
+    /// let evens = [1, 2, 3, 4, 5, 6].iter().fold_mut(Vec::new(), |evens, &num| {
+    ///   if num % 2 == 0 {
+    ///     evens.push(num);
+    ///   }
+    /// });
+    ///
+    /// assert_eq!(evens, [2, 4, 6]);
+    /// ```
+    /// [`fold()`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.fold
+    #[cfg(feature = "use_std")]
+    fn fold_mut<B, F>(self, init: B, mut f: F) -> B
+    where
+        Self: Sized,
+        F: FnMut(&mut B, Self::Item),
+    {
+        let mut accum = init;
+        self.for_each(|item| f(&mut accum, item));
+        accum
+    }
 }
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }

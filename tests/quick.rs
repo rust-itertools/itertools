@@ -1237,3 +1237,24 @@ quickcheck! {
         TestResult::from_bool(itertools::equal(x, y))
     }
 }
+
+quickcheck! {
+    fn test_fold_mut(a: Vec<u8>) -> TestResult {
+        let with_fold_mut =
+          a.iter().fold_mut(Vec::new(), |v, &n| {
+              if n % 2 == 0 {
+                  v.push(n);
+              }
+          });
+
+        let with_fold =
+          a.iter().fold(Vec::new(), |mut v, &n| {
+              if n % 2 == 0 {
+                  v.push(n);
+              }
+              v
+          });
+
+        TestResult::from_bool(itertools::equal(with_fold_mut, with_fold))
+    }
+}
