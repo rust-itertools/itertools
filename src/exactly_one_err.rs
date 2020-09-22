@@ -73,7 +73,7 @@ where
 impl<I> ExactSizeIterator for ExactlyOneError<I> where I: ExactSizeIterator {}
 
 impl<I> Display for ExactlyOneError<I> 
-    where I: Iterator
+    where I: Iterator,
 {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         let additional = self.additional_len();
@@ -86,25 +86,25 @@ impl<I> Display for ExactlyOneError<I>
 }
 
 impl<I> Debug for ExactlyOneError<I> 
-    where I: Iterator,
+    where I: Iterator + Debug,
           I::Item: Debug,
 {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match &self.first_two {
             Some(Either::Left([first, second])) => {
-                write!(f, "ExactlyOneError[{:?}, {:?}, ...]", first, second)
+                write!(f, "ExactlyOneError[First: {:?}, Second: {:?}, RemainingIter: {:?}]", first, second, self.inner)
             },
             Some(Either::Right(second)) => {
-                write!(f, "ExactlyOneError[{:?}, ...]", second)
+                write!(f, "ExactlyOneError[Second: {:?}, RemainingIter: {:?}]", second, self.inner)
             }
             None => {
-                write!(f, "ExactlyOneError[...]")
+                write!(f, "ExactlyOneError[RemainingIter: {:?}]", self.inner)
             }
         }
     }
 }
 
 #[cfg(feature = "use_std")]
-impl<I> Error for ExactlyOneError<I>  where I: Iterator, I::Item: Debug, {}
+impl<I> Error for ExactlyOneError<I>  where I: Iterator + Debug, I::Item: Debug, {}
 
 
