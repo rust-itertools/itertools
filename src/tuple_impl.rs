@@ -244,15 +244,32 @@ pub trait TupleCollect: Sized {
     fn left_shift_push(&mut self, item: Self::Item);
 }
 
+macro_rules! count_ident{
+    () => {0};
+    ($i0:ident, $($i:ident,)*) => {1 + count_ident!($($i,)*)};
+}
+macro_rules! ignore_ident{
+    ($id:ident, $($t:tt)*) => {$($t)*};
+}
+macro_rules! rev_for_each_ident{
+    ($m:ident, ) => {};
+    ($m:ident, $i0:ident, $($i:ident,)*) => {
+        rev_for_each_ident!($m, $($i,)*);
+        $m!($i0);
+    };
+}
+
 macro_rules! impl_tuple_collect {
-    ($N:expr; $A:ident ; $($X:ident),* ; $($Y:ident),* ; $($Y_rev:ident),*) => (
-        impl<$A> TupleCollect for ($($X),*,) {
-            type Item = $A;
-            type Buffer = [Option<$A>; $N - 1];
+    ($dummy:ident,) => {}; // stop
+    ($dummy:ident, $($Y:ident,)*) => (
+        impl_tuple_collect!($($Y,)*);
+        impl<A> TupleCollect for ($(ignore_ident!($Y, A),)*) {
+            type Item = A;
+            type Buffer = [Option<A>; count_ident!($($Y,)*) - 1];
 
             #[allow(unused_assignments, unused_mut)]
             fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
-                where I: IntoIterator<Item = $A>
+                where I: IntoIterator<Item = A>
             {
                 let mut iter = iter.into_iter();
                 $(
@@ -281,7 +298,7 @@ macro_rules! impl_tuple_collect {
             }
 
             fn collect_from_iter_no_buf<I>(iter: I) -> Option<Self>
-                where I: IntoIterator<Item = $A>
+                where I: IntoIterator<Item = A>
             {
                 let mut iter = iter.into_iter();
 
@@ -291,44 +308,20 @@ macro_rules! impl_tuple_collect {
             }
 
             fn num_items() -> usize {
-                $N
+                count_ident!($($Y,)*)
             }
 
-            fn left_shift_push(&mut self, item: $A) {
+            fn left_shift_push(&mut self, mut item: A) {
                 use std::mem::replace;
 
                 let &mut ($(ref mut $Y),*,) = self;
-                $(
-                    let item = replace($Y_rev, item);
-                )*
+                macro_rules! replace_item{($i:ident) => {
+                    item = replace($i, item);
+                }};
+                rev_for_each_ident!(replace_item, $($Y,)*);
                 drop(item);
             }
         }
     )
 }
-
-// This snippet generates the twelve `impl_tuple_collect!` invocations:
-//    use core::iter;
-//    use itertools::Itertools;
-//
-//    for i in 1..=12 {
-//        println!("impl_tuple_collect!({arity}; A; {ty}; {idents}; {rev_idents});",
-//            arity=i,
-//            ty=iter::repeat("A").take(i).join(", "),
-//            idents=('a'..='z').take(i).join(", "),
-//            rev_idents=('a'..='z').take(i).collect_vec().into_iter().rev().join(", ")
-//        );
-//    }
-// It could probably be replaced by a bit more macro cleverness.
-impl_tuple_collect!(1; A; A; a; a);
-impl_tuple_collect!(2; A; A, A; a, b; b, a);
-impl_tuple_collect!(3; A; A, A, A; a, b, c; c, b, a);
-impl_tuple_collect!(4; A; A, A, A, A; a, b, c, d; d, c, b, a);
-impl_tuple_collect!(5; A; A, A, A, A, A; a, b, c, d, e; e, d, c, b, a);
-impl_tuple_collect!(6; A; A, A, A, A, A, A; a, b, c, d, e, f; f, e, d, c, b, a);
-impl_tuple_collect!(7; A; A, A, A, A, A, A, A; a, b, c, d, e, f, g; g, f, e, d, c, b, a);
-impl_tuple_collect!(8; A; A, A, A, A, A, A, A, A; a, b, c, d, e, f, g, h; h, g, f, e, d, c, b, a);
-impl_tuple_collect!(9; A; A, A, A, A, A, A, A, A, A; a, b, c, d, e, f, g, h, i; i, h, g, f, e, d, c, b, a);
-impl_tuple_collect!(10; A; A, A, A, A, A, A, A, A, A, A; a, b, c, d, e, f, g, h, i, j; j, i, h, g, f, e, d, c, b, a);
-impl_tuple_collect!(11; A; A, A, A, A, A, A, A, A, A, A, A; a, b, c, d, e, f, g, h, i, j, k; k, j, i, h, g, f, e, d, c, b, a);
-impl_tuple_collect!(12; A; A, A, A, A, A, A, A, A, A, A, A, A; a, b, c, d, e, f, g, h, i, j, k, l; l, k, j, i, h, g, f, e, d, c, b, a);
+impl_tuple_collect!(dummy, a, b, c, d, e, f, g, h, i, j, k, l,);
