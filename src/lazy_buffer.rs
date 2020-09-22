@@ -1,4 +1,5 @@
 use std::ops::Index;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone)]
 pub struct LazyBuffer<I: Iterator> {

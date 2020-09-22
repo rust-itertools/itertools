@@ -1,3 +1,4 @@
+use alloc::vec::Vec;
 use std::fmt;
 use std::iter::once;
 

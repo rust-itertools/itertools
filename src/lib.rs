@@ -50,6 +50,15 @@
 #[cfg(not(feature = "use_std"))]
 extern crate core as std;
 
+#[cfg(feature = "use_alloc")]
+extern crate alloc;
+
+#[cfg(feature = "use_alloc")]
+use alloc::{
+    string::String,
+    vec::Vec,
+};
+
 pub use either::Either;
 
 #[cfg(feature = "use_std")]
@@ -59,11 +68,11 @@ use std::cmp::Ordering;
 use std::fmt;
 #[cfg(feature = "use_std")]
 use std::hash::Hash;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 use std::fmt::Write;
-#[cfg(feature = "use_std")]
-type VecIntoIter<T> = ::std::vec::IntoIter<T>;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
+type VecIntoIter<T> = alloc::vec::IntoIter<T>;
+#[cfg(feature = "use_alloc")]
 use std::iter::FromIterator;
 
 #[macro_use]
@@ -100,38 +109,38 @@ pub mod structs {
     };
     #[allow(deprecated)]
     pub use crate::adaptors::{MapResults, Step};
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::adaptors::MultiProduct;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::combinations::Combinations;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::combinations_with_replacement::CombinationsWithReplacement;
     pub use crate::cons_tuples_impl::ConsTuples;
     pub use crate::exactly_one_err::ExactlyOneError;
     pub use crate::format::{Format, FormatWith};
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
     pub use crate::intersperse::{Intersperse, IntersperseWith};
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::kmerge_impl::{KMerge, KMergeBy};
     pub use crate::merge_join::MergeJoinBy;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::multipeek_impl::MultiPeek;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::peek_nth::PeekNth;
     pub use crate::pad_tail::PadUsing;
     pub use crate::peeking_take_while::PeekingTakeWhile;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::permutations::Permutations;
     pub use crate::process_results_impl::ProcessResults;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::put_back_n_impl::PutBackN;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::rciter_impl::RcIter;
     pub use crate::repeatn::RepeatN;
     #[allow(deprecated)]
     pub use crate::sources::{RepeatCall, Unfold, Iterate};
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::tee::Tee;
     pub use crate::tuple_impl::{TupleBuffer, TupleWindows, CircularTupleWindows, Tuples};
     #[cfg(feature = "use_std")]
@@ -153,7 +162,7 @@ pub use crate::concat_impl::concat;
 pub use crate::cons_tuples_impl::cons_tuples;
 pub use crate::diff::diff_with;
 pub use crate::diff::Diff;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 pub use crate::kmerge_impl::{kmerge_by};
 pub use crate::minmax::MinMaxResult;
 pub use crate::peeking_take_while::PeekingNext;
@@ -172,41 +181,41 @@ pub mod free;
 pub use crate::free::*;
 mod concat_impl;
 mod cons_tuples_impl;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod combinations;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod combinations_with_replacement;
 mod exactly_one_err;
 mod diff;
 mod format;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod group_map;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod groupbylazy;
 mod intersperse;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod kmerge_impl;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod lazy_buffer;
 mod merge_join;
 mod minmax;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod multipeek_impl;
 mod pad_tail;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod peek_nth;
 mod peeking_take_while;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod permutations;
 mod process_results_impl;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod put_back_n_impl;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod rciter_impl;
 mod repeatn;
 mod size_hint;
 mod sources;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod tee;
 mod tuple_impl;
 #[cfg(feature = "use_std")]
@@ -530,7 +539,7 @@ pub trait Itertools : Iterator {
     /// }
     /// assert_eq!(data_grouped, vec![(true, vec![1, 3]), (false, vec![-2, -2]), (true, vec![1, 0, 1, 2])]);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn group_by<K, F>(self, key: F) -> GroupBy<K, Self, F>
         where Self: Sized,
               F: FnMut(&Self::Item) -> K,
@@ -566,7 +575,7 @@ pub trait Itertools : Iterator {
     ///     assert_eq!(4, chunk.sum());
     /// }
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn chunks(self, size: usize) -> IntoChunks<Self>
         where Self: Sized,
     {
@@ -704,7 +713,7 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(t2, 0..4);
     /// itertools::assert_equal(t1, 1..4);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn tee(self) -> (Tee<Self>, Tee<Self>)
         where Self: Sized,
               Self::Item: Clone
@@ -911,7 +920,7 @@ pub trait Itertools : Iterator {
     /// let it = vec![a, b, c].into_iter().kmerge();
     /// itertools::assert_equal(it, vec![0, 1, 2, 3, 4, 5]);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn kmerge(self) -> KMerge<<Self::Item as IntoIterator>::IntoIter>
         where Self: Sized,
               Self::Item: IntoIterator,
@@ -940,7 +949,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!(it.next(), Some(0.));
     /// assert_eq!(it.last(), Some(-7.));
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn kmerge_by<F>(self, first: F)
         -> KMergeBy<<Self::Item as IntoIterator>::IntoIter, F>
         where Self: Sized,
@@ -996,7 +1005,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!(multi_prod.next(), Some(vec![1, 3, 5]));
     /// assert_eq!(multi_prod.next(), None);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn multi_cartesian_product(self) -> MultiProduct<<Self::Item as IntoIterator>::IntoIter>
         where Self: Iterator + Sized,
               Self::Item: IntoIterator,
@@ -1316,7 +1325,7 @@ pub trait Itertools : Iterator {
     ///     vec![2, 2],
     /// ]);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn combinations(self, k: usize) -> Combinations<Self>
         where Self: Sized,
               Self::Item: Clone
@@ -1343,7 +1352,7 @@ pub trait Itertools : Iterator {
     ///     vec![3, 3],
     /// ]);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn combinations_with_replacement(self, k: usize) -> CombinationsWithReplacement<Self>
     where
         Self: Sized,
@@ -1389,7 +1398,7 @@ pub trait Itertools : Iterator {
     ///
     /// Note: The source iterator is collected lazily, and will not be
     /// re-iterated if the permutations adaptor is completed and re-iterated.
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn permutations(self, k: usize) -> Permutations<Self>
         where Self: Sized,
               Self::Item: Clone
@@ -1681,7 +1690,7 @@ pub trait Itertools : Iterator {
 
     /// `.collect_vec()` is simply a type specialization of `.collect()`,
     /// for convenience.
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn collect_vec(self) -> Vec<Self::Item>
         where Self: Sized
     {
@@ -1708,7 +1717,7 @@ pub trait Itertools : Iterator {
     ///     Ok(())
     /// }
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn try_collect<T, U, E>(self) -> Result<U, E>
     where
         Self: Sized + Iterator<Item = Result<T, E>>,
@@ -1758,7 +1767,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!(["a", "b", "c"].iter().join(", "), "a, b, c");
     /// assert_eq!([1, 2, 3].iter().join(", "), "1, 2, 3");
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn join(&mut self, sep: &str) -> String
         where Self::Item: std::fmt::Display
     {
@@ -2189,7 +2198,7 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(text.chars().sorted(),
     ///                         "abcdef".chars());
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn sorted(self) -> VecIntoIter<Self::Item>
         where Self: Sized,
               Self::Item: Ord
@@ -2224,7 +2233,7 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(oldest_people_first,
     ///                         vec!["Jill", "Jack", "Jane", "John"]);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn sorted_by<F>(self, cmp: F) -> VecIntoIter<Self::Item>
         where Self: Sized,
               F: FnMut(&Self::Item, &Self::Item) -> Ordering,
@@ -2257,7 +2266,7 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(oldest_people_first,
     ///                         vec!["Jill", "Jack", "Jane", "John"]);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn sorted_by_key<K, F>(self, f: F) -> VecIntoIter<Self::Item>
         where Self: Sized,
               K: Ord,
@@ -2800,7 +2809,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!(iter.next(), Some(0));
     /// assert_eq!(iter.peek(), Some(&1));
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn multipeek(self) -> MultiPeek<Self>
     where
         Self: Sized,

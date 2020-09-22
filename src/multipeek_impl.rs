@@ -1,5 +1,5 @@
 use std::iter::Fuse;
-use std::collections::VecDeque;
+use alloc::collections::VecDeque;
 use crate::size_hint;
 use crate::PeekingNext;
 
