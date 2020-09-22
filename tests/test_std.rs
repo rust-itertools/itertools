@@ -1,6 +1,7 @@
 use permutohedron;
 use itertools as it;
 use crate::it::Itertools;
+use crate::it::ExactlyOneError;
 use crate::it::multizip;
 use crate::it::multipeek;
 use crate::it::peek_nth;
@@ -912,4 +913,14 @@ fn tree_fold1() {
         let actual = num_strings.tree_fold1(|a, b| format!("{} {} x", a, b));
         assert_eq!(actual, expected);
     }
+}
+
+#[test]
+fn exactly_one_question_mark_syntax_works() {
+    exactly_one_question_mark_return().unwrap_err();
+}
+
+fn exactly_one_question_mark_return() -> Result<(), ExactlyOneError<std::slice::Iter<'static, ()>>> {
+    [].iter().exactly_one()?;
+    Ok(())
 }

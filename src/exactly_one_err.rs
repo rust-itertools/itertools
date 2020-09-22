@@ -1,6 +1,5 @@
 #[cfg(feature = "use_std")]
 use std::error::Error;
-#[cfg(feature = "use_std")]
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
 use std::iter::ExactSizeIterator;
@@ -73,7 +72,6 @@ where
 
 impl<I> ExactSizeIterator for ExactlyOneError<I> where I: ExactSizeIterator {}
 
-#[cfg(feature = "use_std")]
 impl<I> Display for ExactlyOneError<I> 
     where I: Iterator
 {
@@ -87,7 +85,6 @@ impl<I> Display for ExactlyOneError<I>
     }
 }
 
-#[cfg(feature = "use_std")]
 impl<I> Debug for ExactlyOneError<I> 
     where I: Iterator,
           I::Item: Debug,
@@ -110,17 +107,4 @@ impl<I> Debug for ExactlyOneError<I>
 #[cfg(feature = "use_std")]
 impl<I> Error for ExactlyOneError<I>  where I: Iterator, I::Item: Debug, {}
 
-#[cfg(all(test, feature = "use_std"))]
-mod tests {
-    use super::*;
 
-    #[test]
-    fn question_mark_syntax_works() {
-        question_mark_return().unwrap_err()
-    }
-
-    fn question_mark_return() -> Result<(), impl Error> {
-        let x = Err(ExactlyOneError::new(None, []))?;
-        Ok(())
-    }
-}
