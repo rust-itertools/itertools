@@ -280,23 +280,14 @@ macro_rules! impl_tuple_collect {
                 return None;
             }
 
-            #[allow(unused_assignments)]
             fn collect_from_iter_no_buf<I>(iter: I) -> Option<Self>
                 where I: IntoIterator<Item = $A>
             {
                 let mut iter = iter.into_iter();
-                loop {
-                    $(
-                        let $Y = if let Some($Y) = iter.next() {
-                            $Y
-                        } else {
-                            break;
-                        };
-                    )*
-                    return Some(($($Y),*,))
-                }
 
-                return None;
+                Some(($(
+                    { let $Y = iter.next()?; $Y },
+                )*))
             }
 
             fn num_items() -> usize {
@@ -307,17 +298,37 @@ macro_rules! impl_tuple_collect {
                 use std::mem::replace;
 
                 let &mut ($(ref mut $Y),*,) = self;
-                let tmp = item;
                 $(
-                    let tmp = replace($Y_rev, tmp);
+                    let item = replace($Y_rev, item);
                 )*
-                drop(tmp);
+                drop(item);
             }
         }
     )
 }
 
+// This snippet generates the twelve `impl_tuple_collect!` invocations:
+//    use core::iter;
+//    use itertools::Itertools;
+//
+//    for i in 1..=12 {
+//        println!("impl_tuple_collect!({arity}; A; {ty}; {idents}; {rev_idents});",
+//            arity=i,
+//            ty=iter::repeat("A").take(i).join(", "),
+//            idents=('a'..='z').take(i).join(", "),
+//            rev_idents=('a'..='z').take(i).collect_vec().into_iter().rev().join(", ")
+//        );
+//    }
+// It could probably be replaced by a bit more macro cleverness.
 impl_tuple_collect!(1; A; A; a; a);
 impl_tuple_collect!(2; A; A, A; a, b; b, a);
 impl_tuple_collect!(3; A; A, A, A; a, b, c; c, b, a);
 impl_tuple_collect!(4; A; A, A, A, A; a, b, c, d; d, c, b, a);
+impl_tuple_collect!(5; A; A, A, A, A, A; a, b, c, d, e; e, d, c, b, a);
+impl_tuple_collect!(6; A; A, A, A, A, A, A; a, b, c, d, e, f; f, e, d, c, b, a);
+impl_tuple_collect!(7; A; A, A, A, A, A, A, A; a, b, c, d, e, f, g; g, f, e, d, c, b, a);
+impl_tuple_collect!(8; A; A, A, A, A, A, A, A, A; a, b, c, d, e, f, g, h; h, g, f, e, d, c, b, a);
+impl_tuple_collect!(9; A; A, A, A, A, A, A, A, A, A; a, b, c, d, e, f, g, h, i; i, h, g, f, e, d, c, b, a);
+impl_tuple_collect!(10; A; A, A, A, A, A, A, A, A, A, A; a, b, c, d, e, f, g, h, i, j; j, i, h, g, f, e, d, c, b, a);
+impl_tuple_collect!(11; A; A, A, A, A, A, A, A, A, A, A, A; a, b, c, d, e, f, g, h, i, j, k; k, j, i, h, g, f, e, d, c, b, a);
+impl_tuple_collect!(12; A; A, A, A, A, A, A, A, A, A, A, A, A; a, b, c, d, e, f, g, h, i, j, k, l; l, k, j, i, h, g, f, e, d, c, b, a);

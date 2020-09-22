@@ -1259,7 +1259,7 @@ pub trait Itertools : Iterator {
     /// elements from an iterator.
     ///
     /// Iterator element can be any homogeneous tuple of type `Self::Item` with
-    /// size up to 4.
+    /// size up to 12.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -1494,7 +1494,7 @@ pub trait Itertools : Iterator {
 
     // non-adaptor methods
     /// Advances the iterator and returns the next items grouped in a tuple of
-    /// a specific size (up to 4).
+    /// a specific size (up to 12).
     ///
     /// If there are enough elements to be grouped in a tuple, then the tuple is
     /// returned inside `Some`, otherwise `None` is returned.
@@ -1514,7 +1514,7 @@ pub trait Itertools : Iterator {
     }
 
     /// Collects all items from the iterator into a tuple of a specific size
-    /// (up to 4).
+    /// (up to 12).
     ///
     /// If the number of elements inside the iterator is **exactly** equal to
     /// the tuple size, then the tuple is returned inside `Some`, otherwise
@@ -2108,19 +2108,26 @@ pub trait Itertools : Iterator {
     /// The big difference between the computations of `result2` and `result3` is that while
     /// `fold()` called the provided closure for every item of the callee iterator,
     /// `fold_while()` actually stopped iterating as soon as it encountered `Fold::Done(_)`.
-    #[deprecated(note="Use .try_fold() instead", since="0.8.0")]
     fn fold_while<B, F>(&mut self, init: B, mut f: F) -> FoldWhile<B>
         where Self: Sized,
               F: FnMut(B, Self::Item) -> FoldWhile<B>
     {
-        let mut acc = init;
-        for item in self {
-            match f(acc, item) {
-                FoldWhile::Continue(res) => acc = res,
-                res @ FoldWhile::Done(_) => return res,
+        use Result::{
+            Ok as Continue,
+            Err as Break,
+        };
+
+        let result = self.try_fold(init, #[inline(always)] |acc, v|
+            match f(acc, v) {
+              FoldWhile::Continue(acc) => Continue(acc),
+              FoldWhile::Done(acc) => Break(acc),
             }
+        );
+
+        match result {
+            Continue(acc) => FoldWhile::Continue(acc),
+            Break(acc) => FoldWhile::Done(acc),
         }
-        FoldWhile::Continue(acc)
     }
 
     /// Iterate over the entire iterator and add all the elements.
