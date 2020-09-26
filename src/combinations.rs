@@ -53,6 +53,10 @@ impl<I: Iterator> Combinations<I> {
     #[inline]
     pub fn n(&self) -> usize { self.pool.len() }
 
+    /// Returns a reference to the source iterator.
+    #[inline]
+    pub(crate) fn src(&self) -> &I { &self.pool.it }
+
     /// Resets this `Combinations` back to an initial state for combinations of length
     /// `k` over the same pool data source. If `k` is larger than the current length
     /// of the data pool an attempt is made to prefill the pool so that it holds `k`
