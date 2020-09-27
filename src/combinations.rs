@@ -31,18 +31,48 @@ impl<I> fmt::Debug for Combinations<I>
 pub fn combinations<I>(iter: I, k: usize) -> Combinations<I>
     where I: Iterator
 {
-    let mut pool: LazyBuffer<I> = LazyBuffer::new(iter);
-
-    for _ in 0..k {
-        if !pool.get_next() {
-            break;
-        }
-    }
+    let mut pool = LazyBuffer::new(iter);
+    pool.prefill(k);
 
     Combinations {
         indices: (0..k).collect(),
         pool,
         first: true,
+    }
+}
+
+impl<I: Iterator> Combinations<I> {
+    /// Returns the length of a combination produced by this iterator.
+    #[inline]
+    pub fn k(&self) -> usize { self.indices.len() }
+
+    /// Returns the (current) length of the pool from which combination elements are
+    /// selected. This value can change between invocations of [`next`].
+    ///
+    /// [`next`]: #method.next
+    #[inline]
+    pub fn n(&self) -> usize { self.pool.len() }
+
+    /// Resets this `Combinations` back to an initial state for combinations of length
+    /// `k` over the same pool data source. If `k` is larger than the current length
+    /// of the data pool an attempt is made to prefill the pool so that it holds `k`
+    /// elements.
+    pub(crate) fn reset(&mut self, k: usize) {
+        self.first = true;
+
+        if k < self.indices.len() {
+            self.indices.truncate(k);
+            for i in 0..k {
+                self.indices[i] = i;
+            }
+
+        } else {
+            for i in 0..self.indices.len() {
+                self.indices[i] = i;
+            }
+            self.indices.extend(self.indices.len()..k);
+            self.pool.prefill(k);
+        }
     }
 }
 
@@ -53,7 +83,7 @@ impl<I> Iterator for Combinations<I>
     type Item = Vec<I::Item>;
     fn next(&mut self) -> Option<Self::Item> {
         if self.first {
-            if self.pool.is_done() {
+            if self.k() > self.n() {
                 return None;
             }
             self.first = false;

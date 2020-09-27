@@ -908,6 +908,13 @@ quickcheck! {
 }
 
 quickcheck! {
+    fn size_powerset(it: Iter<u8, Exact>) -> bool {
+        // Powerset cardinality gets large very quickly, limit input to keep test fast.
+        correct_size_hint(it.take(12).powerset())
+    }
+}
+
+quickcheck! {
     fn size_unique(it: Iter<i8>) -> bool {
         correct_size_hint(it.unique())
     }

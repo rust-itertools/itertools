@@ -134,6 +134,8 @@ pub mod structs {
     pub use crate::permutations::Permutations;
     pub use crate::process_results_impl::ProcessResults;
     #[cfg(feature = "use_alloc")]
+    pub use crate::powerset::Powerset;
+    #[cfg(feature = "use_alloc")]
     pub use crate::put_back_n_impl::PutBackN;
     #[cfg(feature = "use_alloc")]
     pub use crate::rciter_impl::RcIter;
@@ -207,6 +209,8 @@ mod peek_nth;
 mod peeking_take_while;
 #[cfg(feature = "use_alloc")]
 mod permutations;
+#[cfg(feature = "use_alloc")]
+mod powerset;
 mod process_results_impl;
 #[cfg(feature = "use_alloc")]
 mod put_back_n_impl;
@@ -1404,6 +1408,42 @@ pub trait Itertools : Iterator {
               Self::Item: Clone
     {
         permutations::permutations(self, k)
+    }
+
+    /// Return an iterator that iterates through the powerset of the elements from an
+    /// iterator.
+    ///
+    /// Iterator element type is `Vec<Self::Item>`. The iterator produces a new `Vec`
+    /// per iteration, and clones the iterator elements.
+    ///
+    /// The powerset of a set contains all subsets including the empty set and the full
+    /// input set. A powerset has length _2^n_ where _n_ is the length of the input
+    /// set.
+    ///
+    /// Each `Vec` produced by this iterator represents a subset of the elements
+    /// produced by the source iterator.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let sets = (1..4).powerset().collect::<Vec<_>>();
+    /// itertools::assert_equal(sets, vec![
+    ///     vec![],
+    ///     vec![1],
+    ///     vec![2],
+    ///     vec![3],
+    ///     vec![1, 2],
+    ///     vec![1, 3],
+    ///     vec![2, 3],
+    ///     vec![1, 2, 3],
+    /// ]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn powerset(self) -> Powerset<Self>
+        where Self: Sized,
+              Self::Item: Clone,
+    {
+        powerset::powerset(self)
     }
 
     /// Return an iterator adaptor that pads the sequence to a minimum length of
