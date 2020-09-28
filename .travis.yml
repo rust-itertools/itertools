@@ -24,7 +24,6 @@ matrix:
             cargo build --verbose --features "$FEATURES" &&
             cargo test --verbose --features "$FEATURES" &&
             cargo bench --no-run --verbose --features "$FEATURES"
-cache: cargo # https://docs.travis-ci.com/user/languages/rust/#dependency-management
 branches:
   only:
     - master
