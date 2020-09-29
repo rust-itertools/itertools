@@ -2791,14 +2791,14 @@ pub trait Itertools : Iterator {
             Some(first) => {
                 match self.next() {
                     Some(second) => {
-                        Err(ExactlyOneError::new((Some(first), Some(second)), self))
+                        Err(ExactlyOneError::new(Some(Either::Left([first, second])), self))
                     }
                     None => {
                         Ok(first)
                     }
                 }
             }
-            None => Err(ExactlyOneError::new((None, None), self)),
+            None => Err(ExactlyOneError::new(None, self)),
         }
     }
 
