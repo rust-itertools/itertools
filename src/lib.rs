@@ -2289,7 +2289,8 @@ pub trait Itertools : Iterator {
     /// Sort the k smallest elements into a new iterator, in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, and returns the result
-    /// as a new iterator that owns its elements.
+    /// as a new iterator that owns its elements.  If the input contains
+    /// less than k elements, the result is equivalent to `self.sorted()`.
     ///
     /// This is guaranteed to use `k * sizeof(Self::Item) + O(1)` memory
     /// and `O(n log k)` time, with `n` the number of elements in the input.
