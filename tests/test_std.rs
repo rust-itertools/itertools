@@ -1,5 +1,6 @@
 use permutohedron;
 use quickcheck::quickcheck;
+use rand::{seq::SliceRandom, thread_rng};
 use std::cmp::min;
 use itertools as it;
 use crate::it::Itertools;
@@ -358,9 +359,14 @@ fn sorted_by() {
 
 quickcheck! {
     fn k_smallest_range(n: u64, m: u64, k: u64) -> () {
-        // Check that taking the k smallest elements in n..n+m
-        //  yields n..n+min(k, m)
-        let i = (n..n.saturating_add(m)).into_iter();
+        // Generate a random permutation of n..n+m
+        let i = {
+            let mut v: Vec<u64> = (n..n.saturating_add(m)).collect();
+            v.shuffle(&mut thread_rng());
+            v.into_iter()
+        };
+
+        // Check that taking the k smallest elements yields n..n+min(k, m)
         it::assert_equal(
             i.k_smallest(k as usize),
             n..n.saturating_add(min(k, m))
