@@ -1,4 +1,6 @@
 use permutohedron;
+use quickcheck::quickcheck;
+use std::cmp::min;
 use itertools as it;
 use crate::it::Itertools;
 use crate::it::ExactlyOneError;
@@ -352,6 +354,18 @@ fn sorted_by() {
 
     let v = (0..5).sorted_by(|&a, &b| a.cmp(&b).reverse());
     it::assert_equal(v, vec![4, 3, 2, 1, 0]);
+}
+
+quickcheck! {
+    fn k_smallest_range(n: u64, m: u64, k: u64) -> () {
+        // Check that taking the k smallest elements in n..n+m
+        //  yields n..n+min(k, m)
+        let i = (n..n.saturating_add(m)).into_iter();
+        it::assert_equal(
+            i.k_smallest(k as usize),
+            n..n.saturating_add(min(k, m))
+        );
+    }
 }
 
 #[test]
