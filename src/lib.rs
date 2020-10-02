@@ -2298,6 +2298,9 @@ pub trait Itertools : Iterator {
     /// The sorted iterator, if directly collected to a `Vec`, is converted
     /// without any extra copying or allocation cost.
     ///
+    /// **Note:** This is functionally-equivalent to `self.sorted().take(k)`
+    /// but much more efficient.
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
