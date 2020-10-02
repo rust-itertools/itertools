@@ -1,3 +1,4 @@
+use paste;
 use permutohedron;
 use quickcheck as qc;
 use rand::{distributions::{Distribution, Standard}, Rng, SeedableRng, rngs::StdRng};
@@ -426,20 +427,19 @@ where
     )
 }
 
-qc::quickcheck! {
-    fn k_smallest_sort_u8(i: RandIter<u8>, k: u16) -> () {
-        k_smallest_sort(i, k)
-    }
-    fn k_smallest_sort_u16(i: RandIter<u16>, k: u16) -> () {
-        k_smallest_sort(i, k)
-    }
-    fn k_smallest_sort_u32(i: RandIter<u32>, k: u16) -> () {
-        k_smallest_sort(i, k)
-    }
-    fn k_smallest_sort_u64(i: RandIter<u64>, k: u16) -> () {
-        k_smallest_sort(i, k)
-    }
+macro_rules! generic_test {
+    ($f:ident, $($t:ty),+) => {
+        $(paste::item! {
+            qc::quickcheck! {
+                fn [< $f _ $t >](i: RandIter<$t>, k: u16) -> () {
+                    $f(i, k)
+                }
+            }
+        })+
+    };
 }
+
+generic_test!(k_smallest_sort, u8, u16, u32, u64, i8, i16, i32, i64);
 
 #[test]
 fn sorted_by_key() {
@@ -474,7 +474,6 @@ fn test_multipeek() {
     assert_eq!(mp.next(), Some(5));
     assert_eq!(mp.next(), None);
     assert_eq!(mp.peek(), None);
-
 }
 
 #[test]
