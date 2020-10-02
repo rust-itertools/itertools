@@ -10,6 +10,7 @@ pub(crate) fn k_smallest<T: Ord, I: Iterator<Item = T>>(mut iter: I, k: usize) -
         debug_assert_eq!(heap.len(), k);
         // Guaranteed not-None, since we keep exactly k>0 elements in the heap.
         let mut lorgest = heap.peek_mut().unwrap();
+        // Equivalent to heap.push(min(i, heap.pop())) but more efficient.
         if *lorgest > i { *lorgest = i; }
     }
 
