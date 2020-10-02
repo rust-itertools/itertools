@@ -359,7 +359,11 @@ fn sorted_by() {
 }
 
 qc::quickcheck! {
-    fn k_smallest_range(n: u64, m: u64, k: u64) -> () {
+    fn k_smallest_range(n: u64, m: u16, k: u16) -> () {
+        // u16 is used to constrain k and m to 0..2¹⁶,
+        //  otherwise the test could use too much memory.
+        let (k, m) = (k as u64, m as u64);
+
         // Generate a random permutation of n..n+m
         let i = {
             let mut v: Vec<u64> = (n..n.saturating_add(m)).collect();
@@ -409,12 +413,13 @@ impl<T: Clone + Send, R: Clone + Rng + SeedableRng + Send> qc::Arbitrary for Ran
 
 // Check that taking the k smallest is the same as
 //  sorting then taking the k first elements
-fn k_smallest_sort<I>(i: I, k: usize) -> ()
+fn k_smallest_sort<I>(i: I, k: u16) -> ()
 where
     I: Iterator + Clone,
     I::Item: Ord + Debug,
 {
     let j = i.clone();
+    let k = k as usize;
     it::assert_equal(
         i.k_smallest(k),
         j.sorted().take(k)
