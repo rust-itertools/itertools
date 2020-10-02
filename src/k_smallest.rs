@@ -8,10 +8,12 @@ pub(crate) fn k_smallest<T: Ord, I: Iterator<Item = T>>(mut iter: I, k: usize) -
 
     for i in iter {
         debug_assert_eq!(heap.len(), k);
-        // Guaranteed not-None, since we keep exactly k>0 elements in the heap.
-        let mut lorgest = heap.peek_mut().unwrap();
         // Equivalent to heap.push(min(i, heap.pop())) but more efficient.
-        if *lorgest > i { *lorgest = i; }
+        // This should be done with a single `.peek_mut().unwrap()` but
+        //  `PeekMut` sifts-down unconditionally on Rust 1.46.0 and prior.
+        if *heap.peek().unwrap() > i {
+            *heap.peek_mut().unwrap() = i;
+        }
     }
 
     heap
