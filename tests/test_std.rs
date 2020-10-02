@@ -407,6 +407,35 @@ impl<T: Clone + Send, R: Clone + Rng + SeedableRng + Send> qc::Arbitrary for Ran
     }
 }
 
+// Check that taking the k smallest is the same as
+//  sorting then taking the k first elements
+fn k_smallest_sort<I>(i: I, k: usize) -> ()
+where
+    I: Iterator + Clone,
+    I::Item: Ord + Debug,
+{
+    let j = i.clone();
+    it::assert_equal(
+        i.k_smallest(k),
+        j.sorted().take(k)
+    )
+}
+
+qc::quickcheck! {
+    fn k_smallest_sort_u8(i: RandIter<u8>, k: u16) -> () {
+        k_smallest_sort(i, k)
+    }
+    fn k_smallest_sort_u16(i: RandIter<u16>, k: u16) -> () {
+        k_smallest_sort(i, k)
+    }
+    fn k_smallest_sort_u32(i: RandIter<u32>, k: u16) -> () {
+        k_smallest_sort(i, k)
+    }
+    fn k_smallest_sort_u64(i: RandIter<u64>, k: u16) -> () {
+        k_smallest_sort(i, k)
+    }
+}
+
 #[test]
 fn sorted_by_key() {
     let sc = [3, 4, 1, 2].iter().cloned().sorted_by_key(|&x| x);
