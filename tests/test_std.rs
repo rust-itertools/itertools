@@ -1,7 +1,8 @@
 use permutohedron;
-use quickcheck::quickcheck;
+use quickcheck as qc;
+use rand::{distributions::{Distribution, Standard}, Rng, SeedableRng, rngs::StdRng};
 use rand::{seq::SliceRandom, thread_rng};
-use std::cmp::min;
+use std::{cmp::min, fmt::Debug, marker::PhantomData};
 use itertools as it;
 use crate::it::Itertools;
 use crate::it::ExactlyOneError;
@@ -357,7 +358,7 @@ fn sorted_by() {
     it::assert_equal(v, vec![4, 3, 2, 1, 0]);
 }
 
-quickcheck! {
+qc::quickcheck! {
     fn k_smallest_range(n: u64, m: u64, k: u64) -> () {
         // Generate a random permutation of n..n+m
         let i = {
@@ -371,6 +372,38 @@ quickcheck! {
             i.k_smallest(k as usize),
             n..n.saturating_add(min(k, m))
         );
+    }
+}
+
+#[derive(Clone, Debug)]
+struct RandIter<T: 'static + Clone + Send, R: 'static + Clone + Rng + SeedableRng + Send = StdRng> {
+    idx: usize,
+    len: usize,
+    rng: R,
+    _t: PhantomData<T>
+}
+
+impl<T: Clone + Send, R: Clone + Rng + SeedableRng + Send> Iterator for RandIter<T, R>
+where Standard: Distribution<T> {
+    type Item = T;
+    fn next(&mut self) -> Option<T> {
+        if self.idx == self.len {
+            None
+        } else {
+            self.idx += 1;
+            Some(self.rng.gen())
+        }
+    }
+}
+
+impl<T: Clone + Send, R: Clone + Rng + SeedableRng + Send> qc::Arbitrary for RandIter<T, R> {
+    fn arbitrary<G: qc::Gen>(g: &mut G) -> Self {
+        RandIter {
+            idx: 0,
+            len: g.size(),
+            rng: R::seed_from_u64(g.next_u64()),
+            _t : PhantomData{},
+        }
     }
 }
 
