@@ -1,0 +1,16 @@
+use std::collections::BinaryHeap;
+use std::cmp::Ord;
+
+pub(crate) fn k_smallest<T: Ord, I: Iterator<Item = T>>(mut iter: I, k: usize) -> BinaryHeap<T> {
+    if k == 0 { return BinaryHeap::new(); }
+
+    let mut heap = iter.by_ref().take(k).collect::<BinaryHeap<_>>();
+
+    for i in iter {
+        // Guaranteed not-None, since we keep exactly k>0 elements in the heap.
+        let mut lorgest = heap.peek_mut().unwrap();
+        if *lorgest > i { *lorgest = i; }
+    }
+
+    heap
+}
