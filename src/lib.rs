@@ -2322,6 +2322,35 @@ pub trait Itertools : Iterator {
         (left, right)
     }
 
+    /// Collects elements from an Iterator of Results, and then returns
+    /// two vecs : one with Oks, one with Errors
+    ///
+    /// ```
+    /// use itertools::{Itertools, Either};
+    ///
+    /// let successes_and_failures = vec![Ok(1), Err(false), Err(true), Ok(2)];
+    ///
+    /// let (successes, failures) : (Vec<u32>, Vec<bool>) = successes_and_failures
+    ///     .into_iter()
+    ///     .partition_results();
+    ///
+    /// assert_eq!(successes, [1, 2]);
+    /// assert_eq!(failures, [false, true]);
+    /// ```
+    fn partition_results<L, R>(self) -> (Vec<L>, Vec<R>)
+        where Self: Iterator<Item = Result<L, R>> + Sized
+    {
+        let mut successes: Vec<L> = Vec::new();
+        let mut errors : Vec<R> = Vec::new();
+
+        self.for_each(|val| match val {
+            Ok(v) => successes.push(v),
+            Err(v) => errors.push(v),
+        });
+
+        (successes, errors)
+    }
+
     /// Return a `HashMap` of keys mapped to `Vec`s of values. Keys and values
     /// are taken from `(Key, Value)` tuple pairs yielded by the input iterator.
     ///
