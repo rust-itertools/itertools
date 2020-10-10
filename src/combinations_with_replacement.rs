@@ -13,8 +13,6 @@ where
     I::Item: Clone,
 {
     indices: Vec<usize>,
-    // The current known max index value. This increases as pool grows.
-    max_index: usize,
     pool: LazyBuffer<I>,
     first: bool,
 }
@@ -24,7 +22,7 @@ where
     I: Iterator + fmt::Debug,
     I::Item: fmt::Debug + Clone,
 {
-    debug_fmt_fields!(Combinations, indices, max_index, pool, first);
+    debug_fmt_fields!(Combinations, indices, pool, first);
 }
 
 impl<I> CombinationsWithReplacement<I>
@@ -49,7 +47,6 @@ where
 
     CombinationsWithReplacement {
         indices,
-        max_index: 0,
         pool,
         first: true,
     }
@@ -76,14 +73,12 @@ where
 
         // Check if we need to consume more from the iterator
         // This will run while we increment our first index digit
-        if self.pool.get_next() {
-            self.max_index = self.pool.len() - 1;
-        }
+        self.pool.get_next();
 
         // Work out where we need to update our indices
         let mut increment: Option<(usize, usize)> = None;
         for (i, indices_int) in self.indices.iter().enumerate().rev() {
-            if indices_int < &self.max_index {
+            if *indices_int < self.pool.len()-1 {
                 increment = Some((i, indices_int + 1));
                 break;
             }
