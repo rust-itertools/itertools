@@ -2322,6 +2322,56 @@ pub trait Itertools : Iterator {
         (left, right)
     }
 
+    /// Collect all iterator elements into one or two partitions.
+    /// Unlike `Iterator::partition`, each partition may
+    /// have a distinct type.
+    /// Unlike `Iterator::partition_map`, each predicate returns EitherOrBoth,
+    /// so the predicate can fill both partitions at once
+    ///
+    /// ```
+    /// use itertools::{Itertools, Either, EitherOrBoth};
+    ///
+    /// let successes_and_failures_id_tuples = vec![
+    ///     (0, vec![Ok(1), Err(8)]),
+    ///     (1, vec![Ok(2), Ok(3)]),
+    ///     (2, vec![Err(16), Err(28), Err(12)])
+    /// ];
+    ///
+    /// let (successes_with_ids, failures_with_ids): (Vec<_>, Vec<_>) = successes_and_failures_id_tuples
+    ///     .into_iter()
+    ///     .partition_map_multiple(|(id, results)| {
+    ///         let (ok, err) = results.into_iter().partition_map(|result| match result {
+    ///             Ok(v) => Either::Left(v),
+    ///             Err(v) => Either::Right(v),
+    ///         });
+    ///
+    ///         EitherOrBoth::Both((id, ok), (id, err))
+    ///     });
+    ///
+    /// assert_eq!(successes_with_ids, vec![(0, vec![1]), (1, vec![2, 3]), (2, vec![])]);
+    /// assert_eq!(failures_with_ids, vec![(0, vec![8]), (1, vec![]), (2, vec![16, 28, 12])]);
+    /// ```
+    fn partition_map_multiple<A, B, F, L, R>(self, mut predicate: F) -> (A, B)
+        where Self: Sized,
+              F: FnMut(Self::Item) -> EitherOrBoth<L, R>,
+              A: Default + Extend<L>,
+              B: Default + Extend<R>,
+    {
+        let mut left = A::default();
+        let mut right = B::default();
+
+        self.for_each(|val| match predicate(val) {
+            EitherOrBoth::Left(v) => left.extend(Some(v)),
+            EitherOrBoth::Right(v) => right.extend(Some(v)),
+            EitherOrBoth::Both(l, r) => {
+                left.extend(Some(l));
+                right.extend(Some(r));
+            }
+        });
+
+        (left, right)
+    }
+
     /// Return a `HashMap` of keys mapped to `Vec`s of values. Keys and values
     /// are taken from `(Key, Value)` tuple pairs yielded by the input iterator.
     ///
