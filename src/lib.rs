@@ -145,6 +145,8 @@ pub mod structs {
     pub use crate::tuple_impl::{TupleBuffer, TupleWindows, CircularTupleWindows, Tuples};
     #[cfg(feature = "use_std")]
     pub use crate::unique_impl::{Unique, UniqueBy};
+    #[cfg(feature = "use_lru")]
+    pub use crate::unique_lru_impl::{UniqueLru, UniqueByLru};
     pub use crate::with_position::WithPosition;
     pub use crate::zip_eq_impl::ZipEq;
     pub use crate::zip_longest::ZipLongest;
@@ -220,6 +222,8 @@ mod tee;
 mod tuple_impl;
 #[cfg(feature = "use_std")]
 mod unique_impl;
+#[cfg(feature = "use_lru")]
+mod unique_lru_impl;
 mod with_position;
 mod zip_eq_impl;
 mod zip_longest;
@@ -1189,6 +1193,60 @@ pub trait Itertools : Iterator {
               F: FnMut(&Self::Item) -> V
     {
         unique_impl::unique_by(self, f)
+    }
+
+    /// Return an iterator adaptor that filters out elements that have
+    /// been produced most recently during the iteration. Duplicates
+    /// are detected using hash and equality.
+    ///
+    /// Clones of visited elements are stored in a least recently used
+    /// (LRU) cache of size `capacity` in the iterator.
+    ///
+    /// The iterator is stable, returning the non-duplicate items in the order
+    /// in which they occur in the adapted iterator. In a set of duplicate
+    /// items, the first item encountered is the item retained.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![1, 2, 1, 2, 3, 1, 2, 3];
+    /// itertools::assert_equal(data.into_iter().unique_lru(2),
+    ///                         vec![1, 2, 3, 1, 2, 3]);
+    /// ```
+    #[cfg(feature = "use_lru")]
+    fn unique_lru(self, capacity: usize) -> UniqueLru<Self>
+        where Self: Sized,
+              Self::Item: Clone + Eq + Hash
+    {
+        unique_lru_impl::unique_lru(self, capacity)
+    }
+
+    /// Return an iterator adaptor that filters out elements that have
+    /// been produced most recently during the iteration.
+    ///
+    /// Duplicates are detected by comparing the key they map to
+    /// with the keying function `f` by hash and equality.
+    /// The keys are stored in a least recently used (LRU) cache
+    /// of size `capacity` in the iterator.
+    ///
+    /// The iterator is stable, returning the non-duplicate items in the order
+    /// in which they occur in the adapted iterator. In a set of duplicate
+    /// items, the first item encountered is the item retained.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec!["1", "2", "11", "22", "33", "111", "222", "333"];
+    /// itertools::assert_equal(data.into_iter().unique_by_lru(2, |s| s.chars().nth(0)),
+    ///                         vec!["1", "2", "33", "111", "222", "333"]);
+    /// ```
+    #[cfg(feature = "use_lru")]
+    fn unique_by_lru<V, F>(self, capacity: usize, f: F) -> UniqueByLru<Self, V, F>
+        where Self: Sized,
+              V: Eq + Hash,
+              F: FnMut(&Self::Item) -> V
+    {
+        unique_lru_impl::unique_by_lru(self, capacity, f)
     }
 
     /// Return an iterator adaptor that borrows from this iterator and
