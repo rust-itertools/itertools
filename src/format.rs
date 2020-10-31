@@ -59,13 +59,12 @@ impl<'a, I, F> fmt::Display for FormatWith<'a, I, F>
 
         if let Some(fst) = iter.next() {
             format(fst, &mut |disp: &dyn fmt::Display| disp.fmt(f))?;
-            for elt in iter {
+            iter.try_for_each(|elt| {
                 if !self.sep.is_empty() {
-
                     f.write_str(self.sep)?;
                 }
-                format(elt, &mut |disp: &dyn fmt::Display| disp.fmt(f))?;
-            }
+                format(elt, &mut |disp: &dyn fmt::Display| disp.fmt(f))
+            })?;
         }
         Ok(())
     }
@@ -84,12 +83,12 @@ impl<'a, I> Format<'a, I>
 
         if let Some(fst) = iter.next() {
             cb(&fst, f)?;
-            for elt in iter {
+            iter.try_for_each(|elt| {
                 if !self.sep.is_empty() {
                     f.write_str(self.sep)?;
                 }
-                cb(&elt, f)?;
-            }
+                cb(&elt, f)
+            })?;
         }
         Ok(())
     }
