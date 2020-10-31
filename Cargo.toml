@@ -38,7 +38,8 @@ version = "0.2"
 
 [features]
 default = ["use_std"]
-use_std = []
+use_std = ["use_alloc"]
+use_alloc = []
 
 [profile]
 bench = { debug = true }

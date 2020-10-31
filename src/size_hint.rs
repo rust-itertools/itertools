@@ -10,7 +10,7 @@ pub type SizeHint = (usize, Option<usize>);
 /// Add **SizeHint** correctly.
 #[inline]
 pub fn add(a: SizeHint, b: SizeHint) -> SizeHint {
-    let min = a.0.checked_add(b.0).unwrap_or(usize::MAX);
+    let min = a.0.saturating_add(b.0);
     let max = match (a.1, b.1) {
         (Some(x), Some(y)) => x.checked_add(y),
         _ => None,
@@ -56,7 +56,7 @@ pub fn sub_scalar(sh: SizeHint, x: usize) -> SizeHint {
 /// ```
 #[inline]
 pub fn mul(a: SizeHint, b: SizeHint) -> SizeHint {
-    let low = a.0.checked_mul(b.0).unwrap_or(usize::MAX);
+    let low = a.0.saturating_mul(b.0);
     let hi = match (a.1, b.1) {
         (Some(x), Some(y)) => x.checked_mul(y),
         (Some(0), None) | (None, Some(0)) => Some(0),

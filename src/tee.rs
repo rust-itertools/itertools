@@ -1,8 +1,8 @@
 use super::size_hint;
 
 use std::cell::RefCell;
-use std::collections::VecDeque;
-use std::rc::Rc;
+use alloc::collections::VecDeque;
+use alloc::rc::Rc;
 
 /// Common buffer object for the two tee halves
 #[derive(Debug)]

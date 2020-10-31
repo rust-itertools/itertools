@@ -11,7 +11,7 @@ pub use self::coalesce::*;
 pub use self::map::{map_into, map_ok, MapInto, MapOk};
 #[allow(deprecated)]
 pub use self::map::MapResults;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 pub use self::multi_product::*;
 
 use std::fmt;
@@ -113,22 +113,11 @@ impl<I, J> Iterator for InterleaveShortest<I, J>
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        match self.phase {
-            false => match self.it0.next() {
-                None => None,
-                e => {
-                    self.phase = true;
-                    e
-                }
-            },
-            true => match self.it1.next() {
-                None => None,
-                e => {
-                    self.phase = false;
-                    e
-                }
-            },
+        let e = if self.phase { self.it1.next() } else { self.it0.next() };
+        if e.is_some() {
+            self.phase = !self.phase;
         }
+        e
     }
 
     #[inline]
@@ -412,7 +401,7 @@ impl<B, F, I> Iterator for Batching<I, F>
 /// then skipping forward *n-1* elements.
 ///
 /// See [`.step()`](../trait.Itertools.html#method.step) for more information.
-#[deprecated(note="Use std .step_by() instead", since="0.8")]
+#[deprecated(note="Use std .step_by() instead", since="0.8.0")]
 #[allow(deprecated)]
 #[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
@@ -806,9 +795,30 @@ macro_rules! impl_tuple_combination {
     )
 }
 
-impl_tuple_combination!(Tuple2Combination Tuple1Combination ; A, A, A ; a);
-impl_tuple_combination!(Tuple3Combination Tuple2Combination ; A, A, A, A ; a b);
-impl_tuple_combination!(Tuple4Combination Tuple3Combination ; A, A, A, A, A; a b c);
+// This snippet generates the twelve `impl_tuple_combination!` invocations:
+//    use core::iter;
+//    use itertools::Itertools;
+//
+//    for i in 2..=12 {
+//        println!("impl_tuple_combination!(Tuple{arity}Combination Tuple{prev}Combination; {tys}; {idents});",
+//            arity = i,
+//            prev = i - 1,
+//            tys = iter::repeat("A").take(i + 1).join(", "),
+//            idents = ('a'..'z').take(i - 1).join(" "),
+//        );
+//    }
+// It could probably be replaced by a bit more macro cleverness.
+impl_tuple_combination!(Tuple2Combination Tuple1Combination; A, A, A; a);
+impl_tuple_combination!(Tuple3Combination Tuple2Combination; A, A, A, A; a b);
+impl_tuple_combination!(Tuple4Combination Tuple3Combination; A, A, A, A, A; a b c);
+impl_tuple_combination!(Tuple5Combination Tuple4Combination; A, A, A, A, A, A; a b c d);
+impl_tuple_combination!(Tuple6Combination Tuple5Combination; A, A, A, A, A, A, A; a b c d e);
+impl_tuple_combination!(Tuple7Combination Tuple6Combination; A, A, A, A, A, A, A, A; a b c d e f);
+impl_tuple_combination!(Tuple8Combination Tuple7Combination; A, A, A, A, A, A, A, A, A; a b c d e f g);
+impl_tuple_combination!(Tuple9Combination Tuple8Combination; A, A, A, A, A, A, A, A, A, A; a b c d e f g h);
+impl_tuple_combination!(Tuple10Combination Tuple9Combination; A, A, A, A, A, A, A, A, A, A, A; a b c d e f g h i);
+impl_tuple_combination!(Tuple11Combination Tuple10Combination; A, A, A, A, A, A, A, A, A, A, A, A; a b c d e f g h i j);
+impl_tuple_combination!(Tuple12Combination Tuple11Combination; A, A, A, A, A, A, A, A, A, A, A, A, A; a b c d e f g h i j k);
 
 /// An iterator adapter to filter values within a nested `Result::Ok`.
 ///

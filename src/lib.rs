@@ -50,6 +50,15 @@
 #[cfg(not(feature = "use_std"))]
 extern crate core as std;
 
+#[cfg(feature = "use_alloc")]
+extern crate alloc;
+
+#[cfg(feature = "use_alloc")]
+use alloc::{
+    string::String,
+    vec::Vec,
+};
+
 pub use either::Either;
 
 #[cfg(feature = "use_std")]
@@ -59,11 +68,11 @@ use std::cmp::Ordering;
 use std::fmt;
 #[cfg(feature = "use_std")]
 use std::hash::Hash;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 use std::fmt::Write;
-#[cfg(feature = "use_std")]
-type VecIntoIter<T> = ::std::vec::IntoIter<T>;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
+type VecIntoIter<T> = alloc::vec::IntoIter<T>;
+#[cfg(feature = "use_alloc")]
 use std::iter::FromIterator;
 
 #[macro_use]
@@ -100,40 +109,40 @@ pub mod structs {
     };
     #[allow(deprecated)]
     pub use crate::adaptors::{MapResults, Step};
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::adaptors::MultiProduct;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::combinations::Combinations;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::combinations_with_replacement::CombinationsWithReplacement;
     pub use crate::cons_tuples_impl::ConsTuples;
     pub use crate::exactly_one_err::ExactlyOneError;
     pub use crate::format::{Format, FormatWith};
     #[cfg(feature = "use_std")]
     pub use crate::grouping_map::{GroupingMap, GroupingMapBy};
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
     pub use crate::intersperse::{Intersperse, IntersperseWith};
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::kmerge_impl::{KMerge, KMergeBy};
     pub use crate::merge_join::MergeJoinBy;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::multipeek_impl::MultiPeek;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::peek_nth::PeekNth;
     pub use crate::pad_tail::PadUsing;
     pub use crate::peeking_take_while::PeekingTakeWhile;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::permutations::Permutations;
     pub use crate::process_results_impl::ProcessResults;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::put_back_n_impl::PutBackN;
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::rciter_impl::RcIter;
     pub use crate::repeatn::RepeatN;
     #[allow(deprecated)]
     pub use crate::sources::{RepeatCall, Unfold, Iterate};
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::tee::Tee;
     pub use crate::tuple_impl::{TupleBuffer, TupleWindows, CircularTupleWindows, Tuples};
     #[cfg(feature = "use_std")]
@@ -155,7 +164,7 @@ pub use crate::concat_impl::concat;
 pub use crate::cons_tuples_impl::cons_tuples;
 pub use crate::diff::diff_with;
 pub use crate::diff::Diff;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 pub use crate::kmerge_impl::{kmerge_by};
 pub use crate::minmax::MinMaxResult;
 pub use crate::peeking_take_while::PeekingNext;
@@ -174,43 +183,43 @@ pub mod free;
 pub use crate::free::*;
 mod concat_impl;
 mod cons_tuples_impl;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod combinations;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod combinations_with_replacement;
 mod exactly_one_err;
 mod diff;
 mod format;
 #[cfg(feature = "use_std")]
 mod grouping_map;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod group_map;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod groupbylazy;
 mod intersperse;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod kmerge_impl;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod lazy_buffer;
 mod merge_join;
 mod minmax;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod multipeek_impl;
 mod pad_tail;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod peek_nth;
 mod peeking_take_while;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod permutations;
 mod process_results_impl;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod put_back_n_impl;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod rciter_impl;
 mod repeatn;
 mod size_hint;
 mod sources;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod tee;
 mod tuple_impl;
 #[cfg(feature = "use_std")]
@@ -534,7 +543,7 @@ pub trait Itertools : Iterator {
     /// }
     /// assert_eq!(data_grouped, vec![(true, vec![1, 3]), (false, vec![-2, -2]), (true, vec![1, 0, 1, 2])]);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn group_by<K, F>(self, key: F) -> GroupBy<K, Self, F>
         where Self: Sized,
               F: FnMut(&Self::Item) -> K,
@@ -570,7 +579,7 @@ pub trait Itertools : Iterator {
     ///     assert_eq!(4, chunk.sum());
     /// }
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn chunks(self, size: usize) -> IntoChunks<Self>
         where Self: Sized,
     {
@@ -708,7 +717,7 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(t2, 0..4);
     /// itertools::assert_equal(t1, 1..4);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn tee(self) -> (Tee<Self>, Tee<Self>)
         where Self: Sized,
               Self::Item: Clone
@@ -732,7 +741,7 @@ pub trait Itertools : Iterator {
     /// let it = (0..8).step(3);
     /// itertools::assert_equal(it, vec![0, 3, 6]);
     /// ```
-    #[deprecated(note="Use std .step_by() instead", since="0.8")]
+    #[deprecated(note="Use std .step_by() instead", since="0.8.0")]
     #[allow(deprecated)]
     fn step(self, n: usize) -> Step<Self>
         where Self: Sized
@@ -755,7 +764,7 @@ pub trait Itertools : Iterator {
     }
 
     /// See [`.map_ok()`](#method.map_ok).
-    #[deprecated(note="Use .map_ok() instead", since="0.10")]
+    #[deprecated(note="Use .map_ok() instead", since="0.10.0")]
     fn map_results<F, T, U, E>(self, f: F) -> MapOk<Self, F>
         where Self: Iterator<Item = Result<T, E>> + Sized,
               F: FnMut(T) -> U,
@@ -915,7 +924,7 @@ pub trait Itertools : Iterator {
     /// let it = vec![a, b, c].into_iter().kmerge();
     /// itertools::assert_equal(it, vec![0, 1, 2, 3, 4, 5]);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn kmerge(self) -> KMerge<<Self::Item as IntoIterator>::IntoIter>
         where Self: Sized,
               Self::Item: IntoIterator,
@@ -944,7 +953,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!(it.next(), Some(0.));
     /// assert_eq!(it.last(), Some(-7.));
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn kmerge_by<F>(self, first: F)
         -> KMergeBy<<Self::Item as IntoIterator>::IntoIter, F>
         where Self: Sized,
@@ -1000,7 +1009,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!(multi_prod.next(), Some(vec![1, 3, 5]));
     /// assert_eq!(multi_prod.next(), None);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn multi_cartesian_product(self) -> MultiProduct<<Self::Item as IntoIterator>::IntoIter>
         where Self: Iterator + Sized,
               Self::Item: IntoIterator,
@@ -1254,7 +1263,7 @@ pub trait Itertools : Iterator {
     /// elements from an iterator.
     ///
     /// Iterator element can be any homogeneous tuple of type `Self::Item` with
-    /// size up to 4.
+    /// size up to 12.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -1320,7 +1329,7 @@ pub trait Itertools : Iterator {
     ///     vec![2, 2],
     /// ]);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn combinations(self, k: usize) -> Combinations<Self>
         where Self: Sized,
               Self::Item: Clone
@@ -1347,7 +1356,7 @@ pub trait Itertools : Iterator {
     ///     vec![3, 3],
     /// ]);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn combinations_with_replacement(self, k: usize) -> CombinationsWithReplacement<Self>
     where
         Self: Sized,
@@ -1393,7 +1402,7 @@ pub trait Itertools : Iterator {
     ///
     /// Note: The source iterator is collected lazily, and will not be
     /// re-iterated if the permutations adaptor is completed and re-iterated.
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn permutations(self, k: usize) -> Permutations<Self>
         where Self: Sized,
               Self::Item: Clone
@@ -1489,7 +1498,7 @@ pub trait Itertools : Iterator {
 
     // non-adaptor methods
     /// Advances the iterator and returns the next items grouped in a tuple of
-    /// a specific size (up to 4).
+    /// a specific size (up to 12).
     ///
     /// If there are enough elements to be grouped in a tuple, then the tuple is
     /// returned inside `Some`, otherwise `None` is returned.
@@ -1509,7 +1518,7 @@ pub trait Itertools : Iterator {
     }
 
     /// Collects all items from the iterator into a tuple of a specific size
-    /// (up to 4).
+    /// (up to 12).
     ///
     /// If the number of elements inside the iterator is **exactly** equal to
     /// the tuple size, then the tuple is returned inside `Some`, otherwise
@@ -1655,7 +1664,7 @@ pub trait Itertools : Iterator {
     ///
     /// itertools::assert_equal(rx.iter(), vec![1, 3, 5, 7, 9]);
     /// ```
-    #[deprecated(note="Use .for_each() instead", since="0.8")]
+    #[deprecated(note="Use .for_each() instead", since="0.8.0")]
     fn foreach<F>(self, f: F)
         where F: FnMut(Self::Item),
               Self: Sized,
@@ -1685,7 +1694,7 @@ pub trait Itertools : Iterator {
 
     /// `.collect_vec()` is simply a type specialization of `.collect()`,
     /// for convenience.
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn collect_vec(self) -> Vec<Self::Item>
         where Self: Sized
     {
@@ -1712,7 +1721,7 @@ pub trait Itertools : Iterator {
     ///     Ok(())
     /// }
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn try_collect<T, U, E>(self) -> Result<U, E>
     where
         Self: Sized + Iterator<Item = Result<T, E>>,
@@ -1762,7 +1771,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!(["a", "b", "c"].iter().join(", "), "a, b, c");
     /// assert_eq!([1, 2, 3].iter().join(", "), "1, 2, 3");
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn join(&mut self, sep: &str) -> String
         where Self::Item: std::fmt::Display
     {
@@ -1773,10 +1782,10 @@ pub trait Itertools : Iterator {
                 let (lower, _) = self.size_hint();
                 let mut result = String::with_capacity(sep.len() * lower);
                 write!(&mut result, "{}", first_elt).unwrap();
-                for elt in self {
+                self.for_each(|elt| {
                     result.push_str(sep);
                     write!(&mut result, "{}", elt).unwrap();
-                }
+                });
                 result
             }
         }
@@ -1843,7 +1852,7 @@ pub trait Itertools : Iterator {
     }
 
     /// See [`.fold_ok()`](#method.fold_ok).
-    #[deprecated(note="Use .fold_ok() instead", since="0.10")]
+    #[deprecated(note="Use .fold_ok() instead", since="0.10.0")]
     fn fold_results<A, E, B, F>(&mut self, start: B, f: F) -> Result<B, E>
         where Self: Iterator<Item = Result<A, E>>,
               F: FnMut(B, A) -> B
@@ -2103,19 +2112,26 @@ pub trait Itertools : Iterator {
     /// The big difference between the computations of `result2` and `result3` is that while
     /// `fold()` called the provided closure for every item of the callee iterator,
     /// `fold_while()` actually stopped iterating as soon as it encountered `Fold::Done(_)`.
-    #[deprecated(note="Use .try_fold() instead", since="0.8")]
     fn fold_while<B, F>(&mut self, init: B, mut f: F) -> FoldWhile<B>
         where Self: Sized,
               F: FnMut(B, Self::Item) -> FoldWhile<B>
     {
-        let mut acc = init;
-        while let Some(item) = self.next() {
-            match f(acc, item) {
-                FoldWhile::Continue(res) => acc = res,
-                res @ FoldWhile::Done(_) => return res,
+        use Result::{
+            Ok as Continue,
+            Err as Break,
+        };
+
+        let result = self.try_fold(init, #[inline(always)] |acc, v|
+            match f(acc, v) {
+              FoldWhile::Continue(acc) => Continue(acc),
+              FoldWhile::Done(acc) => Break(acc),
             }
+        );
+
+        match result {
+            Continue(acc) => FoldWhile::Continue(acc),
+            Break(acc) => FoldWhile::Done(acc),
         }
-        FoldWhile::Continue(acc)
     }
 
     /// Iterate over the entire iterator and add all the elements.
@@ -2193,7 +2209,7 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(text.chars().sorted(),
     ///                         "abcdef".chars());
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn sorted(self) -> VecIntoIter<Self::Item>
         where Self: Sized,
               Self::Item: Ord
@@ -2228,7 +2244,7 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(oldest_people_first,
     ///                         vec!["Jill", "Jack", "Jane", "John"]);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn sorted_by<F>(self, cmp: F) -> VecIntoIter<Self::Item>
         where Self: Sized,
               F: FnMut(&Self::Item, &Self::Item) -> Ordering,
@@ -2261,7 +2277,7 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(oldest_people_first,
     ///                         vec!["Jill", "Jack", "Jane", "John"]);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn sorted_by_key<K, F>(self, f: F) -> VecIntoIter<Self::Item>
         where Self: Sized,
               K: Ord,
@@ -2812,14 +2828,14 @@ pub trait Itertools : Iterator {
             Some(first) => {
                 match self.next() {
                     Some(second) => {
-                        Err(ExactlyOneError::new((Some(first), Some(second)), self))
+                        Err(ExactlyOneError::new(Some(Either::Left([first, second])), self))
                     }
                     None => {
                         Ok(first)
                     }
                 }
             }
-            None => Err(ExactlyOneError::new((None, None), self)),
+            None => Err(ExactlyOneError::new(None, self)),
         }
     }
 
@@ -2837,7 +2853,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!(iter.next(), Some(0));
     /// assert_eq!(iter.peek(), Some(&1));
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn multipeek(self) -> MultiPeek<Self>
     where
         Self: Sized,

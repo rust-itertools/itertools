@@ -1546,3 +1546,31 @@ quickcheck! {
         TestResult::passed()
     }
 }
+
+quickcheck! {
+    fn test_double_ended_zip_2(a: Vec<u8>, b: Vec<u8>) -> TestResult {
+        let mut x =
+          multizip((a.clone().into_iter(), b.clone().into_iter()))
+            .collect_vec();
+        x.reverse();
+
+        let y =
+          multizip((a.into_iter(), b.into_iter()))
+          .rfold(Vec::new(), |mut vec, e| { vec.push(e); vec });
+
+        TestResult::from_bool(itertools::equal(x, y))
+    }
+
+    fn test_double_ended_zip_3(a: Vec<u8>, b: Vec<u8>, c: Vec<u8>) -> TestResult {
+        let mut x =
+          multizip((a.clone().into_iter(), b.clone().into_iter(), c.clone().into_iter()))
+            .collect_vec();
+        x.reverse();
+
+        let y =
+          multizip((a.into_iter(), b.into_iter(), c.into_iter()))
+          .rfold(Vec::new(), |mut vec, e| { vec.push(e); vec });
+
+        TestResult::from_bool(itertools::equal(x, y))
+    }
+}

@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::size_hint;
 
 /// An iterator adaptor that allows putting multiple

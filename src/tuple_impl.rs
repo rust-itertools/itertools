@@ -57,12 +57,12 @@ impl<T> Iterator for TupleBuffer<T>
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         let buffer = &self.buf.as_ref()[self.cur..];
-        let len = if buffer.len() == 0 {
+        let len = if buffer.is_empty() {
             0
         } else {
             buffer.iter()
                   .position(|x| x.is_none())
-                  .unwrap_or(buffer.len())
+                  .unwrap_or_else(|| buffer.len())
         };
         (len, Some(len))
     }
@@ -212,7 +212,7 @@ pub fn circular_tuple_windows<I, T>(iter: I) -> CircularTupleWindows<I, T>
     let iter = tuple_windows(iter.cycle()).take(len);
 
     CircularTupleWindows {
-        iter: iter,
+        iter,
         phantom_data: PhantomData{}
     }
 }
@@ -244,15 +244,32 @@ pub trait TupleCollect: Sized {
     fn left_shift_push(&mut self, item: Self::Item);
 }
 
+macro_rules! count_ident{
+    () => {0};
+    ($i0:ident, $($i:ident,)*) => {1 + count_ident!($($i,)*)};
+}
+macro_rules! ignore_ident{
+    ($id:ident, $($t:tt)*) => {$($t)*};
+}
+macro_rules! rev_for_each_ident{
+    ($m:ident, ) => {};
+    ($m:ident, $i0:ident, $($i:ident,)*) => {
+        rev_for_each_ident!($m, $($i,)*);
+        $m!($i0);
+    };
+}
+
 macro_rules! impl_tuple_collect {
-    ($N:expr; $A:ident ; $($X:ident),* ; $($Y:ident),* ; $($Y_rev:ident),*) => (
-        impl<$A> TupleCollect for ($($X),*,) {
-            type Item = $A;
-            type Buffer = [Option<$A>; $N - 1];
+    ($dummy:ident,) => {}; // stop
+    ($dummy:ident, $($Y:ident,)*) => (
+        impl_tuple_collect!($($Y,)*);
+        impl<A> TupleCollect for ($(ignore_ident!($Y, A),)*) {
+            type Item = A;
+            type Buffer = [Option<A>; count_ident!($($Y,)*) - 1];
 
             #[allow(unused_assignments, unused_mut)]
             fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
-                where I: IntoIterator<Item = $A>
+                where I: IntoIterator<Item = A>
             {
                 let mut iter = iter.into_iter();
                 $(
@@ -280,44 +297,31 @@ macro_rules! impl_tuple_collect {
                 return None;
             }
 
-            #[allow(unused_assignments)]
             fn collect_from_iter_no_buf<I>(iter: I) -> Option<Self>
-                where I: IntoIterator<Item = $A>
+                where I: IntoIterator<Item = A>
             {
                 let mut iter = iter.into_iter();
-                loop {
-                    $(
-                        let $Y = if let Some($Y) = iter.next() {
-                            $Y
-                        } else {
-                            break;
-                        };
-                    )*
-                    return Some(($($Y),*,))
-                }
 
-                return None;
+                Some(($(
+                    { let $Y = iter.next()?; $Y },
+                )*))
             }
 
             fn num_items() -> usize {
-                $N
+                count_ident!($($Y,)*)
             }
 
-            fn left_shift_push(&mut self, item: $A) {
+            fn left_shift_push(&mut self, mut item: A) {
                 use std::mem::replace;
 
                 let &mut ($(ref mut $Y),*,) = self;
-                let tmp = item;
-                $(
-                    let tmp = replace($Y_rev, tmp);
-                )*
-                drop(tmp);
+                macro_rules! replace_item{($i:ident) => {
+                    item = replace($i, item);
+                }};
+                rev_for_each_ident!(replace_item, $($Y,)*);
+                drop(item);
             }
         }
     )
 }
-
-impl_tuple_collect!(1; A; A; a; a);
-impl_tuple_collect!(2; A; A, A; a, b; b, a);
-impl_tuple_collect!(3; A; A, A, A; a, b, c; c, b, a);
-impl_tuple_collect!(4; A; A, A, A, A; a, b, c, d; d, c, b, a);
+impl_tuple_collect!(dummy, a, b, c, d, e, f, g, h, i, j, k, l,);
