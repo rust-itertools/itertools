@@ -2209,7 +2209,7 @@ pub trait Itertools : Iterator {
         where Self: Sized,
               Self::Item: Ord
     {
-        // Use .sort() directly since it is not quite identical with
+        // Use .sort_unstable() directly since it is not quite identical with
         // .sort_by(Ord::cmp)
         let mut v = Vec::from_iter(self);
         v.sort_unstable();
