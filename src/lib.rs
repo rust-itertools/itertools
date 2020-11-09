@@ -2187,6 +2187,101 @@ pub trait Itertools : Iterator {
             .map(|first| once(first).chain(self).product())
     }
 
+    /// Sort all iterator elements into a new iterator in ascending order.
+    ///
+    /// **Note:** This consumes the entire iterator, uses the
+    /// `slice::sort_unstable()` method and returns the result as a new
+    /// iterator that owns its elements.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // sort the letters of the text in ascending order
+    /// let text = "bdacfe";
+    /// itertools::assert_equal(text.chars().sorted_unstable(),
+    ///                         "abcdef".chars());
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn sorted_unstable(self) -> VecIntoIter<Self::Item>
+        where Self: Sized,
+              Self::Item: Ord
+    {
+        // Use .sort_unstable() directly since it is not quite identical with
+        // .sort_by(Ord::cmp)
+        let mut v = Vec::from_iter(self);
+        v.sort_unstable();
+        v.into_iter()
+    }
+
+    /// Sort all iterator elements into a new iterator in ascending order.
+    ///
+    /// **Note:** This consumes the entire iterator, uses the
+    /// `slice::sort_unstable_by()` method and returns the result as a new
+    /// iterator that owns its elements.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // sort people in descending order by age
+    /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 27)];
+    ///
+    /// let oldest_people_first = people
+    ///     .into_iter()
+    ///     .sorted_unstable_by(|a, b| Ord::cmp(&b.1, &a.1))
+    ///     .map(|(person, _age)| person);
+    ///
+    /// itertools::assert_equal(oldest_people_first,
+    ///                         vec!["Jill", "Jack", "Jane", "John"]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn sorted_unstable_by<F>(self, cmp: F) -> VecIntoIter<Self::Item>
+        where Self: Sized,
+              F: FnMut(&Self::Item, &Self::Item) -> Ordering,
+    {
+        let mut v = Vec::from_iter(self);
+        v.sort_unstable_by(cmp);
+        v.into_iter()
+    }
+
+    /// Sort all iterator elements into a new iterator in ascending order.
+    ///
+    /// **Note:** This consumes the entire iterator, uses the
+    /// `slice::sort_unstable_by_key()` method and returns the result as a new
+    /// iterator that owns its elements.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // sort people in descending order by age
+    /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 27)];
+    ///
+    /// let oldest_people_first = people
+    ///     .into_iter()
+    ///     .sorted_unstable_by_key(|x| -x.1)
+    ///     .map(|(person, _age)| person);
+    ///
+    /// itertools::assert_equal(oldest_people_first,
+    ///                         vec!["Jill", "Jack", "Jane", "John"]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn sorted_unstable_by_key<K, F>(self, f: F) -> VecIntoIter<Self::Item>
+        where Self: Sized,
+              K: Ord,
+              F: FnMut(&Self::Item) -> K,
+    {
+        let mut v = Vec::from_iter(self);
+        v.sort_unstable_by_key(f);
+        v.into_iter()
+    }
 
     /// Sort all iterator elements into a new iterator in ascending order.
     ///

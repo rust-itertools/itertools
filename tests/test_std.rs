@@ -344,6 +344,26 @@ fn join() {
 }
 
 #[test]
+fn sorted_unstable_by() {
+    let sc = [3, 4, 1, 2].iter().cloned().sorted_by(|&a, &b| {
+        a.cmp(&b)
+    });
+    it::assert_equal(sc, vec![1, 2, 3, 4]);
+
+    let v = (0..5).sorted_unstable_by(|&a, &b| a.cmp(&b).reverse());
+    it::assert_equal(v, vec![4, 3, 2, 1, 0]);
+}
+
+#[test]
+fn sorted_unstable_by_key() {
+    let sc = [3, 4, 1, 2].iter().cloned().sorted_unstable_by_key(|&x| x);
+    it::assert_equal(sc, vec![1, 2, 3, 4]);
+
+    let v = (0..5).sorted_unstable_by_key(|&x| -x);
+    it::assert_equal(v, vec![4, 3, 2, 1, 0]);
+}
+
+#[test]
 fn sorted_by() {
     let sc = [3, 4, 1, 2].iter().cloned().sorted_by(|&a, &b| {
         a.cmp(&b)
