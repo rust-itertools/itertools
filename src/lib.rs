@@ -2219,7 +2219,7 @@ pub trait Itertools : Iterator {
     /// Sort all iterator elements into a new iterator in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, uses the
-    /// `slice::sort__unstable_by()` method and returns the result as a new
+    /// `slice::sort_unstable_by()` method and returns the result as a new
     /// iterator that owns its elements.
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
