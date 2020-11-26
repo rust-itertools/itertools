@@ -84,7 +84,7 @@ impl<I: Iterator, F: CoalescePredicate<I::Item, T>, T> FusedIterator for Coalesc
 
 /// An iterator adaptor that may join together adjacent elements.
 ///
-/// See [`.coalesce()`](../trait.Itertools.html#method.coalesce) for more information.
+/// See [`.coalesce()`](crate::Itertools::coalesce) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub type Coalesce<I, F> = CoalesceBy<I, F, <I as Iterator>::Item>;
 
@@ -111,7 +111,7 @@ where
 
 /// An iterator adaptor that removes repeated duplicates, determining equality using a comparison function.
 ///
-/// See [`.dedup_by()`](../trait.Itertools.html#method.dedup_by) or [`.dedup()`](../trait.Itertools.html#method.dedup) for more information.
+/// See [`.dedup_by()`](crate::Itertools::dedup_by) or [`.dedup()`](crate::Itertools::dedup) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub type DedupBy<I, Pred> = CoalesceBy<I, DedupPred2CoalescePred<Pred>, <I as Iterator>::Item>;
 
@@ -165,7 +165,7 @@ where
 
 /// An iterator adaptor that removes repeated duplicates.
 ///
-/// See [`.dedup()`](../trait.Itertools.html#method.dedup) for more information.
+/// See [`.dedup()`](crate::Itertools::dedup) for more information.
 pub type Dedup<I> = DedupBy<I, DedupEq>;
 
 /// Create a new `Dedup`.
@@ -179,8 +179,8 @@ where
 /// An iterator adaptor that removes repeated duplicates, while keeping a count of how many
 /// repeated elements were present. This will determine equality using a comparison function.
 ///
-/// See [`.dedup_by_with_count()`](../trait.Itertools.html#method.dedup_by_with_count) or
-/// [`.dedup_with_count()`](../trait.Itertools.html#method.dedup_with_count) for more information.
+/// See [`.dedup_by_with_count()`](crate::Itertools::dedup_by_with_count) or
+/// [`.dedup_with_count()`](crate::Itertools::dedup_with_count) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub type DedupByWithCount<I, Pred> =
     CoalesceBy<I, DedupPredWithCount2CoalescePred<Pred>, (usize, <I as Iterator>::Item)>;
@@ -208,7 +208,7 @@ where
 /// An iterator adaptor that removes repeated duplicates, while keeping a count of how many
 /// repeated elements were present.
 ///
-/// See [`.dedup_with_count()`](../trait.Itertools.html#method.dedup_with_count) for more information.
+/// See [`.dedup_with_count()`](crate::Itertools::dedup_with_count) for more information.
 pub type DedupWithCount<I> = DedupByWithCount<I, DedupEq>;
 
 /// Create a new `DedupByWithCount`.

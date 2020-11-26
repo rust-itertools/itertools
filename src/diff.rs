@@ -1,14 +1,14 @@
 //! "Diff"ing iterators for caching elements to sequential collections without requiring the new
 //! elements' iterator to be `Clone`.
 //!
-//! - [**Diff**](./enum.Diff.html) (produced by the [**diff_with**](./fn.diff_with.html) function)
+//! - [`Diff`] (produced by the [`diff_with`] function)
 //! describes the difference between two non-`Clone` iterators `I` and `J` after breaking ASAP from
 //! a lock-step comparison.
 
 use crate::free::put_back;
 use crate::structs::PutBack;
 
-/// A type returned by the [`diff_with`](./fn.diff_with.html) function.
+/// A type returned by the [`diff_with`] function.
 ///
 /// `Diff` represents the way in which the elements yielded by the iterator `I` differ to some
 /// iterator `J`.

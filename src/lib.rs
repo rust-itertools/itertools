@@ -5,13 +5,13 @@
 //! Extra iterator adaptors, functions and macros.
 //!
 //! To extend [`Iterator`] with methods in this crate, import
-//! the [`Itertools` trait](./trait.Itertools.html):
+//! the [`Itertools` trait](Itertools):
 //!
 //! ```
 //! use itertools::Itertools;
 //! ```
 //!
-//! Now, new methods like [`interleave`](./trait.Itertools.html#method.interleave)
+//! Now, new methods like [`interleave`](Itertools::interleave)
 //! are available on all iterators:
 //!
 //! ```
@@ -43,8 +43,6 @@
 //! ## Rust Version
 //!
 //! This version of itertools requires Rust 1.32 or later.
-//!
-//! [`Iterator`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html
 #![doc(html_root_url="https://docs.rs/itertools/0.8/")]
 
 #[cfg(not(feature = "use_std"))]
@@ -279,8 +277,6 @@ macro_rules! iproduct {
 /// Prefer this macro `izip!()` over [`multizip`] for the performance benefits
 /// of using the standard library `.zip()`.
 ///
-/// [`multizip`]: fn.multizip.html
-///
 /// ```
 /// # use itertools::izip;
 /// #
@@ -346,8 +342,6 @@ macro_rules! izip {
 /// return a regular value of some other kind.
 /// [`.next_tuple()`](#method.next_tuple) is an example and the first regular
 /// method in the list.
-///
-/// [`Iterator`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html
 pub trait Itertools : Iterator {
     // adaptors
 
@@ -446,7 +440,7 @@ pub trait Itertools : Iterator {
     /// will return `None`.
     ///
     /// Iterator element type is
-    /// [`EitherOrBoth<Self::Item, J::Item>`](enum.EitherOrBoth.html).
+    /// [`EitherOrBoth<Self::Item, J::Item>`](EitherOrBoth).
     ///
     /// ```rust
     /// use itertools::EitherOrBoth::{Both, Right};
@@ -688,7 +682,7 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(it, vec![(1, 2, 3), (4, 5, 6)]);
     /// ```
     ///
-    /// See also [`Tuples::into_buffer`](structs/struct.Tuples.html#method.into_buffer).
+    /// See also [`Tuples::into_buffer`].
     fn tuples<T>(self) -> Tuples<Self, T>
         where Self: Sized + Iterator<Item = T::Item>,
               T: traits::HomogeneousTuple
@@ -985,7 +979,7 @@ pub trait Itertools : Iterator {
     ///
     /// All provided iterators must yield the same `Item` type. To generate
     /// the product of iterators yielding multiple types, use the
-    /// [`iproduct`](macro.iproduct.html) macro instead.
+    /// [`iproduct`] macro instead.
     ///
     ///
     /// The iterator element type is `Vec<T>`, where `T` is the iterator element
@@ -1434,7 +1428,7 @@ pub trait Itertools : Iterator {
     /// ease special-case handling of the first or last elements.
     ///
     /// Iterator element type is
-    /// [`Position<Self::Item>`](enum.Position.html)
+    /// [`Position<Self::Item>`](Position)
     ///
     /// ```
     /// use itertools::{Itertools, Position};
@@ -2759,8 +2753,6 @@ pub trait Itertools : Iterator {
     /// let a = [1, 1, -1, -1];
     /// assert_eq!(a.iter().position_minmax(), MinMax(2, 1));
     /// ```
-    ///
-    /// [`MinMaxResult`]: enum.MinMaxResult.html
     fn position_minmax(self) -> MinMaxResult<usize>
         where Self: Sized, Self::Item: PartialOrd
     {
@@ -2805,8 +2797,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!(a.iter().position_minmax_by_key(|x| x.abs()), MinMax(0, 3));
     /// ```
     ///
-    /// [`MinMaxResult`]: enum.MinMaxResult.html
-    /// [`position_minmax`]: #method.position_minmax
+    /// [`position_minmax`]: Self::position_minmax
     fn position_minmax_by_key<K, F>(self, mut key: F) -> MinMaxResult<usize>
         where Self: Sized, K: PartialOrd, F: FnMut(&Self::Item) -> K
     {
@@ -2848,8 +2839,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!(a.iter().position_minmax_by(|x, y| x.cmp(y)), MinMax(2, 1));
     /// ```
     ///
-    /// [`MinMaxResult`]: enum.MinMaxResult.html
-    /// [`position_minmax`]: #method.position_minmax
+    /// [`position_minmax`]: Self::position_minmax
     fn position_minmax_by<F>(self, mut compare: F) -> MinMaxResult<usize>
         where Self: Sized, F: FnMut(&Self::Item, &Self::Item) -> Ordering
     {
@@ -3053,7 +3043,7 @@ pub fn partition<'a, A: 'a, I, F>(iter: I, mut pred: F) -> usize
 
 /// An enum used for controlling the execution of `.fold_while()`.
 ///
-/// See [`.fold_while()`](trait.Itertools.html#method.fold_while) for more information.
+/// See [`.fold_while()`](crate::Itertools::fold_while) for more information.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum FoldWhile<T> {
     /// Continue folding with this value

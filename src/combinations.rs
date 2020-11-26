@@ -5,7 +5,7 @@ use alloc::vec::Vec;
 
 /// An iterator to iterate through all the `k`-length combinations in an iterator.
 ///
-/// See [`.combinations()`](../trait.Itertools.html#method.combinations) for more information.
+/// See [`.combinations()`](crate::Itertools::combinations) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Combinations<I: Iterator> {
     indices: Vec<usize>,

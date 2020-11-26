@@ -1,6 +1,6 @@
 use super::size_hint;
 
-/// See [`multizip`](../fn.multizip.html) for more information.
+/// See [`multizip`] for more information.
 #[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Zip<T> {
@@ -22,8 +22,6 @@ pub struct Zip<T> {
 ///
 /// Prefer [`izip!()`] over `multizip` for the performance benefits of using the
 /// standard library `.zip()`. Prefer `multizip` if a nameable type is needed.
-///
-/// [`izip!()`]: macro.izip.html
 ///
 /// ```
 /// use itertools::multizip;

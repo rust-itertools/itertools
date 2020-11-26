@@ -6,7 +6,7 @@ use std::fmt;
 
 /// An iterator adapter to filter out duplicate elements.
 ///
-/// See [`.unique_by()`](../trait.Itertools.html#method.unique) for more information.
+/// See [`.unique_by()`](crate::Itertools::unique) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct UniqueBy<I: Iterator, V, F> {
@@ -138,7 +138,7 @@ impl<I> DoubleEndedIterator for Unique<I>
 
 /// An iterator adapter to filter out duplicate elements.
 ///
-/// See [`.unique()`](../trait.Itertools.html#method.unique) for more information.
+/// See [`.unique()`](crate::Itertools::unique) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Unique<I: Iterator> {

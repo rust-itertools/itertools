@@ -1,6 +1,6 @@
 //! Licensed under the Apache License, Version 2.0
-//! http://www.apache.org/licenses/LICENSE-2.0 or the MIT license
-//! http://opensource.org/licenses/MIT, at your
+//! <http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+//! <http://opensource.org/licenses/MIT>, at your
 //! option. This file may not be copied, modified, or distributed
 //! except according to those terms.
 
@@ -24,7 +24,7 @@ use crate::size_hint;
 ///
 /// This iterator is *fused*.
 ///
-/// See [`.interleave()`](../trait.Itertools.html#method.interleave) for more information.
+/// See [`.interleave()`](crate::Itertools::interleave) for more information.
 #[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Interleave<I, J> {
@@ -37,7 +37,7 @@ pub struct Interleave<I, J> {
 ///
 /// `IntoIterator` enabled version of `i.interleave(j)`.
 ///
-/// See [`.interleave()`](trait.Itertools.html#method.interleave) for more information.
+/// See [`.interleave()`](crate::Itertools::interleave) for more information.
 pub fn interleave<I, J>(i: I, j: J) -> Interleave<<I as IntoIterator>::IntoIter, <J as IntoIterator>::IntoIter>
     where I: IntoIterator,
           J: IntoIterator<Item = I::Item>
@@ -80,7 +80,7 @@ impl<I, J> Iterator for Interleave<I, J>
 ///
 /// This iterator is *fused*.
 ///
-/// See [`.interleave_shortest()`](../trait.Itertools.html#method.interleave_shortest)
+/// See [`.interleave_shortest()`](crate::Itertools::interleave_shortest)
 /// for more information.
 #[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
@@ -271,7 +271,7 @@ impl<I> Iterator for PutBack<I>
 ///
 /// Iterator element type is `(I::Item, J::Item)`.
 ///
-/// See [`.cartesian_product()`](../trait.Itertools.html#method.cartesian_product) for more information.
+/// See [`.cartesian_product()`](crate::Itertools::cartesian_product) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Product<I, J>
     where I: Iterator
@@ -366,7 +366,7 @@ impl<I, J> Iterator for Product<I, J>
 ///
 /// Iterator element type is *X*, if the return type of `F` is *Option\<X\>*.
 ///
-/// See [`.batching()`](../trait.Itertools.html#method.batching) for more information.
+/// See [`.batching()`](crate::Itertools::batching) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Batching<I, F> {
@@ -400,7 +400,7 @@ impl<B, F, I> Iterator for Batching<I, F>
 /// The iterator steps by yielding the next element from the base iterator,
 /// then skipping forward *n-1* elements.
 ///
-/// See [`.step()`](../trait.Itertools.html#method.step) for more information.
+/// See [`.step()`](crate::Itertools::step) for more information.
 #[deprecated(note="Use std .step_by() instead", since="0.8.0")]
 #[allow(deprecated)]
 #[derive(Clone, Debug)]
@@ -475,7 +475,7 @@ impl<T: PartialOrd> MergePredicate<T> for MergeLte {
 ///
 /// Iterator element type is `I::Item`.
 ///
-/// See [`.merge()`](../trait.Itertools.html#method.merge_by) for more information.
+/// See [`.merge()`](crate::Itertools::merge_by) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub type Merge<I, J> = MergeBy<I, J, MergeLte>;
 
@@ -503,7 +503,7 @@ pub fn merge<I, J>(i: I, j: J) -> Merge<<I as IntoIterator>::IntoIter, <J as Int
 ///
 /// Iterator element type is `I::Item`.
 ///
-/// See [`.merge_by()`](../trait.Itertools.html#method.merge_by) for more information.
+/// See [`.merge_by()`](crate::Itertools::merge_by) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct MergeBy<I, J, F>
     where I: Iterator,
@@ -591,7 +591,7 @@ impl<I, J, F> Iterator for MergeBy<I, J, F>
 /// An iterator adaptor that borrows from a `Clone`-able iterator
 /// to only pick off elements while the predicate returns `true`.
 ///
-/// See [`.take_while_ref()`](../trait.Itertools.html#method.take_while_ref) for more information.
+/// See [`.take_while_ref()`](crate::Itertools::take_while_ref) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct TakeWhileRef<'a, I: 'a, F> {
     iter: &'a mut I,
@@ -640,7 +640,7 @@ impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F>
 /// An iterator adaptor that filters `Option<A>` iterator elements
 /// and produces `A`. Stops on the first `None` encountered.
 ///
-/// See [`.while_some()`](../trait.Itertools.html#method.while_some) for more information.
+/// See [`.while_some()`](crate::Itertools::while_some) for more information.
 #[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct WhileSome<I> {
@@ -672,7 +672,7 @@ impl<I, A> Iterator for WhileSome<I>
 /// An iterator to iterate through all combinations in a `Clone`-able iterator that produces tuples
 /// of a specific size.
 ///
-/// See [`.tuple_combinations()`](../trait.Itertools.html#method.tuple_combinations) for more
+/// See [`.tuple_combinations()`](crate::Itertools::tuple_combinations) for more
 /// information.
 #[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
@@ -822,7 +822,7 @@ impl_tuple_combination!(Tuple12Combination Tuple11Combination; A, A, A, A, A, A,
 
 /// An iterator adapter to filter values within a nested `Result::Ok`.
 ///
-/// See [`.filter_ok()`](../trait.Itertools.html#method.filter_ok) for more information.
+/// See [`.filter_ok()`](crate::Itertools::filter_ok) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct FilterOk<I, F> {
@@ -886,7 +886,7 @@ impl<I, F, T, E> Iterator for FilterOk<I, F>
 
 /// An iterator adapter to filter and apply a transformation on values within a nested `Result::Ok`.
 ///
-/// See [`.filter_map_ok()`](../trait.Itertools.html#method.filter_map_ok) for more information.
+/// See [`.filter_map_ok()`](crate::Itertools::filter_map_ok) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct FilterMapOk<I, F> {
     iter: I,
@@ -957,7 +957,7 @@ impl<I, F, T, U, E> Iterator for FilterMapOk<I, F>
 
 /// An iterator adapter to get the positions of each element that matches a predicate.
 ///
-/// See [`.positions()`](../trait.Itertools.html#method.positions) for more information.
+/// See [`.positions()`](crate::Itertools::positions) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Positions<I, F> {
@@ -1016,7 +1016,7 @@ impl<I, F> DoubleEndedIterator for Positions<I, F>
 
 /// An iterator adapter to apply a mutating function to each element before yielding it.
 ///
-/// See [`.update()`](../trait.Itertools.html#method.update) for more information.
+/// See [`.update()`](crate::Itertools::update) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Update<I, F> {
