@@ -1,5 +1,7 @@
 use alloc::vec::{self, Vec};
 use std::cell::{Cell, RefCell};
+use std::ops::Deref;
+use std::rc::Rc;
 
 /// A trait to unify `FnMut` for `ChunkBy` with the chunk key in `IntoChunks`
 trait KeyFunction<A> {
@@ -355,18 +357,48 @@ where
     }
 }
 
-impl<'a, K, I, F> IntoIterator for &'a ChunkBy<K, I, F>
+impl<K, I, F> IntoIterator for ChunkBy<K, I, F>
 where
     I: Iterator,
-    I::Item: 'a,
     F: FnMut(&I::Item) -> K,
     K: PartialEq,
 {
-    type Item = (K, Group<'a, K, I, F>);
-    type IntoIter = Groups<'a, K, I, F>;
+    type Item = (K, Group<K, I, F, Rc<Self>>);
+    type IntoIter = Groups<K, I, F, Rc<Self>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        Groups {
+            parent: Rc::new(self),
+        }
+    }
+}
+
+impl<'a, K, I, F> IntoIterator for &'a ChunkBy<K, I, F>
+where
+    I: Iterator,
+    F: FnMut(&I::Item) -> K,
+    K: PartialEq,
+{
+    type Item = (K, Group<K, I, F, Self>);
+    type IntoIter = Groups<K, I, F, Self>;
 
     fn into_iter(self) -> Self::IntoIter {
         Groups { parent: self }
+    }
+}
+
+impl<K, I, F> ChunkBy<K, I, F>
+where
+    I: Iterator,
+    F: FnMut(&I::Item) -> K,
+    K: PartialEq,
+{
+    /// This is pretty much the same as `.into_iter()`, except it uses
+    /// references in the underlying iterators instead of reference counts,
+    /// resulting in one less allocation. You may however hit lifetime
+    /// errors if you require full ownership.
+    pub fn borrowed_iter<'a>(&'a self) -> <&'a Self as IntoIterator>::IntoIter {
+        self.into_iter()
     }
 }
 
@@ -377,24 +409,21 @@ where
 ///
 /// See [`.chunk_by()`](crate::Itertools::chunk_by) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct Groups<'a, K, I, F>
-where
-    I: Iterator + 'a,
-    I::Item: 'a,
-    K: 'a,
-    F: 'a,
-{
-    parent: &'a ChunkBy<K, I, F>,
-}
-
-impl<'a, K, I, F> Iterator for Groups<'a, K, I, F>
+pub struct Groups<K, I, F, D: Deref<Target = ChunkBy<K, I, F>>>
 where
     I: Iterator,
-    I::Item: 'a,
+{
+    parent: D,
+}
+
+impl<K, I, F, D> Iterator for Groups<K, I, F, D>
+where
+    I: Iterator,
     F: FnMut(&I::Item) -> K,
     K: PartialEq,
+    D: Deref<Target = ChunkBy<K, I, F>> + Clone,
 {
-    type Item = (K, Group<'a, K, I, F>);
+    type Item = (K, Group<K, I, F, D>);
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -406,7 +435,7 @@ where
             (
                 key,
                 Group {
-                    parent: self.parent,
+                    parent: self.parent.clone(),
                     index,
                     first: Some(elt),
                 },
@@ -418,34 +447,32 @@ where
 /// An iterator for the elements in a single group.
 ///
 /// Iterator element type is `I::Item`.
-pub struct Group<'a, K, I, F>
+pub struct Group<K, I, F, D>
 where
-    I: Iterator + 'a,
-    I::Item: 'a,
-    K: 'a,
-    F: 'a,
+    I: Iterator,
+    D: Deref<Target = ChunkBy<K, I, F>>,
 {
-    parent: &'a ChunkBy<K, I, F>,
+    parent: D,
     index: usize,
     first: Option<I::Item>,
 }
 
-impl<'a, K, I, F> Drop for Group<'a, K, I, F>
+impl<K, I, F, D> Drop for Group<K, I, F, D>
 where
     I: Iterator,
-    I::Item: 'a,
+    D: Deref<Target = ChunkBy<K, I, F>>,
 {
     fn drop(&mut self) {
         self.parent.drop_group(self.index);
     }
 }
 
-impl<'a, K, I, F> Iterator for Group<'a, K, I, F>
+impl<K, I, F, D> Iterator for Group<K, I, F, D>
 where
     I: Iterator,
-    I::Item: 'a,
     F: FnMut(&I::Item) -> K,
     K: PartialEq,
+    D: Deref<Target = ChunkBy<K, I, F>>,
 {
     type Item = I::Item;
     #[inline]
@@ -528,16 +555,42 @@ where
     }
 }
 
+impl<I> IntoIterator for IntoChunks<I>
+where
+    I: Iterator,
+{
+    type Item = Chunk<I, Rc<Self>>;
+    type IntoIter = Chunks<I, Rc<Self>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        Chunks {
+            parent: Rc::new(self),
+        }
+    }
+}
+
 impl<'a, I> IntoIterator for &'a IntoChunks<I>
 where
     I: Iterator,
-    I::Item: 'a,
 {
-    type Item = Chunk<'a, I>;
-    type IntoIter = Chunks<'a, I>;
+    type Item = Chunk<I, Self>;
+    type IntoIter = Chunks<I, Self>;
 
     fn into_iter(self) -> Self::IntoIter {
         Chunks { parent: self }
+    }
+}
+
+impl<I> IntoChunks<I>
+where
+    I: Iterator,
+{
+    /// This is pretty much the same as `.into_iter()`, except it uses
+    /// references in the underlying iterators instead of reference counts,
+    /// resulting in one less allocation. You may however hit lifetime
+    /// errors if you require full ownership.
+    pub fn borrowed_iter<'a>(&'a self) -> <&'a Self as IntoIterator>::IntoIter {
+        self.into_iter()
     }
 }
 
@@ -547,21 +600,20 @@ where
 ///
 /// See [`.chunks()`](crate::Itertools::chunks) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-#[derive(Clone)]
-pub struct Chunks<'a, I>
-where
-    I: Iterator + 'a,
-    I::Item: 'a,
-{
-    parent: &'a IntoChunks<I>,
-}
-
-impl<'a, I> Iterator for Chunks<'a, I>
+pub struct Chunks<I, D>
 where
     I: Iterator,
-    I::Item: 'a,
+    D: Deref<Target = IntoChunks<I>>,
 {
-    type Item = Chunk<'a, I>;
+    parent: D,
+}
+
+impl<I, D> Iterator for Chunks<I, D>
+where
+    I: Iterator,
+    D: Deref<Target = IntoChunks<I>> + Clone,
+{
+    type Item = Chunk<I, D>;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -569,40 +621,48 @@ where
         self.parent.index.set(index + 1);
         let inner = &mut *self.parent.inner.borrow_mut();
         inner.step(index).map(|elt| Chunk {
-            parent: self.parent,
+            parent: self.parent.clone(),
             index,
             first: Some(elt),
         })
     }
 }
 
+impl<I, D> Clone for Chunks<I, D>
+where
+    I: Iterator,
+    D: Deref<Target = IntoChunks<I>> + Clone,
+{
+    clone_fields!(parent);
+}
+
 /// An iterator for the elements in a single chunk.
 ///
 /// Iterator element type is `I::Item`.
-pub struct Chunk<'a, I>
+pub struct Chunk<I, D>
 where
-    I: Iterator + 'a,
-    I::Item: 'a,
+    I: Iterator,
+    D: Deref<Target = IntoChunks<I>>,
 {
-    parent: &'a IntoChunks<I>,
+    parent: D,
     index: usize,
     first: Option<I::Item>,
 }
 
-impl<'a, I> Drop for Chunk<'a, I>
+impl<I, D> Drop for Chunk<I, D>
 where
     I: Iterator,
-    I::Item: 'a,
+    D: Deref<Target = IntoChunks<I>>,
 {
     fn drop(&mut self) {
         self.parent.drop_group(self.index);
     }
 }
 
-impl<'a, I> Iterator for Chunk<'a, I>
+impl<I, D> Iterator for Chunk<I, D>
 where
     I: Iterator,
-    I::Item: 'a,
+    D: Deref<Target = IntoChunks<I>>,
 {
     type Item = I::Item;
     #[inline]

@@ -8,8 +8,7 @@
 use itertools::free::{
     cloned, enumerate, multipeek, peek_nth, put_back, put_back_n, rciter, zip, zip_eq,
 };
-use itertools::Itertools;
-use itertools::{iproduct, izip, multizip, EitherOrBoth};
+use itertools::{iproduct, izip, multizip, EitherOrBoth, Itertools};
 use quickcheck as qc;
 use std::cmp::{max, min, Ordering};
 use std::collections::{HashMap, HashSet};
@@ -1049,8 +1048,8 @@ quickcheck! {
 quickcheck! {
     fn fuzz_chunk_by_lazy_duo(data: Vec<u8>, order: Vec<(bool, bool)>) -> bool {
         let grouper = data.iter().chunk_by(|k| *k / 3);
-        let mut chunks1 = grouper.into_iter();
-        let mut chunks2 = grouper.into_iter();
+        let mut chunks1 = grouper.borrowed_iter();
+        let mut chunks2 = grouper.borrowed_iter();
         let mut elts = Vec::<&u8>::new();
         let mut old_chunks = Vec::new();
 
