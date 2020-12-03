@@ -147,6 +147,8 @@ pub mod structs {
     pub use crate::tee::Tee;
     pub use crate::tuple_impl::{TupleBuffer, TupleWindows, CircularTupleWindows, Tuples};
     #[cfg(feature = "use_std")]
+    pub use crate::duplicates_impl::{Duplicates, DuplicatesBy};
+    #[cfg(feature = "use_std")]
     pub use crate::unique_impl::{Unique, UniqueBy};
     pub use crate::with_position::WithPosition;
     pub use crate::zip_eq_impl::ZipEq;
@@ -227,6 +229,8 @@ mod sources;
 #[cfg(feature = "use_alloc")]
 mod tee;
 mod tuple_impl;
+#[cfg(feature = "use_std")]
+mod duplicates_impl;
 #[cfg(feature = "use_std")]
 mod unique_impl;
 mod with_position;
@@ -1143,6 +1147,54 @@ pub trait Itertools : Iterator {
         Cmp: FnMut(&Self::Item, &Self::Item) -> bool,
     {
         adaptors::dedup_by_with_count(self, cmp)
+    }
+
+    /// Return an iterator adaptor that produces elements that appear more than once during the
+    /// iteration. Duplicates are detected using hash and equality.
+    ///
+    /// The iterator is stable, returning the duplicate items in the order in which they occur in
+    /// the adapted iterator. Each duplicate item is returned exactly once. If an item appears more
+    /// than twice, the second item is the item retained and the rest are discarded.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![10, 20, 30, 20, 40, 10, 50];
+    /// itertools::assert_equal(data.into_iter().duplicates(),
+    ///                         vec![20, 10]);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn duplicates(self) -> Duplicates<Self>
+        where Self: Sized,
+              Self::Item: Eq + Hash
+    {
+        duplicates_impl::duplicates(self)
+    }
+
+    /// Return an iterator adaptor that produces elements that appear more than once during the
+    /// iteration. Duplicates are detected using hash and equality.
+    ///
+    /// Duplicates are detected by comparing the key they map to with the keying function `f` by
+    /// hash and equality. The keys are stored in a hash map in the iterator.
+    ///
+    /// The iterator is stable, returning the duplicate items in the order in which they occur in
+    /// the adapted iterator. Each duplicate item is returned exactly once. If an item appears more
+    /// than twice, the second item is the item retained and the rest are discarded.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec!["a", "bb", "aa", "c", "ccc"];
+    /// itertools::assert_equal(data.into_iter().duplicates_by(|s| s.len()),
+    ///                         vec!["aa", "c"]);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn duplicates_by<V, F>(self, f: F) -> DuplicatesBy<Self, V, F>
+        where Self: Sized,
+              V: Eq + Hash,
+              F: FnMut(&Self::Item) -> V
+    {
+        duplicates_impl::duplicates_by(self, f)
     }
 
     /// Return an iterator adaptor that filters out elements that have

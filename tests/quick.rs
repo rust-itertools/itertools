@@ -916,6 +916,12 @@ quickcheck! {
 }
 
 quickcheck! {
+    fn size_duplicates(it: Iter<i8>) -> bool {
+        correct_size_hint(it.duplicates())
+    }
+}
+
+quickcheck! {
     fn size_unique(it: Iter<i8>) -> bool {
         correct_size_hint(it.unique())
     }
