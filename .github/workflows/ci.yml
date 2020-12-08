@@ -1,0 +1,24 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  msrv:
+    name: Rust MSRV
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dtolnay/rust-toolchain@1.36.0
+      - run: cargo check --no-default-features
+      - run: cargo check --no-default-features --features "use_alloc"
+      - run: cargo check
+
+  stable:
+    name: Rust Stable
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo check --no-default-features
+      - run: cargo check --no-default-features --features "use_alloc"
+      - run: cargo test
