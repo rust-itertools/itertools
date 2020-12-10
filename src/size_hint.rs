@@ -3,6 +3,7 @@
 
 use std::usize;
 use std::cmp;
+use std::u32;
 
 /// **SizeHint** is the return type of **Iterator::size_hint()**.
 pub type SizeHint = (usize, Option<usize>);
@@ -71,6 +72,20 @@ pub fn mul_scalar(sh: SizeHint, x: usize) -> SizeHint {
     let (mut low, mut hi) = sh;
     low = low.saturating_mul(x);
     hi = hi.and_then(|elt| elt.checked_mul(x));
+    (low, hi)
+}
+
+/// Raise `base` correctly by a **`SizeHint`** exponent.
+#[inline]
+pub fn pow_scalar_base(base: usize, exp: SizeHint) -> SizeHint {
+    let exp_low = cmp::min(exp.0, u32::MAX as usize) as u32;
+    let low = base.saturating_pow(exp_low);
+
+    let hi = exp.1.and_then(|exp| {
+        let exp_hi = cmp::min(exp, u32::MAX as usize) as u32;
+        base.checked_pow(exp_hi)
+    });
+
     (low, hi)
 }
 

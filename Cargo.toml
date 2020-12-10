@@ -67,3 +67,11 @@ harness = false
 [[bench]]
 name = "bench1"
 harness = false
+
+[[bench]]
+name = "combinations"
+harness = false
+
+[[bench]]
+name = "powerset"
+harness = false

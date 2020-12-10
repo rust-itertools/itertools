@@ -785,6 +785,23 @@ fn combinations_with_replacement() {
 }
 
 #[test]
+fn powerset() {
+    it::assert_equal((0..0).powerset(), vec![vec![]]);
+    it::assert_equal((0..1).powerset(), vec![vec![], vec![0]]);
+    it::assert_equal((0..2).powerset(), vec![vec![], vec![0], vec![1], vec![0, 1]]);
+    it::assert_equal((0..3).powerset(), vec![
+        vec![],
+        vec![0], vec![1], vec![2],
+        vec![0, 1], vec![0, 2], vec![1, 2],
+        vec![0, 1, 2]
+    ]);
+
+    assert_eq!((0..4).powerset().count(), 1 << 4);
+    assert_eq!((0..8).powerset().count(), 1 << 8);
+    assert_eq!((0..16).powerset().count(), 1 << 16);
+}
+
+#[test]
 fn diff_mismatch() {
     let a = vec![1, 2, 3, 4];
     let b = vec![1.0, 5.0, 3.0, 4.0];
