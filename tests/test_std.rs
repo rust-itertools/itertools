@@ -1,4 +1,9 @@
+use paste;
 use permutohedron;
+use quickcheck as qc;
+use rand::{distributions::{Distribution, Standard}, Rng, SeedableRng, rngs::StdRng};
+use rand::{seq::SliceRandom, thread_rng};
+use std::{cmp::min, fmt::Debug, marker::PhantomData};
 use itertools as it;
 use crate::it::Itertools;
 use crate::it::ExactlyOneError;
@@ -374,6 +379,88 @@ fn sorted_by() {
     it::assert_equal(v, vec![4, 3, 2, 1, 0]);
 }
 
+qc::quickcheck! {
+    fn k_smallest_range(n: u64, m: u16, k: u16) -> () {
+        // u16 is used to constrain k and m to 0..2¹⁶,
+        //  otherwise the test could use too much memory.
+        let (k, m) = (k as u64, m as u64);
+
+        // Generate a random permutation of n..n+m
+        let i = {
+            let mut v: Vec<u64> = (n..n.saturating_add(m)).collect();
+            v.shuffle(&mut thread_rng());
+            v.into_iter()
+        };
+
+        // Check that taking the k smallest elements yields n..n+min(k, m)
+        it::assert_equal(
+            i.k_smallest(k as usize),
+            n..n.saturating_add(min(k, m))
+        );
+    }
+}
+
+#[derive(Clone, Debug)]
+struct RandIter<T: 'static + Clone + Send, R: 'static + Clone + Rng + SeedableRng + Send = StdRng> {
+    idx: usize,
+    len: usize,
+    rng: R,
+    _t: PhantomData<T>
+}
+
+impl<T: Clone + Send, R: Clone + Rng + SeedableRng + Send> Iterator for RandIter<T, R>
+where Standard: Distribution<T> {
+    type Item = T;
+    fn next(&mut self) -> Option<T> {
+        if self.idx == self.len {
+            None
+        } else {
+            self.idx += 1;
+            Some(self.rng.gen())
+        }
+    }
+}
+
+impl<T: Clone + Send, R: Clone + Rng + SeedableRng + Send> qc::Arbitrary for RandIter<T, R> {
+    fn arbitrary<G: qc::Gen>(g: &mut G) -> Self {
+        RandIter {
+            idx: 0,
+            len: g.size(),
+            rng: R::seed_from_u64(g.next_u64()),
+            _t : PhantomData{},
+        }
+    }
+}
+
+// Check that taking the k smallest is the same as
+//  sorting then taking the k first elements
+fn k_smallest_sort<I>(i: I, k: u16) -> ()
+where
+    I: Iterator + Clone,
+    I::Item: Ord + Debug,
+{
+    let j = i.clone();
+    let k = k as usize;
+    it::assert_equal(
+        i.k_smallest(k),
+        j.sorted().take(k)
+    )
+}
+
+macro_rules! generic_test {
+    ($f:ident, $($t:ty),+) => {
+        $(paste::item! {
+            qc::quickcheck! {
+                fn [< $f _ $t >](i: RandIter<$t>, k: u16) -> () {
+                    $f(i, k)
+                }
+            }
+        })+
+    };
+}
+
+generic_test!(k_smallest_sort, u8, u16, u32, u64, i8, i16, i32, i64);
+
 #[test]
 fn sorted_by_key() {
     let sc = [3, 4, 1, 2].iter().cloned().sorted_by_key(|&x| x);
@@ -407,7 +494,6 @@ fn test_multipeek() {
     assert_eq!(mp.next(), Some(5));
     assert_eq!(mp.next(), None);
     assert_eq!(mp.peek(), None);
-
 }
 
 #[test]

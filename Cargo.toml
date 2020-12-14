@@ -28,6 +28,7 @@ either = { version = "1.0", default-features = false }
 [dev-dependencies]
 rand = "0.7"
 criterion = "=0" # TODO how could this work with our minimum supported rust version?
+paste = "1.0.0" # Used in test_std to instanciate generic tests
 
 [dev-dependencies.quickcheck]
 version = "0.9"

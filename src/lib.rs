@@ -196,6 +196,8 @@ mod group_map;
 mod groupbylazy;
 mod intersperse;
 #[cfg(feature = "use_alloc")]
+mod k_smallest;
+#[cfg(feature = "use_alloc")]
 mod kmerge_impl;
 #[cfg(feature = "use_alloc")]
 mod lazy_buffer;
@@ -2417,6 +2419,43 @@ pub trait Itertools : Iterator {
         let mut v = Vec::from_iter(self);
         v.sort_by_key(f);
         v.into_iter()
+    }
+
+    /// Sort the k smallest elements into a new iterator, in ascending order.
+    ///
+    /// **Note:** This consumes the entire iterator, and returns the result
+    /// as a new iterator that owns its elements.  If the input contains
+    /// less than k elements, the result is equivalent to `self.sorted()`.
+    ///
+    /// This is guaranteed to use `k * sizeof(Self::Item) + O(1)` memory
+    /// and `O(n log k)` time, with `n` the number of elements in the input.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// **Note:** This is functionally-equivalent to `self.sorted().take(k)`
+    /// but much more efficient.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_smallest = numbers
+    ///     .into_iter()
+    ///     .k_smallest(5);
+    ///
+    /// itertools::assert_equal(five_smallest, 0..5);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_smallest(self, k: usize) -> VecIntoIter<Self::Item>
+        where Self: Sized,
+              Self::Item: Ord
+    {
+        crate::k_smallest::k_smallest(self, k)
+            .into_sorted_vec()
+            .into_iter()
     }
 
     /// Collect all iterator elements into one of two
