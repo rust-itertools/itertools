@@ -253,16 +253,16 @@ macro_rules! iproduct {
         $I
     );
     (@flatten $I:expr, $J:expr, $($K:expr,)*) => (
-        iproduct!(@flatten $crate::cons_tuples(iproduct!($I, $J)), $($K,)*)
+        $crate::iproduct!(@flatten $crate::cons_tuples($crate::iproduct!($I, $J)), $($K,)*)
     );
     ($I:expr) => (
         $crate::__std_iter::IntoIterator::into_iter($I)
     );
     ($I:expr, $J:expr) => (
-        $crate::Itertools::cartesian_product(iproduct!($I), iproduct!($J))
+        $crate::Itertools::cartesian_product($crate::iproduct!($I), $crate::iproduct!($J))
     );
     ($I:expr, $J:expr, $($K:expr),+) => (
-        iproduct!(@flatten iproduct!($I, $J), $($K,)+)
+        $crate::iproduct!(@flatten $crate::iproduct!($I, $J), $($K,)+)
     );
 }
 
@@ -313,7 +313,7 @@ macro_rules! izip {
 
     // The "b" identifier is a different identifier on each recursion level thanks to hygiene.
     ( @closure $p:pat => ( $($tup:tt)* ) , $_iter:expr $( , $tail:expr )* ) => {
-        izip!(@closure ($p, b) => ( $($tup)*, b ) $( , $tail )*)
+        $crate::izip!(@closure ($p, b) => ( $($tup)*, b ) $( , $tail )*)
     };
 
     // unary
@@ -323,18 +323,18 @@ macro_rules! izip {
 
     // binary
     ($first:expr, $second:expr $(,)*) => {
-        izip!($first)
+        $crate::izip!($first)
             .zip($second)
     };
 
     // n-ary where n > 2
     ( $first:expr $( , $rest:expr )* $(,)* ) => {
-        izip!($first)
+        $crate::izip!($first)
             $(
                 .zip($rest)
             )*
             .map(
-                izip!(@closure a => (a) $( , $rest )*)
+                $crate::izip!(@closure a => (a) $( , $rest )*)
             )
     };
 }
