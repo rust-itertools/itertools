@@ -118,6 +118,8 @@ pub mod structs {
     pub use crate::cons_tuples_impl::ConsTuples;
     pub use crate::exactly_one_err::ExactlyOneError;
     pub use crate::format::{Format, FormatWith};
+    #[cfg(feature = "use_std")]
+    pub use crate::grouping_map::{GroupingMap, GroupingMapBy};
     #[cfg(feature = "use_alloc")]
     pub use crate::groupbylazy::{IntoChunks, Chunk, Chunks, GroupBy, Group, Groups};
     pub use crate::intersperse::{Intersperse, IntersperseWith};
@@ -190,6 +192,8 @@ mod combinations_with_replacement;
 mod exactly_one_err;
 mod diff;
 mod format;
+#[cfg(feature = "use_std")]
+mod grouping_map;
 #[cfg(feature = "use_alloc")]
 mod group_map;
 #[cfg(feature = "use_alloc")]
@@ -2518,7 +2522,6 @@ pub trait Itertools : Iterator {
         group_map::into_group_map(self)
     }
 
-
     /// Return an `Iterator` on a HahMap. Keys mapped to `Vec`s of values. The key is specified in
     /// in the closure.
     /// Different of into_group_map_by because the key is still present. It is also more general.
@@ -2552,6 +2555,40 @@ pub trait Itertools : Iterator {
             F: Fn(&V) -> K,
     {
         group_map::into_group_map_by(self, f)
+    }
+
+    /// Constructs a `GroupingMap` to be used later with one of the efficient 
+    /// group-and-fold operations it allows to perform.
+    /// 
+    /// The input iterator must yield item in the form of `(K, V)` where the
+    /// value of type `K` will be used as key to identify the groups and the
+    /// value of type `V` as value for the folding operation.
+    /// 
+    /// See [`GroupingMap`](./structs/struct.GroupingMap.html) for more informations
+    /// on what operations are available.
+    #[cfg(feature = "use_std")]
+    fn into_grouping_map<K, V>(self) -> GroupingMap<Self>
+        where Self: Iterator<Item=(K, V)> + Sized,
+              K: Hash + Eq,
+    {
+        grouping_map::new(self)
+    }
+
+    /// Constructs a `GroupingMap` to be used later with one of the efficient 
+    /// group-and-fold operations it allows to perform.
+    /// 
+    /// The values from this iterator will be used as values for the folding operation
+    /// while the keys will be obtained from the values by calling `key_mapper`.
+    /// 
+    /// See [`GroupingMap`](./structs/struct.GroupingMap.html) for more informations
+    /// on what operations are available.
+    #[cfg(feature = "use_std")]
+    fn into_grouping_map_by<K, V, F>(self, key_mapper: F) -> GroupingMapBy<Self, F>
+        where Self: Iterator<Item=V> + Sized,
+              K: Hash + Eq,
+              F: FnMut(&V) -> K
+    {
+        grouping_map::new(grouping_map::MapForGrouping::new(self, key_mapper))
     }
 
     /// Return the minimum and maximum elements in the iterator.

@@ -5,9 +5,10 @@
 
 use quickcheck as qc;
 use std::default::Default;
+use std::num::Wrapping;
 use std::ops::Range;
 use std::cmp::{max, min, Ordering};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use itertools::Itertools;
 use itertools::{
     multizip,
@@ -1193,6 +1194,342 @@ quickcheck! {
             1 => TestResult::from_bool(ret.unwrap() == a[0]),
             _ => TestResult::from_bool(ret.unwrap_err().eq(a.iter().cloned())),
         }
+    }
+}
+
+quickcheck! {
+    fn consistent_grouping_map_with_by(a: Vec<u8>, modulo: u8) -> () {
+        let modulo = if modulo == 0 { 1 } else { modulo }; // Avoid `% 0`
+
+        let lookup_grouping_map = a.iter().copied().map(|i| (i % modulo, i)).into_grouping_map().collect::<Vec<_>>();
+        let lookup_grouping_map_by = a.iter().copied().into_grouping_map_by(|i| i % modulo).collect::<Vec<_>>();
+
+        assert_eq!(lookup_grouping_map, lookup_grouping_map_by);
+    }
+
+    fn correct_grouping_map_by_aggregate_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+        let modulo = if modulo < 2 { 2 } else { modulo } as u64; // Avoid `% 0`
+        let lookup = a.iter()
+            .map(|&b| b as u64) // Avoid overflows
+            .into_grouping_map_by(|i| i % modulo)
+            .aggregate(|acc, &key, val| {
+                assert!(val % modulo == key);
+                if val % (modulo - 1) == 0 {
+                    None
+                } else {
+                    Some(acc.unwrap_or(0) + val)
+                }
+            });
+        
+        let group_map_lookup = a.iter()
+            .map(|&b| b as u64)
+            .map(|i| (i % modulo, i))
+            .into_group_map()
+            .into_iter()
+            .filter_map(|(key, vals)| {
+                vals.into_iter().fold(None, |acc, val| {
+                    if val % (modulo - 1) == 0 {
+                        None
+                    } else {
+                        Some(acc.unwrap_or(0) + val)
+                    }
+                }).map(|new_val| (key, new_val))
+            })
+            .collect::<HashMap<_,_>>();
+        assert_eq!(lookup, group_map_lookup);
+
+        for m in 0..modulo {
+            assert_eq!(
+                lookup.get(&m).copied(), 
+                a.iter()
+                    .map(|&b| b as u64)
+                    .filter(|&val| val % modulo == m)
+                    .fold(None, |acc, val| {
+                        if val % (modulo - 1) == 0 {
+                            None
+                        } else {
+                            Some(acc.unwrap_or(0) + val)
+                        }
+                    })
+            );
+        }
+    }
+
+    fn correct_grouping_map_by_fold_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+        let modulo = if modulo == 0 { 1 } else { modulo } as u64; // Avoid `% 0`
+        let lookup = a.iter().map(|&b| b as u64) // Avoid overflows
+            .into_grouping_map_by(|i| i % modulo)
+            .fold(0u64, |acc, &key, val| {
+                assert!(val % modulo == key);
+                acc + val
+            });
+
+        let group_map_lookup = a.iter()
+            .map(|&b| b as u64)
+            .map(|i| (i % modulo, i))
+            .into_group_map()
+            .into_iter()
+            .map(|(key, vals)| (key, vals.into_iter().fold(0u64, |acc, val| acc + val)))
+            .collect::<HashMap<_,_>>();
+        assert_eq!(lookup, group_map_lookup);
+
+        for (&key, &sum) in lookup.iter() {
+            assert_eq!(sum, a.iter().map(|&b| b as u64).filter(|&val| val % modulo == key).sum::<u64>());
+        }
+    }
+
+    fn correct_grouping_map_by_fold_first_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+        let modulo = if modulo == 0 { 1 } else { modulo } as u64; // Avoid `% 0`
+        let lookup = a.iter().map(|&b| b as u64) // Avoid overflows
+            .into_grouping_map_by(|i| i % modulo)
+            .fold_first(|acc, &key, val| {
+                assert!(val % modulo == key);
+                acc + val
+            });
+
+        // TODO: Swap `fold1` with stdlib's `fold_first` when it's stabilized
+        let group_map_lookup = a.iter()
+            .map(|&b| b as u64)
+            .map(|i| (i % modulo, i))
+            .into_group_map()
+            .into_iter()
+            .map(|(key, vals)| (key, vals.into_iter().fold1(|acc, val| acc + val).unwrap()))
+            .collect::<HashMap<_,_>>();
+        assert_eq!(lookup, group_map_lookup);
+
+        for (&key, &sum) in lookup.iter() {
+            assert_eq!(sum, a.iter().map(|&b| b as u64).filter(|&val| val % modulo == key).sum::<u64>());
+        }
+    }
+
+    fn correct_grouping_map_by_collect_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+        let modulo = if modulo == 0 { 1 } else { modulo }; // Avoid `% 0`
+        let lookup_grouping_map = a.iter().copied().into_grouping_map_by(|i| i % modulo).collect::<Vec<_>>();
+        let lookup_group_map = a.iter().copied().map(|i| (i % modulo, i)).into_group_map();
+
+        assert_eq!(lookup_grouping_map, lookup_group_map);
+    }
+
+    fn correct_grouping_map_by_max_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+        let modulo = if modulo == 0 { 1 } else { modulo }; // Avoid `% 0`
+        let lookup = a.iter().copied().into_grouping_map_by(|i| i % modulo).max();
+
+        let group_map_lookup = a.iter().copied()
+            .map(|i| (i % modulo, i))
+            .into_group_map()
+            .into_iter()
+            .map(|(key, vals)| (key, vals.into_iter().max().unwrap()))
+            .collect::<HashMap<_,_>>();
+        assert_eq!(lookup, group_map_lookup);
+
+        for (&key, &max) in lookup.iter() {
+            assert_eq!(Some(max), a.iter().copied().filter(|&val| val % modulo == key).max());
+        }
+    }
+
+    fn correct_grouping_map_by_max_by_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+        let modulo = if modulo == 0 { 1 } else { modulo }; // Avoid `% 0`
+        let lookup = a.iter().copied().into_grouping_map_by(|i| i % modulo).max_by(|_, v1, v2| v1.cmp(v2));
+
+        let group_map_lookup = a.iter().copied()
+            .map(|i| (i % modulo, i))
+            .into_group_map()
+            .into_iter()
+            .map(|(key, vals)| (key, vals.into_iter().max_by(|v1, v2| v1.cmp(v2)).unwrap()))
+            .collect::<HashMap<_,_>>();
+        assert_eq!(lookup, group_map_lookup);
+
+        for (&key, &max) in lookup.iter() {
+            assert_eq!(Some(max), a.iter().copied().filter(|&val| val % modulo == key).max_by(|v1, v2| v1.cmp(v2)));
+        }
+    }
+
+    fn correct_grouping_map_by_max_by_key_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+        let modulo = if modulo == 0 { 1 } else { modulo }; // Avoid `% 0`
+        let lookup = a.iter().copied().into_grouping_map_by(|i| i % modulo).max_by_key(|_, &val| val);
+
+        let group_map_lookup = a.iter().copied()
+            .map(|i| (i % modulo, i))
+            .into_group_map()
+            .into_iter()
+            .map(|(key, vals)| (key, vals.into_iter().max_by_key(|&val| val).unwrap()))
+            .collect::<HashMap<_,_>>();
+        assert_eq!(lookup, group_map_lookup);
+
+        for (&key, &max) in lookup.iter() {
+            assert_eq!(Some(max), a.iter().copied().filter(|&val| val % modulo == key).max_by_key(|&val| val));
+        }
+    }
+    
+    fn correct_grouping_map_by_min_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+        let modulo = if modulo == 0 { 1 } else { modulo }; // Avoid `% 0`
+        let lookup = a.iter().copied().into_grouping_map_by(|i| i % modulo).min();
+
+        let group_map_lookup = a.iter().copied()
+            .map(|i| (i % modulo, i))
+            .into_group_map()
+            .into_iter()
+            .map(|(key, vals)| (key, vals.into_iter().min().unwrap()))
+            .collect::<HashMap<_,_>>();
+        assert_eq!(lookup, group_map_lookup);
+
+        for (&key, &min) in lookup.iter() {
+            assert_eq!(Some(min), a.iter().copied().filter(|&val| val % modulo == key).min());
+        }
+    }
+
+    fn correct_grouping_map_by_min_by_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+        let modulo = if modulo == 0 { 1 } else { modulo }; // Avoid `% 0`
+        let lookup = a.iter().copied().into_grouping_map_by(|i| i % modulo).min_by(|_, v1, v2| v1.cmp(v2));
+
+        let group_map_lookup = a.iter().copied()
+            .map(|i| (i % modulo, i))
+            .into_group_map()
+            .into_iter()
+            .map(|(key, vals)| (key, vals.into_iter().min_by(|v1, v2| v1.cmp(v2)).unwrap()))
+            .collect::<HashMap<_,_>>();
+        assert_eq!(lookup, group_map_lookup);
+
+        for (&key, &min) in lookup.iter() {
+            assert_eq!(Some(min), a.iter().copied().filter(|&val| val % modulo == key).min_by(|v1, v2| v1.cmp(v2)));
+        }
+    }
+
+    fn correct_grouping_map_by_min_by_key_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+        let modulo = if modulo == 0 { 1 } else { modulo }; // Avoid `% 0`
+        let lookup = a.iter().copied().into_grouping_map_by(|i| i % modulo).min_by_key(|_, &val| val);
+
+        let group_map_lookup = a.iter().copied()
+            .map(|i| (i % modulo, i))
+            .into_group_map()
+            .into_iter()
+            .map(|(key, vals)| (key, vals.into_iter().min_by_key(|&val| val).unwrap()))
+            .collect::<HashMap<_,_>>();
+        assert_eq!(lookup, group_map_lookup);
+
+        for (&key, &min) in lookup.iter() {
+            assert_eq!(Some(min), a.iter().copied().filter(|&val| val % modulo == key).min_by_key(|&val| val));
+        }
+    }
+    
+    fn correct_grouping_map_by_minmax_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+        let modulo = if modulo == 0 { 1 } else { modulo }; // Avoid `% 0`
+        let lookup = a.iter().copied().into_grouping_map_by(|i| i % modulo).minmax();
+
+        let group_map_lookup = a.iter().copied()
+            .map(|i| (i % modulo, i))
+            .into_group_map()
+            .into_iter()
+            .map(|(key, vals)| (key, vals.into_iter().minmax()))
+            .collect::<HashMap<_,_>>();
+        assert_eq!(lookup, group_map_lookup);
+
+        for (&key, &minmax) in lookup.iter() {
+            assert_eq!(minmax, a.iter().copied().filter(|&val| val % modulo == key).minmax());
+        }
+    }
+
+    fn correct_grouping_map_by_minmax_by_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+        let modulo = if modulo == 0 { 1 } else { modulo }; // Avoid `% 0`
+        let lookup = a.iter().copied().into_grouping_map_by(|i| i % modulo).minmax_by(|_, v1, v2| v1.cmp(v2));
+
+        let group_map_lookup = a.iter().copied()
+            .map(|i| (i % modulo, i))
+            .into_group_map()
+            .into_iter()
+            .map(|(key, vals)| (key, vals.into_iter().minmax_by(|v1, v2| v1.cmp(v2))))
+            .collect::<HashMap<_,_>>();
+        assert_eq!(lookup, group_map_lookup);
+
+        for (&key, &minmax) in lookup.iter() {
+            assert_eq!(minmax, a.iter().copied().filter(|&val| val % modulo == key).minmax_by(|v1, v2| v1.cmp(v2)));
+        }
+    }
+
+    fn correct_grouping_map_by_minmax_by_key_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+        let modulo = if modulo == 0 { 1 } else { modulo }; // Avoid `% 0`
+        let lookup = a.iter().copied().into_grouping_map_by(|i| i % modulo).minmax_by_key(|_, &val| val);
+
+        let group_map_lookup = a.iter().copied()
+            .map(|i| (i % modulo, i))
+            .into_group_map()
+            .into_iter()
+            .map(|(key, vals)| (key, vals.into_iter().minmax_by_key(|&val| val)))
+            .collect::<HashMap<_,_>>();
+        assert_eq!(lookup, group_map_lookup);
+
+        for (&key, &minmax) in lookup.iter() {
+            assert_eq!(minmax, a.iter().copied().filter(|&val| val % modulo == key).minmax_by_key(|&val| val));
+        }
+    }
+
+    fn correct_grouping_map_by_sum_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+        let modulo = if modulo == 0 { 1 } else { modulo } as u64; // Avoid `% 0`
+        let lookup = a.iter().map(|&b| b as u64) // Avoid overflows
+            .into_grouping_map_by(|i| i % modulo)
+            .sum();
+
+        let group_map_lookup = a.iter().map(|&b| b as u64)
+            .map(|i| (i % modulo, i))
+            .into_group_map()
+            .into_iter()
+            .map(|(key, vals)| (key, vals.into_iter().sum()))
+            .collect::<HashMap<_,_>>();
+        assert_eq!(lookup, group_map_lookup);
+
+        for (&key, &sum) in lookup.iter() {
+            assert_eq!(sum, a.iter().map(|&b| b as u64).filter(|&val| val % modulo == key).sum::<u64>());
+        }
+    }
+
+    fn correct_grouping_map_by_product_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+        let modulo = Wrapping(if modulo == 0 { 1 } else { modulo } as u64); // Avoid `% 0`
+        let lookup = a.iter().map(|&b| Wrapping(b as u64)) // Avoid overflows
+            .into_grouping_map_by(|i| i % modulo)
+            .product();
+
+        let group_map_lookup = a.iter().map(|&b| Wrapping(b as u64))
+            .map(|i| (i % modulo, i))
+            .into_group_map()
+            .into_iter()
+            .map(|(key, vals)| (key, vals.into_iter().product::<Wrapping<u64>>()))
+            .collect::<HashMap<_,_>>();
+        assert_eq!(lookup, group_map_lookup);
+
+        for (&key, &prod) in lookup.iter() {
+            assert_eq!(
+                prod,
+                a.iter()
+                    .map(|&b| Wrapping(b as u64))
+                    .filter(|&val| val % modulo == key)
+                    .product::<Wrapping<u64>>()
+            );
+        }
+    }
+
+    // This should check that if multiple elements are equally minimum or maximum
+    // then `max`, `min` and `minmax` pick the first minimum and the last maximum.
+    // This is to be consistent with `std::iter::max` and `std::iter::min`.
+    fn correct_grouping_map_by_min_max_minmax_order_modulo_key() -> () {
+        use itertools::MinMaxResult;
+
+        let lookup = (0..=10)
+            .into_grouping_map_by(|_| 0)
+            .max_by(|_, _, _| Ordering::Equal);
+
+        assert_eq!(lookup[&0], 10);
+
+        let lookup = (0..=10)
+            .into_grouping_map_by(|_| 0)
+            .min_by(|_, _, _| Ordering::Equal);
+
+        assert_eq!(lookup[&0], 0);
+        
+        let lookup = (0..=10)
+            .into_grouping_map_by(|_| 0)
+            .minmax_by(|_, _, _| Ordering::Equal);
+
+        assert_eq!(lookup[&0], MinMaxResult::MinMax(0, 10));
     }
 }
 
