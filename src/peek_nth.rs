@@ -3,7 +3,7 @@ use crate::PeekingNext;
 use alloc::collections::VecDeque;
 use std::iter::Fuse;
 
-/// See [`peek_nth()`](../fn.peek_nth.html) for more information.
+/// See [`peek_nth()`] for more information.
 #[derive(Clone, Debug)]
 pub struct PeekNth<I>
 where

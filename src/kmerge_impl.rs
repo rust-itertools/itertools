@@ -98,7 +98,7 @@ fn sift_down<T, S>(heap: &mut [T], index: usize, mut less_than: S)
 ///
 /// Iterator element type is `I::Item`.
 ///
-/// See [`.kmerge()`](../trait.Itertools.html#method.kmerge) for more information.
+/// See [`.kmerge()`](crate::Itertools::kmerge) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub type KMerge<I> = KMergeBy<I, KMergeByLt>;
 
@@ -146,7 +146,7 @@ pub fn kmerge<I>(iterable: I) -> KMerge<<I::Item as IntoIterator>::IntoIter>
 ///
 /// Iterator element type is `I::Item`.
 ///
-/// See [`.kmerge_by()`](../trait.Itertools.html#method.kmerge_by) for more
+/// See [`.kmerge_by()`](crate::Itertools::kmerge_by) for more
 /// information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct KMergeBy<I, F>

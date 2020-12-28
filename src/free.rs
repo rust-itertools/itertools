@@ -225,7 +225,7 @@ pub fn join<I>(iterable: I, sep: &str) -> String
 ///
 /// `IntoIterator` enabled version of [`iterable.sorted()`][1].
 ///
-/// [1]: trait.Itertools.html#method.sorted
+/// [1]: crate::Itertools::sorted
 ///
 /// ```
 /// use itertools::sorted;
