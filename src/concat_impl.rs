@@ -1,4 +1,4 @@
-use Itertools;
+use crate::Itertools;
 
 /// Combine all an iterator's elements into one element by using `Extend`.
 ///
@@ -18,5 +18,5 @@ pub fn concat<I>(iterable: I) -> I::Item
     where I: IntoIterator,
           I::Item: Extend<<<I as IntoIterator>::Item as IntoIterator>::Item> + IntoIterator + Default
 {
-    iterable.into_iter().fold1(|mut a, b| { a.extend(b); a }).unwrap_or_else(|| <_>::default())
+    iterable.into_iter().fold1(|mut a, b| { a.extend(b); a }).unwrap_or_else(<_>::default)
 }

@@ -1,7 +1,7 @@
+use crate::size_hint;
+use crate::Itertools;
 
-use size_hint;
-use Itertools;
-
+use alloc::vec::Vec;
 use std::mem::replace;
 use std::fmt;
 
@@ -98,7 +98,7 @@ fn sift_down<T, S>(heap: &mut [T], index: usize, mut less_than: S)
 ///
 /// Iterator element type is `I::Item`.
 ///
-/// See [`.kmerge()`](../trait.Itertools.html#method.kmerge) for more information.
+/// See [`.kmerge()`](crate::Itertools::kmerge) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub type KMerge<I> = KMergeBy<I, KMergeByLt>;
 
@@ -146,7 +146,7 @@ pub fn kmerge<I>(iterable: I) -> KMerge<<I::Item as IntoIterator>::IntoIter>
 ///
 /// Iterator element type is `I::Item`.
 ///
-/// See [`.kmerge_by()`](../trait.Itertools.html#method.kmerge_by) for more
+/// See [`.kmerge_by()`](crate::Itertools::kmerge_by) for more
 /// information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct KMergeBy<I, F>
@@ -177,7 +177,7 @@ pub fn kmerge_by<I, F>(iterable: I, mut less_than: F)
     let mut heap: Vec<_> = Vec::with_capacity(lower);
     heap.extend(iter.filter_map(|it| HeadTail::new(it.into_iter())));
     heapify(&mut heap, |a, b| less_than.kmerge_pred(&a.head, &b.head));
-    KMergeBy { heap: heap, less_than: less_than }
+    KMergeBy { heap, less_than }
 }
 
 impl<I, F> Clone for KMergeBy<I, F>

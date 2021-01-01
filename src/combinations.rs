@@ -1,13 +1,13 @@
 use std::fmt;
 
 use super::lazy_buffer::LazyBuffer;
+use alloc::vec::Vec;
 
 /// An iterator to iterate through all the `k`-length combinations in an iterator.
 ///
-/// See [`.combinations()`](../trait.Itertools.html#method.combinations) for more information.
+/// See [`.combinations()`](crate::Itertools::combinations) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Combinations<I: Iterator> {
-    k: usize,
     indices: Vec<usize>,
     pool: LazyBuffer<I>,
     first: bool,
@@ -17,37 +17,66 @@ impl<I> Clone for Combinations<I>
     where I: Clone + Iterator,
           I::Item: Clone,
 {
-    clone_fields!(k, indices, pool, first);
+    clone_fields!(indices, pool, first);
 }
 
 impl<I> fmt::Debug for Combinations<I>
     where I: Iterator + fmt::Debug,
           I::Item: fmt::Debug,
 {
-    debug_fmt_fields!(Combinations, k, indices, pool, first);
+    debug_fmt_fields!(Combinations, indices, pool, first);
 }
 
 /// Create a new `Combinations` from a clonable iterator.
 pub fn combinations<I>(iter: I, k: usize) -> Combinations<I>
     where I: Iterator
 {
-    let mut indices: Vec<usize> = Vec::with_capacity(k);
-    for i in 0..k {
-        indices.push(i);
-    }
-    let mut pool: LazyBuffer<I> = LazyBuffer::new(iter);
-
-    for _ in 0..k {
-        if !pool.get_next() {
-            break;
-        }
-    }
+    let mut pool = LazyBuffer::new(iter);
+    pool.prefill(k);
 
     Combinations {
-        k: k,
-        indices: indices,
-        pool: pool,
+        indices: (0..k).collect(),
+        pool,
         first: true,
+    }
+}
+
+impl<I: Iterator> Combinations<I> {
+    /// Returns the length of a combination produced by this iterator.
+    #[inline]
+    pub fn k(&self) -> usize { self.indices.len() }
+
+    /// Returns the (current) length of the pool from which combination elements are
+    /// selected. This value can change between invocations of [`next`].
+    ///
+    /// [`next`]: #method.next
+    #[inline]
+    pub fn n(&self) -> usize { self.pool.len() }
+
+    /// Returns a reference to the source iterator.
+    #[inline]
+    pub(crate) fn src(&self) -> &I { &self.pool.it }
+
+    /// Resets this `Combinations` back to an initial state for combinations of length
+    /// `k` over the same pool data source. If `k` is larger than the current length
+    /// of the data pool an attempt is made to prefill the pool so that it holds `k`
+    /// elements.
+    pub(crate) fn reset(&mut self, k: usize) {
+        self.first = true;
+
+        if k < self.indices.len() {
+            self.indices.truncate(k);
+            for i in 0..k {
+                self.indices[i] = i;
+            }
+
+        } else {
+            for i in 0..self.indices.len() {
+                self.indices[i] = i;
+            }
+            self.indices.extend(self.indices.len()..k);
+            self.pool.prefill(k);
+        }
     }
 }
 
@@ -57,27 +86,23 @@ impl<I> Iterator for Combinations<I>
 {
     type Item = Vec<I::Item>;
     fn next(&mut self) -> Option<Self::Item> {
-        let mut pool_len = self.pool.len();
-
         if self.first {
-            if self.pool.is_done() {
+            if self.k() > self.n() {
                 return None;
             }
             self.first = false;
-        } else if self.k == 0 {
+        } else if self.indices.is_empty() {
             return None;
         } else {
             // Scan from the end, looking for an index to increment
-            let mut i: usize = self.k - 1;
+            let mut i: usize = self.indices.len() - 1;
 
             // Check if we need to consume more from the iterator
-            if self.indices[i] == pool_len - 1 && !self.pool.is_done() {
-                if self.pool.get_next() {
-                    pool_len += 1;
-                }
+            if self.indices[i] == self.pool.len() - 1 {
+                self.pool.get_next(); // may change pool size
             }
 
-            while self.indices[i] == i + pool_len - self.k {
+            while self.indices[i] == i + self.pool.len() - self.indices.len() {
                 if i > 0 {
                     i -= 1;
                 } else {
@@ -88,18 +113,12 @@ impl<I> Iterator for Combinations<I>
 
             // Increment index, and reset the ones to its right
             self.indices[i] += 1;
-            let mut j = i + 1;
-            while j < self.k {
+            for j in i+1..self.indices.len() {
                 self.indices[j] = self.indices[j - 1] + 1;
-                j += 1;
             }
         }
 
         // Create result vector based on the indices
-        let mut result = Vec::with_capacity(self.k);
-        for i in self.indices.iter() {
-            result.push(self.pool[*i].clone());
-        }
-        Some(result)
+        Some(self.indices.iter().map(|i| self.pool[*i].clone()).collect())
     }
 }

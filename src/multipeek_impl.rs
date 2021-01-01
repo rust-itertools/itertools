@@ -1,11 +1,9 @@
-
-
 use std::iter::Fuse;
-use std::collections::VecDeque;
-use size_hint;
-use PeekingNext;
+use alloc::collections::VecDeque;
+use crate::size_hint;
+use crate::PeekingNext;
 
-/// See [`multipeek()`](../fn.multipeek.html) for more information.
+/// See [`multipeek()`] for more information.
 #[derive(Clone, Debug)]
 pub struct MultiPeek<I>
     where I: Iterator
@@ -82,13 +80,9 @@ impl<I> Iterator for MultiPeek<I>
 {
     type Item = I::Item;
 
-    fn next(&mut self) -> Option<I::Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         self.index = 0;
-        if self.buf.is_empty() {
-            self.iter.next()
-        } else {
-            self.buf.pop_front()
-        }
+        self.buf.pop_front().or_else(|| self.iter.next())
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {

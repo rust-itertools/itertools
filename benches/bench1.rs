@@ -1,9 +1,7 @@
-extern crate criterion;
-#[macro_use] extern crate itertools;
-
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use itertools::Itertools;
 use itertools::free::cloned;
+use itertools::iproduct;
 
 use std::iter::repeat;
 use std::cmp;
@@ -11,7 +9,7 @@ use std::ops::{Add, Range};
 
 mod extra;
 
-use extra::ZipSlices;
+use crate::extra::ZipSlices;
 
 fn slice_iter(c: &mut Criterion) {
     let xs: Vec<_> = repeat(1i32).take(20).collect();

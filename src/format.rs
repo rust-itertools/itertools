@@ -6,7 +6,7 @@ use std::cell::RefCell;
 /// The format value can only be formatted once, after that the iterator is
 /// exhausted.
 ///
-/// See [`.format_with()`](../trait.Itertools.html#method.format_with) for more information.
+/// See [`.format_with()`](crate::Itertools::format_with) for more information.
 #[derive(Clone)]
 pub struct FormatWith<'a, I, F> {
     sep: &'a str,
@@ -19,7 +19,7 @@ pub struct FormatWith<'a, I, F> {
 /// The format value can only be formatted once, after that the iterator is
 /// exhausted.
 ///
-/// See [`.format()`](../trait.Itertools.html#method.format)
+/// See [`.format()`](crate::Itertools::format)
 /// for more information.
 #[derive(Clone)]
 pub struct Format<'a, I> {
@@ -28,7 +28,7 @@ pub struct Format<'a, I> {
     inner: RefCell<Option<I>>,
 }
 
-pub fn new_format<'a, I, F>(iter: I, separator: &'a str, f: F) -> FormatWith<'a, I, F>
+pub fn new_format<I, F>(iter: I, separator: &str, f: F) -> FormatWith<'_, I, F>
     where I: Iterator,
           F: FnMut(I::Item, &mut dyn FnMut(&dyn fmt::Display) -> fmt::Result) -> fmt::Result
 {
@@ -38,7 +38,7 @@ pub fn new_format<'a, I, F>(iter: I, separator: &'a str, f: F) -> FormatWith<'a,
     }
 }
 
-pub fn new_format_default<'a, I>(iter: I, separator: &'a str) -> Format<'a, I>
+pub fn new_format_default<I>(iter: I, separator: &str) -> Format<'_, I>
     where I: Iterator,
 {
     Format {
@@ -59,13 +59,12 @@ impl<'a, I, F> fmt::Display for FormatWith<'a, I, F>
 
         if let Some(fst) = iter.next() {
             format(fst, &mut |disp: &dyn fmt::Display| disp.fmt(f))?;
-            for elt in iter {
-                if self.sep.len() > 0 {
-
+            iter.try_for_each(|elt| {
+                if !self.sep.is_empty() {
                     f.write_str(self.sep)?;
                 }
-                format(elt, &mut |disp: &dyn fmt::Display| disp.fmt(f))?;
-            }
+                format(elt, &mut |disp: &dyn fmt::Display| disp.fmt(f))
+            })?;
         }
         Ok(())
     }
@@ -84,12 +83,12 @@ impl<'a, I> Format<'a, I>
 
         if let Some(fst) = iter.next() {
             cb(&fst, f)?;
-            for elt in iter {
-                if self.sep.len() > 0 {
+            iter.try_for_each(|elt| {
+                if !self.sep.is_empty() {
                     f.write_str(self.sep)?;
                 }
-                cb(&elt, f)?;
-            }
+                cb(&elt, f)
+            })?;
         }
         Ok(())
     }

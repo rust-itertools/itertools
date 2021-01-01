@@ -28,8 +28,7 @@ impl<'a, I, T, E> Iterator for ProcessResults<'a, I, E>
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let (_, hi) = self.iter.size_hint();
-        (0, hi)
+        (0, self.iter.size_hint().1)
     }
 }
 
@@ -75,7 +74,7 @@ pub fn process_results<I, F, T, E, R>(iterable: I, processor: F) -> Result<R, E>
     let iter = iterable.into_iter();
     let mut error = Ok(());
 
-    let result = processor(ProcessResults { error: &mut error, iter: iter });
+    let result = processor(ProcessResults { error: &mut error, iter });
 
     error.map(|_| result)
 }

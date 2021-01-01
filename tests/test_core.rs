@@ -5,14 +5,14 @@
 //! except according to those terms.
 #![no_std]
 
-#[macro_use] extern crate itertools as it;
-
 use core::iter;
-
-use it::Itertools;
-use it::interleave;
-use it::multizip;
-use it::free::put_back;
+use itertools as it;
+use crate::it::Itertools;
+use crate::it::interleave;
+use crate::it::multizip;
+use crate::it::free::put_back;
+use crate::it::iproduct;
+use crate::it::izip;
 
 #[test]
 fn product2() {

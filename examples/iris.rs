@@ -3,10 +3,6 @@
 /// and does some simple manipulations.
 ///
 /// Iterators and itertools functionality are used throughout.
-///
-///
-
-extern crate itertools;
 
 use itertools::Itertools;
 use std::collections::HashMap;
@@ -59,7 +55,7 @@ fn main() {
     // using Itertools::fold_results to create the result of parsing
     let irises = DATA.lines()
                      .map(str::parse)
-                     .fold_results(Vec::new(), |mut v, iris: Iris| {
+                     .fold_ok(Vec::new(), |mut v, iris: Iris| {
                          v.push(iris);
                          v
                      });

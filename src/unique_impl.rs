@@ -6,7 +6,7 @@ use std::fmt;
 
 /// An iterator adapter to filter out duplicate elements.
 ///
-/// See [`.unique_by()`](../trait.Itertools.html#method.unique) for more information.
+/// See [`.unique_by()`](crate::Itertools::unique) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct UniqueBy<I: Iterator, V, F> {
@@ -30,9 +30,9 @@ pub fn unique_by<I, V, F>(iter: I, f: F) -> UniqueBy<I, V, F>
           I: Iterator,
 {
     UniqueBy {
-        iter: iter,
+        iter,
         used: HashMap::new(),
-        f: f,
+        f,
     }
 }
 
@@ -54,7 +54,7 @@ impl<I, V, F> Iterator for UniqueBy<I, V, F>
 {
     type Item = I::Item;
 
-    fn next(&mut self) -> Option<I::Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         while let Some(v) = self.iter.next() {
             let key = (self.f)(&v);
             if self.used.insert(key, ()).is_none() {
@@ -76,13 +76,29 @@ impl<I, V, F> Iterator for UniqueBy<I, V, F>
     }
 }
 
+impl<I, V, F> DoubleEndedIterator for UniqueBy<I, V, F>
+    where I: DoubleEndedIterator,
+          V: Eq + Hash,
+          F: FnMut(&I::Item) -> V
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        while let Some(v) = self.iter.next_back() {
+            let key = (self.f)(&v);
+            if self.used.insert(key, ()).is_none() {
+                return Some(v);
+            }
+        }
+        None
+    }
+}
+
 impl<I> Iterator for Unique<I>
     where I: Iterator,
           I::Item: Eq + Hash + Clone
 {
     type Item = I::Item;
 
-    fn next(&mut self) -> Option<I::Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         while let Some(v) = self.iter.iter.next() {
             if let Entry::Vacant(entry) = self.iter.used.entry(v) {
                 let elt = entry.key().clone();
@@ -104,9 +120,25 @@ impl<I> Iterator for Unique<I>
     }
 }
 
+impl<I> DoubleEndedIterator for Unique<I>
+    where I: DoubleEndedIterator,
+          I::Item: Eq + Hash + Clone
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        while let Some(v) = self.iter.iter.next_back() {
+            if let Entry::Vacant(entry) = self.iter.used.entry(v) {
+                let elt = entry.key().clone();
+                entry.insert(());
+                return Some(elt);
+            }
+        }
+        None
+    }
+}
+
 /// An iterator adapter to filter out duplicate elements.
 ///
-/// See [`.unique()`](../trait.Itertools.html#method.unique) for more information.
+/// See [`.unique()`](crate::Itertools::unique) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Unique<I: Iterator> {
@@ -126,7 +158,7 @@ pub fn unique<I>(iter: I) -> Unique<I>
 {
     Unique {
         iter: UniqueBy {
-            iter: iter,
+            iter,
             used: HashMap::new(),
             f: (),
         }

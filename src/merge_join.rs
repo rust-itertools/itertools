@@ -3,11 +3,11 @@ use std::iter::Fuse;
 use std::fmt;
 
 use super::adaptors::{PutBack, put_back};
-use either_or_both::EitherOrBoth;
+use crate::either_or_both::EitherOrBoth;
 
 /// Return an iterator adaptor that merge-joins items from the two base iterators in ascending order.
 ///
-/// See [`.merge_join_by()`](trait.Itertools.html#method.merge_join_by) for more information.
+/// See [`.merge_join_by()`](crate::Itertools::merge_join_by) for more information.
 pub fn merge_join_by<I, J, F>(left: I, right: J, cmp_fn: F)
     -> MergeJoinBy<I::IntoIter, J::IntoIter, F>
     where I: IntoIterator,
@@ -17,13 +17,13 @@ pub fn merge_join_by<I, J, F>(left: I, right: J, cmp_fn: F)
     MergeJoinBy {
         left: put_back(left.into_iter().fuse()),
         right: put_back(right.into_iter().fuse()),
-        cmp_fn: cmp_fn
+        cmp_fn,
     }
 }
 
 /// An iterator adaptor that merge-joins items from the two base iterators in ascending order.
 ///
-/// See [`.merge_join_by()`](../trait.Itertools.html#method.merge_join_by) for more information.
+/// See [`.merge_join_by()`](crate::Itertools::merge_join_by) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct MergeJoinBy<I: Iterator, J: Iterator, F> {
     left: PutBack<Fuse<I>>,
@@ -32,10 +32,10 @@ pub struct MergeJoinBy<I: Iterator, J: Iterator, F> {
 }
 
 impl<I, J, F> Clone for MergeJoinBy<I, J, F>
-    where I: Clone + Iterator,
-          I::Item: Clone,
-          J: Clone + Iterator,
-          J::Item: Clone,
+    where I: Iterator,
+          J: Iterator,
+          PutBack<Fuse<I>>: Clone,
+          PutBack<Fuse<J>>: Clone,
           F: Clone,
 {
     clone_fields!(left, right, cmp_fn);
@@ -93,5 +93,75 @@ impl<I, J, F> Iterator for MergeJoinBy<I, J, F>
         };
 
         (lower, upper)
+    }
+
+    fn count(mut self) -> usize {
+        let mut count = 0;
+        loop {
+            match (self.left.next(), self.right.next()) {
+                (None, None) => break count,
+                (Some(_left), None) => break count + 1 + self.left.into_parts().1.count(),
+                (None, Some(_right)) => break count + 1 + self.right.into_parts().1.count(),
+                (Some(left), Some(right)) => {
+                    count += 1;
+                    match (self.cmp_fn)(&left, &right) {
+                        Ordering::Equal => {}
+                        Ordering::Less => self.right.put_back(right),
+                        Ordering::Greater => self.left.put_back(left),
+                    }
+                }
+            }
+        }
+    }
+
+    fn last(mut self) -> Option<Self::Item> {
+        let mut previous_element = None;
+        loop {
+            match (self.left.next(), self.right.next()) {
+                (None, None) => break previous_element,
+                (Some(left), None) => {
+                    break Some(EitherOrBoth::Left(
+                        self.left.into_parts().1.last().unwrap_or(left),
+                    ))
+                }
+                (None, Some(right)) => {
+                    break Some(EitherOrBoth::Right(
+                        self.right.into_parts().1.last().unwrap_or(right),
+                    ))
+                }
+                (Some(left), Some(right)) => {
+                    previous_element = match (self.cmp_fn)(&left, &right) {
+                        Ordering::Equal => Some(EitherOrBoth::Both(left, right)),
+                        Ordering::Less => {
+                            self.right.put_back(right);
+                            Some(EitherOrBoth::Left(left))
+                        }
+                        Ordering::Greater => {
+                            self.left.put_back(left);
+                            Some(EitherOrBoth::Right(right))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fn nth(&mut self, mut n: usize) -> Option<Self::Item> {
+        loop {
+            if n == 0 {
+                break self.next();
+            }
+            n -= 1;
+            match (self.left.next(), self.right.next()) {
+                (None, None) => break None,
+                (Some(_left), None) => break self.left.nth(n).map(EitherOrBoth::Left),
+                (None, Some(_right)) => break self.right.nth(n).map(EitherOrBoth::Right),
+                (Some(left), Some(right)) => match (self.cmp_fn)(&left, &right) {
+                    Ordering::Equal => {}
+                    Ordering::Less => self.right.put_back(right),
+                    Ordering::Greater => self.left.put_back(left),
+                },
+            }
+        }
     }
 }

@@ -1,7 +1,9 @@
-#![cfg(feature = "use_std")]
+#![cfg(feature = "use_alloc")]
 
-use size_hint;
-use Itertools;
+use crate::size_hint;
+use crate::Itertools;
+
+use alloc::vec::Vec;
 
 #[derive(Clone)]
 /// An iterator adaptor that iterates over the cartesian product of
@@ -9,7 +11,7 @@ use Itertools;
 ///
 /// An iterator element type is `Vec<I>`.
 ///
-/// See [`.multi_cartesian_product()`](../trait.Itertools.html#method.multi_cartesian_product)
+/// See [`.multi_cartesian_product()`](crate::Itertools::multi_cartesian_product)
 /// for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct MultiProduct<I>(Vec<MultiProductIter<I>>)
@@ -65,7 +67,7 @@ impl<I> MultiProduct<I>
             let on_first_iter = match state {
                 StartOfIter => {
                     let on_first_iter = !last.in_progress();
-                    state = MidIter { on_first_iter: on_first_iter };
+                    state = MidIter { on_first_iter };
                     on_first_iter
                 },
                 MidIter { on_first_iter } => on_first_iter
@@ -161,7 +163,7 @@ impl<I> Iterator for MultiProduct<I>
     }
 
     fn count(self) -> usize {
-        if self.0.len() == 0 {
+        if self.0.is_empty() {
             return 0;
         }
 
@@ -183,7 +185,7 @@ impl<I> Iterator for MultiProduct<I>
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         // Not ExactSizeIterator because size may be larger than usize
-        if self.0.len() == 0 {
+        if self.0.is_empty() {
             return (0, Some(0));
         }
 

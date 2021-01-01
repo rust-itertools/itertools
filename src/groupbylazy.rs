@@ -1,5 +1,5 @@
 use std::cell::{Cell, RefCell};
-use std::vec;
+use alloc::vec::{self, Vec};
 
 /// A trait to unify FnMut for GroupBy with the chunk key in IntoChunks
 trait KeyFunction<A> {
@@ -30,7 +30,7 @@ impl ChunkIndex {
     #[inline(always)]
     fn new(size: usize) -> Self {
         ChunkIndex {
-            size: size,
+            size,
             index: 0,
             key: 0,
         }
@@ -284,7 +284,7 @@ impl<K, I, F> GroupInner<K, I, F>
 /// value. It should be stored in a local variable or temporary and
 /// iterated.
 ///
-/// See [`.group_by()`](../trait.Itertools.html#method.group_by) for more information.
+/// See [`.group_by()`](crate::Itertools::group_by) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct GroupBy<K, I, F>
     where I: Iterator,
@@ -354,7 +354,7 @@ impl<'a, K, I, F> IntoIterator for &'a GroupBy<K, I, F>
 /// Iterator element type is `(K, Group)`:
 /// the group's key `K` and the group's iterator.
 ///
-/// See [`.group_by()`](../trait.Itertools.html#method.group_by) for more information.
+/// See [`.group_by()`](crate::Itertools::group_by) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Groups<'a, K: 'a, I: 'a, F: 'a>
     where I: Iterator,
@@ -380,7 +380,7 @@ impl<'a, K, I, F> Iterator for Groups<'a, K, I, F>
             let key = inner.group_key(index);
             (key, Group {
                 parent: self.parent,
-                index: index,
+                index,
                 first: Some(elt),
             })
         })
@@ -460,7 +460,7 @@ pub fn new_chunks<J>(iter: J, size: usize) -> IntoChunks<J::IntoIter>
 ///
 /// Iterator element type is `Chunk`, each chunk's iterator.
 ///
-/// See [`.chunks()`](../trait.Itertools.html#method.chunks) for more information.
+/// See [`.chunks()`](crate::Itertools::chunks) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct IntoChunks<I>
     where I: Iterator,
@@ -505,7 +505,7 @@ impl<'a, I> IntoIterator for &'a IntoChunks<I>
 ///
 /// Iterator element type is `Chunk`.
 ///
-/// See [`.chunks()`](../trait.Itertools.html#method.chunks) for more information.
+/// See [`.chunks()`](crate::Itertools::chunks) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Chunks<'a, I: 'a>
     where I: Iterator,
@@ -528,7 +528,7 @@ impl<'a, I> Iterator for Chunks<'a, I>
         inner.step(index).map(|elt| {
             Chunk {
                 parent: self.parent,
-                index: index,
+                index,
                 first: Some(elt),
             }
         })

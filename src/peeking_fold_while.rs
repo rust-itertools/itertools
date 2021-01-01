@@ -1,7 +1,7 @@
 use std::iter::Peekable;
-use PutBack;
+use crate::PutBack;
 #[cfg(feature = "use_std")]
-use PutBackN;
+use crate::PutBackN;
 
 /// A trait for folding an iterator by peeking at its elements before
 /// consuming them.

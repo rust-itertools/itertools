@@ -1,6 +1,3 @@
-extern crate criterion;
-extern crate itertools;
-
 use criterion::{criterion_group, criterion_main, Criterion};
 use itertools::{Itertools, cloned};
 

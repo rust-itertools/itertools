@@ -21,13 +21,11 @@ How to use with cargo:
 .. code:: toml
 
     [dependencies]
-    itertools = "0.8"
+    itertools = "0.10.0"
 
 How to use in your crate:
 
 .. code:: rust
-
-    #[macro_use] extern crate itertools;
 
     use itertools::Itertools;
 
