@@ -248,9 +248,6 @@ macro_rules! count_ident{
     () => {0};
     ($i0:ident, $($i:ident,)*) => {1 + count_ident!($($i,)*)};
 }
-macro_rules! ignore_ident{
-    ($id:ident, $($t:tt)*) => {$($t)*};
-}
 macro_rules! rev_for_each_ident{
     ($m:ident, ) => {};
     ($m:ident, $i0:ident, $($i:ident,)*) => {
