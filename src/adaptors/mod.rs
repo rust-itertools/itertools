@@ -682,7 +682,6 @@ pub struct TupleCombinations<I, T>
 {
     iter: T::Combination,
     _mi: PhantomData<I>,
-    _mt: PhantomData<T>
 }
 
 pub trait HasCombination<I>: Sized {
@@ -698,7 +697,6 @@ pub fn tuple_combinations<T, I>(iter: I) -> TupleCombinations<I, T>
     TupleCombinations {
         iter: T::Combination::from(iter),
         _mi: PhantomData,
-        _mt: PhantomData,
     }
 }
 
