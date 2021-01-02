@@ -748,7 +748,7 @@ macro_rules! impl_tuple_combination {
                 Self {
                     item: iter.next(),
                     iter: iter.clone(),
-                    c: $P::from(iter),
+                    c: iter.into(),
                 }
             }
         }
@@ -772,7 +772,7 @@ macro_rules! impl_tuple_combination {
                 } else {
                     self.item = self.iter.next();
                     self.item.clone().and_then(|z| {
-                        self.c = $P::from(self.iter.clone());
+                        self.c = self.iter.clone().into();
                         self.c.next().map(|($($X),*,)| (z, $($X),*))
                     })
                 }
