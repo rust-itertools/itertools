@@ -757,12 +757,7 @@ macro_rules! impl_tuple_combination {
 
         impl<I: Iterator + Clone> From<I> for $C<Fuse<I>> {
             fn from(iter: I) -> Self {
-                let mut iter = iter.fuse();
-                $C {
-                    item: iter.next(),
-                    iter: iter.clone(),
-                    c: $P::from(iter),
-                }
+                Self::from(iter.fuse())
             }
         }
 
