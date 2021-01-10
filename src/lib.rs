@@ -1616,8 +1616,6 @@ pub trait Itertools : Iterator {
     /// iterator will be exhausted.
     ///
     /// ```
-    /// use itertools::Itertools;
-    ///
     /// #[derive(PartialEq, Debug)]
     /// enum Enum { A, B, C, D, E, }
     /// 
@@ -1633,12 +1631,13 @@ pub trait Itertools : Iterator {
     /// // `E` wasn't found, so `iter` is now exhausted
     /// assert_eq!(iter.next(), None);
     /// ```
-    fn contains<Q>(&mut self, query: Q) -> bool
+    fn contains<Q>(&mut self, query: &Q) -> bool
     where
         Self: Sized,
-        Self::Item: PartialEq<Q>,
+        Self::Item: Borrow<Q>,
+        Q: PartialEq,
     {
-        self.any(|x| x == query)
+        self.any(|x| x.borrow() == query)
     }
 
     /// Check whether all elements compare equal.
