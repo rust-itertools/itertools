@@ -60,6 +60,8 @@ use alloc::{
 pub use either::Either;
 
 #[cfg(feature = "use_std")]
+use std::borrow::Borrow;
+#[cfg(feature = "use_std")]
 use std::collections::HashMap;
 use std::iter::{IntoIterator, once};
 use std::cmp::Ordering;
