@@ -3074,9 +3074,7 @@ pub trait Itertools : Iterator {
         K: Eq + Hash,
         F: FnMut(Self::Item) -> K,
     {
-        let mut counts = HashMap::new();
-        self.for_each(|item| *counts.entry(f(item)).or_default() += 1);
-        counts
+        self.map(f).counts()
     }
 }
 
