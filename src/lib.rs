@@ -59,7 +59,7 @@ use alloc::{
 
 pub use either::Either;
 
-use core::borrow:Borrow;
+use core::borrow::Borrow;
 #[cfg(feature = "use_std")]
 use std::collections::HashMap;
 use std::iter::{IntoIterator, once};
