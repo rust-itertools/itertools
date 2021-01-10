@@ -3048,6 +3048,36 @@ pub trait Itertools : Iterator {
         self.for_each(|item| *counts.entry(item).or_default() += 1);
         counts
     }
+
+    /// Collect the items in this iterator and return a `HashMap` which
+    /// contains each item that appears in the iterator and the number
+    /// of times it appears,
+    /// determining identity using a keying function.
+    ///
+    /// # Examples
+    /// ```
+    /// # use itertools::Itertools;
+    /// # use std::collections::HashMap;
+    /// let counts: HashMap<usize, usize> = vec![
+    ///     (1, "foo"), (1, "bar"), (1, "baz"),
+    ///     (3, "spam"), (3, "eggs"), (5, "foo")
+    /// ].into_iter().counts_by(|(fst,snd)| fst);
+    /// assert_eq!(counts[&1], 3);
+    /// assert_eq!(counts[&3], 2);
+    /// assert_eq!(counts[&5], 1);
+    /// assert_eq!(counts.get(&0), None);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn counts_by<K, F>(self, mut f: F) -> HashMap<K, usize>
+    where
+        Self: Sized,
+        K: Eq + Hash,
+        F: FnMut(Self::Item) -> K,
+    {
+        let mut counts = HashMap::new();
+        self.for_each(|item| *counts.entry(f(item)).or_default() += 1);
+        counts
+    }
 }
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }
