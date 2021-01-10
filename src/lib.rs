@@ -1618,35 +1618,20 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let data = vec![
-    ///      "foo".to_owned(),
-    ///      "bar".to_owned(),
-    ///      "baz".to_owned(),
-    /// ];
-    /// // this could get expensive:
-    /// assert!(data.contains(&"foo".to_owned()));
-    /// // this, less so:
-    /// assert!(data.iter().contains("foo"));
-    ///
-    /// // now the not-as-motivating tests involving Copy data:
-    ///
-    /// let data = vec![4usize, 5, 1, 3, 0, 2];
-    /// assert!(data.iter().contains(&4));
-    /// assert!(!data.iter().contains(&6));
-    /// for x in (0..50) {
-    ///     assert_eq!(data.contains(&x), data.iter().contains(&x));
-    /// }
-    ///
-    /// let mut it = data.iter();
-    /// assert!(!it.contains(&6));
-    /// assert_eq!(it.next(), None);
-    ///
-    /// let mut it = data.iter();
-    /// assert!(it.contains(&3));
-    /// assert_eq!(it.next(), Some(&0));
-    ///
-    /// let data : Option<usize> = None;
-    /// assert!(!data.into_iter().contains(0));
+    /// #[derive(PartialEq, Debug)]
+    /// enum Enum { A, B, C, D, E, }
+    /// 
+    /// let mut iter = vec![Enum::A, Enum::B, Enum::C, Enum::D].into_iter();
+    /// 
+    /// // search `iter` for `B`
+    /// assert_eq!(iter.contains(Enum::B), true);
+    /// // `B` was found, so the iterator now rests at the item after `B` (i.e, `C`).
+    /// assert_eq!(iter.next(), Some(Enum::C));
+    /// 
+    /// // search `iter` for `E`
+    /// assert_eq!(iter.contains(Enum::E), false);
+    /// // `E` wasn't found, so `iter` is now exhausted
+    /// assert_eq!(iter.next(), None);
     /// ```
     fn contains<Q>(&mut self, query: Q) -> bool
     where
