@@ -1608,11 +1608,12 @@ pub trait Itertools : Iterator {
         None
     }
 
-    /// Check whether the iterator contains an item.
+    /// Returns `true` if the given item is present in this iterator.
     ///
-    /// If the iterator contains the item prior to its end,
-    /// this method will short-circuit and only partially
-    /// exhaust the iterator.
+    /// This method is short-circuiting. If the given item is present in this
+    /// iterator, the this method will consume the iterator up-to-and-including
+    /// the item. If the given item is not present in this iterator, the
+    /// iterator will be exhausted.
     ///
     /// ```
     /// use itertools::Itertools;
