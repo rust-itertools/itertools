@@ -1611,7 +1611,7 @@ pub trait Itertools : Iterator {
     /// Returns `true` if the given item is present in this iterator.
     ///
     /// This method is short-circuiting. If the given item is present in this
-    /// iterator, the this method will consume the iterator up-to-and-including
+    /// iterator, this method will consume the iterator up-to-and-including
     /// the item. If the given item is not present in this iterator, the
     /// iterator will be exhausted.
     ///
