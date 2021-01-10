@@ -1618,18 +1618,20 @@ pub trait Itertools : Iterator {
     /// iterator will be exhausted.
     ///
     /// ```
+    /// use itertools::Itertools;
+    ///
     /// #[derive(PartialEq, Debug)]
     /// enum Enum { A, B, C, D, E, }
     /// 
     /// let mut iter = vec![Enum::A, Enum::B, Enum::C, Enum::D].into_iter();
     /// 
     /// // search `iter` for `B`
-    /// assert_eq!(iter.contains(Enum::B), true);
+    /// assert_eq!(iter.contains(&Enum::B), true);
     /// // `B` was found, so the iterator now rests at the item after `B` (i.e, `C`).
     /// assert_eq!(iter.next(), Some(Enum::C));
     /// 
     /// // search `iter` for `E`
-    /// assert_eq!(iter.contains(Enum::E), false);
+    /// assert_eq!(iter.contains(&Enum::E), false);
     /// // `E` wasn't found, so `iter` is now exhausted
     /// assert_eq!(iter.next(), None);
     /// ```
