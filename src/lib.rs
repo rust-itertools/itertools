@@ -1608,6 +1608,53 @@ pub trait Itertools : Iterator {
         None
     }
 
+    /// Check whether the iterator contains an item.
+    ///
+    /// If the iterator contains the item prior to its end,
+    /// this method will short-circuit and only partially
+    /// exhaust the iterator.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![
+    ///      "foo".to_owned(),
+    ///      "bar".to_owned(),
+    ///      "baz".to_owned(),
+    /// ];
+    /// // this could get expensive:
+    /// assert!(data.contains(&"foo".to_owned()));
+    /// // this, less so:
+    /// assert!(data.iter().contains("foo"));
+    ///
+    /// // now the not-as-motivating tests involving Copy data:
+    ///
+    /// let data = vec![4usize, 5, 1, 3, 0, 2];
+    /// assert!(data.iter().contains(&4));
+    /// assert!(!data.iter().contains(&6));
+    /// for x in (0..50) {
+    ///     assert_eq!(data.contains(&x), data.iter().contains(&x));
+    /// }
+    ///
+    /// let mut it = data.iter();
+    /// assert!(!it.contains(&6));
+    /// assert_eq!(it.next(), None);
+    ///
+    /// let mut it = data.iter();
+    /// assert!(it.contains(&3));
+    /// assert_eq!(it.next(), Some(&0));
+    ///
+    /// let data : Option<usize> = None;
+    /// assert!(!data.into_iter().contains(0));
+    /// ```
+    fn contains<Q>(&mut self, query: Q) -> bool
+    where
+        Self: Sized,
+        Self::Item: PartialEq<Q>,
+    {
+        self.any(|x| x == query)
+    }
+
     /// Check whether all elements compare equal.
     ///
     /// Empty iterators are considered to have equal elements:
