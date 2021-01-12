@@ -3068,7 +3068,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!(counts.get(&0), None);
     /// ```
     #[cfg(feature = "use_std")]
-    fn counts_by<K, F>(self, mut f: F) -> HashMap<K, usize>
+    fn counts_by<K, F>(self, f: F) -> HashMap<K, usize>
     where
         Self: Sized,
         K: Eq + Hash,
