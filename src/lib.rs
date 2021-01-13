@@ -59,6 +59,7 @@ use alloc::{
 
 pub use either::Either;
 
+use core::borrow::Borrow;
 #[cfg(feature = "use_std")]
 use std::collections::HashMap;
 use std::iter::{IntoIterator, once};
@@ -1606,6 +1607,40 @@ pub trait Itertools : Iterator {
             index += 1;
         }
         None
+    }
+
+    /// Returns `true` if the given item is present in this iterator.
+    ///
+    /// This method is short-circuiting. If the given item is present in this
+    /// iterator, this method will consume the iterator up-to-and-including
+    /// the item. If the given item is not present in this iterator, the
+    /// iterator will be exhausted.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// #[derive(PartialEq, Debug)]
+    /// enum Enum { A, B, C, D, E, }
+    /// 
+    /// let mut iter = vec![Enum::A, Enum::B, Enum::C, Enum::D].into_iter();
+    /// 
+    /// // search `iter` for `B`
+    /// assert_eq!(iter.contains(&Enum::B), true);
+    /// // `B` was found, so the iterator now rests at the item after `B` (i.e, `C`).
+    /// assert_eq!(iter.next(), Some(Enum::C));
+    /// 
+    /// // search `iter` for `E`
+    /// assert_eq!(iter.contains(&Enum::E), false);
+    /// // `E` wasn't found, so `iter` is now exhausted
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    fn contains<Q>(&mut self, query: &Q) -> bool
+    where
+        Self: Sized,
+        Self::Item: Borrow<Q>,
+        Q: PartialEq,
+    {
+        self.any(|x| x.borrow() == query)
     }
 
     /// Check whether all elements compare equal.
