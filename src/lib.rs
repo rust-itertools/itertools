@@ -3055,6 +3055,7 @@ pub trait Itertools : Iterator {
     /// determining identity using a keying function.
     ///
     /// ```
+    # use itertools::Itertools;
     /// struct Character {
     ///   first_name: &'static str,
     ///   last_name:  &'static str,
