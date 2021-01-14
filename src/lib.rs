@@ -3054,18 +3054,31 @@ pub trait Itertools : Iterator {
     /// of times it appears,
     /// determining identity using a keying function.
     ///
-    /// # Examples
     /// ```
-    /// # use itertools::Itertools;
-    /// # use std::collections::HashMap;
-    /// let counts: HashMap<usize, usize> = vec![
-    ///     (1, "foo"), (1, "bar"), (1, "baz"),
-    ///     (3, "spam"), (3, "eggs"), (5, "foo")
-    /// ].into_iter().counts_by(|(fst,snd)| fst);
-    /// assert_eq!(counts[&1], 3);
-    /// assert_eq!(counts[&3], 2);
-    /// assert_eq!(counts[&5], 1);
-    /// assert_eq!(counts.get(&0), None);
+    /// struct Character {
+    ///   first_name: &'static str,
+    ///   last_name:  &'static str,
+    /// }
+    /// 
+    /// let characters =
+    ///     vec![
+    ///         Character { first_name: "Amy",   last_name: "Pond"      },
+    ///         Character { first_name: "Amy",   last_name: "Wong"      },
+    ///         Character { first_name: "Amy",   last_name: "Santiago"  },
+    ///         Character { first_name: "James", last_name: "Bond"      },
+    ///         Character { first_name: "James", last_name: "Sullivan"  },
+    ///         Character { first_name: "James", last_name: "Norington" },
+    ///         Character { first_name: "James", last_name: "Kirk"      },
+    ///     ];
+    /// 
+    /// let first_name_frequency = 
+    ///     characters
+    ///         .into_iter()
+    ///         .counts_by(|c| c.first_name);
+    ///     
+    /// assert_eq!(first_name_frequency["Amy"], 3);
+    /// assert_eq!(first_name_frequency["James"], 4);
+    /// assert_eq!(first_name_frequency.contains_key("Asha"), false);
     /// ```
     #[cfg(feature = "use_std")]
     fn counts_by<K, F>(self, f: F) -> HashMap<K, usize>
