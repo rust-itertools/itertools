@@ -3083,6 +3083,48 @@ pub trait Itertools : Iterator {
         self.for_each(|item| *counts.entry(item).or_default() += 1);
         counts
     }
+
+    /// Collect the items in this iterator and return a `HashMap` which
+    /// contains each item that appears in the iterator and the number
+    /// of times it appears,
+    /// determining identity using a keying function.
+    ///
+    /// ```
+    /// # use itertools::Itertools;
+    /// struct Character {
+    ///   first_name: &'static str,
+    ///   last_name:  &'static str,
+    /// }
+    /// 
+    /// let characters =
+    ///     vec![
+    ///         Character { first_name: "Amy",   last_name: "Pond"      },
+    ///         Character { first_name: "Amy",   last_name: "Wong"      },
+    ///         Character { first_name: "Amy",   last_name: "Santiago"  },
+    ///         Character { first_name: "James", last_name: "Bond"      },
+    ///         Character { first_name: "James", last_name: "Sullivan"  },
+    ///         Character { first_name: "James", last_name: "Norington" },
+    ///         Character { first_name: "James", last_name: "Kirk"      },
+    ///     ];
+    /// 
+    /// let first_name_frequency = 
+    ///     characters
+    ///         .into_iter()
+    ///         .counts_by(|c| c.first_name);
+    ///     
+    /// assert_eq!(first_name_frequency["Amy"], 3);
+    /// assert_eq!(first_name_frequency["James"], 4);
+    /// assert_eq!(first_name_frequency.contains_key("Asha"), false);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn counts_by<K, F>(self, f: F) -> HashMap<K, usize>
+    where
+        Self: Sized,
+        K: Eq + Hash,
+        F: FnMut(Self::Item) -> K,
+    {
+        self.map(f).counts()
+    }
 }
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }
