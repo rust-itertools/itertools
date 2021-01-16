@@ -682,7 +682,6 @@ pub struct TupleCombinations<I, T>
 {
     iter: T::Combination,
     _mi: PhantomData<I>,
-    _mt: PhantomData<T>
 }
 
 pub trait HasCombination<I>: Sized {
@@ -698,7 +697,6 @@ pub fn tuple_combinations<T, I>(iter: I) -> TupleCombinations<I, T>
     TupleCombinations {
         iter: T::Combination::from(iter),
         _mi: PhantomData,
-        _mt: PhantomData,
     }
 }
 
@@ -737,7 +735,7 @@ impl<I: Iterator> HasCombination<I> for (I::Item,) {
 }
 
 macro_rules! impl_tuple_combination {
-    ($C:ident $P:ident ; $A:ident, $($I:ident),* ; $($X:ident)*) => (
+    ($C:ident $P:ident ; $($X:ident)*) => (
         #[derive(Clone, Debug)]
         pub struct $C<I: Iterator> {
             item: Option<I::Item>,
@@ -747,30 +745,25 @@ macro_rules! impl_tuple_combination {
 
         impl<I: Iterator + Clone> From<I> for $C<I> {
             fn from(mut iter: I) -> Self {
-                $C {
+                Self {
                     item: iter.next(),
                     iter: iter.clone(),
-                    c: $P::from(iter),
+                    c: iter.into(),
                 }
             }
         }
 
         impl<I: Iterator + Clone> From<I> for $C<Fuse<I>> {
             fn from(iter: I) -> Self {
-                let mut iter = iter.fuse();
-                $C {
-                    item: iter.next(),
-                    iter: iter.clone(),
-                    c: $P::from(iter),
-                }
+                Self::from(iter.fuse())
             }
         }
 
-        impl<I, $A> Iterator for $C<I>
-            where I: Iterator<Item = $A> + Clone,
+        impl<I, A> Iterator for $C<I>
+            where I: Iterator<Item = A> + Clone,
                   I::Item: Clone
         {
-            type Item = ($($I),*);
+            type Item = (A, $(ignore_ident!($X, A)),*);
 
             fn next(&mut self) -> Option<Self::Item> {
                 if let Some(($($X),*,)) = self.c.next() {
@@ -779,15 +772,15 @@ macro_rules! impl_tuple_combination {
                 } else {
                     self.item = self.iter.next();
                     self.item.clone().and_then(|z| {
-                        self.c = $P::from(self.iter.clone());
+                        self.c = self.iter.clone().into();
                         self.c.next().map(|($($X),*,)| (z, $($X),*))
                     })
                 }
             }
         }
 
-        impl<I, $A> HasCombination<I> for ($($I),*)
-            where I: Iterator<Item = $A> + Clone,
+        impl<I, A> HasCombination<I> for (A, $(ignore_ident!($X, A)),*)
+            where I: Iterator<Item = A> + Clone,
                   I::Item: Clone
         {
             type Combination = $C<Fuse<I>>;
@@ -800,25 +793,24 @@ macro_rules! impl_tuple_combination {
 //    use itertools::Itertools;
 //
 //    for i in 2..=12 {
-//        println!("impl_tuple_combination!(Tuple{arity}Combination Tuple{prev}Combination; {tys}; {idents});",
+//        println!("impl_tuple_combination!(Tuple{arity}Combination Tuple{prev}Combination; {idents});",
 //            arity = i,
 //            prev = i - 1,
-//            tys = iter::repeat("A").take(i + 1).join(", "),
 //            idents = ('a'..'z').take(i - 1).join(" "),
 //        );
 //    }
 // It could probably be replaced by a bit more macro cleverness.
-impl_tuple_combination!(Tuple2Combination Tuple1Combination; A, A, A; a);
-impl_tuple_combination!(Tuple3Combination Tuple2Combination; A, A, A, A; a b);
-impl_tuple_combination!(Tuple4Combination Tuple3Combination; A, A, A, A, A; a b c);
-impl_tuple_combination!(Tuple5Combination Tuple4Combination; A, A, A, A, A, A; a b c d);
-impl_tuple_combination!(Tuple6Combination Tuple5Combination; A, A, A, A, A, A, A; a b c d e);
-impl_tuple_combination!(Tuple7Combination Tuple6Combination; A, A, A, A, A, A, A, A; a b c d e f);
-impl_tuple_combination!(Tuple8Combination Tuple7Combination; A, A, A, A, A, A, A, A, A; a b c d e f g);
-impl_tuple_combination!(Tuple9Combination Tuple8Combination; A, A, A, A, A, A, A, A, A, A; a b c d e f g h);
-impl_tuple_combination!(Tuple10Combination Tuple9Combination; A, A, A, A, A, A, A, A, A, A, A; a b c d e f g h i);
-impl_tuple_combination!(Tuple11Combination Tuple10Combination; A, A, A, A, A, A, A, A, A, A, A, A; a b c d e f g h i j);
-impl_tuple_combination!(Tuple12Combination Tuple11Combination; A, A, A, A, A, A, A, A, A, A, A, A, A; a b c d e f g h i j k);
+impl_tuple_combination!(Tuple2Combination Tuple1Combination; a);
+impl_tuple_combination!(Tuple3Combination Tuple2Combination; a b);
+impl_tuple_combination!(Tuple4Combination Tuple3Combination; a b c);
+impl_tuple_combination!(Tuple5Combination Tuple4Combination; a b c d);
+impl_tuple_combination!(Tuple6Combination Tuple5Combination; a b c d e);
+impl_tuple_combination!(Tuple7Combination Tuple6Combination; a b c d e f);
+impl_tuple_combination!(Tuple8Combination Tuple7Combination; a b c d e f g);
+impl_tuple_combination!(Tuple9Combination Tuple8Combination; a b c d e f g h);
+impl_tuple_combination!(Tuple10Combination Tuple9Combination; a b c d e f g h i);
+impl_tuple_combination!(Tuple11Combination Tuple10Combination; a b c d e f g h i j);
+impl_tuple_combination!(Tuple12Combination Tuple11Combination; a b c d e f g h i j k);
 
 /// An iterator adapter to filter values within a nested `Result::Ok`.
 ///
