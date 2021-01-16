@@ -2529,6 +2529,33 @@ pub trait Itertools : Iterator {
         (left, right)
     }
 
+    /// Partition a sequence of `Result`s into one list of all the `Ok` elements
+    /// and another list of all the `Err` elements.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let successes_and_failures = vec![Ok(1), Err(false), Err(true), Ok(2)];
+    ///
+    /// let (successes, failures): (Vec<_>, Vec<_>) = successes_and_failures
+    ///     .into_iter()
+    ///     .partition_result();
+    ///
+    /// assert_eq!(successes, [1, 2]);
+    /// assert_eq!(failures, [false, true]);
+    /// ```
+    fn partition_result<A, B, T, E>(self) -> (A, B)
+        where
+            Self: Iterator<Item = Result<T, E>> + Sized,
+            A: Default + Extend<T>,
+            B: Default + Extend<E>,
+    {
+        self.partition_map(|r| match r {
+            Ok(v) => Either::Left(v),
+            Err(v) => Either::Right(v),
+        })
+    }
+
     /// Return a `HashMap` of keys mapped to `Vec`s of values. Keys and values
     /// are taken from `(Key, Value)` tuple pairs yielded by the input iterator.
     ///
