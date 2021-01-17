@@ -1110,12 +1110,13 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let data = vec![1., 1., 2., 3., 3., 2., 2.];
+    /// let data = vec!['a', 'a', 'b', 'c', 'c', 'b', 'b'];
     /// itertools::assert_equal(data.into_iter().dedup_with_count(),
-    ///                         vec![(2, 1.), (1, 2.), (2, 3.), (2, 2.)]);
+    ///                         vec![(2, 'a'), (1, 'b'), (2, 'c'), (2, 'b')]);
     /// ```
     fn dedup_with_count(self) -> DedupWithCount<Self>
-        where Self: Sized,
+    where
+        Self: Sized,
     {
         adaptors::dedup_with_count(self)
     }
@@ -1132,13 +1133,14 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let data = vec![(0, 1.), (1, 1.), (0, 2.), (0, 3.), (1, 3.), (1, 2.), (2, 2.)];
+    /// let data = vec![(0, 'a'), (1, 'a'), (0, 'b'), (0, 'c'), (1, 'c'), (1, 'b'), (2, 'b')];
     /// itertools::assert_equal(data.into_iter().dedup_by_with_count(|x, y| x.1 == y.1),
-    ///                         vec![(2, (0, 1.)), (1, (0, 2.)), (2, (0, 3.)), (2, (1, 2.))]);
+    ///                         vec![(2, (0, 'a')), (1, (0, 'b')), (2, (0, 'c')), (2, (1, 'b'))]);
     /// ```
     fn dedup_by_with_count<Cmp>(self, cmp: Cmp) -> DedupByWithCount<Self, Cmp>
-        where Self: Sized,
-              Cmp: FnMut(&Self::Item, &Self::Item) -> bool,
+    where
+        Self: Sized,
+        Cmp: FnMut(&Self::Item, &Self::Item) -> bool,
     {
         adaptors::dedup_by_with_count(self, cmp)
     }
