@@ -40,20 +40,21 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         // this fuses the iterator
-        let mut last = match self.last.take() {
-            None => return None,
-            Some(x) => x,
-        };
-        for next in &mut self.iter {
-            match self.f.coalesce_pair(last, next) {
-                Ok(joined) => last = joined,
-                Err((last_, next_)) => {
-                    self.last = Some(next_);
-                    return Some(last_);
-                }
-            }
-        }
-        Some(last)
+        let last = self.last.take()?;
+
+        let self_last = &mut self.last;
+        let self_f = &mut self.f;
+        Some(
+            self.iter
+                .try_fold(last, |last, next| match self_f.coalesce_pair(last, next) {
+                    Ok(joined) => Ok(joined),
+                    Err((last_, next_)) => {
+                        *self_last = Some(next_);
+                        Err(last_)
+                    }
+                })
+                .unwrap_or_else(|x| x),
+        )
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
