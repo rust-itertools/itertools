@@ -102,12 +102,12 @@ impl<I, K, V> GroupingMap<I>
     {
         let mut destination_map = HashMap::new();
 
-        for (key, val) in self.iter {
+        self.iter.for_each(|(key, val)| {
             let acc = destination_map.remove(&key);
             if let Some(op_res) = operation(acc, &key, val) {
                 destination_map.insert(key, op_res);
             }
-        }
+        });
 
         destination_map
     }
@@ -208,9 +208,9 @@ impl<I, K, V> GroupingMap<I>
     {
         let mut destination_map = HashMap::new();
 
-        for (key, val) in self.iter {
+        self.iter.for_each(|(key, val)| {
             destination_map.entry(key).or_insert_with(C::default).extend(Some(val));
-        }
+        });
 
         destination_map
     }
