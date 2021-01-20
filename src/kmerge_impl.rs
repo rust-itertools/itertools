@@ -74,14 +74,13 @@ fn sift_down<T, S>(heap: &mut [T], index: usize, mut less_than: S)
     debug_assert!(index <= heap.len());
     let mut pos = index;
     let mut child = 2 * pos + 1;
-    // the `pos` conditional is to avoid a bounds check
-    while pos < heap.len() && child < heap.len() {
-        let right = child + 1;
-
+    // Require the right child to be present
+    // This allows to find the index of the smallest child without a branch
+    // that wouldn't be predicted if present
+    while child + 1 < heap.len() {
         // pick the smaller of the two children
-        if right < heap.len() && less_than(&heap[right], &heap[child]) {
-            child = right;
-        }
+        // use aritmethic to avoid an unpredictable branch
+        child += less_than(&heap[child+1], &heap[child]) as usize;
 
         // sift down is done if we are already in order
         if !less_than(&heap[child], &heap[pos]) {
@@ -90,6 +89,11 @@ fn sift_down<T, S>(heap: &mut [T], index: usize, mut less_than: S)
         heap.swap(pos, child);
         pos = child;
         child = 2 * pos + 1;
+    }
+    // Check if the last (left) child was an only child
+    // if it is then it has to be compared with the parent
+    if child + 1 == heap.len() && less_than(&heap[child], &heap[pos]) {
+        heap.swap(pos, child);
     }
 }
 
