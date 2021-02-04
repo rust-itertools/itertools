@@ -13,6 +13,7 @@ use crate::it::multizip;
 use crate::it::free::put_back;
 use crate::it::iproduct;
 use crate::it::izip;
+use crate::it::chain;
 
 #[test]
 fn product2() {
@@ -85,6 +86,28 @@ fn multizip3() {
     for (_, _, _, _, _) in multizip((0..3, 0..2, xs.iter(), &xs, xs.to_vec())) {
         /* test compiles */
     }
+}
+
+#[test]
+fn chain_macro() {
+    let mut chain = chain!(2..3);
+    assert!(chain.next() == Some(2));
+    assert!(chain.next().is_none());
+
+    let mut chain = chain!(0..2, 2..3, 3..5i8);
+    for i in 0..5i8 {
+        assert_eq!(Some(i), chain.next());
+    }
+    assert!(chain.next().is_none());
+
+    let mut chain = chain!();
+    assert_eq!(chain.next(), Option::<()>::None);
+}
+
+#[test]
+fn chain2() {
+    let _ = chain!(1.., 2..);
+    let _ = chain!(1.., 2.., );
 }
 
 #[test]

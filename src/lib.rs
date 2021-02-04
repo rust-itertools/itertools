@@ -346,6 +346,43 @@ macro_rules! izip {
     };
 }
 
+#[macro_export]
+/// Create an iterator running multiple iterators sequentially.
+///
+/// This is a version of the standard ``.chain()`` that's supporting more than
+/// two iterators. `chain!` takes `IntoIterator` arguments.
+/// Alternatively, this is an alternative to the standard ``.flatten()`` for a
+/// fixed number of iterators of distinct sizes.
+///
+/// **Note:** The result of this macro is in the general case an iterator
+/// composed of repeated `.chain()`.
+/// The special case of one arguments produce $a.into_iter().
+///
+///
+/// ```
+/// # use itertools::chain;
+/// #
+/// # fn main() {
+///
+/// // chain three sequences
+/// let chained: Vec<i32> = chain!(0..=3, 4..6, vec![6, 7]).collect();
+/// assert_eq!(chained, (0..=7).collect::<Vec<i32>>());
+/// # }
+/// ```
+macro_rules! chain {
+    () => {
+        core::iter::empty()
+    };
+    ( $first:expr $(, $rest:expr )* $(,)*) => {
+        core::iter::IntoIterator::into_iter($first)
+            $(
+                .chain(
+                    core::iter::IntoIterator::into_iter($rest)
+                )
+            )*
+    };
+}
+
 /// An [`Iterator`] blanket implementation that provides extra adaptors and
 /// methods.
 ///
