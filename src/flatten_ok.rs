@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{fmt, iter::FusedIterator};
 
 pub fn flatten_ok<I, T, E>(iter: I) -> FlattenOk<I, T, E>
 where
@@ -35,6 +35,8 @@ where
                 if let Some(item) = inner.next() {
                     return Some(Ok(item));
                 } else {
+                    // This is necessary for the iterator to implement `FusedIterator`
+                    // with only the orginal iterator being fused.
                     self.inner = None;
                 }
             }
@@ -70,4 +72,12 @@ where
             .field("inner", &self.inner)
             .finish()
     }
+}
+
+/// Only the iterator being flattened needs to implement [`FusedIterator`].
+impl<I, T, E> FusedIterator for FlattenOk<I, T, E>
+where
+    I: FusedIterator<Item = Result<T, E>>,
+    T: IntoIterator,
+{
 }
