@@ -1,3 +1,5 @@
+use std::fmt;
+
 pub fn flatten_ok<I, T, E>(iter: I) -> FlattenOk<I, T, E>
 where
     I: Iterator<Item = Result<T, E>>,
@@ -35,12 +37,12 @@ where
                 } else {
                     self.inner = None;
                 }
-            } else {
-                match self.iter.next() {
-                    Some(Ok(ok)) => self.inner = Some(ok.into_iter()),
-                    Some(Err(e)) => return Some(Err(e)),
-                    None => return None,
-                }
+            }
+
+            match self.iter.next() {
+                Some(Ok(ok)) => self.inner = Some(ok.into_iter()),
+                Some(Err(e)) => return Some(Err(e)),
+                None => return None,
             }
         }
     }
@@ -52,10 +54,20 @@ where
     T: IntoIterator,
     T::IntoIter: Clone,
 {
-    fn clone(&self) -> Self {
-        Self {
-            iter: self.iter.clone(),
-            inner: self.inner.clone(),
-        }
+    #[inline]
+    clone_fields!(iter, inner);
+}
+
+impl<I, T, E> fmt::Debug for FlattenOk<I, T, E>
+where
+    I: Iterator<Item = Result<T, E>> + fmt::Debug,
+    T: IntoIterator,
+    T::IntoIter: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("FlattenOk")
+            .field("iter", &self.iter)
+            .field("inner", &self.inner)
+            .finish()
     }
 }
