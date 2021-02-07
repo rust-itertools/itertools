@@ -1,5 +1,8 @@
 use crate::size_hint;
-use std::{fmt, iter::FusedIterator};
+use std::{
+    fmt,
+    iter::{DoubleEndedIterator, FusedIterator},
+};
 
 pub fn flatten_ok<I, T, E>(iter: I) -> FlattenOk<I, T, E>
 where
@@ -85,6 +88,47 @@ where
         };
 
         size_hint::add(size_hint::add(inner_front, inner_back), outer)
+    }
+}
+
+impl<I, T, E> DoubleEndedIterator for FlattenOk<I, T, E>
+where
+    I: DoubleEndedIterator<Item = Result<T, E>>,
+    T: IntoIterator,
+    T::IntoIter: DoubleEndedIterator,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        loop {
+            // Handle the back inner iterator.
+            if let Some(inner) = &mut self.inner_back {
+                if let Some(item) = inner.next_back() {
+                    return Some(Ok(item));
+                } else {
+                    // This is necessary for the iterator to implement `FusedIterator`
+                    // with only the orginal iterator being fused.
+                    self.inner_back = None;
+                }
+            }
+
+            match self.iter.next_back() {
+                Some(Ok(ok)) => self.inner_back = Some(ok.into_iter()),
+                Some(Err(e)) => return Some(Err(e)),
+                None => {
+                    // Handle the front inner iterator.
+                    if let Some(inner) = &mut self.inner_front {
+                        if let Some(item) = inner.next_back() {
+                            return Some(Ok(item));
+                        } else {
+                            // This is necessary for the iterator to implement `FusedIterator`
+                            // with only the orginal iterator being fused.
+                            self.inner_front = None;
+                        }
+                    } else {
+                        return None;
+                    }
+                }
+            }
+        }
     }
 }
 
