@@ -119,6 +119,7 @@ pub mod structs {
     pub use crate::cons_tuples_impl::ConsTuples;
     pub use crate::exactly_one_err::ExactlyOneError;
     pub use crate::format::{Format, FormatWith};
+    pub use crate::flatten_ok::FlattenOk;
     #[cfg(feature = "use_std")]
     pub use crate::grouping_map::{GroupingMap, GroupingMapBy};
     #[cfg(feature = "use_alloc")]
@@ -194,6 +195,7 @@ mod combinations;
 mod combinations_with_replacement;
 mod exactly_one_err;
 mod diff;
+mod flatten_ok;
 mod format;
 #[cfg(feature = "use_std")]
 mod grouping_map;
@@ -831,6 +833,30 @@ pub trait Itertools : Iterator {
               F: FnMut(T) -> Option<U>,
     {
         adaptors::filter_map_ok(self, f)
+    }
+
+    /// Return an iterator adaptor that flattens every `Result::Ok` value into
+    /// a series of `Result::Ok` values. `Result::Err` values are unchanged.
+    /// 
+    /// This is useful when you have some common error type for your crate and
+    /// need to propogate it upwards, but the `Result::Ok` case needs to be flattened.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let input = vec![Ok(0..2), Err(false), Ok(2..4)];
+    /// let it = input.iter().cloned().flatten_ok();
+    /// itertools::assert_equal(it.clone(), vec![Ok(0), Ok(1), Err(false), Ok(2), Ok(3)]);
+    /// 
+    /// // This can also be used to propogate errors when collecting.
+    /// let output_result: Result<Vec<i32>, bool> = it.collect();
+    /// assert_eq!(output_result, Err(false));
+    /// ```
+    fn flatten_ok<T, E>(self) -> FlattenOk<Self, T, E>
+        where Self: Iterator<Item = Result<T, E>> + Sized,
+              T: IntoIterator
+    {
+        flatten_ok::flatten_ok(self)
     }
 
     /// Return an iterator adaptor that merges the two base iterators in
