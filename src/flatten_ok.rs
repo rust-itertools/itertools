@@ -48,6 +48,29 @@ where
             }
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        if let Some(inner) = &self.inner {
+            // If we have an inner iterator, then its lower bound is our lower bound,
+            // but we still don't know the upper bound.
+            let (inner_lower, inner_higher) = inner.size_hint();
+            let (_, outer_higher) = self.iter.size_hint();
+            if outer_higher == Some(0) {
+                // If there is nothing remaining in the outer iterator, we know the upper bound.
+                (inner_lower, inner_higher)
+            } else {
+                // However, if the outer iterator could have more items in it, we don't
+                // know the upper bound.
+                (inner_lower, None)
+            }
+        } else if self.iter.size_hint() == (0, Some(0)) {
+            // If the outer iterator is empty, we have no items.
+            (0, Some(0))
+        } else {
+            // Otherwise we do not know anything about the number of items.
+            (0, None)
+        }
+    }
 }
 
 impl<I, T, E> Clone for FlattenOk<I, T, E>
