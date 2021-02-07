@@ -1,3 +1,4 @@
+use crate::size_hint;
 use std::{fmt, iter::FusedIterator};
 
 pub fn flatten_ok<I, T, E>(iter: I) -> FlattenOk<I, T, E>
@@ -5,7 +6,11 @@ where
     I: Iterator<Item = Result<T, E>>,
     T: IntoIterator,
 {
-    FlattenOk { iter, inner: None }
+    FlattenOk {
+        iter,
+        inner_front: None,
+        inner_back: None,
+    }
 }
 
 /// An iterator adaptor that flattens `Result::Ok` values and
@@ -19,7 +24,8 @@ where
     T: IntoIterator,
 {
     iter: I,
-    inner: Option<T::IntoIter>,
+    inner_front: Option<T::IntoIter>,
+    inner_back: Option<T::IntoIter>,
 }
 
 impl<I, T, E> Iterator for FlattenOk<I, T, E>
@@ -31,45 +37,54 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            if let Some(inner) = &mut self.inner {
+            // Handle the front inner iterator.
+            if let Some(inner) = &mut self.inner_front {
                 if let Some(item) = inner.next() {
                     return Some(Ok(item));
                 } else {
                     // This is necessary for the iterator to implement `FusedIterator`
                     // with only the orginal iterator being fused.
-                    self.inner = None;
+                    self.inner_front = None;
                 }
             }
 
             match self.iter.next() {
-                Some(Ok(ok)) => self.inner = Some(ok.into_iter()),
+                Some(Ok(ok)) => self.inner_front = Some(ok.into_iter()),
                 Some(Err(e)) => return Some(Err(e)),
-                None => return None,
+                None => {
+                    // Handle the back inner iterator.
+                    if let Some(inner) = &mut self.inner_back {
+                        if let Some(item) = inner.next() {
+                            return Some(Ok(item));
+                        } else {
+                            // This is necessary for the iterator to implement `FusedIterator`
+                            // with only the orginal iterator being fused.
+                            self.inner_back = None;
+                        }
+                    } else {
+                        return None;
+                    }
+                }
             }
         }
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        if let Some(inner) = &self.inner {
-            // If we have an inner iterator, then its lower bound is our lower bound,
-            // but we still don't know the upper bound.
-            let (inner_lower, inner_higher) = inner.size_hint();
-            let (_, outer_higher) = self.iter.size_hint();
-            if outer_higher == Some(0) {
-                // If there is nothing remaining in the outer iterator, we know the upper bound.
-                (inner_lower, inner_higher)
-            } else {
-                // However, if the outer iterator could have more items in it, we don't
-                // know the upper bound.
-                (inner_lower, None)
-            }
-        } else if self.iter.size_hint() == (0, Some(0)) {
-            // If the outer iterator is empty, we have no items.
-            (0, Some(0))
-        } else {
-            // Otherwise we do not know anything about the number of items.
-            (0, None)
-        }
+        let inner_hint = |inner: &Option<T::IntoIter>| {
+            inner
+                .as_ref()
+                .map(Iterator::size_hint)
+                .unwrap_or((0, Some(0)))
+        };
+        let inner_front = inner_hint(&self.inner_front);
+        let inner_back = inner_hint(&self.inner_back);
+        // The outer iterator `Ok` case could be (0, None) as we don't know its size_hint yet.
+        let outer = match self.iter.size_hint() {
+            (0, Some(0)) => (0, Some(0)),
+            _ => (0, None),
+        };
+
+        size_hint::add(size_hint::add(inner_front, inner_back), outer)
     }
 }
 
@@ -80,7 +95,7 @@ where
     T::IntoIter: Clone,
 {
     #[inline]
-    clone_fields!(iter, inner);
+    clone_fields!(iter, inner_front, inner_back);
 }
 
 impl<I, T, E> fmt::Debug for FlattenOk<I, T, E>
@@ -92,7 +107,8 @@ where
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("FlattenOk")
             .field("iter", &self.iter)
-            .field("inner", &self.inner)
+            .field("inner_front", &self.inner_front)
+            .field("inner_back", &self.inner_back)
             .finish()
     }
 }
