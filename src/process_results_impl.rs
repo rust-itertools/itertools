@@ -44,7 +44,7 @@ impl<'a, I, T, E> Iterator for ProcessResults<'a, I, E>
 ///
 /// If the original iterable produces an error at any point, the adapted
 /// iterator ends and the `process_results` function will return the
-/// error iself.
+/// error itself.
 ///
 /// Otherwise, the return value from the closure is returned wrapped
 /// inside `Ok`.
@@ -129,7 +129,7 @@ impl<'a, 'b, I, T, E> Iterator for ProcessResultsRef<'a, 'b, I, E>
 ///
 /// If the original iterable produces an error at any point, the adapted
 /// iterator ends and the `process_results_ref` function will return the
-/// error iself.
+/// error itself.
 ///
 /// Otherwise, the return value from the closure is returned wrapped
 /// inside `Ok`.
