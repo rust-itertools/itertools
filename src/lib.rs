@@ -135,7 +135,7 @@ pub mod structs {
     pub use crate::peeking_take_while::PeekingTakeWhile;
     #[cfg(feature = "use_alloc")]
     pub use crate::permutations::Permutations;
-    pub use crate::process_results_impl::ProcessResults;
+    pub use crate::process_results_impl::{ProcessResults, ProcessResultsRef};
     #[cfg(feature = "use_alloc")]
     pub use crate::powerset::Powerset;
     #[cfg(feature = "use_alloc")]
@@ -173,7 +173,7 @@ pub use crate::diff::Diff;
 pub use crate::kmerge_impl::{kmerge_by};
 pub use crate::minmax::MinMaxResult;
 pub use crate::peeking_take_while::PeekingNext;
-pub use crate::process_results_impl::process_results;
+pub use crate::process_results_impl::{process_results, process_results_ref};
 pub use crate::repeatn::repeat_n;
 #[allow(deprecated)]
 pub use crate::sources::{repeat_call, unfold, iterate};
