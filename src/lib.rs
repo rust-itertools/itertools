@@ -347,39 +347,68 @@ macro_rules! izip {
 }
 
 #[macro_export]
-/// Create an iterator running multiple iterators sequentially.
+/// [Chain][`chain`] zero or more iterators together into one sequence.
 ///
-/// This is a version of the standard ``.chain()`` that's supporting more than
-/// two iterators. `chain!` takes `IntoIterator` arguments.
-/// Alternatively, this is an alternative to the standard ``.flatten()`` for a
-/// fixed number of iterators of distinct sizes.
+/// The comma-separated arguments must implement [`IntoIterator`].
+/// The final argument may be followed by a trailing comma.
 ///
-/// **Note:** The result of this macro is in the general case an iterator
-/// composed of repeated `.chain()`.
-/// The special case of one arguments produce $a.into_iter().
+/// [`chain`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.chain
+/// [`IntoIterator`]: https://doc.rust-lang.org/std/iter/trait.IntoIterator.html
 ///
+/// # Examples
 ///
+/// [`iter::empty`]: https://doc.rust-lang.org/std/iter/fn.empty.html
+///
+/// Empty invocations of `chain!` expand to an invocation of [`iter::empty`]:
 /// ```
-/// # use itertools::chain;
-/// #
-/// # fn main() {
+/// # use std::iter;
+/// use itertools::chain;
 ///
-/// // chain three sequences
-/// let chained: Vec<i32> = chain!(0..=3, 4..6, vec![6, 7]).collect();
-/// assert_eq!(chained, (0..=7).collect::<Vec<i32>>());
-/// # }
+/// let _: iter::Empty<()> = chain!();
+/// let _: iter::Empty<i8> = chain!();
+/// ```
+///
+/// Invocations of `chain!` with one argument expand to [`arg.into_iter()`][`IntoIterator`]:
+/// ```
+/// use std::{ops::Range, slice};
+/// use itertools::chain;
+/// let _: <Range<_> as IntoIterator>::IntoIter = chain!((2..6),); // trailing comma optional!
+/// let _:     <&[_] as IntoIterator>::IntoIter = chain!(&[2, 3, 4]);
+/// ```
+///
+/// Invocations of `chain!` with multiple arguments [`.into_iter()`][`IntoIterator`] each
+/// argument, and then [`chain`] them together:
+/// ```
+/// use std::{iter::*, ops::Range, slice};
+/// use itertools::{assert_equal, chain};
+///
+/// // e.g., this:
+/// let with_macro:  Chain<Chain<Once<_>, Take<Repeat<_>>>, slice::Iter<_>> =
+///     chain![once(&0), repeat(&1).take(2), &[2, 3, 5],];
+///
+/// // ...is equivalant to this:
+/// let with_method: Chain<Chain<Once<_>, Take<Repeat<_>>>, slice::Iter<_>> =
+///     once(&0)
+///         .chain(repeat(&1).take(2))
+///         .chain(&[2, 3, 5]);
+///
+/// assert_equal(with_macro, with_method);
 /// ```
 macro_rules! chain {
     () => {
         core::iter::empty()
     };
-    ( $first:expr $(, $rest:expr )* $(,)*) => {
-        core::iter::IntoIterator::into_iter($first)
+    ($first:expr $(, $rest:expr )* $(,)?) => {
+        {
+            let iter = core::iter::IntoIterator::into_iter($first);
             $(
-                .chain(
-                    core::iter::IntoIterator::into_iter($rest)
-                )
+                let iter =
+                    core::iter::Iterator::chain(
+                        iter,
+                        core::iter::IntoIterator::into_iter($rest));
             )*
+            iter
+        }
     };
 }
 
