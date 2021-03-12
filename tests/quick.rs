@@ -1587,3 +1587,26 @@ quickcheck! {
         TestResult::from_bool(itertools::equal(x, y))
     }
 }
+
+quickcheck! {
+    fn size_take_borrowed(mut iter: Iter<u8>, n: usize) -> bool {
+        correct_size_hint(iter.take_borrowed(n))
+    }
+
+    fn size_take_borrowed_remaining(vec: Vec<u8>, n: usize) -> bool {
+        let mut iter = vec.into_iter();
+        let _: Vec<_> = iter.take_borrowed(n).collect();
+        correct_size_hint(iter)
+    }
+
+    fn test_take_borrowed_taken(iter: Iter<u8>, n: usize) -> bool {
+        itertools::equal(iter.clone().take_borrowed(n), iter.take(n))
+    }
+
+    fn test_take_borrowed_remaining(vec: Vec<u8>, n: usize) -> bool {
+        let other = vec.clone();
+        let mut iter = vec.into_iter();
+        let _: Vec<_> = iter.take_borrowed(n).collect();
+        itertools::equal(iter, other.into_iter().skip(n))
+    }
+}

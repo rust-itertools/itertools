@@ -107,6 +107,7 @@ pub mod structs {
         TupleCombinations,
         Positions,
         Update,
+        TakeBorrowed,
     };
     #[allow(deprecated)]
     pub use crate::adaptors::{MapResults, Step};
@@ -1653,6 +1654,34 @@ pub trait Itertools : Iterator {
               F: FnMut(&mut Self::Item),
     {
         adaptors::update(self, updater)
+    }
+
+    /// Return an iterator over the first `n` elements,
+    /// while borrowing the original iterator.
+    ///
+    /// This is similar to `take(n)`, except that is doesn't
+    /// consume the original iterator.
+    ///
+    /// The iterator must be evaluated for it to have any effect on the original iterator.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// fn consume_iterator<I>(iter: I) where I: Iterator<Item = i32> {
+    ///     itertools::assert_equal(iter, vec![1, 2, 3]);
+    /// }
+    ///
+    /// let mut iter = vec![1, 2, 3, 4, 5].into_iter();
+    ///
+    /// consume_iterator(iter.take_borrowed(3));
+    ///
+    /// itertools::assert_equal(iter, vec![4, 5])
+    /// ```
+    fn take_borrowed(&mut self, n: usize) -> TakeBorrowed<Self>
+        where Self: Sized {
+        adaptors::take_borrowed(self, n)
     }
 
     // non-adaptor methods

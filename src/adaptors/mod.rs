@@ -1081,3 +1081,49 @@ where
         }
     }
 }
+
+/// An iterator adapter over the first n elements while borrowing the original iterator.
+///
+/// See [`.take_borrowed()`](crate::Itertools::take_borrowed) for more information.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+pub struct TakeBorrowed<'a, I: Iterator> {
+    iter: &'a mut I,
+    n: usize,
+}
+
+/// Create a new `TakeBorrowed` iterator.
+pub fn take_borrowed<I>(iter: &mut I, n: usize) -> TakeBorrowed<I>
+where
+    I: Iterator,
+{
+    TakeBorrowed { iter, n }
+}
+
+impl<'a, I: Iterator> Iterator for TakeBorrowed<'a, I> {
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.n > 0 {
+            self.n -= 1;
+            self.iter.next()
+        } else {
+            None
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        if self.n == 0 {
+            return (0, Some(0));
+        }
+        let (lower, upper) = self.iter.size_hint();
+        let lower = core::cmp::min(lower, self.n);
+        let upper = match upper {
+            Some(x) if x < self.n => Some(x),
+            _ => Some(self.n),
+        };
+        (lower, upper)
+    }
+}
+
+impl<'a, I> ExactSizeIterator for TakeBorrowed<'a, I> where I: Iterator + ExactSizeIterator {}
+
