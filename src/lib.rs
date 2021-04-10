@@ -1742,18 +1742,13 @@ pub trait Itertools : Iterator {
     /// assert_eq!(numbers.iter().find_or_last(|&&x| x > 2), Some(&3));
     /// assert_eq!(std::iter::empty::<i32>().find_or_last(|&x| x > 5), None);
     /// ```
-    fn find_or_last<P>(mut self, predicate: P) -> Option<Self::Item>
+    fn find_or_last<P>(mut self, mut predicate: P) -> Option<Self::Item>
         where Self: Sized,
               P: FnMut(&Self::Item) -> bool,
     {
-        #[inline]
-        fn check<T>(mut predicate: impl FnMut(&T) -> bool) -> impl FnMut(Option<T>, T) -> Result<Option<T>, T> {
-            move |_, x| {
-                if predicate(&x) { Result::Err(x) } else { Result::Ok(Some(x)) }
-            }
-        }
-
-        self.try_fold(None, check(predicate)).unwrap_or_else(Some)
+        let mut prev = None;
+        self.find_map(|x| if predicate(&x) { Some(x) } else { prev = Some(x); None })
+            .or(prev)
     }
     /// Returns `true` if the given item is present in this iterator.
     ///
