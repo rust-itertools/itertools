@@ -1738,7 +1738,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// let numbers = [1, 2, 3, 4];
-    /// assert_eq!(numbers.iter().find_or_last(|x| x > 5), Some(4));
+    /// assert_eq!(numbers.iter().find_or_last(|&&x| x > 5), Some(&4));
     /// ```
 	fn find_or_last<P>(mut self, predicate: P) -> Option<Self::Item>
 		where Self: Sized,
