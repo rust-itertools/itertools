@@ -1,6 +1,7 @@
 #![warn(missing_docs)]
 #![crate_name="itertools"]
 #![cfg_attr(not(feature = "use_std"), no_std)]
+#![feature(control_flow_enum)]
 
 //! Extra iterator adaptors, functions and macros.
 //!
@@ -75,6 +76,7 @@ use std::fmt::Write;
 type VecIntoIter<T> = alloc::vec::IntoIter<T>;
 #[cfg(feature = "use_alloc")]
 use std::iter::FromIterator;
+use std::ops::ControlFlow;
 
 #[macro_use]
 mod impl_macros;
@@ -1730,7 +1732,32 @@ pub trait Itertools : Iterator {
         }
         None
     }
+    /// Find the value of the first element satisfying a predicate or return the last element, if any.
+    ///
+    /// The iterator is not advanced past the first element found.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let numbers = [1, 2, 3, 4];
+    /// assert_eq!(numbers.iter().find_or_last(|x| x > 5), Some(4));
+    /// ```
+	fn find_or_last<P>(mut self, predicate: P) -> Option<Self::Item>
+		where Self: Sized,
+			  P: FnMut(&Self::Item) -> bool,
+	{
+		#[inline]
+        fn check<T>(mut predicate: impl FnMut(&T) -> bool) -> impl FnMut(Option<T>, T) -> ControlFlow<T, Option<T>> {
+            move |_, x| {
+                if predicate(&x) { ControlFlow::Break(x) } else { ControlFlow::Continue(Some(x)) }
+            }
+        }
 
+        match self.try_fold(None, check(predicate)) {
+			ControlFlow::Continue(x) => x,
+			ControlFlow::Break(x) => Some(x),
+		}
+	}
     /// Returns `true` if the given item is present in this iterator.
     ///
     /// This method is short-circuiting. If the given item is present in this
