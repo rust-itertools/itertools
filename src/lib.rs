@@ -1,7 +1,6 @@
 #![warn(missing_docs)]
 #![crate_name="itertools"]
 #![cfg_attr(not(feature = "use_std"), no_std)]
-#![feature(control_flow_enum)]
 
 //! Extra iterator adaptors, functions and macros.
 //!
@@ -76,7 +75,6 @@ use std::fmt::Write;
 type VecIntoIter<T> = alloc::vec::IntoIter<T>;
 #[cfg(feature = "use_alloc")]
 use std::iter::FromIterator;
-use std::ops::ControlFlow;
 
 #[macro_use]
 mod impl_macros;
@@ -1747,16 +1745,13 @@ pub trait Itertools : Iterator {
 			  P: FnMut(&Self::Item) -> bool,
 	{
 		#[inline]
-        fn check<T>(mut predicate: impl FnMut(&T) -> bool) -> impl FnMut(Option<T>, T) -> ControlFlow<T, Option<T>> {
+        fn check<T>(mut predicate: impl FnMut(&T) -> bool) -> impl FnMut(Option<T>, T) -> Result<Option<T>, T> {
             move |_, x| {
-                if predicate(&x) { ControlFlow::Break(x) } else { ControlFlow::Continue(Some(x)) }
+                if predicate(&x) { Result::Err(x) } else { Result::Ok(Some(x)) }
             }
         }
 
-        match self.try_fold(None, check(predicate)) {
-			ControlFlow::Continue(x) => x,
-			ControlFlow::Break(x) => Some(x),
-		}
+        self.try_fold(None, check(predicate)).unwrap_or_else(Some)
 	}
     /// Returns `true` if the given item is present in this iterator.
     ///
