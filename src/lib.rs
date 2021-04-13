@@ -2724,18 +2724,18 @@ pub trait Itertools : Iterator {
         group_map::into_group_map(self)
     }
 
-    /// Return an `Iterator` on a HahMap. Keys mapped to `Vec`s of values. The key is specified in
+    /// Return an `Iterator` on a `HashMap`. Keys mapped to `Vec`s of values. The key is specified
     /// in the closure.
-    /// Different of into_group_map_by because the key is still present. It is also more general.
-    /// you can also fold the group_map.
+    /// Different to `into_group_map_by` because the key is still present. It is also more general.
+    /// You can also fold the `group_map`.
     ///
     /// ```
     /// use itertools::Itertools;
     /// use std::collections::HashMap;
     ///
     /// let data = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
-    /// let lookup: HashMap<u32,Vec<(u32, u32)>> = data.clone().into_iter().into_group_map_by(|a|
-    /// a.0);
+    /// let lookup: HashMap<u32,Vec<(u32, u32)>> =
+    ///     data.clone().into_iter().into_group_map_by(|a| a.0);
     ///
     /// assert_eq!(lookup[&0], vec![(0,10),(0,20)]);
     /// assert_eq!(lookup.get(&1), None);
@@ -2744,10 +2744,12 @@ pub trait Itertools : Iterator {
     ///
     /// assert_eq!(
     ///     data.into_iter()
-    ///     .into_group_map_by(|x| x.0)
-    ///     .into_iter()
-    ///     .map(|(key, values)| (key, values.into_iter().fold(0,|acc, (_,v)| acc + v )))
-    ///     .collect::<HashMap<u32,u32>>()[&0], 30)
+    ///         .into_group_map_by(|x| x.0)
+    ///         .into_iter()
+    ///         .map(|(key, values)| (key, values.into_iter().fold(0,|acc, (_,v)| acc + v )))
+    ///         .collect::<HashMap<u32,u32>>()[&0],
+    ///     30,
+    /// );
     /// ```
     #[cfg(feature = "use_std")]
     fn into_group_map_by<K, V, F>(self, f: F) -> HashMap<K, Vec<V>>
