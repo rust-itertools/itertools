@@ -277,6 +277,14 @@ fn exactly_one() {
 }
 
 #[test]
+fn at_most_one() {
+    assert_eq!((0..10).filter(|&x| x == 2).at_most_one().unwrap(), Some(2));
+    assert!((0..10).filter(|&x| x > 1 && x < 4).at_most_one().unwrap_err().eq(2..4));
+    assert!((0..10).filter(|&x| x > 1 && x < 5).at_most_one().unwrap_err().eq(2..5));
+    assert_eq!((0..10).filter(|&_| false).at_most_one().unwrap(), None);
+}
+
+#[test]
 fn sum1() {
     let v: &[i32] = &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     assert_eq!(v[..0].iter().cloned().sum1::<i32>(), None);

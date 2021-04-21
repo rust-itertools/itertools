@@ -1204,6 +1204,17 @@ quickcheck! {
 }
 
 quickcheck! {
+    fn at_most_one_i32(a: Vec<i32>) -> TestResult {
+        let ret = a.iter().cloned().at_most_one();
+        match a.len() {
+            0 => TestResult::from_bool(ret.unwrap() == None),
+            1 => TestResult::from_bool(ret.unwrap() == Some(a[0])),
+            _ => TestResult::from_bool(ret.unwrap_err().eq(a.iter().cloned())),
+        }
+    }
+}
+
+quickcheck! {
     fn consistent_grouping_map_with_by(a: Vec<u8>, modulo: u8) -> () {
         let modulo = if modulo == 0 { 1 } else { modulo }; // Avoid `% 0`
 

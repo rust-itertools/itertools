@@ -3213,6 +3213,42 @@ pub trait Itertools : Iterator {
         }
     }
 
+    /// If the iterator yields no elements, Ok(None) will be returned. If the iterator yields
+    /// exactly one element, that element will be returned, otherwise an error will be returned
+    /// containing an iterator that has the same output as the input iterator.
+    ///
+    /// This provides an additional layer of validation over just calling `Iterator::next()`.
+    /// If your assumption that there should be at most one element yielded is false this provides
+    /// the opportunity to detect and handle that, preventing errors at a distance.
+    ///
+    /// # Examples
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// assert_eq!((0..10).filter(|&x| x == 2).at_most_one().unwrap(), Some(2));
+    /// assert!((0..10).filter(|&x| x > 1 && x < 4).at_most_one().unwrap_err().eq(2..4));
+    /// assert!((0..10).filter(|&x| x > 1 && x < 5).at_most_one().unwrap_err().eq(2..5));
+    /// assert_eq!((0..10).filter(|&_| false).at_most_one().unwrap(), None);
+    /// ```
+    fn at_most_one(mut self) -> Result<Option<Self::Item>, ExactlyOneError<Self>>
+    where
+        Self: Sized,
+    {
+        match self.next() {
+            Some(first) => {
+                match self.next() {
+                    Some(second) => {
+                        Err(ExactlyOneError::new(Some(Either::Left([first, second])), self))
+                    }
+                    None => {
+                        Ok(Some(first))
+                    }
+                }
+            }
+            None => Ok(None),
+        }
+    }
+
     /// An iterator adaptor that allows the user to peek at multiple `.next()`
     /// values without advancing the base iterator.
     ///
