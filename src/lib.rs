@@ -5,7 +5,7 @@
 //! Extra iterator adaptors, functions and macros.
 //!
 //! To extend [`Iterator`] with methods in this crate, import
-//! the [`Itertools` trait](Itertools):
+//! the [`Itertools`] trait:
 //!
 //! ```
 //! use itertools::Itertools;
