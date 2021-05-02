@@ -1,7 +1,7 @@
 use alloc::vec::{self, Vec};
 use std::cell::{Cell, RefCell};
 use std::ops::Deref;
-use std::rc::Rc;
+use alloc::rc::Rc;
 
 /// A trait to unify `FnMut` for `ChunkBy` with the chunk key in `IntoChunks`
 trait KeyFunction<A> {
