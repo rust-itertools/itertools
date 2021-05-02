@@ -354,23 +354,20 @@ macro_rules! izip {
 /// The comma-separated arguments must implement [`IntoIterator`].
 /// The final argument may be followed by a trailing comma.
 ///
-/// [`chain`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.chain
-/// [`IntoIterator`]: https://doc.rust-lang.org/std/iter/trait.IntoIterator.html
+/// [`chain`]: Iterator::chain
 ///
 /// # Examples
 ///
-/// [`iter::empty`]: https://doc.rust-lang.org/std/iter/fn.empty.html
-///
-/// Empty invocations of `chain!` expand to an invocation of [`iter::empty`]:
+/// Empty invocations of `chain!` expand to an invocation of [`std::iter::empty`]:
 /// ```
-/// # use std::iter;
+/// use std::iter;
 /// use itertools::chain;
 ///
 /// let _: iter::Empty<()> = chain!();
 /// let _: iter::Empty<i8> = chain!();
 /// ```
 ///
-/// Invocations of `chain!` with one argument expand to [`arg.into_iter()`][`IntoIterator`]:
+/// Invocations of `chain!` with one argument expand to [`arg.into_iter()`](IntoIterator):
 /// ```
 /// use std::{ops::Range, slice};
 /// use itertools::chain;
@@ -378,7 +375,7 @@ macro_rules! izip {
 /// let _:     <&[_] as IntoIterator>::IntoIter = chain!(&[2, 3, 4]);
 /// ```
 ///
-/// Invocations of `chain!` with multiple arguments [`.into_iter()`][`IntoIterator`] each
+/// Invocations of `chain!` with multiple arguments [`.into_iter()`](IntoIterator) each
 /// argument, and then [`chain`] them together:
 /// ```
 /// use std::{iter::*, ops::Range, slice};
