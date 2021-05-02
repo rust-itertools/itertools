@@ -481,7 +481,7 @@ pub type Merge<I, J> = MergeBy<I, J, MergeLte>;
 
 /// Create an iterator that merges elements in `i` and `j`.
 ///
-/// [`IntoIterator`] enabled version of `i.merge(j)`.
+/// [`IntoIterator`] enabled version of [`Itertools::merge`](crate::Itertools::merge).
 ///
 /// ```
 /// use itertools::merge;

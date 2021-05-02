@@ -3371,7 +3371,7 @@ impl<T: ?Sized> Itertools for T where T: Iterator { }
 /// `false` otherwise.
 ///
 /// This is an [`IntoIterator`] enabled function that is similar to the standard
-/// library method `Iterator::eq`.
+/// library method [`Iterator::eq`].
 ///
 /// ```
 /// assert!(itertools::equal(vec![1, 2, 3], 1..4));
@@ -3396,7 +3396,7 @@ pub fn equal<I, J>(a: I, b: J) -> bool
 }
 
 /// Assert that two iterables produce equal sequences, with the same
-/// semantics as *equal(a, b)*.
+/// semantics as [`equal(a, b)`](equal).
 ///
 /// **Panics** on assertion failure with a message that shows the
 /// two iteration elements.
