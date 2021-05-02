@@ -14,7 +14,7 @@ pub struct ZipEq<I, J> {
 ///
 /// **Panics** if the iterators are not of the same length.
 ///
-/// `IntoIterator` enabled version of `i.zip_eq(j)`.
+/// [`IntoIterator`] enabled version of `i.zip_eq(j)`.
 ///
 /// ```
 /// use itertools::zip_eq;

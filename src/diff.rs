@@ -26,7 +26,7 @@ pub enum Diff<I, J>
 }
 
 /// Compares every element yielded by both `i` and `j` with the given function in lock-step and
-/// returns a `Diff` which describes how `j` differs from `i`.
+/// returns a [`Diff`] which describes how `j` differs from `i`.
 ///
 /// If the number of elements yielded by `j` is less than the number of elements yielded by `i`,
 /// the number of `j` elements yielded will be returned along with `i`'s remaining elements as

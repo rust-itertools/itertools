@@ -595,7 +595,7 @@ pub trait Itertools : Iterator {
     /// allocations.  It needs allocations only if several group iterators
     /// are alive at the same time.
     ///
-    /// This type implements `IntoIterator` (it is **not** an iterator
+    /// This type implements [`IntoIterator`] (it is **not** an iterator
     /// itself), because the group iterators need to borrow from this
     /// value. It should be stored in a local variable or temporary and
     /// iterated.
@@ -824,7 +824,7 @@ pub trait Itertools : Iterator {
         adaptors::step(self, n)
     }
 
-    /// Convert each item of the iterator using the `Into` trait.
+    /// Convert each item of the iterator using the [`Into`] trait.
     ///
     /// ```rust
     /// use itertools::Itertools;
@@ -1915,7 +1915,7 @@ pub trait Itertools : Iterator {
         self.for_each(f)
     }
 
-    /// Combine all an iterator's elements into one element by using `Extend`.
+    /// Combine all an iterator's elements into one element by using [`Extend`].
     ///
     /// This combinator will extend the first item with each of the rest of the
     /// items of the iterator. If the iterator is empty, the default value of
@@ -2865,7 +2865,7 @@ pub trait Itertools : Iterator {
     /// Return the minimum and maximum element of an iterator, as determined by
     /// the specified function.
     ///
-    /// The return value is a variant of `MinMaxResult` like for `minmax()`.
+    /// The return value is a variant of [`MinMaxResult`] like for `minmax()`.
     ///
     /// For the minimum, the first minimal element is returned.  For the maximum,
     /// the last maximal element wins.  This matches the behavior of the standard
@@ -2882,7 +2882,7 @@ pub trait Itertools : Iterator {
     /// Return the minimum and maximum element of an iterator, as determined by
     /// the specified comparison function.
     ///
-    /// The return value is a variant of `MinMaxResult` like for `minmax()`.
+    /// The return value is a variant of [`MinMaxResult`] like for `minmax()`.
     ///
     /// For the minimum, the first minimal element is returned.  For the maximum,
     /// the last maximal element wins.  This matches the behavior of the standard
@@ -3370,7 +3370,7 @@ impl<T: ?Sized> Itertools for T where T: Iterator { }
 /// (elements pairwise equal and sequences of the same length),
 /// `false` otherwise.
 ///
-/// This is an `IntoIterator` enabled function that is similar to the standard
+/// This is an [`IntoIterator`] enabled function that is similar to the standard
 /// library method `Iterator::eq`.
 ///
 /// ```

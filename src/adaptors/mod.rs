@@ -35,7 +35,7 @@ pub struct Interleave<I, J> {
 
 /// Create an iterator that interleaves elements in `i` and `j`.
 ///
-/// `IntoIterator` enabled version of `i.interleave(j)`.
+/// [`IntoIterator`] enabled version of `i.interleave(j)`.
 ///
 /// See [`.interleave()`](crate::Itertools::interleave) for more information.
 pub fn interleave<I, J>(i: I, j: J) -> Interleave<<I as IntoIterator>::IntoIter, <J as IntoIterator>::IntoIter>
@@ -481,7 +481,7 @@ pub type Merge<I, J> = MergeBy<I, J, MergeLte>;
 
 /// Create an iterator that merges elements in `i` and `j`.
 ///
-/// `IntoIterator` enabled version of `i.merge(j)`.
+/// [`IntoIterator`] enabled version of `i.merge(j)`.
 ///
 /// ```
 /// use itertools::merge;
