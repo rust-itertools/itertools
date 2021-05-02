@@ -421,11 +421,11 @@ macro_rules! chain {
 ///
 /// * *Adaptors* take an iterator and parameter as input, and return
 /// a new iterator value. These are listed first in the trait. An example
-/// of an adaptor is [`.interleave()`](#method.interleave)
+/// of an adaptor is [`.interleave()`](Itertools::interleave)
 ///
 /// * *Regular methods* are those that don't return iterators and instead
 /// return a regular value of some other kind.
-/// [`.next_tuple()`](#method.next_tuple) is an example and the first regular
+/// [`.next_tuple()`](Itertools::next_tuple) is an example and the first regular
 /// method in the list.
 pub trait Itertools : Iterator {
     // adaptors
@@ -740,7 +740,7 @@ pub trait Itertools : Iterator {
     /// Return an iterator that groups the items in tuples of a specific size
     /// (up to 4).
     ///
-    /// See also the method [`.next_tuple()`](#method.next_tuple).
+    /// See also the method [`.next_tuple()`](Itertools::next_tuple).
     ///
     /// ```
     /// use itertools::Itertools;
@@ -838,7 +838,7 @@ pub trait Itertools : Iterator {
         adaptors::map_into(self)
     }
 
-    /// See [`.map_ok()`](#method.map_ok).
+    /// See [`.map_ok()`](Itertools::map_ok).
     #[deprecated(note="Use .map_ok() instead", since="0.10.0")]
     fn map_results<F, T, U, E>(self, f: F) -> MapOk<Self, F>
         where Self: Iterator<Item = Result<T, E>> + Sized,
@@ -1354,7 +1354,7 @@ pub trait Itertools : Iterator {
     /// `peeking_take_while` is done.
     ///
     ///
-    /// See also [`.take_while_ref()`](#method.take_while_ref)
+    /// See also [`.take_while_ref()`](Itertools::take_while_ref)
     /// which is a similar adaptor.
     fn peeking_take_while<F>(&mut self, accept: F) -> PeekingTakeWhile<Self, F>
         where Self: Sized + PeekingNext,
@@ -2094,7 +2094,7 @@ pub trait Itertools : Iterator {
         format::new_format(self, sep, format)
     }
 
-    /// See [`.fold_ok()`](#method.fold_ok).
+    /// See [`.fold_ok()`](Itertools::fold_ok).
     #[deprecated(note="Use .fold_ok() instead", since="0.10.0")]
     fn fold_results<A, E, B, F>(&mut self, start: B, f: F) -> Result<B, E>
         where Self: Iterator<Item = Result<A, E>>,
@@ -2794,7 +2794,7 @@ pub trait Itertools : Iterator {
     /// value of type `K` will be used as key to identify the groups and the
     /// value of type `V` as value for the folding operation.
     /// 
-    /// See [`GroupingMap`](./structs/struct.GroupingMap.html) for more informations
+    /// See [`GroupingMap`] for more informations
     /// on what operations are available.
     #[cfg(feature = "use_std")]
     fn into_grouping_map<K, V>(self) -> GroupingMap<Self>
@@ -2810,7 +2810,7 @@ pub trait Itertools : Iterator {
     /// The values from this iterator will be used as values for the folding operation
     /// while the keys will be obtained from the values by calling `key_mapper`.
     /// 
-    /// See [`GroupingMap`](./structs/struct.GroupingMap.html) for more informations
+    /// See [`GroupingMap`] for more informations
     /// on what operations are available.
     #[cfg(feature = "use_std")]
     fn into_grouping_map_by<K, V, F>(self, key_mapper: F) -> GroupingMapBy<Self, F>
@@ -3471,9 +3471,9 @@ pub fn partition<'a, A: 'a, I, F>(iter: I, mut pred: F) -> usize
     split_index
 }
 
-/// An enum used for controlling the execution of `.fold_while()`.
+/// An enum used for controlling the execution of `fold_while`.
 ///
-/// See [`.fold_while()`](crate::Itertools::fold_while) for more information.
+/// See [`.fold_while()`](Itertools::fold_while) for more information.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum FoldWhile<T> {
     /// Continue folding with this value

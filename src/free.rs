@@ -223,9 +223,7 @@ pub fn join<I>(iterable: I, sep: &str) -> String
 
 /// Sort all iterator elements into a new iterator in ascending order.
 ///
-/// [`IntoIterator`] enabled version of [`iterable.sorted()`][1].
-///
-/// [1]: crate::Itertools::sorted
+/// [`IntoIterator`] enabled version of [`Itertools::sorted`].
 ///
 /// ```
 /// use itertools::sorted;
