@@ -314,7 +314,7 @@ macro_rules! impl_tuple_collect {
                 let &mut ($(ref mut $Y),*,) = self;
                 macro_rules! replace_item{($i:ident) => {
                     item = replace($i, item);
-                }};
+                }}
                 rev_for_each_ident!(replace_item, $($Y,)*);
                 drop(item);
             }
