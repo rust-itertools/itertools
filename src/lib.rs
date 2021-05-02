@@ -948,7 +948,7 @@ pub trait Itertools : Iterator {
     }
 
     /// Return an iterator adaptor that merges the two base iterators in order.
-    /// This is much like `.merge()` but allows for a custom ordering.
+    /// This is much like [`.merge()`](Itertools::merge) but allows for a custom ordering.
     ///
     /// This can be especially useful for sequences of tuples.
     ///
@@ -1935,7 +1935,7 @@ pub trait Itertools : Iterator {
         concat(self)
     }
 
-    /// `.collect_vec()` is simply a type specialization of `.collect()`,
+    /// `.collect_vec()` is simply a type specialization of [`Iterator::collect`],
     /// for convenience.
     #[cfg(feature = "use_alloc")]
     fn collect_vec(self) -> Vec<Self::Item>
@@ -2057,7 +2057,7 @@ pub trait Itertools : Iterator {
 
     /// Format all iterator elements, separated by `sep`.
     ///
-    /// This is a customizable version of `.format()`.
+    /// This is a customizable version of [`.format()`](Itertools::format).
     ///
     /// The supplied closure `format` is called once per iterator element,
     /// with two arguments: the element and a callback that takes a
@@ -2164,7 +2164,7 @@ pub trait Itertools : Iterator {
     /// value is returned inside `Some`. Otherwise, the operation terminates
     /// and returns `None`. No iterator elements are consumed after the `None`.
     ///
-    /// This is the `Option` equivalent to `fold_ok`.
+    /// This is the `Option` equivalent to [`fold_ok`](Itertools::fold_ok).
     ///
     /// ```
     /// use std::ops::Add;
@@ -2318,7 +2318,7 @@ pub trait Itertools : Iterator {
 
     /// An iterator method that applies a function, producing a single, final value.
     ///
-    /// `fold_while()` is basically equivalent to `fold()` but with additional support for
+    /// `fold_while()` is basically equivalent to [`Iterator::fold`] but with additional support for
     /// early exit via short-circuiting.
     ///
     /// ```
@@ -2437,7 +2437,7 @@ pub trait Itertools : Iterator {
     /// Sort all iterator elements into a new iterator in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, uses the
-    /// `slice::sort_unstable()` method and returns the result as a new
+    /// [`slice::sort_unstable`] method and returns the result as a new
     /// iterator that owns its elements.
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -2466,7 +2466,7 @@ pub trait Itertools : Iterator {
     /// Sort all iterator elements into a new iterator in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, uses the
-    /// `slice::sort_unstable_by()` method and returns the result as a new
+    /// [`slice::sort_unstable_by`] method and returns the result as a new
     /// iterator that owns its elements.
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -2499,7 +2499,7 @@ pub trait Itertools : Iterator {
     /// Sort all iterator elements into a new iterator in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, uses the
-    /// `slice::sort_unstable_by_key()` method and returns the result as a new
+    /// [`slice::sort_unstable_by_key`] method and returns the result as a new
     /// iterator that owns its elements.
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -2533,7 +2533,7 @@ pub trait Itertools : Iterator {
     /// Sort all iterator elements into a new iterator in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, uses the
-    /// `slice::sort()` method and returns the result as a new
+    /// [`slice::sort`] method and returns the result as a new
     /// iterator that owns its elements.
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -2562,7 +2562,7 @@ pub trait Itertools : Iterator {
     /// Sort all iterator elements into a new iterator in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, uses the
-    /// `slice::sort_by()` method and returns the result as a new
+    /// [`slice::sort_by`] method and returns the result as a new
     /// iterator that owns its elements.
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -2595,7 +2595,7 @@ pub trait Itertools : Iterator {
     /// Sort all iterator elements into a new iterator in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, uses the
-    /// `slice::sort_by_key()` method and returns the result as a new
+    /// [`slice::sort_by_key`] method and returns the result as a new
     /// iterator that owns its elements.
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -2664,7 +2664,7 @@ pub trait Itertools : Iterator {
     }
 
     /// Collect all iterator elements into one of two
-    /// partitions. Unlike `Iterator::partition`, each partition may
+    /// partitions. Unlike [`Iterator::partition`], each partition may
     /// have a distinct type.
     ///
     /// ```
@@ -2865,11 +2865,11 @@ pub trait Itertools : Iterator {
     /// Return the minimum and maximum element of an iterator, as determined by
     /// the specified function.
     ///
-    /// The return value is a variant of [`MinMaxResult`] like for `minmax()`.
+    /// The return value is a variant of [`MinMaxResult`] like for [`.minmax()`](Itertools::minmax).
     ///
     /// For the minimum, the first minimal element is returned.  For the maximum,
     /// the last maximal element wins.  This matches the behavior of the standard
-    /// `Iterator::min()` and `Iterator::max()` methods.
+    /// [`Iterator::min`] and [`Iterator::max`] methods.
     ///
     /// The keys can be floats but no particular result is guaranteed
     /// if a key is NaN.
@@ -2882,11 +2882,11 @@ pub trait Itertools : Iterator {
     /// Return the minimum and maximum element of an iterator, as determined by
     /// the specified comparison function.
     ///
-    /// The return value is a variant of [`MinMaxResult`] like for `minmax()`.
+    /// The return value is a variant of [`MinMaxResult`] like for [`.minmax()`](Itertools::minmax).
     ///
     /// For the minimum, the first minimal element is returned.  For the maximum,
     /// the last maximal element wins.  This matches the behavior of the standard
-    /// `Iterator::min()` and `Iterator::max()` methods.
+    /// [`Iterator::min`] and [`Iterator::max`] methods.
     fn minmax_by<F>(self, mut compare: F) -> MinMaxResult<Self::Item>
         where Self: Sized, F: FnMut(&Self::Item, &Self::Item) -> Ordering
     {
