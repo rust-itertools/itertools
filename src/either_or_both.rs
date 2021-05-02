@@ -163,6 +163,21 @@ impl<A, B> EitherOrBoth<A, B> {
             Right(b) | Both(_, b) => f(b),
         }
     }
+
+    /// Returns a tuple consisting of the `l` and `r` in `Both(l, r)`, if present.
+    /// Otherwise, returns the wrapped value for the present element, and the [`default`](Default::default)
+    /// for the other.
+    pub fn or_default(self) -> (A, B)
+    where
+        A: Default,
+        B: Default,
+    {
+        match self {
+            EitherOrBoth::Left(l) => (l, B::default()),
+            EitherOrBoth::Right(r) => (A::default(), r),
+            EitherOrBoth::Both(l, r) => (l, r),
+        }
+    }
 }
 
 impl<T> EitherOrBoth<T, T> {
