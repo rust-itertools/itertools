@@ -1756,7 +1756,49 @@ pub trait Itertools : Iterator {
         }
         None
     }
-
+    /// Find the value of the first element satisfying a predicate or return the last element, if any.
+    ///
+    /// The iterator is not advanced past the first element found.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let numbers = [1, 2, 3, 4];
+    /// assert_eq!(numbers.iter().find_or_last(|&&x| x > 5), Some(&4));
+    /// assert_eq!(numbers.iter().find_or_last(|&&x| x > 2), Some(&3));
+    /// assert_eq!(std::iter::empty::<i32>().find_or_last(|&x| x > 5), None);
+    /// ```
+    fn find_or_last<P>(mut self, mut predicate: P) -> Option<Self::Item>
+        where Self: Sized,
+              P: FnMut(&Self::Item) -> bool,
+    {
+        let mut prev = None;
+        self.find_map(|x| if predicate(&x) { Some(x) } else { prev = Some(x); None })
+            .or(prev)
+    }
+    /// Find the value of the first element satisfying a predicate or return the first element, if any.
+    ///
+    /// The iterator is not advanced past the first element found.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let numbers = [1, 2, 3, 4];
+    /// assert_eq!(numbers.iter().find_or_first(|&&x| x > 5), Some(&1));
+    /// assert_eq!(numbers.iter().find_or_first(|&&x| x > 2), Some(&3));
+    /// assert_eq!(std::iter::empty::<i32>().find_or_first(|&x| x > 5), None);
+    /// ```
+    fn find_or_first<P>(mut self, mut predicate: P) -> Option<Self::Item>
+        where Self: Sized,
+              P: FnMut(&Self::Item) -> bool,
+    {
+        let first = self.next()?;
+        Some(if predicate(&first) {
+            first
+        } else {
+            self.find(|x| predicate(&x)).unwrap_or(first)
+        })
+    }
     /// Returns `true` if the given item is present in this iterator.
     ///
     /// This method is short-circuiting. If the given item is present in this
