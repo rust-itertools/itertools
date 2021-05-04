@@ -10,6 +10,7 @@
   - Add `Itertools::at_most_one` (#523)
   - Add `Itertools::flatten_ok` (#527)
   - Add `EitherOrBoth::or_default` (#583)
+  - Add `Itertools::find_or_last` and `Itertools::find_or_first` (#535)
 
 ## 0.10.0
   - **Increase minimum supported Rust version to 1.32.0**
