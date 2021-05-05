@@ -3,7 +3,7 @@ name = "itertools"
 version = "0.10.0"
 
 license = "MIT/Apache-2.0"
-repository = "https://github.com/bluss/rust-itertools"
+repository = "https://github.com/rust-itertools/itertools"
 documentation = "https://docs.rs/itertools/"
 authors = ["bluss"]
 
@@ -27,8 +27,8 @@ either = { version = "1.0", default-features = false }
 
 [dev-dependencies]
 rand = "0.7"
-criterion = "=0" # TODO how could this work with our minimum supported rust version?
-paste = "1.0.0" # Used in test_std to instanciate generic tests
+criterion = "=0" # TODO how could this work with our minimum supported Rust version?
+paste = "1.0.0" # Used in test_std to instantiate generic tests
 
 [dev-dependencies.quickcheck]
 version = "0.9"
