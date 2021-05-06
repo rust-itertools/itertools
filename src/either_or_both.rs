@@ -140,7 +140,7 @@ impl<A, B> EitherOrBoth<A, B> {
         }
     }
 
-    /// Apply the function `f` on the value `b` in `Right(b)` or `Both(a, _)` variants if it is
+    /// Apply the function `f` on the value `a` in `Left(a)` or `Both(a, _)` variants if it is
     /// present.
     pub fn left_and_then<F, L>(self, f: F) -> EitherOrBoth<L, B>
     where
@@ -152,8 +152,8 @@ impl<A, B> EitherOrBoth<A, B> {
         }
     }
 
-    /// Apply the function `f` on the value `a`
-    /// in `Left(a)` or `Both(a, _)` variants if it is present.
+    /// Apply the function `f` on the value `b`
+    /// in `Right(b)` or `Both(_, b)` variants if it is present.
     pub fn right_and_then<F, R>(self, f: F) -> EitherOrBoth<A, R>
     where
         F: FnOnce(B) -> EitherOrBoth<A, R>,
