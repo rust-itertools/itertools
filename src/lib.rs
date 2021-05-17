@@ -1442,7 +1442,7 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(it, vec![(1, 2, 3), (1, 2, 4), (1, 3, 4), (2, 3, 4)]);
     /// ```
     fn tuple_combinations<T>(self) -> TupleCombinations<Self, T>
-        where Self: Sized + Clone,
+        where Self: Sized,
               Self::Item: Clone,
               T: adaptors::HasCombination<Self>,
     {
