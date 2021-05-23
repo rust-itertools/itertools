@@ -812,6 +812,80 @@ impl_tuple_combination!(Tuple10Combination Tuple9Combination; a b c d e f g h i)
 impl_tuple_combination!(Tuple11Combination Tuple10Combination; a b c d e f g h i j);
 impl_tuple_combination!(Tuple12Combination Tuple11Combination; a b c d e f g h i j k);
 
+#[derive(Debug, Clone)]
+pub struct ArrayCombinations<T, const R: usize> {
+    slice: Vec<T>,
+    indicies: [usize; R],
+}
+
+impl<T, const R: usize> ArrayCombinations<T, R> {
+    pub fn new(slice: Vec<T>) -> Self {
+        debug_assert!(slice.len() >= R);
+
+        let mut indicies = [0; R];
+        for i in 0..R {
+            indicies[i] = i;
+        }
+
+        Self {
+            slice,
+            indicies,
+        }
+    }
+}
+
+impl<T: Clone, const R: usize> Iterator for ArrayCombinations<T, R> {
+    type Item = [T; R];
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.indicies[R-1] == 0 {
+            return None;
+        }
+
+        // SAFETY: uninitialized data is never read
+        let output = unsafe {
+            let mut output: [T; R] = std::mem::uninitialized();
+            for i in 0..R {
+                output[i] = self.slice[self.indicies[i]].clone();
+            }
+            output
+        };
+
+        // // The below uses currently unstable rust. Once they are stable
+        // // we can replace the deprecated uninitialized
+
+        // let mut output = std::mem::MaybeUninit::uninit_array::<R>();
+        // for i in 0..R {
+        //     // SAFETY: only writing so no UB
+        //     unsafe {
+        //         *output[i].as_mut_ptr() = self.slice[self.indicies[i]].clone();
+        //     }
+        // }
+        // // SAFETY: initialised above
+        // let output = unsafe { std::mem::MaybeUninit::array_assume_init(output) };
+
+        let mut x = R;
+        for i in (0..R).rev() {
+            self.indicies[i] += 1;
+            if self.indicies[i] == self.slice.len() + i - R + 1 {
+                x = i;
+            } else {
+                break
+            }
+        }
+
+        if x == 0 {
+            self.indicies[R-1] = 0;
+        } else {
+            for i in x..R {
+                self.indicies[i] = self.indicies[i-1] + 1;
+            }
+        }
+
+        Some(output)
+    }
+}
+
 /// An iterator adapter to filter values within a nested `Result::Ok`.
 ///
 /// See [`.filter_ok()`](crate::Itertools::filter_ok) for more information.
