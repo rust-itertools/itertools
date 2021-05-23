@@ -105,6 +105,7 @@ pub mod structs {
         WhileSome,
         Coalesce,
         TupleCombinations,
+        ArrayCombinations,
         Positions,
         Update,
     };
@@ -1447,6 +1448,13 @@ pub trait Itertools : Iterator {
               T: adaptors::HasCombination<Self>,
     {
         adaptors::tuple_combinations(self)
+    }
+
+    fn array_combinations<const R: usize>(self) -> ArrayCombinations<Self::Item, R>
+        where Self: Sized,
+              Self::Item: Clone + std::fmt::Debug,
+    {
+        ArrayCombinations::new(self.collect())
     }
 
     /// Return an iterator adaptor that iterates over the `k`-length combinations of
