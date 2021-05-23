@@ -815,21 +815,21 @@ impl_tuple_combination!(Tuple12Combination Tuple11Combination; a b c d e f g h i
 #[derive(Debug, Clone)]
 pub struct ArrayCombinations<T, const R: usize> {
     slice: Vec<T>,
-    indicies: [usize; R],
+    indices: [usize; R],
 }
 
 impl<T, const R: usize> ArrayCombinations<T, R> {
     pub fn new(slice: Vec<T>) -> Self {
         debug_assert!(slice.len() >= R);
 
-        let mut indicies = [0; R];
-        for i in 0..R {
-            indicies[i] = i;
+        let mut indices = [0; R];
+        for i in 1..R {
+            indices[i] = i;
         }
 
         Self {
             slice,
-            indicies,
+            indices,
         }
     }
 }
@@ -838,7 +838,7 @@ impl<T: Clone, const R: usize> Iterator for ArrayCombinations<T, R> {
     type Item = [T; R];
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.indicies[R-1] == 0 {
+        if self.indices[R-1] == self.slice.len() {
             return None;
         }
 
@@ -846,7 +846,7 @@ impl<T: Clone, const R: usize> Iterator for ArrayCombinations<T, R> {
         let output = unsafe {
             let mut output: [T; R] = std::mem::uninitialized();
             for i in 0..R {
-                output[i] = self.slice[self.indicies[i]].clone();
+                output[i] = self.slice[self.indices[i]].clone();
             }
             output
         };
@@ -864,22 +864,14 @@ impl<T: Clone, const R: usize> Iterator for ArrayCombinations<T, R> {
         // // SAFETY: initialised above
         // let output = unsafe { std::mem::MaybeUninit::array_assume_init(output) };
 
-        let mut x = R;
-        for i in (0..R).rev() {
-            self.indicies[i] += 1;
-            if self.indicies[i] == self.slice.len() + i - R + 1 {
-                x = i;
-            } else {
-                break
-            }
+        let mut i = R-1;
+        while i > 0 && self.indices[i] + R == self.slice.len() + i {
+            i -= 1;
         }
 
-        if x == 0 {
-            self.indicies[R-1] = 0;
-        } else {
-            for i in x..R {
-                self.indicies[i] = self.indicies[i-1] + 1;
-            }
+        self.indices[i] += 1;
+        for j in i+1..R {
+            self.indices[j] = self.indices[j-1] + 1;
         }
 
         Some(output)
