@@ -15,7 +15,7 @@ pub use self::map::MapResults;
 pub use self::multi_product::*;
 
 use std::fmt;
-use std::iter::{Fuse, Peekable, FromIterator};
+use std::iter::{Fuse, Peekable, FromIterator, FusedIterator};
 use std::marker::PhantomData;
 use crate::size_hint;
 
@@ -74,6 +74,11 @@ impl<I, J> Iterator for Interleave<I, J>
         size_hint::add(self.a.size_hint(), self.b.size_hint())
     }
 }
+
+impl<I, J> FusedIterator for Interleave<I, J>
+    where I: Iterator,
+          J: Iterator<Item = I::Item>
+{}
 
 /// An iterator adaptor that alternates elements from the two iterators until
 /// one of them runs out.
