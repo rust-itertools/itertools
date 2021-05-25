@@ -112,6 +112,7 @@ pub mod structs {
     pub use crate::adaptors::{MapResults, Step};
     #[cfg(feature = "use_alloc")]
     pub use crate::adaptors::MultiProduct;
+    pub use crate::array_impl::Arrays;
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations::Combinations;
     #[cfg(feature = "use_alloc")]
@@ -181,6 +182,7 @@ pub use crate::sources::{repeat_call, unfold, iterate};
 pub use crate::with_position::Position;
 pub use crate::ziptuple::multizip;
 mod adaptors;
+mod array_impl;
 mod either_or_both;
 pub use crate::either_or_both::EitherOrBoth;
 #[doc(hidden)]
@@ -773,6 +775,42 @@ pub trait Itertools : Iterator {
               T: traits::HomogeneousTuple
     {
         tuple_impl::tuples(self)
+    }
+
+    /// Return an iterator that groups the items in arrays of a specific size
+    ///
+    /// See also the method [`.next_array()`](#method.next_array).
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// let mut v = Vec::new();
+    /// for [a, b] in (1..5).arrays() {
+    ///     v.push([a, b]);
+    /// }
+    /// assert_eq!(v, vec![[1, 2], [3, 4]]);
+    ///
+    /// let mut it = (1..8).arrays();
+    /// assert_eq!(Some([1, 2, 3]), it.next());
+    /// assert_eq!(Some([4, 5, 6]), it.next());
+    /// assert_eq!(None, it.next());
+    /// // get any remaining data
+    /// assert_eq!(vec![7], it.remaining());
+    ///
+    /// // this requires a type hint
+    /// let it = (1..7).arrays::<3>();
+    /// itertools::assert_equal(it, vec![[1, 2, 3], [4, 5, 6]]);
+    ///
+    /// // you can also specify the complete type
+    /// use itertools::Arrays;
+    /// use std::ops::Range;
+    ///
+    /// let it: Arrays<Range<u32>, 3> = (1..7).arrays();
+    /// itertools::assert_equal(it, vec![[1, 2, 3], [4, 5, 6]]);
+    /// ```
+    fn arrays<const N: usize>(self) -> array_impl::Arrays<Self, N>
+        where Self: Sized + Iterator,
+    {
+        array_impl::Arrays::new(self)
     }
 
     /// Split into an iterator pair that both yield all elements from
@@ -1700,6 +1738,25 @@ pub trait Itertools : Iterator {
               T: traits::HomogeneousTuple
     {
         T::collect_from_iter_no_buf(self)
+    }
+
+    /// Advances the iterator and returns the next items grouped in an array of
+    /// a specific size.
+    ///
+    /// If there are enough elements to be grouped in a tuple, then the tuple is
+    /// returned inside `Some`, otherwise `None` is returned.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut iter = 1..5;
+    ///
+    /// assert_eq!(Some([1, 2]), iter.next_array());
+    /// ```
+    fn next_array<const N: usize>(&mut self) -> Option<[Self::Item; N]>
+        where Self: Sized + Iterator
+    {
+        array_impl::next_array(self)
     }
 
     /// Collects all items from the iterator into a tuple of a specific size

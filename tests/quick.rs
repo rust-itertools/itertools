@@ -1073,6 +1073,32 @@ quickcheck! {
     }
 }
 
+quickcheck! {
+    fn equal_arrays_1(a: Vec<u8>) -> bool {
+        let x = a.chunks(1).map(|s| [&s[0]]);
+        let y = a.iter().arrays::<1>();
+        itertools::equal(x, y)
+    }
+
+    fn equal_arrays_2(a: Vec<u8>) -> bool {
+        let x = a.chunks(2).filter(|s| s.len() == 2).map(|s| [&s[0], &s[1]]);
+        let y = a.iter().arrays::<2>();
+        itertools::equal(x, y)
+    }
+
+    fn equal_arrays_3(a: Vec<u8>) -> bool {
+        let x = a.chunks(3).filter(|s| s.len() == 3).map(|s| [&s[0], &s[1], &s[2]]);
+        let y = a.iter().arrays::<3>();
+        itertools::equal(x, y)
+    }
+
+    fn equal_arrays_4(a: Vec<u8>) -> bool {
+        let x = a.chunks(4).filter(|s| s.len() == 4).map(|s| [&s[0], &s[1], &s[2], &s[3]]);
+        let y = a.iter().arrays::<4>();
+        itertools::equal(x, y)
+    }
+}
+
 // with_position
 quickcheck! {
     fn with_position_exact_size_1(a: Vec<u8>) -> bool {
