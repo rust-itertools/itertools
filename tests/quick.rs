@@ -898,13 +898,9 @@ quickcheck! {
 quickcheck! {
     fn equal_combinations_array(it: Iter<i16>) -> bool {
         let values = it.clone().collect_vec();
-        if values.len() < 2 {
-            return true;
-        }
-
         let mut cmb = it.array_combinations();
-        for i in 0..values.len() {
-            for j in i+1..values.len() {
+        for j in 1..values.len() {
+            for i in 0..j {
                 let pair = [values[i], values[j]];
                 if pair != cmb.next().unwrap() {
                     return false;

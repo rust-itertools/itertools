@@ -24,6 +24,7 @@ test = false
 
 [dependencies]
 either = { version = "1.0", default-features = false }
+array-init = "2.0.0"
 
 [dev-dependencies]
 rand = "0.7"

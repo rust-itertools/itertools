@@ -1450,11 +1450,11 @@ pub trait Itertools : Iterator {
         adaptors::tuple_combinations(self)
     }
 
-    fn array_combinations<const R: usize>(self) -> ArrayCombinations<Self::Item, R>
+    fn array_combinations<const R: usize>(self) -> ArrayCombinations<Self, R>
         where Self: Sized,
-              Self::Item: Clone + std::fmt::Debug,
+              Self::Item: Clone,
     {
-        ArrayCombinations::new(self.collect())
+        ArrayCombinations::new(self)
     }
 
     /// Return an iterator adaptor that iterates over the `k`-length combinations of

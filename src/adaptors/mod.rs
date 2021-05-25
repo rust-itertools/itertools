@@ -813,68 +813,51 @@ impl_tuple_combination!(Tuple11Combination Tuple10Combination; a b c d e f g h i
 impl_tuple_combination!(Tuple12Combination Tuple11Combination; a b c d e f g h i j k);
 
 #[derive(Debug, Clone)]
-pub struct ArrayCombinations<T, const R: usize> {
-    slice: Vec<T>,
+pub struct ArrayCombinations<I: Iterator, const R: usize> {
+    iter: I,
+    buf: Vec<I::Item>,
     indices: [usize; R],
 }
 
-impl<T, const R: usize> ArrayCombinations<T, R> {
-    pub fn new(slice: Vec<T>) -> Self {
-        debug_assert!(slice.len() >= R);
+impl<I: Iterator, const R: usize> ArrayCombinations<I, R> {
+    pub fn new(iter: I) -> Self {
+        let indices = array_init::array_init(|i| i);
+        let buf = Vec::new();
 
-        let mut indices = [0; R];
-        for i in 1..R {
-            indices[i] = i;
-        }
-
-        Self {
-            slice,
-            indices,
-        }
+        Self { iter, buf, indices }
     }
 }
 
-impl<T: Clone, const R: usize> Iterator for ArrayCombinations<T, R> {
-    type Item = [T; R];
+impl<I: Iterator, const R: usize> Iterator for ArrayCombinations<I, R>
+where
+    I::Item: Clone,
+{
+    type Item = [I::Item; R];
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.indices[R-1] == self.slice.len() {
-            return None;
-        }
-
-        // SAFETY: uninitialized data is never read
-        let output = unsafe {
-            let mut output: [T; R] = std::mem::uninitialized();
-            for i in 0..R {
-                output[i] = self.slice[self.indices[i]].clone();
+        if self.buf.is_empty() {
+            for _ in 0..R {
+                self.buf.push(self.iter.next()?);
             }
-            output
-        };
+        } else if self.indices[0] + R == self.buf.len() {
+            self.buf.push(self.iter.next()?);
+            for i in 0..R - 1 {
+                self.indices[i] = i;
+            }
+            self.indices[R - 1] += 1;
+        } else {
+            let mut i = R - 2;
+            while i > 0 && self.indices[i] + R == self.buf.len() + i {
+                i -= 1;
+            }
 
-        // // The below uses currently unstable rust. Once they are stable
-        // // we can replace the deprecated uninitialized
-
-        // let mut output = std::mem::MaybeUninit::uninit_array::<R>();
-        // for i in 0..R {
-        //     // SAFETY: only writing so no UB
-        //     unsafe {
-        //         *output[i].as_mut_ptr() = self.slice[self.indicies[i]].clone();
-        //     }
-        // }
-        // // SAFETY: initialised above
-        // let output = unsafe { std::mem::MaybeUninit::array_assume_init(output) };
-
-        let mut i = R-1;
-        while i > 0 && self.indices[i] + R == self.slice.len() + i {
-            i -= 1;
+            self.indices[i] += 1;
+            for j in i + 1..R-1 {
+                self.indices[j] = self.indices[j - 1] + 1;
+            }
         }
 
-        self.indices[i] += 1;
-        for j in i+1..R {
-            self.indices[j] = self.indices[j-1] + 1;
-        }
-
-        Some(output)
+        Some(array_init::array_init(|i| self.buf[self.indices[i]].clone()))
     }
 }
 
