@@ -812,6 +812,11 @@ impl_tuple_combination!(Tuple10Combination Tuple9Combination; a b c d e f g h i)
 impl_tuple_combination!(Tuple11Combination Tuple10Combination; a b c d e f g h i j);
 impl_tuple_combination!(Tuple12Combination Tuple11Combination; a b c d e f g h i j k);
 
+/// An iterator to iterate through all combinations in an iterator that produces arrays
+/// of a specific size.
+///
+/// See [`.array_combinations()`](crate::Itertools::array_combinations) for more
+/// information.
 #[derive(Debug, Clone)]
 pub struct ArrayCombinations<I: Iterator, const R: usize> {
     iter: I,
@@ -820,6 +825,7 @@ pub struct ArrayCombinations<I: Iterator, const R: usize> {
 }
 
 impl<I: Iterator, const R: usize> ArrayCombinations<I, R> {
+    /// Create a new `ArrayCombinations` from an iterator.
     pub fn new(iter: I) -> Self {
         let indices = array_init::array_init(|i| i);
         let buf = Vec::new();
@@ -836,11 +842,22 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.buf.is_empty() {
+            // If the buffer is empty, this is the first invocation of next
             for _ in 0..R {
+                // If the source iter returns None, we won't have enough data
+                // for even 1 complete combination. So we can bail.
                 self.buf.push(self.iter.next()?);
             }
         } else if self.indices[0] + R == self.buf.len() {
+            // If the first index is as close to the end as possible
+            // eg: [0, 1, 2, 3, 4, 5]
+            //               ^  ^  ^
+            // then we can try get some more data. If there's no more data left
+            // then we've gone over all combinations of the underlying
+            // and we can bail
             self.buf.push(self.iter.next()?);
+
+            // Reset the indices
             for i in 0..R - 1 {
                 self.indices[i] = i;
             }

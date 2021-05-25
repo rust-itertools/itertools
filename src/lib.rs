@@ -1450,6 +1450,38 @@ pub trait Itertools : Iterator {
         adaptors::tuple_combinations(self)
     }
 
+    /// Return an iterator adaptor that iterates over the combinations of the
+    /// elements from an iterator.
+    ///
+    /// Iterator element can be any array of type `Self::Item`
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut v = Vec::new();
+    /// for [a, b] in (1..5).array_combinations() {
+    ///     v.push((a, b));
+    /// }
+    /// assert_eq!(v, vec![(1, 2), (1, 3), (2, 3), (1, 4), (2, 4), (3, 4)]);
+    ///
+    /// let mut it = (1..5).array_combinations();
+    /// assert_eq!(Some([1, 2, 3]), it.next());
+    /// assert_eq!(Some([1, 2, 4]), it.next());
+    /// assert_eq!(Some([1, 3, 4]), it.next());
+    /// assert_eq!(Some([2, 3, 4]), it.next());
+    /// assert_eq!(None, it.next());
+    ///
+    /// // this requires a type hint
+    /// let it = (1..5).array_combinations::<3>();
+    /// itertools::assert_equal(it, vec![[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]);
+    ///
+    /// // you can also specify the complete type
+    /// use itertools::ArrayCombinations;
+    /// use std::ops::RangeFrom;
+    ///
+    /// let it: ArrayCombinations<RangeFrom<u32>, 2> = (1..).array_combinations();
+    /// itertools::assert_equal(it.take(6), vec![[1, 2], [1, 3], [2, 3], [1, 4], [2, 4], [3, 4]]);
+    /// ```
     fn array_combinations<const R: usize>(self) -> ArrayCombinations<Self, R>
         where Self: Sized,
               Self::Item: Clone,
