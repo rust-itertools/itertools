@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::collections::hash_map::{Entry};
 use std::hash::Hash;
 use std::fmt;
+use std::iter::FusedIterator;
 
 /// An iterator adapter to filter out duplicate elements.
 ///
@@ -92,6 +93,12 @@ impl<I, V, F> DoubleEndedIterator for UniqueBy<I, V, F>
     }
 }
 
+impl<I, V, F> FusedIterator for UniqueBy<I, V, F>
+    where I: FusedIterator,
+          V: Eq + Hash,
+          F: FnMut(&I::Item) -> V
+{}
+
 impl<I> Iterator for Unique<I>
     where I: Iterator,
           I::Item: Eq + Hash + Clone
@@ -135,6 +142,11 @@ impl<I> DoubleEndedIterator for Unique<I>
         None
     }
 }
+
+impl<I> FusedIterator for Unique<I>
+    where I: FusedIterator,
+          I::Item: Eq + Hash + Clone
+{}
 
 /// An iterator adapter to filter out duplicate elements.
 ///

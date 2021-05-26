@@ -15,7 +15,7 @@ pub use self::map::MapResults;
 pub use self::multi_product::*;
 
 use std::fmt;
-use std::iter::{Fuse, Peekable, FromIterator};
+use std::iter::{Fuse, Peekable, FromIterator, FusedIterator};
 use std::marker::PhantomData;
 use crate::size_hint;
 
@@ -156,6 +156,11 @@ impl<I, J> Iterator for InterleaveShortest<I, J>
         (lower, upper)
     }
 }
+
+impl<I, J> FusedIterator for InterleaveShortest<I, J>
+    where I: FusedIterator,
+          J: FusedIterator<Item = I::Item>
+{}
 
 #[derive(Clone, Debug)]
 /// An iterator adaptor that allows putting back a single
@@ -360,6 +365,12 @@ impl<I, J> Iterator for Product<I, J>
         accum
     }
 }
+
+impl<I, J> FusedIterator for Product<I, J>
+    where I: FusedIterator,
+          J: Clone + FusedIterator,
+          I::Item: Clone
+{}
 
 /// A “meta iterator adaptor”. Its closure receives a reference to the iterator
 /// and may pick off as many elements as it likes, to produce the next iterator element.
@@ -587,6 +598,12 @@ impl<I, J, F> Iterator for MergeBy<I, J, F>
         size_hint::add(self.a.size_hint(), self.b.size_hint())
     }
 }
+
+impl<I, J, F> FusedIterator for MergeBy<I, J, F>
+    where I: FusedIterator,
+          J: FusedIterator<Item = I::Item>,
+          F: MergePredicate<I::Item>
+{}
 
 /// An iterator adaptor that borrows from a `Clone`-able iterator
 /// to only pick off elements while the predicate returns `true`.
@@ -876,6 +893,11 @@ impl<I, F, T, E> Iterator for FilterOk<I, F>
     }
 }
 
+impl<I, F, T, E> FusedIterator for FilterOk<I, F>
+    where I: FusedIterator<Item = Result<T, E>>,
+          F: FnMut(&T) -> bool,
+{}
+
 /// An iterator adapter to filter and apply a transformation on values within a nested `Result::Ok`.
 ///
 /// See [`.filter_map_ok()`](crate::Itertools::filter_map_ok) for more information.
@@ -947,6 +969,11 @@ impl<I, F, T, U, E> Iterator for FilterMapOk<I, F>
     }
 }
 
+impl<I, F, T, U, E> FusedIterator for FilterMapOk<I, F>
+    where I: FusedIterator<Item = Result<T, E>>,
+          F: FnMut(T) -> Option<U>,
+{}
+
 /// An iterator adapter to get the positions of each element that matches a predicate.
 ///
 /// See [`.positions()`](crate::Itertools::positions) for more information.
@@ -1005,6 +1032,11 @@ impl<I, F> DoubleEndedIterator for Positions<I, F>
         None
     }
 }
+
+impl<I, F> FusedIterator for Positions<I, F>
+    where I: FusedIterator,
+          F: FnMut(I::Item) -> bool,
+{}
 
 /// An iterator adapter to apply a mutating function to each element before yielding it.
 ///
@@ -1081,3 +1113,9 @@ where
         }
     }
 }
+
+impl<I, F> FusedIterator for Update<I, F>
+where
+    I: FusedIterator,
+    F: FnMut(&mut I::Item),
+{}
