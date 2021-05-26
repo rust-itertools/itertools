@@ -2,6 +2,7 @@ use crate::size_hint;
 use crate::Itertools;
 
 use alloc::vec::Vec;
+use std::iter::FusedIterator;
 use std::mem::replace;
 use std::fmt;
 
@@ -219,3 +220,8 @@ impl<I, F> Iterator for KMergeBy<I, F>
                  .unwrap_or((0, Some(0)))
     }
 }
+
+impl<I, F> FusedIterator for KMergeBy<I, F>
+    where I: Iterator,
+          F: KMergePredicate<I::Item>
+{}

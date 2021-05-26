@@ -1618,6 +1618,18 @@ quickcheck! {
         is_fused(a.combinations(3))
     }
 
+    fn fused_combination_with_replacement(a: Iter<i16>) -> bool
+    {
+        is_fused(a.clone().combinations_with_replacement(1)) &&
+        is_fused(a.combinations_with_replacement(3))
+    }
+
+    fn fused_tuple_combination(a: Iter<i16>) -> bool
+    {
+        is_fused(a.clone().fuse().tuple_combinations::<(_,)>()) &&
+        is_fused(a.fuse().tuple_combinations::<(_,_,_)>())
+    }
+
     fn fused_unique(a: Iter<i16>) -> bool
     {
         is_fused(a.fuse().unique())
@@ -1668,6 +1680,16 @@ quickcheck! {
     {
         !is_fused(a.clone().update(|x|*x+=1)) &&
         is_fused(a.fuse().update(|x|*x+=1))
+    }
+
+    fn fused_tuple_windows(a: Iter<i16>) -> bool
+    {
+        is_fused(a.fuse().tuple_windows::<(_,_)>())
+    }
+
+    fn fused_pad_using(a: Iter<i16>) -> bool
+    {
+        is_fused(a.fuse().pad_using(100,|_|0))
     }
 }
 

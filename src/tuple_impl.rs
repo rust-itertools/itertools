@@ -1,6 +1,7 @@
 //! Some iterator that produces tuples
 
 use std::iter::Fuse;
+use std::iter::FusedIterator;
 use std::iter::Take;
 use std::iter::Cycle;
 use std::marker::PhantomData;
@@ -186,6 +187,12 @@ impl<I, T> Iterator for TupleWindows<I, T>
         None
     }
 }
+
+impl<I, T> FusedIterator for TupleWindows<I, T>
+    where I: FusedIterator<Item = T::Item>,
+          T: HomogeneousTuple + Clone,
+          T::Item: Clone
+{}
 
 /// An iterator over all windows,wrapping back to the first elements when the
 /// window would otherwise exceed the length of the iterator, producing tuples

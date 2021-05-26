@@ -728,6 +728,11 @@ impl<I, T> Iterator for TupleCombinations<I, T>
     }
 }
 
+impl<I, T> FusedIterator for TupleCombinations<I, T>
+    where I: FusedIterator,
+          T: HasCombination<I>,
+{}
+
 #[derive(Clone, Debug)]
 pub struct Tuple1Combination<I> {
     iter: I,

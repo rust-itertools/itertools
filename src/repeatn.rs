@@ -1,3 +1,4 @@
+use std::iter::FusedIterator;
 
 /// An iterator that produces *n* repetitions of an element.
 ///
@@ -50,5 +51,9 @@ impl<A> DoubleEndedIterator for RepeatN<A>
 }
 
 impl<A> ExactSizeIterator for RepeatN<A>
+    where A: Clone
+{}
+
+impl<A> FusedIterator for RepeatN<A>
     where A: Clone
 {}

@@ -1,4 +1,5 @@
 use std::fmt;
+use std::iter::FusedIterator;
 use std::usize;
 use alloc::vec::Vec;
 
@@ -81,3 +82,9 @@ impl<I> Iterator for Powerset<I>
         }
     }
 }
+
+impl<I> FusedIterator for Powerset<I>
+    where
+        I: Iterator,
+        I::Item: Clone,
+{}

@@ -1,4 +1,4 @@
-use std::iter::{Fuse,Peekable};
+use std::iter::{Fuse,Peekable, FusedIterator};
 
 /// An iterator adaptor that wraps each element in an [`Position`].
 ///
@@ -95,3 +95,6 @@ impl<I: Iterator> Iterator for WithPosition<I> {
 impl<I> ExactSizeIterator for WithPosition<I>
     where I: ExactSizeIterator,
 { }
+
+impl<I: Iterator> FusedIterator for WithPosition<I> 
+{}
