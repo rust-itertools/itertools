@@ -1,4 +1,5 @@
 use std::fmt;
+use std::iter::FusedIterator;
 
 use super::lazy_buffer::LazyBuffer;
 use alloc::vec::Vec;
@@ -122,3 +123,8 @@ impl<I> Iterator for Combinations<I>
         Some(self.indices.iter().map(|i| self.pool[*i].clone()).collect())
     }
 }
+
+impl<I> FusedIterator for Combinations<I>
+    where I: Iterator,
+          I::Item: Clone
+{}

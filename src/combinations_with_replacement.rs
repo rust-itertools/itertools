@@ -1,5 +1,6 @@
 use alloc::vec::Vec;
 use std::fmt;
+use std::iter::FusedIterator;
 
 use super::lazy_buffer::LazyBuffer;
 
@@ -100,3 +101,9 @@ where
         }
     }
 }
+
+impl<I> FusedIterator for CombinationsWithReplacement<I>
+where
+    I: Iterator,
+    I::Item: Clone,
+{}

@@ -1598,3 +1598,98 @@ quickcheck! {
         TestResult::from_bool(itertools::equal(x, y))
     }
 }
+
+
+fn is_fused<I: Iterator>(mut it: I) -> bool
+{
+    while let Some(_) = it.next() {}
+    for _ in 0..10{
+        if it.next().is_some(){
+            return false;
+        }
+    }
+    true
+}
+
+quickcheck! {
+    fn fused_combination(a: Iter<i16>) -> bool
+    {
+        is_fused(a.clone().combinations(1)) &&
+        is_fused(a.combinations(3))
+    }
+
+    fn fused_combination_with_replacement(a: Iter<i16>) -> bool
+    {
+        is_fused(a.clone().combinations_with_replacement(1)) &&
+        is_fused(a.combinations_with_replacement(3))
+    }
+
+    fn fused_tuple_combination(a: Iter<i16>) -> bool
+    {
+        is_fused(a.clone().fuse().tuple_combinations::<(_,)>()) &&
+        is_fused(a.fuse().tuple_combinations::<(_,_,_)>())
+    }
+
+    fn fused_unique(a: Iter<i16>) -> bool
+    {
+        is_fused(a.fuse().unique())
+    }
+
+    fn fused_unique_by(a: Iter<i16>) -> bool
+    {
+        is_fused(a.fuse().unique_by(|x| x % 100))
+    }
+
+    fn fused_interleave_shortest(a: Iter<i16>, b: Iter<i16>) -> bool
+    {
+        !is_fused(a.clone().interleave_shortest(b.clone())) &&
+        is_fused(a.fuse().interleave_shortest(b.fuse()))
+    }
+    
+    fn fused_product(a: Iter<i16>, b: Iter<i16>) -> bool
+    {
+        is_fused(a.fuse().cartesian_product(b.fuse()))
+    }
+
+    fn fused_merge(a: Iter<i16>, b: Iter<i16>) -> bool
+    {
+        is_fused(a.fuse().merge(b.fuse()))
+    }
+
+    fn fused_filter_ok(a: Iter<i16>) -> bool
+    {
+        is_fused(a.map(|x| if x % 2 == 0 {Ok(x)} else {Err(x)} )
+                 .filter_ok(|x| x % 3 == 0)
+                 .fuse())
+    }
+
+    fn fused_filter_map_ok(a: Iter<i16>) -> bool
+    {
+        is_fused(a.map(|x| if x % 2 == 0 {Ok(x)} else {Err(x)} )
+                 .filter_map_ok(|x| if x % 3 == 0 {Some(x / 3)} else {None})
+                 .fuse())
+    }
+
+    fn fused_positions(a: Iter<i16>) -> bool
+    {
+        !is_fused(a.clone().positions(|x|x%2==0)) &&
+        is_fused(a.fuse().positions(|x|x%2==0))
+    }
+
+    fn fused_update(a: Iter<i16>) -> bool
+    {
+        !is_fused(a.clone().update(|x|*x+=1)) &&
+        is_fused(a.fuse().update(|x|*x+=1))
+    }
+
+    fn fused_tuple_windows(a: Iter<i16>) -> bool
+    {
+        is_fused(a.fuse().tuple_windows::<(_,_)>())
+    }
+
+    fn fused_pad_using(a: Iter<i16>) -> bool
+    {
+        is_fused(a.fuse().pad_using(100,|_|0))
+    }
+}
+
