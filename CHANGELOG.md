@@ -11,6 +11,7 @@
   - Add `Itertools::flatten_ok` (#527)
   - Add `EitherOrBoth::or_default` (#583)
   - Add `Itertools::find_or_last` and `Itertools::find_or_first` (#535)
+  - Implement `FusedIterator` for `FilterOk`, `FilterMapOk`, `InterleaveShortest`, `KMergeBy`, `MergeBy`, `PadUsing`, `Positions`, `Product` , `RcIter`, `TupleWindows`, `Unique`, `UniqueBy`,  `Update`, `WhileSome`, `Combinations`, `CombinationsWithReplacement`, `Powerset`, `RepeatN`, and `WithPosition` (#550)
 
 ## 0.10.0
   - **Increase minimum supported Rust version to 1.32.0**
