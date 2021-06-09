@@ -160,7 +160,7 @@ impl<I, K, V> GroupingMap<I>
     ///
     /// Return a `HashMap` associating the key of each group with the result of folding that group's elements.
     /// 
-    /// [`fold`]: #tymethod.fold
+    /// [`fold`]: GroupingMap::fold
     /// 
     /// ```
     /// use itertools::Itertools;
