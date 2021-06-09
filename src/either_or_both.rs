@@ -25,7 +25,7 @@ impl<A, B> EitherOrBoth<A, B> {
     }
 
     /// If Left, return true otherwise, return false.
-    /// Exclusive version of [`has_left`](Self::has_left).
+    /// Exclusive version of [`has_left`](EitherOrBoth::has_left).
     pub fn is_left(&self) -> bool {
         match *self {
             Left(_) => true,
@@ -34,7 +34,7 @@ impl<A, B> EitherOrBoth<A, B> {
     }
 
     /// If Right, return true otherwise, return false.
-    /// Exclusive version of [`has_right`](Self::has_right).
+    /// Exclusive version of [`has_right`](EitherOrBoth::has_right).
     pub fn is_right(&self) -> bool {
         match *self {
             Right(_) => true,

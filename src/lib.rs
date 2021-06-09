@@ -5,7 +5,7 @@
 //! Extra iterator adaptors, functions and macros.
 //!
 //! To extend [`Iterator`] with methods in this crate, import
-//! the [`Itertools` trait](Itertools):
+//! the [`Itertools`] trait:
 //!
 //! ```
 //! use itertools::Itertools;
@@ -354,23 +354,20 @@ macro_rules! izip {
 /// The comma-separated arguments must implement [`IntoIterator`].
 /// The final argument may be followed by a trailing comma.
 ///
-/// [`chain`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.chain
-/// [`IntoIterator`]: https://doc.rust-lang.org/std/iter/trait.IntoIterator.html
+/// [`chain`]: Iterator::chain
 ///
 /// # Examples
 ///
-/// [`iter::empty`]: https://doc.rust-lang.org/std/iter/fn.empty.html
-///
-/// Empty invocations of `chain!` expand to an invocation of [`iter::empty`]:
+/// Empty invocations of `chain!` expand to an invocation of [`std::iter::empty`]:
 /// ```
-/// # use std::iter;
+/// use std::iter;
 /// use itertools::chain;
 ///
 /// let _: iter::Empty<()> = chain!();
 /// let _: iter::Empty<i8> = chain!();
 /// ```
 ///
-/// Invocations of `chain!` with one argument expand to [`arg.into_iter()`][`IntoIterator`]:
+/// Invocations of `chain!` with one argument expand to [`arg.into_iter()`](IntoIterator):
 /// ```
 /// use std::{ops::Range, slice};
 /// use itertools::chain;
@@ -378,7 +375,7 @@ macro_rules! izip {
 /// let _:     <&[_] as IntoIterator>::IntoIter = chain!(&[2, 3, 4]);
 /// ```
 ///
-/// Invocations of `chain!` with multiple arguments [`.into_iter()`][`IntoIterator`] each
+/// Invocations of `chain!` with multiple arguments [`.into_iter()`](IntoIterator) each
 /// argument, and then [`chain`] them together:
 /// ```
 /// use std::{iter::*, ops::Range, slice};
@@ -421,11 +418,11 @@ macro_rules! chain {
 ///
 /// * *Adaptors* take an iterator and parameter as input, and return
 /// a new iterator value. These are listed first in the trait. An example
-/// of an adaptor is [`.interleave()`](#method.interleave)
+/// of an adaptor is [`.interleave()`](Itertools::interleave)
 ///
 /// * *Regular methods* are those that don't return iterators and instead
 /// return a regular value of some other kind.
-/// [`.next_tuple()`](#method.next_tuple) is an example and the first regular
+/// [`.next_tuple()`](Itertools::next_tuple) is an example and the first regular
 /// method in the list.
 pub trait Itertools : Iterator {
     // adaptors
@@ -595,7 +592,7 @@ pub trait Itertools : Iterator {
     /// allocations.  It needs allocations only if several group iterators
     /// are alive at the same time.
     ///
-    /// This type implements `IntoIterator` (it is **not** an iterator
+    /// This type implements [`IntoIterator`] (it is **not** an iterator
     /// itself), because the group iterators need to borrow from this
     /// value. It should be stored in a local variable or temporary and
     /// iterated.
@@ -740,7 +737,7 @@ pub trait Itertools : Iterator {
     /// Return an iterator that groups the items in tuples of a specific size
     /// (up to 4).
     ///
-    /// See also the method [`.next_tuple()`](#method.next_tuple).
+    /// See also the method [`.next_tuple()`](Itertools::next_tuple).
     ///
     /// ```
     /// use itertools::Itertools;
@@ -824,7 +821,7 @@ pub trait Itertools : Iterator {
         adaptors::step(self, n)
     }
 
-    /// Convert each item of the iterator using the `Into` trait.
+    /// Convert each item of the iterator using the [`Into`] trait.
     ///
     /// ```rust
     /// use itertools::Itertools;
@@ -838,7 +835,7 @@ pub trait Itertools : Iterator {
         adaptors::map_into(self)
     }
 
-    /// See [`.map_ok()`](#method.map_ok).
+    /// See [`.map_ok()`](Itertools::map_ok).
     #[deprecated(note="Use .map_ok() instead", since="0.10.0")]
     fn map_results<F, T, U, E>(self, f: F) -> MapOk<Self, F>
         where Self: Iterator<Item = Result<T, E>> + Sized,
@@ -948,7 +945,7 @@ pub trait Itertools : Iterator {
     }
 
     /// Return an iterator adaptor that merges the two base iterators in order.
-    /// This is much like `.merge()` but allows for a custom ordering.
+    /// This is much like [`.merge()`](Itertools::merge) but allows for a custom ordering.
     ///
     /// This can be especially useful for sequences of tuples.
     ///
@@ -1354,7 +1351,7 @@ pub trait Itertools : Iterator {
     /// `peeking_take_while` is done.
     ///
     ///
-    /// See also [`.take_while_ref()`](#method.take_while_ref)
+    /// See also [`.take_while_ref()`](Itertools::take_while_ref)
     /// which is a similar adaptor.
     fn peeking_take_while<F>(&mut self, accept: F) -> PeekingTakeWhile<Self, F>
         where Self: Sized + PeekingNext,
@@ -1957,7 +1954,7 @@ pub trait Itertools : Iterator {
         self.for_each(f)
     }
 
-    /// Combine all an iterator's elements into one element by using `Extend`.
+    /// Combine all an iterator's elements into one element by using [`Extend`].
     ///
     /// This combinator will extend the first item with each of the rest of the
     /// items of the iterator. If the iterator is empty, the default value of
@@ -1977,7 +1974,7 @@ pub trait Itertools : Iterator {
         concat(self)
     }
 
-    /// `.collect_vec()` is simply a type specialization of `.collect()`,
+    /// `.collect_vec()` is simply a type specialization of [`Iterator::collect`],
     /// for convenience.
     #[cfg(feature = "use_alloc")]
     fn collect_vec(self) -> Vec<Self::Item>
@@ -2099,7 +2096,7 @@ pub trait Itertools : Iterator {
 
     /// Format all iterator elements, separated by `sep`.
     ///
-    /// This is a customizable version of `.format()`.
+    /// This is a customizable version of [`.format()`](Itertools::format).
     ///
     /// The supplied closure `format` is called once per iterator element,
     /// with two arguments: the element and a callback that takes a
@@ -2136,7 +2133,7 @@ pub trait Itertools : Iterator {
         format::new_format(self, sep, format)
     }
 
-    /// See [`.fold_ok()`](#method.fold_ok).
+    /// See [`.fold_ok()`](Itertools::fold_ok).
     #[deprecated(note="Use .fold_ok() instead", since="0.10.0")]
     fn fold_results<A, E, B, F>(&mut self, start: B, f: F) -> Result<B, E>
         where Self: Iterator<Item = Result<A, E>>,
@@ -2206,7 +2203,7 @@ pub trait Itertools : Iterator {
     /// value is returned inside `Some`. Otherwise, the operation terminates
     /// and returns `None`. No iterator elements are consumed after the `None`.
     ///
-    /// This is the `Option` equivalent to `fold_ok`.
+    /// This is the `Option` equivalent to [`fold_ok`](Itertools::fold_ok).
     ///
     /// ```
     /// use std::ops::Add;
@@ -2360,7 +2357,7 @@ pub trait Itertools : Iterator {
 
     /// An iterator method that applies a function, producing a single, final value.
     ///
-    /// `fold_while()` is basically equivalent to `fold()` but with additional support for
+    /// `fold_while()` is basically equivalent to [`Iterator::fold`] but with additional support for
     /// early exit via short-circuiting.
     ///
     /// ```
@@ -2479,7 +2476,7 @@ pub trait Itertools : Iterator {
     /// Sort all iterator elements into a new iterator in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, uses the
-    /// `slice::sort_unstable()` method and returns the result as a new
+    /// [`slice::sort_unstable`] method and returns the result as a new
     /// iterator that owns its elements.
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -2508,7 +2505,7 @@ pub trait Itertools : Iterator {
     /// Sort all iterator elements into a new iterator in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, uses the
-    /// `slice::sort_unstable_by()` method and returns the result as a new
+    /// [`slice::sort_unstable_by`] method and returns the result as a new
     /// iterator that owns its elements.
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -2541,7 +2538,7 @@ pub trait Itertools : Iterator {
     /// Sort all iterator elements into a new iterator in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, uses the
-    /// `slice::sort_unstable_by_key()` method and returns the result as a new
+    /// [`slice::sort_unstable_by_key`] method and returns the result as a new
     /// iterator that owns its elements.
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -2575,7 +2572,7 @@ pub trait Itertools : Iterator {
     /// Sort all iterator elements into a new iterator in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, uses the
-    /// `slice::sort()` method and returns the result as a new
+    /// [`slice::sort`] method and returns the result as a new
     /// iterator that owns its elements.
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -2604,7 +2601,7 @@ pub trait Itertools : Iterator {
     /// Sort all iterator elements into a new iterator in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, uses the
-    /// `slice::sort_by()` method and returns the result as a new
+    /// [`slice::sort_by`] method and returns the result as a new
     /// iterator that owns its elements.
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -2637,7 +2634,7 @@ pub trait Itertools : Iterator {
     /// Sort all iterator elements into a new iterator in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, uses the
-    /// `slice::sort_by_key()` method and returns the result as a new
+    /// [`slice::sort_by_key`] method and returns the result as a new
     /// iterator that owns its elements.
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -2706,7 +2703,7 @@ pub trait Itertools : Iterator {
     }
 
     /// Collect all iterator elements into one of two
-    /// partitions. Unlike `Iterator::partition`, each partition may
+    /// partitions. Unlike [`Iterator::partition`], each partition may
     /// have a distinct type.
     ///
     /// ```
@@ -2836,7 +2833,7 @@ pub trait Itertools : Iterator {
     /// value of type `K` will be used as key to identify the groups and the
     /// value of type `V` as value for the folding operation.
     /// 
-    /// See [`GroupingMap`](./structs/struct.GroupingMap.html) for more informations
+    /// See [`GroupingMap`] for more informations
     /// on what operations are available.
     #[cfg(feature = "use_std")]
     fn into_grouping_map<K, V>(self) -> GroupingMap<Self>
@@ -2852,7 +2849,7 @@ pub trait Itertools : Iterator {
     /// The values from this iterator will be used as values for the folding operation
     /// while the keys will be obtained from the values by calling `key_mapper`.
     /// 
-    /// See [`GroupingMap`](./structs/struct.GroupingMap.html) for more informations
+    /// See [`GroupingMap`] for more informations
     /// on what operations are available.
     #[cfg(feature = "use_std")]
     fn into_grouping_map_by<K, V, F>(self, key_mapper: F) -> GroupingMapBy<Self, F>
@@ -2907,11 +2904,11 @@ pub trait Itertools : Iterator {
     /// Return the minimum and maximum element of an iterator, as determined by
     /// the specified function.
     ///
-    /// The return value is a variant of `MinMaxResult` like for `minmax()`.
+    /// The return value is a variant of [`MinMaxResult`] like for [`.minmax()`](Itertools::minmax).
     ///
     /// For the minimum, the first minimal element is returned.  For the maximum,
     /// the last maximal element wins.  This matches the behavior of the standard
-    /// `Iterator::min()` and `Iterator::max()` methods.
+    /// [`Iterator::min`] and [`Iterator::max`] methods.
     ///
     /// The keys can be floats but no particular result is guaranteed
     /// if a key is NaN.
@@ -2924,11 +2921,11 @@ pub trait Itertools : Iterator {
     /// Return the minimum and maximum element of an iterator, as determined by
     /// the specified comparison function.
     ///
-    /// The return value is a variant of `MinMaxResult` like for `minmax()`.
+    /// The return value is a variant of [`MinMaxResult`] like for [`.minmax()`](Itertools::minmax).
     ///
     /// For the minimum, the first minimal element is returned.  For the maximum,
     /// the last maximal element wins.  This matches the behavior of the standard
-    /// `Iterator::min()` and `Iterator::max()` methods.
+    /// [`Iterator::min`] and [`Iterator::max`] methods.
     fn minmax_by<F>(self, mut compare: F) -> MinMaxResult<Self::Item>
         where Self: Sized, F: FnMut(&Self::Item, &Self::Item) -> Ordering
     {
@@ -3412,8 +3409,8 @@ impl<T: ?Sized> Itertools for T where T: Iterator { }
 /// (elements pairwise equal and sequences of the same length),
 /// `false` otherwise.
 ///
-/// This is an `IntoIterator` enabled function that is similar to the standard
-/// library method `Iterator::eq`.
+/// This is an [`IntoIterator`] enabled function that is similar to the standard
+/// library method [`Iterator::eq`].
 ///
 /// ```
 /// assert!(itertools::equal(vec![1, 2, 3], 1..4));
@@ -3438,7 +3435,7 @@ pub fn equal<I, J>(a: I, b: J) -> bool
 }
 
 /// Assert that two iterables produce equal sequences, with the same
-/// semantics as *equal(a, b)*.
+/// semantics as [`equal(a, b)`](equal).
 ///
 /// **Panics** on assertion failure with a message that shows the
 /// two iteration elements.
@@ -3513,9 +3510,9 @@ pub fn partition<'a, A: 'a, I, F>(iter: I, mut pred: F) -> usize
     split_index
 }
 
-/// An enum used for controlling the execution of `.fold_while()`.
+/// An enum used for controlling the execution of `fold_while`.
 ///
-/// See [`.fold_while()`](crate::Itertools::fold_while) for more information.
+/// See [`.fold_while()`](Itertools::fold_while) for more information.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum FoldWhile<T> {
     /// Continue folding with this value

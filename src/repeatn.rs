@@ -2,7 +2,7 @@ use std::iter::FusedIterator;
 
 /// An iterator that produces *n* repetitions of an element.
 ///
-/// See [`repeat_n()`](../fn.repeat_n.html) for more information.
+/// See [`repeat_n()`](crate::repeat_n) for more information.
 #[must_use = "iterators are lazy and do nothing unless consumed"]
 #[derive(Clone, Debug)]
 pub struct RepeatN<A> {

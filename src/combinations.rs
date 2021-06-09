@@ -48,9 +48,7 @@ impl<I: Iterator> Combinations<I> {
     pub fn k(&self) -> usize { self.indices.len() }
 
     /// Returns the (current) length of the pool from which combination elements are
-    /// selected. This value can change between invocations of [`next`].
-    ///
-    /// [`next`]: #method.next
+    /// selected. This value can change between invocations of [`next`](Combinations::next).
     #[inline]
     pub fn n(&self) -> usize { self.pool.len() }
 

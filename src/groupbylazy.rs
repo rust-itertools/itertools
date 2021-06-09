@@ -279,7 +279,7 @@ impl<K, I, F> GroupInner<K, I, F>
 /// no allocations. It needs allocations only if several group iterators
 /// are alive at the same time.
 ///
-/// This type implements `IntoIterator` (it is **not** an iterator
+/// This type implements [`IntoIterator`] (it is **not** an iterator
 /// itself), because the group iterators need to borrow from this
 /// value. It should be stored in a local variable or temporary and
 /// iterated.
@@ -453,7 +453,7 @@ pub fn new_chunks<J>(iter: J, size: usize) -> IntoChunks<J::IntoIter>
 /// `IntoChunks` behaves just like `GroupBy`: it is iterable, and
 /// it only buffers if several chunk iterators are alive at the same time.
 ///
-/// This type implements `IntoIterator` (it is **not** an iterator
+/// This type implements [`IntoIterator`] (it is **not** an iterator
 /// itself), because the chunk iterators need to borrow from this
 /// value. It should be stored in a local variable or temporary and
 /// iterated.

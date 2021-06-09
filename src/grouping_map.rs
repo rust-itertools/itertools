@@ -7,7 +7,7 @@ use std::hash::Hash;
 use std::iter::Iterator;
 use std::ops::{Add, Mul};
 
-/// A wrapper to allow for an easy [`into_grouping_map_by`](../trait.Itertools.html#method.into_grouping_map_by)
+/// A wrapper to allow for an easy [`into_grouping_map_by`](crate::Itertools::into_grouping_map_by)
 #[derive(Clone, Debug)]
 pub struct MapForGrouping<I, F>(I, F);
 
@@ -38,7 +38,7 @@ pub fn new<I, K, V>(iter: I) -> GroupingMap<I>
 
 /// `GroupingMapBy` is an intermediate struct for efficient group-and-fold operations.
 /// 
-/// See [`GroupingMap`](./struct.GroupingMap.html) for more informations.
+/// See [`GroupingMap`] for more informations.
 #[must_use = "GroupingMapBy is lazy and do nothing unless consumed"]
 pub type GroupingMapBy<I, F> = GroupingMap<MapForGrouping<I, F>>;
 
@@ -377,7 +377,7 @@ impl<I, K, V> GroupingMap<I>
     /// If several elements are equally maximum, the last element is picked.
     /// If several elements are equally minimum, the first element is picked.
     /// 
-    /// See [.minmax()](../trait.Itertools.html#method.minmax) for the non-grouping version.
+    /// See [.minmax()](crate::Itertools::minmax) for the non-grouping version.
     /// 
     /// Differences from the non grouping version:
     /// - It never produces a `MinMaxResult::NoElements`

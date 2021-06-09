@@ -10,7 +10,7 @@ pub struct Zip<T> {
 /// An iterator that generalizes *.zip()* and allows running multiple iterators in lockstep.
 ///
 /// The iterator `Zip<(I, J, ..., M)>` is formed from a tuple of iterators (or values that
-/// implement `IntoIterator`) and yields elements
+/// implement [`IntoIterator`]) and yields elements
 /// until any of the subiterators yields `None`.
 ///
 /// The iterator element type is a tuple like like `(A, B, ..., E)` where `A` to `E` are the

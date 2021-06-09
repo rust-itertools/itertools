@@ -13,7 +13,7 @@ where
     buf: VecDeque<I::Item>,
 }
 
-/// A drop-in replacement for `std::iter::Peekable` which adds a `peek_nth`
+/// A drop-in replacement for [`std::iter::Peekable`] which adds a `peek_nth`
 /// method allowing the user to `peek` at a value several iterations forward
 /// without advancing the base iterator.
 ///

@@ -8,7 +8,7 @@ use super::size_hint;
 
 /// An iterator to iterate through the powerset of the elements from an iterator.
 ///
-/// See [`.powerset()`](../trait.Itertools.html#method.powerset) for more
+/// See [`.powerset()`](crate::Itertools::powerset) for more
 /// information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Powerset<I: Iterator> {
