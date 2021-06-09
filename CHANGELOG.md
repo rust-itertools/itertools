@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.10.1
+  - Add `Itertools::contains` (#514)
+  - Add `Itertools::counts_by` (#515)
+  - Add `Itertools::partition_result` (#511)
+  - Add `Itertools::all_unique` (#241)
+  - Add `Itertools::duplicates` and `Itertools::duplicates_by` (#502)
+  - Add `chain!` (#525)
+  - Add `Itertools::at_most_one` (#523)
+  - Add `Itertools::flatten_ok` (#527)
+  - Add `EitherOrBoth::or_default` (#583)
+  - Add `Itertools::find_or_last` and `Itertools::find_or_first` (#535)
+  - Implement `FusedIterator` for `FilterOk`, `FilterMapOk`, `InterleaveShortest`, `KMergeBy`, `MergeBy`, `PadUsing`, `Positions`, `Product` , `RcIter`, `TupleWindows`, `Unique`, `UniqueBy`,  `Update`, `WhileSome`, `Combinations`, `CombinationsWithReplacement`, `Powerset`, `RepeatN`, and `WithPosition` (#550)
+  - Implement `FusedIterator` for `Interleave`, `IntersperseWith`, and `ZipLongest` (#548)
+
 ## 0.10.0
   - **Increase minimum supported Rust version to 1.32.0**
   - Improve macro hygiene (#507)
