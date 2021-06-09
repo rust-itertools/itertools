@@ -1,4 +1,4 @@
-use std::iter::Fuse;
+use std::iter::{Fuse, FusedIterator};
 use super::size_hint;
 
 pub trait IntersperseElement<Item> {
@@ -112,3 +112,8 @@ impl<I, ElemF> Iterator for IntersperseWith<I, ElemF>
         })
     }
 }
+
+impl<I, ElemF> FusedIterator for IntersperseWith<I, ElemF>
+    where I: Iterator,
+          ElemF: IntersperseElement<I::Item>
+{}

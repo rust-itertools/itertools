@@ -75,6 +75,11 @@ impl<I, J> Iterator for Interleave<I, J>
     }
 }
 
+impl<I, J> FusedIterator for Interleave<I, J>
+    where I: Iterator,
+          J: Iterator<Item = I::Item>
+{}
+
 /// An iterator adaptor that alternates elements from the two iterators until
 /// one of them runs out.
 ///
