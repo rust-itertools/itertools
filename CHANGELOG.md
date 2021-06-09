@@ -192,7 +192,7 @@
 ## 0.5.1
   - Workaround module/function name clash that made racer crash on completing itertools. Only internal changes needed.
 ## 0.5.0
-  - [Release announcement](http://bluss.github.io/rust/2016/09/26/itertools-0.5.0/)
+  - [Release announcement](https://bluss.github.io/rust/2016/09/26/itertools-0.5.0/)
   - Renamed:
     - `combinations` is now `tuple_combinations`
     - `combinations_n` to `combinations`
@@ -246,7 +246,7 @@
 ## 0.4.15
   - Fixup on top of the workaround in 0.4.14. A function in `itertools::free` was removed by mistake and now it is added back again.
 ## 0.4.14
-  - Workaround an upstream regression in a rust nightly build that broke compilation of of `itertools::free::{interleave, merge}`
+  - Workaround an upstream regression in a Rust nightly build that broke compilation of of `itertools::free::{interleave, merge}`
 ## 0.4.13
   - Add `.minmax()` and `.minmax_by_key()`, iterator methods for finding both minimum and maximum in one scan.
   - Add `.format_default()`, a simpler version of `.format()` (lazy formatting for iterators).
@@ -312,9 +312,9 @@
 ## 0.3.19
   - Added `.group_by_lazy()`, a possibly nonallocating group by
   - Added `.format()`, a nonallocating formatting helper for iterators
-  - Remove uses of `RandomAccessIterator` since it has been deprecated in rust.
+  - Remove uses of `RandomAccessIterator` since it has been deprecated in Rust.
 ## 0.3.17
-  - Added (adopted) `Unfold` from rust
+  - Added (adopted) `Unfold` from Rust
 ## 0.3.16
   - Added adaptors `.unique()`, `.unique_by()`
 ## 0.3.15
