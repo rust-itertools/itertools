@@ -89,7 +89,7 @@ mod private {
             // far), plus (hi - pending) / 2 pairs of never seen before items.
             let hi = hi.map(|hi| {
                 let max_pending = std::cmp::min(self.meta.pending, hi);
-                let max_new = hi.checked_sub(self.meta.pending).unwrap_or(0) / 2;
+                let max_new = hi.saturating_sub(self.meta.pending) / 2;
                 max_pending + max_new
             });
             // The lower bound is always 0 since we might only get unique items from now on
