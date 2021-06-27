@@ -125,6 +125,7 @@ pub mod structs {
     #[cfg(feature = "use_alloc")]
     pub use crate::rciter_impl::RcIter;
     pub use crate::repeatn::RepeatN;
+    pub use crate::set_ops::{Intersection, UnionRef};
     #[allow(deprecated)]
     pub use crate::sources::{Iterate, RepeatCall, Unfold};
     #[cfg(feature = "use_alloc")]
@@ -209,13 +210,12 @@ mod put_back_n_impl;
 #[cfg(feature = "use_alloc")]
 mod rciter_impl;
 mod repeatn;
+mod set_ops;
 mod size_hint;
 mod sources;
 #[cfg(feature = "use_alloc")]
 mod tee;
 mod tuple_impl;
-#[cfg(feature = "use_std")]
-mod duplicates_impl;
 #[cfg(feature = "use_std")]
 mod unique_impl;
 mod with_position;

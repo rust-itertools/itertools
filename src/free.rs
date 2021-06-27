@@ -27,6 +27,7 @@ pub use crate::peek_nth::peek_nth;
 pub use crate::put_back_n_impl::put_back_n;
 #[cfg(feature = "use_alloc")]
 pub use crate::rciter_impl::rciter;
+pub use crate::set_ops::{difference, intersection, symmetric_difference, union_ref};
 pub use crate::zip_eq_impl::zip_eq;
 
 /// Iterate `iterable` with a running index.
