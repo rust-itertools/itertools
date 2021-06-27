@@ -64,7 +64,7 @@ where
         // If this is the first iteration, return early
         if self.first {
             // In empty edge cases, stop iterating immediately
-            return if self.indices.len() != 0 && !self.pool.get_next() {
+            return if !self.indices.is_empty() && !self.pool.get_next() {
                 None
             // Otherwise, yield the initial state
             } else {
@@ -80,7 +80,7 @@ where
         // Work out where we need to update our indices
         let mut increment: Option<(usize, usize)> = None;
         for (i, indices_int) in self.indices.iter().enumerate().rev() {
-            if *indices_int < self.pool.len()-1 {
+            if *indices_int < self.pool.len() - 1 {
                 increment = Some((i, indices_int + 1));
                 break;
             }
@@ -106,4 +106,5 @@ impl<I> FusedIterator for CombinationsWithReplacement<I>
 where
     I: Iterator,
     I::Item: Clone,
-{}
+{
+}
