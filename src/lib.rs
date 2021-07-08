@@ -2791,7 +2791,7 @@ pub trait Itertools : Iterator {
 
     /// Return an `Iterator` on a `HashMap`. Keys mapped to `Vec`s of values. The key is specified
     /// in the closure.
-    /// Different to `into_group_map_by` because the key is still present. It is also more general.
+    /// Different to `into_grouping_map_by` because the key is still present. It is also more general.
     /// You can also fold the `group_map`.
     ///
     /// ```
