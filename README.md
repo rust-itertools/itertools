@@ -5,7 +5,7 @@ Extra iterator adaptors, functions and macros.
 Please read the [API documentation here](https://docs.rs/itertools/)
 
 [![build_status](https://travis-ci.org/rust-itertools/itertools.svg?branch=master)](https://travis-ci.org/rust-itertools/itertools)
-[crates.io](https://crates.io/crates/itertools)
+[![crates.io](https://img.shields.io/crates/v/itertools.svg)](https://crates.io/crates/itertools)
 
 How to use with cargo:
 
