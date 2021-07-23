@@ -6,6 +6,7 @@ license = "MIT/Apache-2.0"
 repository = "https://github.com/rust-itertools/itertools"
 documentation = "https://docs.rs/itertools/"
 authors = ["bluss"]
+readme = "README.md"
 
 description = "Extra iterator adaptors, iterator methods, free functions, and macros."
 
