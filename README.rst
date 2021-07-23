@@ -13,7 +13,7 @@ __ https://docs.rs/itertools/
 .. |build_status| image:: https://travis-ci.org/rust-itertools/itertools.svg?branch=master
 .. _build_status: https://travis-ci.org/rust-itertools/itertools
 
-.. |crates| image:: https://meritbadge.herokuapp.com/itertools
+.. |crates| image:: https://img.shields.io/crates/v/itertools.svg
 .. _crates: https://crates.io/crates/itertools
 
 How to use with cargo:
