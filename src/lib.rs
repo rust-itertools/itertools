@@ -179,6 +179,7 @@ pub use crate::repeatn::repeat_n;
 #[allow(deprecated)]
 pub use crate::sources::{repeat_call, unfold, iterate};
 pub use crate::with_position::Position;
+pub use crate::unziptuple::{multiunzip, MultiUnzip};
 pub use crate::ziptuple::multizip;
 mod adaptors;
 mod either_or_both;
@@ -237,6 +238,7 @@ mod tuple_impl;
 mod duplicates_impl;
 #[cfg(feature = "use_std")]
 mod unique_impl;
+mod unziptuple;
 mod with_position;
 mod zip_eq_impl;
 mod zip_longest;
@@ -3400,6 +3402,31 @@ pub trait Itertools : Iterator {
         F: FnMut(Self::Item) -> K,
     {
         self.map(f).counts()
+    }
+
+    /// Unzips an iterator over tuples into a tuple of containers.
+    ///
+    /// The first element of each tuple will be put into the first container, the second element into 
+    /// the second, ....
+    ///
+    /// It can be thought of as the reverse operation to [`Itertools::multiunzip`].
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let inputs = vec![(1, 2, 3), (4, 5, 6), (7, 8, 9)];
+    ///
+    /// let (a, b, c): (Vec<_>, Vec<_>, Vec<_>) = inputs
+    ///     .into_iter()
+    ///     .multiunzip();
+    ///
+    /// assert_eq!((a, b, c), (vec![1, 4, 7], vec![2, 5, 8], vec![3, 6, 9]));
+    /// ```
+    fn multiunzip<FromI>(self) -> FromI
+    where
+        Self: Sized + MultiUnzip<FromI>,
+    {
+        MultiUnzip::multiunzip(self)
     }
 }
 

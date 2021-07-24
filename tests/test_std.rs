@@ -1080,3 +1080,9 @@ fn exactly_one_question_mark_return() -> Result<(), ExactlyOneError<std::slice::
     [].iter().exactly_one()?;
     Ok(())
 }
+
+#[test]
+fn multiunzip() {
+    let (a, b, c): (Vec<_>, Vec<_>, Vec<_>) = [(0, 1, 2), (3, 4, 5), (6, 7, 8)].iter().cloned().multiunzip();    
+    assert_eq!((a, b, c), (vec![0, 3, 6], vec![1, 4, 7], vec![2, 5, 8]));
+}
