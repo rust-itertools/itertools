@@ -11,7 +11,7 @@ use std::marker::PhantomData;
 // hiding the implementation details of `TupleCollect`.
 // See https://github.com/rust-itertools/itertools/issues/387
 
-/// Implemented for homogeneous tuples of size up to 4.
+/// Implemented for homogeneous tuples of size up to 12.
 pub trait HomogeneousTuple
     : TupleCollect
 {}
