@@ -660,7 +660,7 @@ pub trait Itertools : Iterator {
     }
 
     /// Return an iterator over all contiguous windows producing tuples of
-    /// a specific size (up to 4).
+    /// a specific size (up to 12).
     ///
     /// `tuple_windows` clones the iterator elements so that they can be
     /// part of successive windows, this makes it most suited for iterators
@@ -702,7 +702,7 @@ pub trait Itertools : Iterator {
 
     /// Return an iterator over all windows, wrapping back to the first
     /// elements when the window would otherwise exceed the length of the
-    /// iterator, producing tuples of a specific size (up to 4).
+    /// iterator, producing tuples of a specific size (up to 12).
     ///
     /// `circular_tuple_windows` clones the iterator elements so that they can be
     /// part of successive windows, this makes it most suited for iterators
@@ -735,7 +735,7 @@ pub trait Itertools : Iterator {
         tuple_impl::circular_tuple_windows(self)
     }
     /// Return an iterator that groups the items in tuples of a specific size
-    /// (up to 4).
+    /// (up to 12).
     ///
     /// See also the method [`.next_tuple()`](Itertools::next_tuple).
     ///
