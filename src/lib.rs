@@ -3420,7 +3420,9 @@ pub trait Itertools : Iterator {
     ///     .into_iter()
     ///     .multiunzip();
     ///
-    /// assert_eq!((a, b, c), (vec![1, 4, 7], vec![2, 5, 8], vec![3, 6, 9]));
+    /// assert_eq!(a, vec![1, 4, 7]);
+    /// assert_eq!(b, vec![2, 5, 8]);
+    /// assert_eq!(c, vec![3, 6, 9]);
     /// ```
     fn multiunzip<FromI>(self) -> FromI
     where
