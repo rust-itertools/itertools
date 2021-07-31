@@ -3404,12 +3404,12 @@ pub trait Itertools : Iterator {
         self.map(f).counts()
     }
 
-    /// Unzips an iterator over tuples into a tuple of containers.
+    /// Converts an iterator of tuples into a tuple of containers.
     ///
-    /// The first element of each tuple will be put into the first container, the second element into 
-    /// the second, ....
+    /// `unzip()` consumes an entire iterator of n-ary tuples, producing `n` collections, one for each
+    /// column.
     ///
-    /// It can be thought of as the reverse operation to [`Itertools::multiunzip`].
+    /// This function is, in some sense, the opposite of [`multizip`].
     /// 
     /// ```
     /// use itertools::Itertools;

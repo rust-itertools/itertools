@@ -1,4 +1,9 @@
-/// Unzips an iterator over tuples into a tuple of containers.
+/// Converts an iterator of tuples into a tuple of containers.
+///
+/// `unzip()` consumes an entire iterator of n-ary tuples, producing `n` collections, one for each
+/// column.
+///
+/// This function is, in some sense, the opposite of [`multizip`].
 ///
 /// ```
 /// use itertools::multiunzip;
@@ -9,6 +14,8 @@
 ///
 /// assert_eq!((a, b, c), (vec![1, 4, 7], vec![2, 5, 8], vec![3, 6, 9]));
 /// ```
+///
+/// [`multizip`]: crate::multizip
 pub fn multiunzip<FromI, I>(i: I) -> FromI
 where
     I: IntoIterator,
@@ -27,13 +34,15 @@ pub trait MultiUnzip<FromI>: Iterator {
 
 macro_rules! impl_unzip_iter {
     ($($T:ident => $FromT:ident),*) => (
-        impl_unzip_iter!(@rec $($T => $FromT,)*);
-    );
-    (@rec) => ();
-    (@rec $__:ident => $___:ident, $($T:ident => $FromT:ident,)*) => (
         #[allow(non_snake_case)]
         impl<IT: Iterator<Item = ($($T,)*)>, $($T, $FromT: Default + Extend<$T>),* > MultiUnzip<($($FromT,)*)> for IT {
             fn multiunzip(self) -> ($($FromT,)*) {
+                // This implementation mirrors the logic of Iterator::unzip as close as possible.
+                // Unfortunately a lot of the used api there is still unstable represented by
+                // the commented out parts that follow.
+                //
+                // https://doc.rust-lang.org/src/core/iter/traits/iterator.rs.html#2816-2844
+
                 let mut res = ($($FromT::default(),)*);
                 let ($($FromT,)*) = &mut res;
 
@@ -51,8 +60,19 @@ macro_rules! impl_unzip_iter {
                 res
             }
         }
-        impl_unzip_iter!(@rec $($T => $FromT,)*);
     );
 }
 
-impl_unzip_iter!(L => FromL, K => FromK, J => FromJ, I => FromI, H => FromH, G => FromG, F => FromF, E => FromE, D => FromD, C => FromC, B => FromB, A => FromA);
+impl_unzip_iter!();
+impl_unzip_iter!(A => FromA);
+impl_unzip_iter!(A => FromA, B => FromB);
+impl_unzip_iter!(A => FromA, B => FromB, C => FromC);
+impl_unzip_iter!(A => FromA, B => FromB, C => FromC, D => FromD);
+impl_unzip_iter!(A => FromA, B => FromB, C => FromC, D => FromD, E => FromE);
+impl_unzip_iter!(A => FromA, B => FromB, C => FromC, D => FromD, E => FromE, F => FromF);
+impl_unzip_iter!(A => FromA, B => FromB, C => FromC, D => FromD, E => FromE, F => FromF, G => FromG);
+impl_unzip_iter!(A => FromA, B => FromB, C => FromC, D => FromD, E => FromE, F => FromF, G => FromG, H => FromH);
+impl_unzip_iter!(A => FromA, B => FromB, C => FromC, D => FromD, E => FromE, F => FromF, G => FromG, H => FromH, I => FromI);
+impl_unzip_iter!(A => FromA, B => FromB, C => FromC, D => FromD, E => FromE, F => FromF, G => FromG, H => FromH, I => FromI, J => FromJ);
+impl_unzip_iter!(A => FromA, B => FromB, C => FromC, D => FromD, E => FromE, F => FromF, G => FromG, H => FromH, I => FromI, J => FromJ, K => FromK);
+impl_unzip_iter!(A => FromA, B => FromB, C => FromC, D => FromD, E => FromE, F => FromF, G => FromG, H => FromH, I => FromI, J => FromJ, K => FromK, L => FromL);
