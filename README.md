@@ -2,28 +2,28 @@
 
 Extra iterator adaptors, functions and macros.
 
-Please read the [API documentation here](https://docs.rs/itertools/)
+Please read the [API documentation here](https://docs.rs/itertools/).
 
-[![build_status](https://travis-ci.org/rust-itertools/itertools.svg?branch=master)](https://travis-ci.org/rust-itertools/itertools)
+[![build_status](https://github.com/rust-itertools/itertools/actions/workflows/ci.yml/badge.svg)](https://github.com/rust-itertools/itertools/actions)
 [![crates.io](https://img.shields.io/crates/v/itertools.svg)](https://crates.io/crates/itertools)
 
-How to use with cargo:
+How to use with Cargo:
 
-```
+```toml
 [dependencies]
 itertools = "0.10.0"
 ```
 
 How to use in your crate:
 
-```
+```rust
 use itertools::Itertools;
 ```
 
 ## How to contribute
 
 - Fix a bug or implement a new thing
-- Include tests for your new feature, preferably a quickcheck test
+- Include tests for your new feature, preferably a QuickCheck test
 - Make a Pull Request
 
 For new features, please first consider filing a PR to [rust-lang/rust](https://github.com/rust-lang/rust),
