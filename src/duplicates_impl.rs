@@ -2,8 +2,8 @@ use std::hash::Hash;
 
 mod private {
     use std::collections::HashMap;
-    use std::hash::Hash;
     use std::fmt;
+    use std::hash::Hash;
 
     #[derive(Clone)]
     #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
@@ -89,7 +89,7 @@ mod private {
             // far), plus (hi - pending) / 2 pairs of never seen before items.
             let hi = hi.map(|hi| {
                 let max_pending = std::cmp::min(self.meta.pending, hi);
-                let max_new = std::cmp::max(hi - self.meta.pending, 0) / 2;
+                let max_new = hi.saturating_sub(self.meta.pending) / 2;
                 max_pending + max_new
             });
             // The lower bound is always 0 since we might only get unique items from now on
@@ -203,4 +203,3 @@ where
 {
     Duplicates::new(iter, private::ById)
 }
-
