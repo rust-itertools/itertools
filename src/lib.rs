@@ -179,6 +179,7 @@ pub use crate::repeatn::repeat_n;
 #[allow(deprecated)]
 pub use crate::sources::{repeat_call, unfold, iterate};
 pub use crate::with_position::Position;
+pub use crate::unziptuple::{multiunzip, MultiUnzip};
 pub use crate::ziptuple::multizip;
 mod adaptors;
 mod either_or_both;
@@ -237,6 +238,7 @@ mod tuple_impl;
 mod duplicates_impl;
 #[cfg(feature = "use_std")]
 mod unique_impl;
+mod unziptuple;
 mod with_position;
 mod zip_eq_impl;
 mod zip_longest;
@@ -3402,6 +3404,33 @@ pub trait Itertools : Iterator {
         F: FnMut(Self::Item) -> K,
     {
         self.map(f).counts()
+    }
+
+    /// Converts an iterator of tuples into a tuple of containers.
+    ///
+    /// `unzip()` consumes an entire iterator of n-ary tuples, producing `n` collections, one for each
+    /// column.
+    ///
+    /// This function is, in some sense, the opposite of [`multizip`].
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let inputs = vec![(1, 2, 3), (4, 5, 6), (7, 8, 9)];
+    ///
+    /// let (a, b, c): (Vec<_>, Vec<_>, Vec<_>) = inputs
+    ///     .into_iter()
+    ///     .multiunzip();
+    ///
+    /// assert_eq!(a, vec![1, 4, 7]);
+    /// assert_eq!(b, vec![2, 5, 8]);
+    /// assert_eq!(c, vec![3, 6, 9]);
+    /// ```
+    fn multiunzip<FromI>(self) -> FromI
+    where
+        Self: Sized + MultiUnzip<FromI>,
+    {
+        MultiUnzip::multiunzip(self)
     }
 }
 
