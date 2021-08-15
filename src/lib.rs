@@ -2770,6 +2770,8 @@ pub trait Itertools : Iterator {
     /// Return a `HashMap` of keys mapped to `Vec`s of values. Keys and values
     /// are taken from `(Key, Value)` tuple pairs yielded by the input iterator.
     ///
+    /// Essentially a shorthand for `.into_grouping_map().collect::<Vec<_>>()`.
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -2791,8 +2793,8 @@ pub trait Itertools : Iterator {
 
     /// Return an `Iterator` on a `HashMap`. Keys mapped to `Vec`s of values. The key is specified
     /// in the closure.
-    /// Different to `into_group_map_by` because the key is still present. It is also more general.
-    /// You can also fold the `group_map`.
+    ///
+    /// Essentially a shorthand for `.into_grouping_map_by(f).collect::<Vec<_>>()`.
     ///
     /// ```
     /// use itertools::Itertools;
