@@ -84,13 +84,18 @@ mod private {
         #[inline]
         fn size_hint(&self) -> (usize, Option<usize>) {
             let (_, hi) = self.iter.size_hint();
-            // There are `hi` number of items left in the base iterator. In the best case scenario,
-            // these items are exactly the same as the ones pending (i.e items seen exactly once so
-            // far), plus (hi - pending) / 2 pairs of never seen before items.
             let hi = hi.map(|hi| {
-                let max_pending = std::cmp::min(self.meta.pending, hi);
-                let max_new = std::cmp::max(hi - self.meta.pending, 0) / 2;
-                max_pending + max_new
+                if hi <= self.meta.pending {
+                    // fewer or equally many iter-remaining elements than pending elements
+                    // => at most, each iter-remaining element is matched
+                    hi
+                } else {
+                    // fewer pending elements than iter-remaining elements
+                    // => at most:
+                    //    * each pending element is matched
+                    //    * the other iter-remaining elements come in pairs
+                    self.meta.pending + (hi - self.meta.pending) / 2
+                }
             });
             // The lower bound is always 0 since we might only get unique items from now on
             (0, hi)
