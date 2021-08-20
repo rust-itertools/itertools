@@ -119,6 +119,10 @@ pub type DedupBy<I, Pred> = CoalesceBy<I, DedupPred2CoalescePred<Pred>, <I as It
 #[derive(Clone)]
 pub struct DedupPred2CoalescePred<DP>(DP);
 
+impl<DP> fmt::Debug for DedupPred2CoalescePred<DP> {
+    debug_fmt_fields!(DedupPred2CoalescePred,);
+}
+
 pub trait DedupPredicate<T> {
     // TODO replace by Fn(&T, &T)->bool once Rust supports it
     fn dedup_pair(&mut self, a: &T, b: &T) -> bool;

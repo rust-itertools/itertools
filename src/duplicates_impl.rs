@@ -134,6 +134,9 @@ mod private {
 
     /// Apply a user-supplied function to elements before checking them for equality.
     pub struct ByFn<F>(pub(crate) F);
+    impl<F> fmt::Debug for ByFn<F> {
+        debug_fmt_fields!(ByFn,);
+    }
     impl<K, V, F> KeyMethod<K, V> for ByFn<F>
     where
         F: FnMut(&V) -> K,

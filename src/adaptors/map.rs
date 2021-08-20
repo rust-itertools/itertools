@@ -84,6 +84,10 @@ where
 #[derive(Clone)]
 pub struct MapSpecialCaseFnOk<F>(F);
 
+impl<F> std::fmt::Debug for MapSpecialCaseFnOk<F> {
+    debug_fmt_fields!(MapSpecialCaseFnOk,);
+}
+
 /// Create a new `MapOk` iterator.
 pub fn map_ok<I, F, T, U, E>(iter: I, f: F) -> MapOk<I, F>
 where
