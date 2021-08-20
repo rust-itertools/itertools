@@ -77,7 +77,7 @@ impl<T> ExactSizeIterator for TupleBuffer<T>
 /// An iterator that groups the items in tuples of a specific size.
 ///
 /// See [`.tuples()`](crate::Itertools::tuples) for more information.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Tuples<I, T>
     where I: Iterator<Item = T::Item>,

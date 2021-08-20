@@ -477,7 +477,7 @@ pub trait MergePredicate<T> {
     fn merge_pred(&mut self, a: &T, b: &T) -> bool;
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct MergeLte;
 
 impl<T: PartialOrd> MergePredicate<T> for MergeLte {

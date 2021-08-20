@@ -137,7 +137,7 @@ where
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct DedupEq;
 
 impl<T: PartialEq> DedupPredicate<T> for DedupEq {
@@ -186,7 +186,7 @@ where
 pub type DedupByWithCount<I, Pred> =
     CoalesceBy<I, DedupPredWithCount2CoalescePred<Pred>, (usize, <I as Iterator>::Item)>;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct DedupPredWithCount2CoalescePred<DP>(DP);
 
 impl<DP, T> CoalescePredicate<T, (usize, T)> for DedupPredWithCount2CoalescePred<DP>

@@ -122,6 +122,7 @@ mod private {
     }
 
     /// Apply the identity function to elements before checking them for equality.
+    #[derive(Debug)]
     pub struct ById;
     impl<V> KeyMethod<V, V> for ById {
         type Container = JustValue<V>;
@@ -152,6 +153,7 @@ mod private {
         fn value(self) -> V;
     }
 
+    #[derive(Debug)]
     pub struct KeyValue<K, V>(K, V);
     impl<K, V> KeyXorValue<K, V> for KeyValue<K, V> {
         fn key_ref(&self) -> &K {
@@ -165,6 +167,7 @@ mod private {
         }
     }
 
+    #[derive(Debug)]
     pub struct JustValue<V>(V);
     impl<V> KeyXorValue<V, V> for JustValue<V> {
         fn key_ref(&self) -> &V {

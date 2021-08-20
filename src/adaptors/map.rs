@@ -1,7 +1,7 @@
 use std::iter::FromIterator;
 use std::marker::PhantomData;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct MapSpecialCase<I, F> {
     iter: I,
@@ -108,7 +108,7 @@ impl<T: Into<U>, U> MapSpecialCaseFn<T> for MapSpecialCaseFnInto<U> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct MapSpecialCaseFnInto<U>(PhantomData<U>);
 
 /// Create a new [`MapInto`] iterator.
