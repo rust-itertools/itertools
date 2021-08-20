@@ -104,3 +104,50 @@ quickcheck! {
         test_specializations(&v.into_iter().map_ok(|u| u.checked_add(1)));
     }
 }
+
+quickcheck! {
+    fn process_results(v: Vec<Result<u8, u8>>) -> () {
+        helper(v.iter().copied());
+        helper(v.iter().copied().filter(Result::is_ok));
+
+        fn helper(it: impl Iterator<Item = Result<u8, u8>> + Clone) {
+            macro_rules! check_results_specialized {
+                ($src:expr, |$it:pat| $closure:expr) => {
+                    assert_eq!(
+                        itertools::process_results($src.clone(), |$it| $closure),
+                        itertools::process_results($src.clone(), |i| {
+                            let $it = Unspecialized(i);
+                            $closure
+                        }),
+                    )
+                }
+            }
+
+            check_results_specialized!(it, |i| i.count());
+            check_results_specialized!(it, |i| i.last());
+            check_results_specialized!(it, |i| i.collect::<Vec<_>>());
+            check_results_specialized!(it, |i| {
+                let mut parameters_from_fold = vec![];
+                let fold_result = i.fold(vec![], |mut acc, v| {
+                    parameters_from_fold.push((acc.clone(), v.clone()));
+                    acc.push(v);
+                    acc
+                });
+                (parameters_from_fold, fold_result)
+            });
+            check_results_specialized!(it, |mut i| {
+                let mut parameters_from_all = vec![];
+                let first = i.next();
+                let all_result = i.all(|x| {
+                    parameters_from_all.push(x.clone());
+                    Some(x)==first
+                });
+                (parameters_from_all, all_result)
+            });
+            let size = it.clone().count();
+            for n in 0..size + 2 {
+                check_results_specialized!(it, |mut i| i.nth(n));
+            }
+        }
+    }
+}
