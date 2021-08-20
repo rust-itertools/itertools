@@ -122,6 +122,7 @@ mod private {
     }
 
     /// Apply the identity function to elements before checking them for equality.
+    #[derive(Debug)]
     pub struct ById;
     impl<V> KeyMethod<V, V> for ById {
         type Container = JustValue<V>;
@@ -133,6 +134,9 @@ mod private {
 
     /// Apply a user-supplied function to elements before checking them for equality.
     pub struct ByFn<F>(pub(crate) F);
+    impl<F> fmt::Debug for ByFn<F> {
+        debug_fmt_fields!(ByFn,);
+    }
     impl<K, V, F> KeyMethod<K, V> for ByFn<F>
     where
         F: FnMut(&V) -> K,
@@ -152,6 +156,7 @@ mod private {
         fn value(self) -> V;
     }
 
+    #[derive(Debug)]
     pub struct KeyValue<K, V>(K, V);
     impl<K, V> KeyXorValue<K, V> for KeyValue<K, V> {
         fn key_ref(&self) -> &K {
@@ -165,6 +170,7 @@ mod private {
         }
     }
 
+    #[derive(Debug)]
     pub struct JustValue<V>(V);
     impl<V> KeyXorValue<V, V> for JustValue<V> {
         fn key_ref(&self) -> &V {
