@@ -73,6 +73,12 @@ fn test_specializations<IterItem, Iter>(
 }
 
 quickcheck! {
+    fn intersperse(v: Vec<u8>) -> () {
+        test_specializations(&v.into_iter().intersperse(0));
+    }
+}
+
+quickcheck! {
     fn put_back_qc(test_vec: Vec<i32>) -> () {
         test_specializations(&itertools::put_back(test_vec.iter()));
         let mut pb = itertools::put_back(test_vec.into_iter());
