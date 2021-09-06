@@ -534,7 +534,6 @@ fn sorted_by_cached_key() {
     assert_eq!(ncalls, 5);
 }
 
-
 #[test]
 fn test_multipeek() {
     let nums = vec![1u8,2,3,4,5];
