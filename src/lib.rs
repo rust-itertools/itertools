@@ -476,7 +476,7 @@ pub trait Itertools : Iterator {
     ///
     /// itertools::assert_equal((0..3).intersperse(8), vec![0, 8, 1, 8, 2]);
     /// ```
-    #[deprecated(since = "0.11.0", note = "Use `Iterator::intersperse` instead")]
+    #[deprecated(since = "0.10.2", note = "Use `Iterator::intersperse` instead")]
     fn intersperse(self, element: Self::Item) -> Intersperse<Self>
         where Self: Sized,
               Self::Item: Clone
@@ -498,7 +498,7 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal((0..3).intersperse_with(|| { i -= 1; i }), vec![0, 9, 1, 8, 2]);
     /// assert_eq!(i, 8);
     /// ```
-    #[deprecated(since = "0.11.0", note = "Use `Iterator::intersperse_with` instead")]
+    #[deprecated(since = "0.10.2", note = "Use `Iterator::intersperse_with` instead")]
     fn intersperse_with<F>(self, element: F) -> IntersperseWith<Self, F>
         where Self: Sized,
         F: FnMut() -> Self::Item
