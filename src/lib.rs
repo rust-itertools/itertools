@@ -2243,6 +2243,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!((0..10).fold1(|x, y| x + y).unwrap_or(0), 45);
     /// assert_eq!((0..0).fold1(|x, y| x * y), None);
     /// ```
+    #[deprecated(since = "0.10.2", note = "Use `Iterator::reduce` instead")]
     fn fold1<F>(mut self, f: F) -> Option<Self::Item>
         where F: FnMut(Self::Item, Self::Item) -> Self::Item,
               Self: Sized,
