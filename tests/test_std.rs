@@ -511,6 +511,30 @@ fn sorted_by_key() {
 }
 
 #[test]
+fn sorted_by_cached_key() {
+    // Track calls to key function
+    let mut ncalls = 0;
+
+    let sorted = [3, 4, 1, 2].iter().cloned().sorted_by_cached_key(|&x| {
+        ncalls += 1;
+        x.to_string()
+    });
+    it::assert_equal(sorted, vec![1, 2, 3, 4]);
+    // Check key function called once per element
+    assert_eq!(ncalls, 4);
+
+    let mut ncalls = 0;
+
+    let sorted = (0..5).sorted_by_cached_key(|&x| {
+        ncalls += 1;
+        -x
+    });
+    it::assert_equal(sorted, vec![4, 3, 2, 1, 0]);
+    // Check key function called once per element
+    assert_eq!(ncalls, 5);
+}
+
+#[test]
 fn test_multipeek() {
     let nums = vec![1u8,2,3,4,5];
 

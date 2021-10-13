@@ -2668,6 +2668,43 @@ pub trait Itertools : Iterator {
         v.into_iter()
     }
 
+    /// Sort all iterator elements into a new iterator in ascending order. The key function is
+    /// called exactly once per key.
+    ///
+    /// **Note:** This consumes the entire iterator, uses the
+    /// [`slice::sort_by_cached_key`] method and returns the result as a new
+    /// iterator that owns its elements.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // sort people in descending order by age
+    /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 27)];
+    ///
+    /// let oldest_people_first = people
+    ///     .into_iter()
+    ///     .sorted_by_cached_key(|x| -x.1)
+    ///     .map(|(person, _age)| person);
+    ///
+    /// itertools::assert_equal(oldest_people_first,
+    ///                         vec!["Jill", "Jack", "Jane", "John"]);
+    /// ```
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn sorted_by_cached_key<K, F>(self, f: F) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        K: Ord,
+        F: FnMut(&Self::Item) -> K,
+    {
+        let mut v = Vec::from_iter(self);
+        v.sort_by_cached_key(f);
+        v.into_iter()
+    }
+
     /// Sort the k smallest elements into a new iterator, in ascending order.
     ///
     /// **Note:** This consumes the entire iterator, and returns the result
