@@ -864,6 +864,50 @@ pub trait Itertools : Iterator {
         adaptors::map_ok(self, f)
     }
 
+    /// “Lift” a function of the values of the current iterator so as to process
+    /// an iterator of `Result` values instead.
+    ///
+    /// `processor` is a closure that receives an adapted version of the iterator
+    /// as the only argument — the adapted iterator produces elements of type `Ok`,
+    /// as long as the original iterator produces `Ok` values.
+    ///
+    /// If the original iterable produces an error at any point, the adapted
+    /// iterator ends (short-circuits) and the `process_results` function will
+    /// return the error iself.
+    ///
+    /// Otherwise, the return value from the closure is returned wrapped
+    /// inside `Ok`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// type Item = Result<i32, &'static str>;
+    ///
+    /// let first_values: Vec<Item> = vec![Ok(1), Ok(0), Ok(3)];
+    /// let second_values: Vec<Item> = vec![Ok(2), Ok(1), Err("overflow")];
+    ///
+    /// // “Lift” the iterator .max() method to work on the Ok-values.
+    /// let first_max = first_values.into_iter().process_results(|iter| iter.max().unwrap_or(0));
+    /// let second_max = second_values.into_iter().process_results(|iter| iter.max().unwrap_or(0));
+    ///
+    /// assert_eq!(first_max, Ok(3));
+    /// assert!(second_max.is_err());
+    /// ```
+    ///
+    /// This is the iterator adaptor version of [`itertools::process_results()`].
+    ///
+    /// [`itertools::process_results`]: `crate::process_results`
+    fn process_results<F, Ok, Err, R>(self, processor: F) -> Result<R, Err> 
+        where Self: Iterator<Item = Result<Ok, Err>> + Sized,
+              F: for<'r> FnOnce(ProcessResults<'r, Self, Err>) -> R,
+              // Added to directly highlight the relevant impl in the documentation
+              for<'r> ProcessResults<'r, Self, Err>: Iterator<Item = Ok>,
+    {
+        process_results(self, processor)
+    }
+
     /// Return an iterator adaptor that filters every `Result::Ok`
     /// value with the provided closure. `Result::Err` values are
     /// unchanged.
