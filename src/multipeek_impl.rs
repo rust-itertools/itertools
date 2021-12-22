@@ -2,6 +2,8 @@ use std::iter::Fuse;
 use alloc::collections::VecDeque;
 use crate::size_hint;
 use crate::PeekingNext;
+#[cfg(doc)]
+use crate::Itertools;
 
 /// See [`multipeek()`] for more information.
 #[derive(Clone, Debug)]
@@ -15,6 +17,8 @@ pub struct MultiPeek<I>
 
 /// An iterator adaptor that allows the user to peek at multiple `.next()`
 /// values without advancing the base iterator.
+///
+/// [`IntoIterator`] enabled version of [`Itertools::multipeek`].
 pub fn multipeek<I>(iterable: I) -> MultiPeek<I::IntoIter>
     where I: IntoIterator
 {
