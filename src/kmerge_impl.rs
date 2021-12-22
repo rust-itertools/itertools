@@ -170,7 +170,7 @@ impl<I, F> fmt::Debug for KMergeBy<I, F>
 
 /// Create an iterator that merges elements of the contained iterators.
 ///
-/// Equivalent to `iterable.into_iter().kmerge_by(less_than)`.
+/// [`IntoIterator`] enabled version of [`Itertools::kmerge_by`].
 pub fn kmerge_by<I, F>(iterable: I, mut less_than: F)
     -> KMergeBy<<I::Item as IntoIterator>::IntoIter, F>
     where I: IntoIterator,
