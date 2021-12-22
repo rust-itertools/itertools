@@ -129,7 +129,7 @@ impl<T, F: FnMut(&T, &T)->bool> KMergePredicate<T> for F {
 /// Create an iterator that merges elements of the contained iterators using
 /// the ordering function.
 ///
-/// Equivalent to `iterable.into_iter().kmerge()`.
+/// [`IntoIterator`] enabled version of [`Itertools::kmerge`].
 ///
 /// ```
 /// use itertools::kmerge;
