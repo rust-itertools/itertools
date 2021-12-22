@@ -3478,8 +3478,7 @@ impl<T: ?Sized> Itertools for T where T: Iterator { }
 /// (elements pairwise equal and sequences of the same length),
 /// `false` otherwise.
 ///
-/// This is an [`IntoIterator`] enabled function that is similar to the standard
-/// library method [`Iterator::eq`].
+/// [`IntoIterator`] enabled version of [`Iterator::eq`].
 ///
 /// ```
 /// assert!(itertools::equal(vec![1, 2, 3], 1..4));
