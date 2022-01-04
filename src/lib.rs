@@ -1882,6 +1882,33 @@ pub trait Itertools : Iterator {
         self.all(move |elt| used.insert(elt))
     }
 
+    /// Check whether all elements compare equal, and return `Some` with the equal element.
+    ///
+    /// Empty iterators return `None`, and so do iterators with non-equal elements.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![1u8, 1, 1, 2, 2, 3, 3, 3, 4, 5, 5];
+    /// assert_eq!(data.iter().equal(), None);
+    /// assert_eq!(data[0..3].iter().equal(), Some(&1));
+    /// assert_eq!(data[3..5].iter().equal(), Some(&2));
+    /// assert_eq!(data[5..8].iter().equal(), Some(&3));
+    ///
+    /// let data : Option<usize> = None;
+    /// assert_eq!(data.into_iter().equal(), None);
+    /// ```
+    fn equal(&mut self) -> Option<Self::Item>
+    where
+        Self: Sized,
+        Self::Item: PartialEq,
+    {
+        match self.next() {
+            None => None,
+            Some(a) => self.all(|x| a == x).then(|| a),
+        }
+    }
+
     /// Consume the first `n` elements from the iterator eagerly,
     /// and return the same iterator again.
     ///
