@@ -134,6 +134,7 @@ pub mod structs {
     pub use crate::peek_nth::PeekNth;
     pub use crate::pad_tail::PadUsing;
     pub use crate::peeking_take_while::PeekingTakeWhile;
+    pub use crate::peeking_map_while::PeekingMapWhile;
     #[cfg(feature = "use_alloc")]
     pub use crate::permutations::Permutations;
     pub use crate::process_results_impl::ProcessResults;
@@ -174,6 +175,7 @@ pub use crate::diff::Diff;
 pub use crate::kmerge_impl::{kmerge_by};
 pub use crate::minmax::MinMaxResult;
 pub use crate::peeking_take_while::PeekingNext;
+pub use crate::peeking_map_while::PeekingMap;
 pub use crate::process_results_impl::process_results;
 pub use crate::repeatn::repeat_n;
 #[allow(deprecated)]
@@ -219,6 +221,7 @@ mod pad_tail;
 #[cfg(feature = "use_alloc")]
 mod peek_nth;
 mod peeking_take_while;
+mod peeking_map_while;
 #[cfg(feature = "use_alloc")]
 mod permutations;
 #[cfg(feature = "use_alloc")]
@@ -1360,6 +1363,23 @@ pub trait Itertools : Iterator {
               F: FnMut(&Self::Item) -> bool,
     {
         peeking_take_while::peeking_take_while(self, accept)
+    }
+
+    /// Return an iterator adaptor that borrows from this iterator and
+    /// maps items while the closure `predicate` returns `Some(_)`.
+    ///
+    /// This adaptor can only be used on iterators that implement [`PeekingMap`]
+    /// like [`Peekable`], `put_back` and a few other collection iterators.
+    ///
+    /// The first rejected element (first `None`) is still available when
+    /// `peeking_map_while` is done.
+    ///
+    /// [`Peekable`]: std::iter::Peekable
+    fn peeking_map_while<'iter, P, B>(&'iter mut self, predicate: P) -> PeekingMapWhile<'iter, Self, P>
+        where Self: Sized,
+              P: FnMut(&Self::Item) -> Option<B>,
+    {
+        PeekingMapWhile::new(self, predicate)
     }
 
     /// Return an iterator adaptor that borrows from a `Clone`-able iterator
