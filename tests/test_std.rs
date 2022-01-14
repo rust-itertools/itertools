@@ -224,12 +224,12 @@ fn all_equal() {
 
 #[test]
 fn equal() {
-    assert_eq!("".chars().equal(), None);
-    assert_eq!("A".chars().equal(), Some('A'));
-    assert_eq!("AABBCCC".chars().equal(), None);
-    assert_eq!("AAAAAAA".chars().equal(), Some('A'));
+    assert_eq!("".chars().all_equal_item(), None);
+    assert_eq!("A".chars().all_equal_item(), Some('A'));
+    assert_eq!("AABBCCC".chars().all_equal_item(), None);
+    assert_eq!("AAAAAAA".chars().all_equal_item(), Some('A'));
     for (key, mut sub) in &"AABBCCC".chars().group_by(|&x| x) {
-        assert_eq!(sub.equal(), Some(key));
+        assert_eq!(sub.all_equal_item(), Some(key));
     }
 }
 
