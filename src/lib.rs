@@ -1905,7 +1905,7 @@ pub trait Itertools : Iterator {
     {
         match self.next() {
             None => None,
-            Some(a) => self.all(|x| a == x).then(|| a),
+            Some(a) => if self.all(|x| a == x) { Some(a) } else { None }
         }
     }
 
