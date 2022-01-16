@@ -839,6 +839,50 @@ impl_tuple_combination!(Tuple10Combination Tuple9Combination; a b c d e f g h i)
 impl_tuple_combination!(Tuple11Combination Tuple10Combination; a b c d e f g h i j);
 impl_tuple_combination!(Tuple12Combination Tuple11Combination; a b c d e f g h i j k);
 
+/// An iterator adapter to enumerate values within a nested `Result::Ok`.
+///
+/// See [`.enumerate_ok()`](crate::Itertools::enumerate_ok) for more information.
+#[derive(Clone)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+pub struct EnumerateOk<I> {
+    iter: I,
+    index: usize
+}
+
+/// Create a new `EnumerateOk` iterator.
+pub fn enumerate_ok<I, T, E>(iter: I) -> EnumerateOk<I>
+where
+    I: Iterator<Item = Result<T, E>>,
+{
+    EnumerateOk {
+        iter,
+        index: 0
+    }
+}
+
+impl<I> fmt::Debug for EnumerateOk<I>
+where
+    I: fmt::Debug,
+{
+    debug_fmt_fields!(EnumerateOk, iter);
+}
+
+impl<I,T,E> Iterator for EnumerateOk<I>
+    where I: Iterator<Item = Result<T,E>>,
+{
+    type Item = Result<(usize,T),E>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().map(|item| {
+            item.map(|v| {
+                let index = self.index;
+                self.index +=1;
+                (index,v)
+            })
+        })
+    }
+}
+
 /// An iterator adapter to filter values within a nested `Result::Ok`.
 ///
 /// See [`.filter_ok()`](crate::Itertools::filter_ok) for more information.

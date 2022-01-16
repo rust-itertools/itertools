@@ -99,6 +99,7 @@ pub mod structs {
         Batching,
         MapInto,
         MapOk,
+        EnumerateOk,
         Merge,
         MergeBy,
         TakeWhileRef,
@@ -844,6 +845,23 @@ pub trait Itertools : Iterator {
               F: FnMut(T) -> U,
     {
         self.map_ok(f)
+    }
+
+    /// Return an iterator adaptor that adds an index to `Result::Ok`
+    /// values. `Result::Err` values are unchanged. The index is incremented
+    /// only for `Result::Ok` values.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let input = vec![Ok(41), Err(false), Ok(11)];
+    /// let it = input.into_iter().enumerate_ok();
+    /// itertools::assert_equal(it, vec![Ok((0, 41)), Err(false), Ok((1, 11))]);
+    /// ```
+    fn enumerate_ok<T, E>(self) -> EnumerateOk<Self>
+        where Self: Iterator<Item = Result<T, E>> + Sized,
+    {
+        adaptors::enumerate_ok(self)
     }
 
     /// Return an iterator adaptor that applies the provided closure
