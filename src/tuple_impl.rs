@@ -167,30 +167,21 @@ where
     I: Iterator<Item = T::Item>,
     T: HomogeneousTuple,
 {
-    iter: I,
+    iter: Fuse<I>,
     last: Option<T>,
 }
 
 /// Create a new tuple windows iterator.
-pub fn tuple_windows<I, T>(mut iter: I) -> TupleWindows<I, T>
+pub fn tuple_windows<I, T>(iter: I) -> TupleWindows<I, T>
 where
     I: Iterator<Item = T::Item>,
     T: HomogeneousTuple,
     T::Item: Clone,
 {
-    use std::iter::once;
-
-    let mut last = None;
-    if T::num_items() != 1 {
-        // put in a duplicate item in front of the tuple; this simplifies
-        // .next() function.
-        if let Some(item) = iter.next() {
-            let iter = once(item.clone()).chain(once(item)).chain(&mut iter);
-            last = T::collect_from_iter_no_buf(iter);
-        }
+    TupleWindows {
+        last : None,
+        iter : iter.fuse(),
     }
-
-    TupleWindows { iter, last }
 }
 
 impl<I, T> Iterator for TupleWindows<I, T>
@@ -209,6 +200,13 @@ where
             if let Some(new) = self.iter.next() {
                 last.left_shift_push(new);
                 return Some(last.clone());
+            }
+        } else {
+            use std::iter::once;
+            if let Some(item) = self.iter.next() {
+                let iter = once(item).chain(&mut self.iter);
+                self.last = T::collect_from_iter_no_buf(iter);
+                return self.last.clone();
             }
         }
         None
