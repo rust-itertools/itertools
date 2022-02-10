@@ -450,6 +450,12 @@ quickcheck! {
         assert_eq!(answer.into_iter().last(), a.multi_cartesian_product().last());
     }
 
+    fn correct_empty_multi_product() -> () {
+        let empty = Vec::<std::vec::IntoIter<i32>>::new().into_iter().multi_cartesian_product();
+        assert!(correct_size_hint(empty.clone()));
+        itertools::assert_equal(empty, std::iter::once(Vec::new()))
+    }
+
     #[allow(deprecated)]
     fn size_step(a: Iter<i16, Exact>, s: usize) -> bool {
         let mut s = s;
