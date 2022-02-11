@@ -167,7 +167,7 @@ where
     I: Iterator<Item = T::Item>,
     T: HomogeneousTuple,
 {
-    iter: Fuse<I>,
+    iter: I,
     last: Option<T>,
 }
 
@@ -180,7 +180,7 @@ where
 {
     TupleWindows {
         last : None,
-        iter : iter.fuse(),
+        iter,
     }
 }
 
@@ -196,20 +196,19 @@ where
         if T::num_items() == 1 {
             return T::collect_from_iter_no_buf(&mut self.iter);
         }
-        if let Some(ref mut last) = self.last {
-            if let Some(new) = self.iter.next() {
+        if let Some(new) = self.iter.next() {
+            if let Some(ref mut last) = self.last {
                 last.left_shift_push(new);
-                return Some(last.clone());
+                Some(last.clone())
+            } else {
+                use std::iter::once;
+                let iter = once(new).chain(&mut self.iter);
+                self.last = T::collect_from_iter_no_buf(iter);
+                self.last.clone()
             }
         } else {
-            use std::iter::once;
-            if let Some(item) = self.iter.next() {
-                let iter = once(item).chain(&mut self.iter);
-                self.last = T::collect_from_iter_no_buf(iter);
-                return self.last.clone();
-            }
+            None
         }
-        None
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
