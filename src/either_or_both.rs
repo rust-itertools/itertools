@@ -27,19 +27,13 @@ impl<A, B> EitherOrBoth<A, B> {
     /// If Left, return true otherwise, return false.
     /// Exclusive version of [`has_left`](EitherOrBoth::has_left).
     pub fn is_left(&self) -> bool {
-        match *self {
-            Left(_) => true,
-            _ => false,
-        }
+        matches!(*self, Left(_))
     }
 
     /// If Right, return true otherwise, return false.
     /// Exclusive version of [`has_right`](EitherOrBoth::has_right).
     pub fn is_right(&self) -> bool {
-        match *self {
-            Right(_) => true,
-            _ => false,
-        }
+        matches!(*self, Right(_))
     }
 
     /// If Right, return true otherwise, return false.
@@ -243,9 +237,9 @@ impl<T> EitherOrBoth<T, T> {
     }
 }
 
-impl<A, B> Into<Option<Either<A, B>>> for EitherOrBoth<A, B> {
-    fn into(self) -> Option<Either<A, B>> {
-        match self {
+impl<A, B> From<EitherOrBoth<A, B>> for Option<Either<A, B>> {
+    fn from(val: EitherOrBoth<A, B>) -> Self {
+        match val {
             EitherOrBoth::Left(l) => Some(Either::Left(l)),
             EitherOrBoth::Right(r) => Some(Either::Right(r)),
             _ => None,
