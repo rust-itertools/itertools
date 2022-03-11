@@ -35,9 +35,7 @@ pub struct Interleave<I, J> {
 
 /// Create an iterator that interleaves elements in `i` and `j`.
 ///
-/// [`IntoIterator`] enabled version of `i.interleave(j)`.
-///
-/// See [`.interleave()`](crate::Itertools::interleave) for more information.
+/// [`IntoIterator`] enabled version of `[Itertools::interleave]`.
 pub fn interleave<I, J>(i: I, j: J) -> Interleave<<I as IntoIterator>::IntoIter, <J as IntoIterator>::IntoIter>
     where I: IntoIterator,
           J: IntoIterator<Item = I::Item>
