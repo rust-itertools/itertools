@@ -75,10 +75,11 @@ impl<'a, I> Format<'a, I>
 where
     I: Iterator,
 {
-    fn format<F>(&self, f: &mut fmt::Formatter, mut cb: F) -> fmt::Result
-    where
-        F: FnMut(&I::Item, &mut fmt::Formatter) -> fmt::Result,
-    {
+    fn format(
+        &self,
+        f: &mut fmt::Formatter,
+        cb: fn(&I::Item, &mut fmt::Formatter) -> fmt::Result,
+    ) -> fmt::Result {
         let mut iter = match self.inner.take() {
             Some(t) => t,
             None => panic!("Format: was already formatted once"),
