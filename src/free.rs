@@ -239,7 +239,7 @@ pub fn min<I>(iterable: I) -> Option<I::Item>
 }
 
 
-/// Combine all iterator elements into one String, seperated by `sep`.
+/// Combine all iterator elements into one String, separated by `sep`.
 ///
 /// [`IntoIterator`] enabled version of [`Itertools::join`].
 ///

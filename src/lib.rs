@@ -387,7 +387,7 @@ macro_rules! izip {
 /// let with_macro:  Chain<Chain<Once<_>, Take<Repeat<_>>>, slice::Iter<_>> =
 ///     chain![once(&0), repeat(&1).take(2), &[2, 3, 5],];
 ///
-/// // ...is equivalant to this:
+/// // ...is equivalent to this:
 /// let with_method: Chain<Chain<Once<_>, Take<Repeat<_>>>, slice::Iter<_>> =
 ///     once(&0)
 ///         .chain(repeat(&1).take(2))
@@ -904,7 +904,7 @@ pub trait Itertools : Iterator {
     /// a series of `Result::Ok` values. `Result::Err` values are unchanged.
     /// 
     /// This is useful when you have some common error type for your crate and
-    /// need to propogate it upwards, but the `Result::Ok` case needs to be flattened.
+    /// need to propagate it upwards, but the `Result::Ok` case needs to be flattened.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -913,7 +913,7 @@ pub trait Itertools : Iterator {
     /// let it = input.iter().cloned().flatten_ok();
     /// itertools::assert_equal(it.clone(), vec![Ok(0), Ok(1), Err(false), Ok(2), Ok(3)]);
     /// 
-    /// // This can also be used to propogate errors when collecting.
+    /// // This can also be used to propagate errors when collecting.
     /// let output_result: Result<Vec<i32>, bool> = it.collect();
     /// assert_eq!(output_result, Err(false));
     /// ```
@@ -3157,7 +3157,7 @@ pub trait Itertools : Iterator {
     ///    be equal to `ypos`.
     ///
     /// On an iterator of length `n`, `position_minmax` does `1.5 * n`
-    /// comparisons, and so is faster than calling `positon_min` and
+    /// comparisons, and so is faster than calling `position_min` and
     /// `position_max` separately which does `2 * n` comparisons.
     ///
     /// For the minimum, if several elements are equally minimum, the

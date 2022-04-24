@@ -46,7 +46,7 @@ where
                     return Some(Ok(item));
                 } else {
                     // This is necessary for the iterator to implement `FusedIterator`
-                    // with only the orginal iterator being fused.
+                    // with only the original iterator being fused.
                     self.inner_front = None;
                 }
             }
@@ -61,7 +61,7 @@ where
                             return Some(Ok(item));
                         } else {
                             // This is necessary for the iterator to implement `FusedIterator`
-                            // with only the orginal iterator being fused.
+                            // with only the original iterator being fused.
                             self.inner_back = None;
                         }
                     } else {
@@ -105,7 +105,7 @@ where
                     return Some(Ok(item));
                 } else {
                     // This is necessary for the iterator to implement `FusedIterator`
-                    // with only the orginal iterator being fused.
+                    // with only the original iterator being fused.
                     self.inner_back = None;
                 }
             }
@@ -120,7 +120,7 @@ where
                             return Some(Ok(item));
                         } else {
                             // This is necessary for the iterator to implement `FusedIterator`
-                            // with only the orginal iterator being fused.
+                            // with only the original iterator being fused.
                             self.inner_front = None;
                         }
                     } else {
