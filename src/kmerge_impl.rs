@@ -80,7 +80,7 @@ fn sift_down<T, S>(heap: &mut [T], index: usize, mut less_than: S)
     // that wouldn't be predicted if present
     while child + 1 < heap.len() {
         // pick the smaller of the two children
-        // use aritmethic to avoid an unpredictable branch
+        // use arithmetic to avoid an unpredictable branch
         child += less_than(&heap[child+1], &heap[child]) as usize;
 
         // sift down is done if we are already in order
