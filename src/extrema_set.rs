@@ -1,12 +1,15 @@
 use std::cmp::Ordering;
 
 /// Implementation guts for `min_set`, `min_set_by`, and `min_set_by_key`.
-pub fn min_set_impl<I, K, F, Compare>(mut it: I,
-                                mut key_for: F,
-                                mut compare: Compare) -> Vec<I::Item>
-    where I: Iterator,
-          F: FnMut(&I::Item) -> K,
-          Compare: FnMut(&I::Item, &I::Item, &K, &K) -> Ordering,
+pub fn min_set_impl<I, K, F, Compare>(
+    mut it: I,
+    mut key_for: F,
+    mut compare: Compare,
+) -> Vec<I::Item>
+where
+    I: Iterator,
+    F: FnMut(&I::Item) -> K,
+    Compare: FnMut(&I::Item, &I::Item, &K, &K) -> Ordering,
 {
     match it.next() {
         None => Vec::new(),
@@ -20,29 +23,26 @@ pub fn min_set_impl<I, K, F, Compare>(mut it: I,
                         result.clear();
                         result.push(element);
                         current_key = key;
-                    },
+                    }
                     Ordering::Equal => {
                         result.push(element);
-                    },
-                    Ordering::Greater => {
-                    },
+                    }
+                    Ordering::Greater => {}
                 }
             });
             result
         }
     }
-
 }
 
 /// Implementation guts for `ax_set`, `max_set_by`, and `max_set_by_key`.
-pub fn max_set_impl<I, K, F, Compare>(it: I,
-                                key_for: F,
-                                mut compare: Compare) -> Vec<I::Item>
-    where I: Iterator,
-          F: FnMut(&I::Item) -> K,
-          Compare: FnMut(&I::Item, &I::Item, &K, &K) -> Ordering,
+pub fn max_set_impl<I, K, F, Compare>(it: I, key_for: F, mut compare: Compare) -> Vec<I::Item>
+where
+    I: Iterator,
+    F: FnMut(&I::Item) -> K,
+    Compare: FnMut(&I::Item, &I::Item, &K, &K) -> Ordering,
 {
-    min_set_impl(it, key_for, |it1, it2, key1, key2| compare(it2, it1, key2, key1))
+    min_set_impl(it, key_for, |it1, it2, key1, key2| {
+        compare(it2, it1, key2, key1)
+    })
 }
-
-
