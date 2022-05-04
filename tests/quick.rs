@@ -1693,3 +1693,62 @@ quickcheck! {
     }
 }
 
+quickcheck! {
+    fn min_set_contains_min(a: Vec<(usize, char)>) -> bool {
+        let result_set = a.iter().min_set();
+        if let Some(result_element) = a.iter().min() {
+            result_set.contains(&result_element)
+        } else {
+            result_set.is_empty()
+        }
+    }
+
+    fn min_set_by_contains_min(a: Vec<(usize, char)>) -> bool {
+        let compare = |x: &&(usize, char), y: &&(usize, char)| x.1.cmp(&y.1);
+        let result_set = a.iter().min_set_by(compare);
+        if let Some(result_element) = a.iter().min_by(compare) {
+            result_set.contains(&result_element)
+        } else {
+            result_set.is_empty()
+        }
+    }
+
+    fn min_set_by_key_contains_min(a: Vec<(usize, char)>) -> bool {
+        let key = |x: &&(usize, char)| x.1;
+        let result_set = a.iter().min_set_by_key(&key);
+        if let Some(result_element) = a.iter().min_by_key(&key) {
+            result_set.contains(&result_element)
+        } else {
+            result_set.is_empty()
+        }
+    }
+
+    fn max_set_contains_max(a: Vec<(usize, char)>) -> bool {
+        let result_set = a.iter().max_set();
+        if let Some(result_element) = a.iter().max() {
+            result_set.contains(&result_element)
+        } else {
+            result_set.is_empty()
+        }
+    }
+
+    fn max_set_by_contains_max(a: Vec<(usize, char)>) -> bool {
+        let compare = |x: &&(usize, char), y: &&(usize, char)| x.1.cmp(&y.1);
+        let result_set = a.iter().max_set_by(compare);
+        if let Some(result_element) = a.iter().max_by(compare) {
+            result_set.contains(&result_element)
+        } else {
+            result_set.is_empty()
+        }
+    }
+
+    fn max_set_by_key_contains_max(a: Vec<(usize, char)>) -> bool {
+        let key = |x: &&(usize, char)| x.1;
+        let result_set = a.iter().max_set_by_key(&key);
+        if let Some(result_element) = a.iter().max_by_key(&key) {
+            result_set.contains(&result_element)
+        } else {
+            result_set.is_empty()
+        }
+    }
+}
