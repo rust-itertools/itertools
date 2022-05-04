@@ -2930,7 +2930,7 @@ pub trait Itertools : Iterator {
     fn min_set(self) -> Vec<Self::Item>
         where Self: Sized, Self::Item: Ord
     {
-        extrema_set::min_set_impl(self, |_| (), |x, y, _, _| x < y)
+        extrema_set::min_set_impl(self, |_| (), |x, y, _, _| x.cmp(y))
     }
 
     /// Return all minimum elements of an iterator, as determined by
@@ -2964,7 +2964,7 @@ pub trait Itertools : Iterator {
         extrema_set::min_set_impl(
             self,
             |_| (),
-            |x, y, _, _| Ordering::Less == compare(x, y)
+            |x, y, _, _| compare(x, y)
         )
     }
 
@@ -2995,7 +2995,7 @@ pub trait Itertools : Iterator {
     fn min_set_by_key<K, F>(self, key: F) -> Vec<Self::Item>
         where Self: Sized, K: Ord, F: FnMut(&Self::Item) -> K
     {
-        extrema_set::min_set_impl(self, key, |_, _, kx, ky| kx < ky)
+        extrema_set::min_set_impl(self, key, |_, _, kx, ky| kx.cmp(ky))
     }
 
     /// Return all maximum elements of an iterator.
@@ -3024,7 +3024,7 @@ pub trait Itertools : Iterator {
     fn max_set(self) -> Vec<Self::Item>
         where Self: Sized, Self::Item: Ord
     {
-        extrema_set::max_set_impl(self, |_| (), |x, y, _, _| x < y)
+        extrema_set::max_set_impl(self, |_| (), |x, y, _, _| x.cmp(y))
     }
 
     /// Return all maximum elements of an iterator, as determined by
@@ -3058,7 +3058,7 @@ pub trait Itertools : Iterator {
         extrema_set::max_set_impl(
             self,
             |_| (),
-            |x, y, _, _| Ordering::Less == compare(x, y)
+            |x, y, _, _| compare(x, y)
         )
     }
 
@@ -3089,7 +3089,7 @@ pub trait Itertools : Iterator {
     fn max_set_by_key<K, F>(self, key: F) -> Vec<Self::Item>
         where Self: Sized, K: Ord, F: FnMut(&Self::Item) -> K
     {
-        extrema_set::max_set_impl(self, key, |_, _, kx, ky| kx < ky)
+        extrema_set::max_set_impl(self, key, |_, _, kx, ky| kx.cmp(ky))
     }
 
     /// Return the minimum and maximum elements in the iterator.

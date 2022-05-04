@@ -1,10 +1,12 @@
+use std::cmp::Ordering;
+
 /// Implementation guts for `min_set`, `min_set_by`, and `min_set_by_key`.
-pub fn min_set_impl<I, K, F, L>(mut it: I,
+pub fn min_set_impl<I, K, F, Compare>(mut it: I,
                                 mut key_for: F,
-                                mut lt: L) -> Vec<I::Item>
+                                mut compare: Compare) -> Vec<I::Item>
     where I: Iterator,
           F: FnMut(&I::Item) -> K,
-          L: FnMut(&I::Item, &I::Item, &K, &K) -> bool,
+          Compare: FnMut(&I::Item, &I::Item, &K, &K) -> Ordering,
 {
     let (mut result, mut current_key) = match it.next() {
         None => return Vec::new(),
@@ -16,12 +18,17 @@ pub fn min_set_impl<I, K, F, L>(mut it: I,
 
     it.for_each(|element| {
         let key = key_for(&element);
-        if lt(&element, &result[0], &key, &current_key) {
-            result.clear();
-            result.push(element);
-            current_key = key;
-        } else if !lt(&result[0], &element, &current_key, &key) {
-            result.push(element);
+        match compare(&element, &result[0], &key, &current_key) {
+            Ordering::Less => {
+                result.clear();
+                result.push(element);
+                current_key = key;
+            },
+            Ordering::Equal => {
+                result.push(element);
+            },
+            Ordering::Greater => {
+            },
         }
     });
 
@@ -29,14 +36,14 @@ pub fn min_set_impl<I, K, F, L>(mut it: I,
 }
 
 /// Implementation guts for `ax_set`, `max_set_by`, and `max_set_by_key`.
-pub fn max_set_impl<I, K, F, L>(it: I,
+pub fn max_set_impl<I, K, F, Compare>(it: I,
                                 key_for: F,
-                                mut lt: L) -> Vec<I::Item>
+                                mut compare: Compare) -> Vec<I::Item>
     where I: Iterator,
           F: FnMut(&I::Item) -> K,
-          L: FnMut(&I::Item, &I::Item, &K, &K) -> bool,
+          Compare: FnMut(&I::Item, &I::Item, &K, &K) -> Ordering,
 {
-    min_set_impl(it, key_for, |it1, it2, key1, key2| lt(it2, it1, key2, key1))
+    min_set_impl(it, key_for, |it1, it2, key1, key2| compare(it2, it1, key2, key1))
 }
 
 
