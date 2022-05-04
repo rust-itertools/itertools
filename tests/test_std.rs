@@ -1013,30 +1013,30 @@ fn extrema_set() {
         }
     }
 
-    assert_eq!(None::<Option<u32>>.iter().min_set(), None);
-    assert_eq!(None::<Option<u32>>.iter().max_set(), None);
+    assert_eq!(None::<u32>.iter().min_set(), Vec::<&u32>::new());
+    assert_eq!(None::<u32>.iter().max_set(), Vec::<&u32>::new());
 
-    assert_eq!(Some(1u32).iter().min_set(), Some(vec![&1]));
-    assert_eq!(Some(1u32).iter().max_set(), Some(vec![&1]));
+    assert_eq!(Some(1u32).iter().min_set(), vec![&1]);
+    assert_eq!(Some(1u32).iter().max_set(), vec![&1]);
 
     let data = vec![Val(0, 1), Val(2, 0), Val(0, 2), Val(1, 0), Val(2, 1)];
 
-    let min_set = data.iter().min_set().unwrap();
+    let min_set = data.iter().min_set();
     assert_eq!(min_set, vec![&Val(0, 1), &Val(0, 2)]);
 
-    let min_set_by_key = data.iter().min_set_by_key(|v| v.1).unwrap();
+    let min_set_by_key = data.iter().min_set_by_key(|v| v.1);
     assert_eq!(min_set_by_key, vec![&Val(2, 0), &Val(1, 0)]);
 
-    let min_set_by = data.iter().min_set_by(|x, y| x.1.cmp(&y.1)).unwrap();
+    let min_set_by = data.iter().min_set_by(|x, y| x.1.cmp(&y.1));
     assert_eq!(min_set_by, vec![&Val(2, 0), &Val(1, 0)]);
 
-    let max_set = data.iter().max_set().unwrap();
+    let max_set = data.iter().max_set();
     assert_eq!(max_set, vec![&Val(2, 0), &Val(2, 1)]);
 
-    let max_set_by_key = data.iter().max_set_by_key(|v| v.1).unwrap();
+    let max_set_by_key = data.iter().max_set_by_key(|v| v.1);
     assert_eq!(max_set_by_key, vec![&Val(0, 2)]);
 
-    let max_set_by = data.iter().max_set_by(|x, y| x.1.cmp(&y.1)).unwrap();
+    let max_set_by = data.iter().max_set_by(|x, y| x.1.cmp(&y.1));
     assert_eq!(max_set_by, vec![&Val(0, 2)]);
 }
 
