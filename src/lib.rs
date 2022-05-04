@@ -2928,7 +2928,7 @@ pub trait Itertools : Iterator {
     /// if an element is NaN.
     #[cfg(feature = "use_std")]
     fn min_set(self) -> Vec<Self::Item>
-        where Self: Sized, Self::Item: PartialOrd
+        where Self: Sized, Self::Item: Ord
     {
         extrema_set::min_set_impl(self, |_| (), |x, y, _, _| x < y)
     }
@@ -2993,7 +2993,7 @@ pub trait Itertools : Iterator {
     /// if an element is NaN.
     #[cfg(feature = "use_std")]
     fn min_set_by_key<K, F>(self, key: F) -> Vec<Self::Item>
-        where Self: Sized, K: PartialOrd, F: FnMut(&Self::Item) -> K
+        where Self: Sized, K: Ord, F: FnMut(&Self::Item) -> K
     {
         extrema_set::min_set_impl(self, key, |_, _, kx, ky| kx < ky)
     }
@@ -3022,7 +3022,7 @@ pub trait Itertools : Iterator {
     /// if an element is NaN.
     #[cfg(feature = "use_std")]
     fn max_set(self) -> Vec<Self::Item>
-        where Self: Sized, Self::Item: PartialOrd
+        where Self: Sized, Self::Item: Ord
     {
         extrema_set::max_set_impl(self, |_| (), |x, y, _, _| x < y)
     }
@@ -3087,7 +3087,7 @@ pub trait Itertools : Iterator {
     /// if an element is NaN.
     #[cfg(feature = "use_std")]
     fn max_set_by_key<K, F>(self, key: F) -> Vec<Self::Item>
-        where Self: Sized, K: PartialOrd, F: FnMut(&Self::Item) -> K
+        where Self: Sized, K: Ord, F: FnMut(&Self::Item) -> K
     {
         extrema_set::max_set_impl(self, key, |_, _, kx, ky| kx < ky)
     }
