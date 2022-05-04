@@ -8,31 +8,30 @@ pub fn min_set_impl<I, K, F, Compare>(mut it: I,
           F: FnMut(&I::Item) -> K,
           Compare: FnMut(&I::Item, &I::Item, &K, &K) -> Ordering,
 {
-    let (mut result, mut current_key) = match it.next() {
-        None => return Vec::new(),
+    match it.next() {
+        None => Vec::new(),
         Some(element) => {
-            let key = key_for(&element);
-            (vec![element], key)
+            let mut current_key = key_for(&element);
+            let mut result = vec![element];
+            it.for_each(|element| {
+                let key = key_for(&element);
+                match compare(&element, &result[0], &key, &current_key) {
+                    Ordering::Less => {
+                        result.clear();
+                        result.push(element);
+                        current_key = key;
+                    },
+                    Ordering::Equal => {
+                        result.push(element);
+                    },
+                    Ordering::Greater => {
+                    },
+                }
+            });
+            result
         }
-    };
+    }
 
-    it.for_each(|element| {
-        let key = key_for(&element);
-        match compare(&element, &result[0], &key, &current_key) {
-            Ordering::Less => {
-                result.clear();
-                result.push(element);
-                current_key = key;
-            },
-            Ordering::Equal => {
-                result.push(element);
-            },
-            Ordering::Greater => {
-            },
-        }
-    });
-
-    result
 }
 
 /// Implementation guts for `ax_set`, `max_set_by`, and `max_set_by_key`.
