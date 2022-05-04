@@ -14,7 +14,7 @@ pub fn min_set_impl<I, K, F, L>(mut it: I,
         }
     };
 
-    for element in it {
+    it.for_each(|element| {
         let key = key_for(&element);
         if lt(&element, &result[0], &key, &current_key) {
             result.clear();
@@ -23,7 +23,7 @@ pub fn min_set_impl<I, K, F, L>(mut it: I,
         } else if !lt(&result[0], &element, &current_key, &key) {
             result.push(element);
         }
-    }
+    });
 
     result
 }
