@@ -13,7 +13,6 @@ mod private_iter_index {
     impl Sealed for ops::RangeToInclusive<usize> {}
     impl Sealed for ops::RangeFrom<usize> {}
     impl Sealed for ops::RangeFull {}
-    impl Sealed for usize {}
 }
 
 /// Used by the ``range`` function to know which iterator
@@ -49,6 +48,7 @@ impl<I> IteratorIndex<I> for RangeInclusive<usize>
     type Output = Take<Skip<I>>;
 
     fn index(self, iter: I) -> Self::Output {
+        debug_assert!(!self.is_empty(), "The given `RangeInclusive` is exhausted. The result of indexing with an exhausted `RangeInclusive` is unspecified.");
         iter.skip(*self.start())
             .take(
                 (1 + *self.end())
@@ -94,16 +94,6 @@ impl<I> IteratorIndex<I> for RangeFull
 
     fn index(self, iter: I) -> Self::Output {
         iter
-    }
-}
-
-impl<I> IteratorIndex<I> for usize
-    where I: Iterator
-{
-    type Output = <Option<I::Item> as IntoIterator>::IntoIter;
-
-    fn index(self, mut iter: I) -> Self::Output {
-        iter.nth(self).into_iter()
     }
 }
 

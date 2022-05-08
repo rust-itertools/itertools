@@ -519,16 +519,15 @@ pub trait Itertools : Iterator {
     ///
     /// range = vec.iter().get(..).copied().collect();
     /// assert_eq!(range, vec);
-    ///
-    /// range = vec.iter().get(3).copied().collect();
-    /// assert_eq!(&range, &[1]);
     /// ```
+    ///
+    /// # Unspecified Behavior
+    /// The result of indexing with an exhausted [`core::ops::RangeInclusive`] is unspecified.
     ///
     /// [`take`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.take
     /// [`skip`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.skip
     /// [`nth`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.nth
-    fn get<R>(self, index: R)
-        -> R::Output
+    fn get<R>(self, index: R) -> R::Output
         where R: iter_index::IteratorIndex<Self>,
               Self: Sized
     {
