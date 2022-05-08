@@ -1,6 +1,8 @@
 use crate::size_hint;
 use crate::Itertools;
 
+use alloc::vec::Vec;
+use std::iter::FusedIterator;
 use std::mem::replace;
 use std::fmt;
 
@@ -73,14 +75,13 @@ fn sift_down<T, S>(heap: &mut [T], index: usize, mut less_than: S)
     debug_assert!(index <= heap.len());
     let mut pos = index;
     let mut child = 2 * pos + 1;
-    // the `pos` conditional is to avoid a bounds check
-    while pos < heap.len() && child < heap.len() {
-        let right = child + 1;
-
+    // Require the right child to be present
+    // This allows to find the index of the smallest child without a branch
+    // that wouldn't be predicted if present
+    while child + 1 < heap.len() {
         // pick the smaller of the two children
-        if right < heap.len() && less_than(&heap[right], &heap[child]) {
-            child = right;
-        }
+        // use arithmetic to avoid an unpredictable branch
+        child += less_than(&heap[child+1], &heap[child]) as usize;
 
         // sift down is done if we are already in order
         if !less_than(&heap[child], &heap[pos]) {
@@ -90,6 +91,11 @@ fn sift_down<T, S>(heap: &mut [T], index: usize, mut less_than: S)
         pos = child;
         child = 2 * pos + 1;
     }
+    // Check if the last (left) child was an only child
+    // if it is then it has to be compared with the parent
+    if child + 1 == heap.len() && less_than(&heap[child], &heap[pos]) {
+        heap.swap(pos, child);
+    }
 }
 
 /// An iterator adaptor that merges an abitrary number of base iterators in ascending order.
@@ -97,7 +103,7 @@ fn sift_down<T, S>(heap: &mut [T], index: usize, mut less_than: S)
 ///
 /// Iterator element type is `I::Item`.
 ///
-/// See [`.kmerge()`](../trait.Itertools.html#method.kmerge) for more information.
+/// See [`.kmerge()`](crate::Itertools::kmerge) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub type KMerge<I> = KMergeBy<I, KMergeByLt>;
 
@@ -105,7 +111,7 @@ pub trait KMergePredicate<T> {
     fn kmerge_pred(&mut self, a: &T, b: &T) -> bool;
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct KMergeByLt;
 
 impl<T: PartialOrd> KMergePredicate<T> for KMergeByLt {
@@ -123,7 +129,7 @@ impl<T, F: FnMut(&T, &T)->bool> KMergePredicate<T> for F {
 /// Create an iterator that merges elements of the contained iterators using
 /// the ordering function.
 ///
-/// Equivalent to `iterable.into_iter().kmerge()`.
+/// [`IntoIterator`] enabled version of [`Itertools::kmerge`].
 ///
 /// ```
 /// use itertools::kmerge;
@@ -145,7 +151,7 @@ pub fn kmerge<I>(iterable: I) -> KMerge<<I::Item as IntoIterator>::IntoIter>
 ///
 /// Iterator element type is `I::Item`.
 ///
-/// See [`.kmerge_by()`](../trait.Itertools.html#method.kmerge_by) for more
+/// See [`.kmerge_by()`](crate::Itertools::kmerge_by) for more
 /// information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct KMergeBy<I, F>
@@ -164,7 +170,7 @@ impl<I, F> fmt::Debug for KMergeBy<I, F>
 
 /// Create an iterator that merges elements of the contained iterators.
 ///
-/// Equivalent to `iterable.into_iter().kmerge_by(less_than)`.
+/// [`IntoIterator`] enabled version of [`Itertools::kmerge_by`].
 pub fn kmerge_by<I, F>(iterable: I, mut less_than: F)
     -> KMergeBy<<I::Item as IntoIterator>::IntoIter, F>
     where I: IntoIterator,
@@ -214,3 +220,8 @@ impl<I, F> Iterator for KMergeBy<I, F>
                  .unwrap_or((0, Some(0)))
     }
 }
+
+impl<I, F> FusedIterator for KMergeBy<I, F>
+    where I: Iterator,
+          F: KMergePredicate<I::Item>
+{}

@@ -1,38 +1,78 @@
 //! Free functions that create iterator adaptors or call iterator methods.
 //!
-//! The benefit of free functions is that they accept any `IntoIterator` as
+//! The benefit of free functions is that they accept any [`IntoIterator`] as
 //! argument, so the resulting code may be easier to read.
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 use std::fmt::Display;
 use std::iter::{self, Zip};
-#[cfg(feature = "use_std")]
-type VecIntoIter<T> = ::std::vec::IntoIter<T>;
+#[cfg(feature = "use_alloc")]
+type VecIntoIter<T> = alloc::vec::IntoIter<T>;
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
+use alloc::{
+    string::String,
+};
+
 use crate::Itertools;
+use crate::intersperse::{Intersperse, IntersperseWith};
 
 pub use crate::adaptors::{
     interleave,
     merge,
     put_back,
 };
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 pub use crate::put_back_n_impl::put_back_n;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 pub use crate::multipeek_impl::multipeek;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 pub use crate::peek_nth::peek_nth;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 pub use crate::kmerge_impl::kmerge;
 pub use crate::zip_eq_impl::zip_eq;
 pub use crate::merge_join::merge_join_by;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 pub use crate::rciter_impl::rciter;
+
+/// Iterate `iterable` with a particular value inserted between each element.
+///
+/// [`IntoIterator`] enabled version of [`Iterator::intersperse`].
+///
+/// ```
+/// use itertools::intersperse;
+///
+/// itertools::assert_equal(intersperse((0..3), 8), vec![0, 8, 1, 8, 2]);
+/// ```
+pub fn intersperse<I>(iterable: I, element: I::Item) -> Intersperse<I::IntoIter>
+    where I: IntoIterator,
+          <I as IntoIterator>::Item: Clone
+{
+    Itertools::intersperse(iterable.into_iter(), element)
+}
+
+/// Iterate `iterable` with a particular value created by a function inserted
+/// between each element.
+///
+/// [`IntoIterator`] enabled version of [`Iterator::intersperse_with`].
+///
+/// ```
+/// use itertools::intersperse_with;
+///
+/// let mut i = 10;
+/// itertools::assert_equal(intersperse_with((0..3), || { i -= 1; i }), vec![0, 9, 1, 8, 2]);
+/// assert_eq!(i, 8);
+/// ```
+pub fn intersperse_with<I, F>(iterable: I, element: F) -> IntersperseWith<I::IntoIter, F>
+    where I: IntoIterator,
+          F: FnMut() -> I::Item
+{
+    Itertools::intersperse_with(iterable.into_iter(), element)
+}
 
 /// Iterate `iterable` with a running index.
 ///
-/// `IntoIterator` enabled version of `.enumerate()`.
+/// [`IntoIterator`] enabled version of [`Iterator::enumerate`].
 ///
 /// ```
 /// use itertools::enumerate;
@@ -49,7 +89,7 @@ pub fn enumerate<I>(iterable: I) -> iter::Enumerate<I::IntoIter>
 
 /// Iterate `iterable` in reverse.
 ///
-/// `IntoIterator` enabled version of `.rev()`.
+/// [`IntoIterator`] enabled version of [`Iterator::rev`].
 ///
 /// ```
 /// use itertools::rev;
@@ -67,7 +107,7 @@ pub fn rev<I>(iterable: I) -> iter::Rev<I::IntoIter>
 
 /// Iterate `i` and `j` in lock step.
 ///
-/// `IntoIterator` enabled version of `i.zip(j)`.
+/// [`IntoIterator`] enabled version of [`Iterator::zip`].
 ///
 /// ```
 /// use itertools::zip;
@@ -86,7 +126,7 @@ pub fn zip<I, J>(i: I, j: J) -> Zip<I::IntoIter, J::IntoIter>
 
 /// Create an iterator that first iterates `i` and then `j`.
 ///
-/// `IntoIterator` enabled version of `i.chain(j)`.
+/// [`IntoIterator`] enabled version of [`Iterator::chain`].
 ///
 /// ```
 /// use itertools::chain;
@@ -104,7 +144,7 @@ pub fn chain<I, J>(i: I, j: J) -> iter::Chain<<I as IntoIterator>::IntoIter, <J 
 
 /// Create an iterator that clones each element from &T to T
 ///
-/// `IntoIterator` enabled version of `i.cloned()`.
+/// [`IntoIterator`] enabled version of [`Iterator::cloned`].
 ///
 /// ```
 /// use itertools::cloned;
@@ -120,7 +160,7 @@ pub fn cloned<'a, I, T: 'a>(iterable: I) -> iter::Cloned<I::IntoIter>
 
 /// Perform a fold operation over the iterable.
 ///
-/// `IntoIterator` enabled version of `i.fold(init, f)`
+/// [`IntoIterator`] enabled version of [`Iterator::fold`].
 ///
 /// ```
 /// use itertools::fold;
@@ -136,7 +176,7 @@ pub fn fold<I, B, F>(iterable: I, init: B, f: F) -> B
 
 /// Test whether the predicate holds for all elements in the iterable.
 ///
-/// `IntoIterator` enabled version of `i.all(f)`
+/// [`IntoIterator`] enabled version of [`Iterator::all`].
 ///
 /// ```
 /// use itertools::all;
@@ -152,7 +192,7 @@ pub fn all<I, F>(iterable: I, f: F) -> bool
 
 /// Test whether the predicate holds for any elements in the iterable.
 ///
-/// `IntoIterator` enabled version of `i.any(f)`
+/// [`IntoIterator`] enabled version of [`Iterator::any`].
 ///
 /// ```
 /// use itertools::any;
@@ -168,7 +208,7 @@ pub fn any<I, F>(iterable: I, f: F) -> bool
 
 /// Return the maximum value of the iterable.
 ///
-/// `IntoIterator` enabled version of `i.max()`.
+/// [`IntoIterator`] enabled version of [`Iterator::max`].
 ///
 /// ```
 /// use itertools::max;
@@ -184,7 +224,7 @@ pub fn max<I>(iterable: I) -> Option<I::Item>
 
 /// Return the minimum value of the iterable.
 ///
-/// `IntoIterator` enabled version of `i.min()`.
+/// [`IntoIterator`] enabled version of [`Iterator::min`].
 ///
 /// ```
 /// use itertools::min;
@@ -199,16 +239,16 @@ pub fn min<I>(iterable: I) -> Option<I::Item>
 }
 
 
-/// Combine all iterator elements into one String, seperated by `sep`.
+/// Combine all iterator elements into one String, separated by `sep`.
 ///
-/// `IntoIterator` enabled version of `iterable.join(sep)`.
+/// [`IntoIterator`] enabled version of [`Itertools::join`].
 ///
 /// ```
 /// use itertools::join;
 ///
 /// assert_eq!(join(&[1, 2, 3], ", "), "1, 2, 3");
 /// ```
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 pub fn join<I>(iterable: I, sep: &str) -> String
     where I: IntoIterator,
           I::Item: Display
@@ -218,9 +258,7 @@ pub fn join<I>(iterable: I, sep: &str) -> String
 
 /// Sort all iterator elements into a new iterator in ascending order.
 ///
-/// `IntoIterator` enabled version of [`iterable.sorted()`][1].
-///
-/// [1]: trait.Itertools.html#method.sorted
+/// [`IntoIterator`] enabled version of [`Itertools::sorted`].
 ///
 /// ```
 /// use itertools::sorted;
@@ -228,7 +266,7 @@ pub fn join<I>(iterable: I, sep: &str) -> String
 ///
 /// assert_equal(sorted("rust".chars()), "rstu".chars());
 /// ```
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 pub fn sorted<I>(iterable: I) -> VecIntoIter<I::Item>
     where I: IntoIterator,
           I::Item: Ord

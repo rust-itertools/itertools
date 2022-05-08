@@ -3,10 +3,11 @@ use std::collections::HashMap;
 use std::collections::hash_map::{Entry};
 use std::hash::Hash;
 use std::fmt;
+use std::iter::FusedIterator;
 
 /// An iterator adapter to filter out duplicate elements.
 ///
-/// See [`.unique_by()`](../trait.Itertools.html#method.unique) for more information.
+/// See [`.unique_by()`](crate::Itertools::unique) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct UniqueBy<I: Iterator, V, F> {
@@ -81,7 +82,7 @@ impl<I, V, F> DoubleEndedIterator for UniqueBy<I, V, F>
           V: Eq + Hash,
           F: FnMut(&I::Item) -> V
 {
-    fn next_back(&mut self) -> Option<I::Item> {
+    fn next_back(&mut self) -> Option<Self::Item> {
         while let Some(v) = self.iter.next_back() {
             let key = (self.f)(&v);
             if self.used.insert(key, ()).is_none() {
@@ -91,6 +92,12 @@ impl<I, V, F> DoubleEndedIterator for UniqueBy<I, V, F>
         None
     }
 }
+
+impl<I, V, F> FusedIterator for UniqueBy<I, V, F>
+    where I: FusedIterator,
+          V: Eq + Hash,
+          F: FnMut(&I::Item) -> V
+{}
 
 impl<I> Iterator for Unique<I>
     where I: Iterator,
@@ -124,7 +131,7 @@ impl<I> DoubleEndedIterator for Unique<I>
     where I: DoubleEndedIterator,
           I::Item: Eq + Hash + Clone
 {
-    fn next_back(&mut self) -> Option<I::Item> {
+    fn next_back(&mut self) -> Option<Self::Item> {
         while let Some(v) = self.iter.iter.next_back() {
             if let Entry::Vacant(entry) = self.iter.used.entry(v) {
                 let elt = entry.key().clone();
@@ -136,9 +143,14 @@ impl<I> DoubleEndedIterator for Unique<I>
     }
 }
 
+impl<I> FusedIterator for Unique<I>
+    where I: FusedIterator,
+          I::Item: Eq + Hash + Clone
+{}
+
 /// An iterator adapter to filter out duplicate elements.
 ///
-/// See [`.unique()`](../trait.Itertools.html#method.unique) for more information.
+/// See [`.unique()`](crate::Itertools::unique) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Unique<I: Iterator> {

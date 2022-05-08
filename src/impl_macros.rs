@@ -2,7 +2,7 @@
 //! Implementation's internal macros
 
 macro_rules! debug_fmt_fields {
-    ($tyname:ident, $($($field:ident).+),*) => {
+    ($tyname:ident, $($($field:tt/*TODO ideally we would accept ident or tuple element here*/).+),*) => {
         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
             f.debug_struct(stringify!($tyname))
                 $(
@@ -21,4 +21,8 @@ macro_rules! clone_fields {
             }
         }
     }
+}
+
+macro_rules! ignore_ident{
+    ($id:ident, $($t:tt)*) => {$($t)*};
 }

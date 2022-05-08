@@ -1,11 +1,11 @@
 use std::iter::Peekable;
 use crate::PutBack;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 use crate::PutBackN;
 
 /// An iterator that allows peeking at an element before deciding to accept it.
 ///
-/// See [`.peeking_take_while()`](trait.Itertools.html#method.peeking_take_while)
+/// See [`.peeking_take_while()`](crate::Itertools::peeking_take_while)
 /// for more information.
 ///
 /// This is implemented by peeking adaptors like peekable and put back,
@@ -52,7 +52,7 @@ impl<I> PeekingNext for PutBack<I>
     }
 }
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 impl<I> PeekingNext for PutBackN<I>
     where I: Iterator,
 {
@@ -73,7 +73,7 @@ impl<I> PeekingNext for PutBackN<I>
 
 /// An iterator adaptor that takes items while a closure returns `true`.
 ///
-/// See [`.peeking_take_while()`](../trait.Itertools.html#method.peeking_take_while)
+/// See [`.peeking_take_while()`](crate::Itertools::peeking_take_while)
 /// for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct PeekingTakeWhile<'a, I: 'a, F>
@@ -81,6 +81,13 @@ pub struct PeekingTakeWhile<'a, I: 'a, F>
 {
     iter: &'a mut I,
     f: F,
+}
+
+impl<'a, I: 'a, F> std::fmt::Debug for PeekingTakeWhile<'a, I, F>
+where
+    I: Iterator + std::fmt::Debug,
+{
+    debug_fmt_fields!(PeekingTakeWhile, iter);
 }
 
 /// Create a PeekingTakeWhile
@@ -104,8 +111,7 @@ impl<'a, I, F> Iterator for PeekingTakeWhile<'a, I, F>
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let (_, hi) = self.iter.size_hint();
-        (0, hi)
+        (0, self.iter.size_hint().1)
     }
 }
 
@@ -138,10 +144,10 @@ peeking_next_by_clone! { ['a] ::std::str::Bytes<'a> }
 peeking_next_by_clone! { ['a, T] ::std::option::Iter<'a, T> }
 peeking_next_by_clone! { ['a, T] ::std::result::Iter<'a, T> }
 peeking_next_by_clone! { [T] ::std::iter::Empty<T> }
-#[cfg(feature = "use_std")]
-peeking_next_by_clone! { ['a, T] ::std::collections::linked_list::Iter<'a, T> }
-#[cfg(feature = "use_std")]
-peeking_next_by_clone! { ['a, T] ::std::collections::vec_deque::Iter<'a, T> }
+#[cfg(feature = "use_alloc")]
+peeking_next_by_clone! { ['a, T] alloc::collections::linked_list::Iter<'a, T> }
+#[cfg(feature = "use_alloc")]
+peeking_next_by_clone! { ['a, T] alloc::collections::vec_deque::Iter<'a, T> }
 
 // cloning a Rev has no extra overhead; peekable and put backs are never DEI.
 peeking_next_by_clone! { [I: Clone + PeekingNext + DoubleEndedIterator]

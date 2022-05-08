@@ -2,7 +2,7 @@
 /// An iterator that produces only the `T` values as long as the
 /// inner iterator produces `Ok(T)`.
 ///
-/// Used by [`process_results`](../fn.process_results.html), see its docs
+/// Used by [`process_results`](crate::process_results), see its docs
 /// for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 #[derive(Debug)]
@@ -28,8 +28,24 @@ impl<'a, I, T, E> Iterator for ProcessResults<'a, I, E>
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let (_, hi) = self.iter.size_hint();
-        (0, hi)
+        (0, self.iter.size_hint().1)
+    }
+
+    fn fold<B, F>(mut self, init: B, mut f: F) -> B
+    where
+        Self: Sized,
+        F: FnMut(B, Self::Item) -> B,
+    {
+        let error = self.error;
+        self.iter
+            .try_fold(init, |acc, opt| match opt {
+                Ok(x) => Ok(f(acc, x)),
+                Err(e) => {
+                    *error = Err(e);
+                    Err(acc)
+                }
+            })
+            .unwrap_or_else(|e| e)
     }
 }
 

@@ -1,6 +1,6 @@
 //! Licensed under the Apache License, Version 2.0
-//! http://www.apache.org/licenses/LICENSE-2.0 or the MIT license
-//! http://opensource.org/licenses/MIT, at your
+//! https://www.apache.org/licenses/LICENSE-2.0 or the MIT license
+//! https://opensource.org/licenses/MIT, at your
 //! option. This file may not be copied, modified, or distributed
 //! except according to those terms.
 #![no_std]
@@ -9,10 +9,13 @@ use core::iter;
 use itertools as it;
 use crate::it::Itertools;
 use crate::it::interleave;
+use crate::it::intersperse;
+use crate::it::intersperse_with;
 use crate::it::multizip;
 use crate::it::free::put_back;
 use crate::it::iproduct;
 use crate::it::izip;
+use crate::it::chain;
 
 #[test]
 fn product2() {
@@ -88,6 +91,28 @@ fn multizip3() {
 }
 
 #[test]
+fn chain_macro() {
+    let mut chain = chain!(2..3);
+    assert!(chain.next() == Some(2));
+    assert!(chain.next().is_none());
+
+    let mut chain = chain!(0..2, 2..3, 3..5i8);
+    for i in 0..5i8 {
+        assert_eq!(Some(i), chain.next());
+    }
+    assert!(chain.next().is_none());
+
+    let mut chain = chain!();
+    assert_eq!(chain.next(), Option::<()>::None);
+}
+
+#[test]
+fn chain2() {
+    let _ = chain!(1.., 2..);
+    let _ = chain!(1.., 2.., );
+}
+
+#[test]
 fn write_to() {
     let xs = [7, 9, 8];
     let mut ys = [0; 5];
@@ -111,6 +136,23 @@ fn test_interleave() {
     let rs = [7u8, 2, 9, 77, 8, 10];
     let it = interleave(ys.iter(), zs.iter());
     it::assert_equal(it, rs.iter());
+}
+
+#[test]
+fn test_intersperse() {
+    let xs = [1u8, 2, 3];
+    let ys = [1u8, 0, 2, 0, 3];
+    let it = intersperse(&xs, &0);
+    it::assert_equal(it, ys.iter());
+}
+
+#[test]
+fn test_intersperse_with() {
+    let xs = [1u8, 2, 3];
+    let ys = [1u8, 10, 2, 10, 3];
+    let i = 10;
+    let it = intersperse_with(&xs, || &i);
+    it::assert_equal(it, ys.iter());
 }
 
 #[allow(deprecated)]
@@ -251,6 +293,14 @@ fn exactly_one() {
     assert!((0..10).filter(|&x| x > 1 && x < 4).exactly_one().unwrap_err().eq(2..4));
     assert!((0..10).filter(|&x| x > 1 && x < 5).exactly_one().unwrap_err().eq(2..5));
     assert!((0..10).filter(|&_| false).exactly_one().unwrap_err().eq(0..0));
+}
+
+#[test]
+fn at_most_one() {
+    assert_eq!((0..10).filter(|&x| x == 2).at_most_one().unwrap(), Some(2));
+    assert!((0..10).filter(|&x| x > 1 && x < 4).at_most_one().unwrap_err().eq(2..4));
+    assert!((0..10).filter(|&x| x > 1 && x < 5).at_most_one().unwrap_err().eq(2..5));
+    assert_eq!((0..10).filter(|&_| false).at_most_one().unwrap(), None);
 }
 
 #[test]

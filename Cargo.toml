@@ -1,11 +1,12 @@
 [package]
 name = "itertools"
-version = "0.9.0"
+version = "0.10.3"
 
 license = "MIT/Apache-2.0"
-repository = "https://github.com/bluss/rust-itertools"
+repository = "https://github.com/rust-itertools/itertools"
 documentation = "https://docs.rs/itertools/"
 authors = ["bluss"]
+readme = "README.md"
 
 description = "Extra iterator adaptors, iterator methods, free functions, and macros."
 
@@ -27,7 +28,8 @@ either = { version = "1.0", default-features = false }
 
 [dev-dependencies]
 rand = "0.7"
-criterion = "=0" # TODO how could this work with our minimum supported rust version?
+criterion = "=0" # TODO how could this work with our minimum supported Rust version?
+paste = "1.0.0" # Used in test_std to instantiate generic tests
 
 [dev-dependencies.quickcheck]
 version = "0.9"
@@ -38,7 +40,8 @@ version = "0.2"
 
 [features]
 default = ["use_std"]
-use_std = []
+use_std = ["use_alloc"]
+use_alloc = []
 
 [profile]
 bench = { debug = true }
@@ -65,4 +68,12 @@ harness = false
 
 [[bench]]
 name = "bench1"
+harness = false
+
+[[bench]]
+name = "combinations"
+harness = false
+
+[[bench]]
+name = "powerset"
 harness = false

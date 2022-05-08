@@ -1,6 +1,6 @@
 use super::size_hint;
 
-/// See [`multizip`](../fn.multizip.html) for more information.
+/// See [`multizip`] for more information.
 #[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Zip<T> {
@@ -10,7 +10,7 @@ pub struct Zip<T> {
 /// An iterator that generalizes *.zip()* and allows running multiple iterators in lockstep.
 ///
 /// The iterator `Zip<(I, J, ..., M)>` is formed from a tuple of iterators (or values that
-/// implement `IntoIterator`) and yields elements
+/// implement [`IntoIterator`]) and yields elements
 /// until any of the subiterators yields `None`.
 ///
 /// The iterator element type is a tuple like like `(A, B, ..., E)` where `A` to `E` are the
@@ -22,8 +22,6 @@ pub struct Zip<T> {
 ///
 /// Prefer [`izip!()`] over `multizip` for the performance benefits of using the
 /// standard library `.zip()`. Prefer `multizip` if a nameable type is needed.
-///
-/// [`izip!()`]: macro.izip.html
 ///
 /// ```
 /// use itertools::multizip;
@@ -98,6 +96,30 @@ macro_rules! impl_zip_iter {
                 $B: ExactSizeIterator,
             )*
         { }
+
+        #[allow(non_snake_case)]
+        impl<$($B),*> DoubleEndedIterator for Zip<($($B,)*)> where
+            $(
+                $B: DoubleEndedIterator + ExactSizeIterator,
+            )*
+        {
+            #[inline]
+            fn next_back(&mut self) -> Option<Self::Item> {
+                let ($(ref mut $B,)*) = self.t;
+                let size = *[$( $B.len(), )*].iter().min().unwrap();
+
+                $(
+                    if $B.len() != size {
+                        for _ in 0..$B.len() - size { $B.next_back(); }
+                    }
+                )*
+
+                match ($($B.next_back(),)*) {
+                    ($(Some($B),)*) => Some(($($B,)*)),
+                    _ => None,
+                }
+            }
+        }
     );
 }
 
@@ -109,3 +131,7 @@ impl_zip_iter!(A, B, C, D, E);
 impl_zip_iter!(A, B, C, D, E, F);
 impl_zip_iter!(A, B, C, D, E, F, G);
 impl_zip_iter!(A, B, C, D, E, F, G, H);
+impl_zip_iter!(A, B, C, D, E, F, G, H, I);
+impl_zip_iter!(A, B, C, D, E, F, G, H, I, J);
+impl_zip_iter!(A, B, C, D, E, F, G, H, I, J, K);
+impl_zip_iter!(A, B, C, D, E, F, G, H, I, J, K, L);

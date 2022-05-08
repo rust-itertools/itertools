@@ -5,9 +5,9 @@
 use std::fmt;
 use std::mem;
 
-/// See [`repeat_call`](../fn.repeat_call.html) for more information.
+/// See [`repeat_call`](crate::repeat_call) for more information.
 #[derive(Clone)]
-#[deprecated(note="Use std repeat_with() instead", since="0.8")]
+#[deprecated(note="Use std repeat_with() instead", since="0.8.0")]
 pub struct RepeatCall<F> {
     f: F,
 }
@@ -39,7 +39,7 @@ impl<F> fmt::Debug for RepeatCall<F>
 ///     vec![1, 1, 1, 1, 1]
 /// );
 /// ```
-#[deprecated(note="Use std repeat_with() instead", since="0.8")]
+#[deprecated(note="Use std repeat_with() instead", since="0.8.0")]
 pub fn repeat_call<F, A>(function: F) -> RepeatCall<F>
     where F: FnMut() -> A
 {
@@ -67,7 +67,7 @@ impl<A, F> Iterator for RepeatCall<F>
 /// `unfold` is a general iterator builder: it has a mutable state value,
 /// and a closure with access to the state that produces the next value.
 ///
-/// This more or less equivalent to a regular struct with an `Iterator`
+/// This more or less equivalent to a regular struct with an [`Iterator`]
 /// implementation, and is useful for one-off iterators.
 ///
 /// ```
@@ -76,22 +76,21 @@ impl<A, F> Iterator for RepeatCall<F>
 ///
 /// use itertools::unfold;
 ///
-/// let (mut x1, mut x2) = (1u32, 1u32);
-/// let mut fibonacci = unfold((), move |_| {
+/// let mut fibonacci = unfold((1u32, 1u32), |(x1, x2)| {
 ///     // Attempt to get the next Fibonacci number
-///     let next = x1.saturating_add(x2);
+///     let next = x1.saturating_add(*x2);
 ///
 ///     // Shift left: ret <- x1 <- x2 <- next
-///     let ret = x1;
-///     x1 = x2;
-///     x2 = next;
+///     let ret = *x1;
+///     *x1 = *x2;
+///     *x2 = next;
 ///
 ///     // If addition has saturated at the maximum, we are finished
-///     if ret == x1 && ret > 1 {
-///         return None;
+///     if ret == *x1 && ret > 1 {
+///         None
+///     } else {
+///         Some(ret)
 ///     }
-///
-///     Some(ret)
 /// });
 ///
 /// itertools::assert_equal(fibonacci.by_ref().take(8),
@@ -113,7 +112,7 @@ impl<St, F> fmt::Debug for Unfold<St, F>
     debug_fmt_fields!(Unfold, state);
 }
 
-/// See [`unfold`](../fn.unfold.html) for more information.
+/// See [`unfold`](crate::unfold) for more information.
 #[derive(Clone)]
 #[must_use = "iterators are lazy and do nothing unless consumed"]
 pub struct Unfold<St, F> {
@@ -131,19 +130,12 @@ impl<A, St, F> Iterator for Unfold<St, F>
     fn next(&mut self) -> Option<Self::Item> {
         (self.f)(&mut self.state)
     }
-
-    #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        // no possible known bounds at this point
-        (0, None)
-    }
 }
 
 /// An iterator that infinitely applies function to value and yields results.
 ///
-/// This `struct` is created by the [`iterate()`] function. See its documentation for more.
-///
-/// [`iterate()`]: ../fn.iterate.html
+/// This `struct` is created by the [`iterate()`](crate::iterate) function.
+/// See its documentation for more.
 #[derive(Clone)]
 #[must_use = "iterators are lazy and do nothing unless consumed"]
 pub struct Iterate<St, F> {
