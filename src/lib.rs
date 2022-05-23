@@ -146,6 +146,7 @@ pub mod structs {
     pub use crate::repeatn::RepeatN;
     #[allow(deprecated)]
     pub use crate::sources::{RepeatCall, Unfold, Iterate};
+    pub use crate::take_until::TakeUntil;
     #[cfg(feature = "use_alloc")]
     pub use crate::tee::Tee;
     pub use crate::tuple_impl::{TupleBuffer, TupleWindows, CircularTupleWindows, Tuples};
@@ -233,6 +234,7 @@ mod rciter_impl;
 mod repeatn;
 mod size_hint;
 mod sources;
+mod take_until;
 #[cfg(feature = "use_alloc")]
 mod tee;
 mod tuple_impl;
@@ -904,7 +906,7 @@ pub trait Itertools : Iterator {
 
     /// Return an iterator adaptor that flattens every `Result::Ok` value into
     /// a series of `Result::Ok` values. `Result::Err` values are unchanged.
-    /// 
+    ///
     /// This is useful when you have some common error type for your crate and
     /// need to propagate it upwards, but the `Result::Ok` case needs to be flattened.
     ///
@@ -914,7 +916,7 @@ pub trait Itertools : Iterator {
     /// let input = vec![Ok(0..2), Err(false), Ok(2..4)];
     /// let it = input.iter().cloned().flatten_ok();
     /// itertools::assert_equal(it.clone(), vec![Ok(0), Ok(1), Err(false), Ok(2), Ok(3)]);
-    /// 
+    ///
     /// // This can also be used to propagate errors when collecting.
     /// let output_result: Result<Vec<i32>, bool> = it.collect();
     /// assert_eq!(output_result, Err(false));
@@ -1389,6 +1391,53 @@ pub trait Itertools : Iterator {
         adaptors::take_while_ref(self, accept)
     }
 
+    /// An iterator adaptor that consumes elements while the given predicate is
+    /// true, including the element for which the predicate first returned
+    /// false.
+    ///
+    /// The [`.take_while()`][std::iter::Iterator::take_while] adaptor is useful
+    /// when you want items satisfying a predicate, but to know when to stop
+    /// taking elements, we have to consume that last element that doesn't
+    /// satisfy the predicate. This adaptor simply includest that element where
+    /// [`.take_while()`][std::iter::Iterator::take_while] would drop it.
+    ///
+    /// The [`.take_while_ref()`][crate::Itertools::take_while_ref] adaptor
+    /// serves a similar purpose, but this adaptor doesn't require cloning the
+    /// underlying elements.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use itertools::Itertools;
+    ///
+    /// let items = vec![1, 2, 3, 4, 5];
+    /// let filtered: Vec<i32> = items.into_iter().take_until(|&n| n % 3 != 0).collect();
+    /// assert_eq!(filtered, vec![1, 2, 3]);
+    /// ```
+    ///
+    /// ```rust
+    /// use itertools::Itertools;
+    /// #[derive(Debug, PartialEq)]
+    /// struct NoCloneImpl(i32);
+    ///
+    /// let non_clonable_items: Vec<_> = vec![1, 2, 3, 4, 5]
+    ///     .into_iter()
+    ///     .map(NoCloneImpl)
+    ///     .collect();
+    /// let filtered: Vec<_> = non_clonable_items
+    ///     .into_iter()
+    ///     .take_until(|n| n.0 % 3 != 0)
+    ///     .collect();
+    /// let expected: Vec<_> = vec![1, 2, 3].into_iter().map(NoCloneImpl).collect();
+    /// assert_eq!(filtered, expected);
+    fn take_until<F>(&mut self, accept: F) -> TakeUntil<Self, F>
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item) -> bool,
+    {
+        take_until::TakeUntil::new(self, accept)
+    }
+
     /// Return an iterator adaptor that filters `Option<A>` iterator elements
     /// and produces `A`. Stops on the first `None` encountered.
     ///
@@ -1812,14 +1861,14 @@ pub trait Itertools : Iterator {
     ///
     /// #[derive(PartialEq, Debug)]
     /// enum Enum { A, B, C, D, E, }
-    /// 
+    ///
     /// let mut iter = vec![Enum::A, Enum::B, Enum::C, Enum::D].into_iter();
-    /// 
+    ///
     /// // search `iter` for `B`
     /// assert_eq!(iter.contains(&Enum::B), true);
     /// // `B` was found, so the iterator now rests at the item after `B` (i.e, `C`).
     /// assert_eq!(iter.next(), Some(Enum::C));
-    /// 
+    ///
     /// // search `iter` for `E`
     /// assert_eq!(iter.contains(&Enum::E), false);
     /// // `E` wasn't found, so `iter` is now exhausted
@@ -2870,13 +2919,13 @@ pub trait Itertools : Iterator {
         group_map::into_group_map_by(self, f)
     }
 
-    /// Constructs a `GroupingMap` to be used later with one of the efficient 
+    /// Constructs a `GroupingMap` to be used later with one of the efficient
     /// group-and-fold operations it allows to perform.
-    /// 
+    ///
     /// The input iterator must yield item in the form of `(K, V)` where the
     /// value of type `K` will be used as key to identify the groups and the
     /// value of type `V` as value for the folding operation.
-    /// 
+    ///
     /// See [`GroupingMap`] for more informations
     /// on what operations are available.
     #[cfg(feature = "use_std")]
@@ -2887,12 +2936,12 @@ pub trait Itertools : Iterator {
         grouping_map::new(self)
     }
 
-    /// Constructs a `GroupingMap` to be used later with one of the efficient 
+    /// Constructs a `GroupingMap` to be used later with one of the efficient
     /// group-and-fold operations it allows to perform.
-    /// 
+    ///
     /// The values from this iterator will be used as values for the folding operation
     /// while the keys will be obtained from the values by calling `key_mapper`.
-    /// 
+    ///
     /// See [`GroupingMap`] for more informations
     /// on what operations are available.
     #[cfg(feature = "use_std")]
@@ -3603,7 +3652,7 @@ pub trait Itertools : Iterator {
     ///   first_name: &'static str,
     ///   last_name:  &'static str,
     /// }
-    /// 
+    ///
     /// let characters =
     ///     vec![
     ///         Character { first_name: "Amy",   last_name: "Pond"      },
@@ -3614,12 +3663,12 @@ pub trait Itertools : Iterator {
     ///         Character { first_name: "James", last_name: "Norington" },
     ///         Character { first_name: "James", last_name: "Kirk"      },
     ///     ];
-    /// 
-    /// let first_name_frequency = 
+    ///
+    /// let first_name_frequency =
     ///     characters
     ///         .into_iter()
     ///         .counts_by(|c| c.first_name);
-    ///     
+    ///
     /// assert_eq!(first_name_frequency["Amy"], 3);
     /// assert_eq!(first_name_frequency["James"], 4);
     /// assert_eq!(first_name_frequency.contains_key("Asha"), false);
@@ -3640,7 +3689,7 @@ pub trait Itertools : Iterator {
     /// column.
     ///
     /// This function is, in some sense, the opposite of [`multizip`].
-    /// 
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
