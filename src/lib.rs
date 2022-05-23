@@ -1411,8 +1411,27 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// let items = vec![1, 2, 3, 4, 5];
-    /// let filtered: Vec<i32> = items.into_iter().take_until(|&n| n % 3 != 0).collect();
+    /// let filtered: Vec<_> = items.into_iter().take_until(|&n| n % 3 != 0).collect();
+    ///
     /// assert_eq!(filtered, vec![1, 2, 3]);
+    /// ```
+    ///
+    /// ```rust
+    /// use itertools::Itertools;
+    /// let items = vec![1, 2, 3, 4, 5];
+    ///
+    /// let take_until_result: Vec<_> = items
+    ///     .clone()
+    ///     .into_iter()
+    ///     .take_until(|&n| n % 3 != 0)
+    ///     .collect();
+    /// let take_while_result: Vec<_> = items
+    ///     .into_iter()
+    ///     .take_while(|&n| n % 3 != 0)
+    ///     .collect();
+    ///
+    /// assert_eq!(take_until_result, vec![1, 2, 3]);
+    /// assert_eq!(take_while_result, vec![1, 2]);
     /// ```
     ///
     /// ```rust
