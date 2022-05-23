@@ -1391,24 +1391,22 @@ pub trait Itertools : Iterator {
         adaptors::take_while_ref(self, accept)
     }
 
-    /// An iterator adaptor that consumes elements while the given predicate is
-    /// true, including the element for which the predicate first returned
-    /// false.
+    /// Returns an iterator adaptor that consumes elements while the given
+    /// predicate is `true`, *including* the element for which the predicate
+    /// first returned `false`.
     ///
     /// The [`.take_while()`][std::iter::Iterator::take_while] adaptor is useful
     /// when you want items satisfying a predicate, but to know when to stop
     /// taking elements, we have to consume that last element that doesn't
-    /// satisfy the predicate. This adaptor simply includest that element where
+    /// satisfy the predicate. This adaptor simply includes that element where
     /// [`.take_while()`][std::iter::Iterator::take_while] would drop it.
     ///
     /// The [`.take_while_ref()`][crate::Itertools::take_while_ref] adaptor
-    /// serves a similar purpose, but this adaptor doesn't require cloning the
-    /// underlying elements.
-    ///
-    /// # Examples
+    /// serves a similar purpose, but this adaptor doesn't require [`Clone`]ing
+    /// the underlying elements.
     ///
     /// ```rust
-    /// use itertools::Itertools;
+    /// # use itertools::Itertools;
     ///
     /// let items = vec![1, 2, 3, 4, 5];
     /// let filtered: Vec<_> = items.into_iter().take_until(|&n| n % 3 != 0).collect();
@@ -1417,7 +1415,7 @@ pub trait Itertools : Iterator {
     /// ```
     ///
     /// ```rust
-    /// use itertools::Itertools;
+    /// # use itertools::Itertools;
     /// let items = vec![1, 2, 3, 4, 5];
     ///
     /// let take_until_result: Vec<_> = items
@@ -1435,7 +1433,7 @@ pub trait Itertools : Iterator {
     /// ```
     ///
     /// ```rust
-    /// use itertools::Itertools;
+    /// # use itertools::Itertools;
     /// #[derive(Debug, PartialEq)]
     /// struct NoCloneImpl(i32);
     ///
