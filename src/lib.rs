@@ -1397,7 +1397,7 @@ pub trait Itertools : Iterator {
     ///
     /// The [`.take_while()`][std::iter::Iterator::take_while] adaptor is useful
     /// when you want items satisfying a predicate, but to know when to stop
-    /// taking elements, we have to consume that last element that doesn't
+    /// taking elements, we have to consume that first element that doesn't
     /// satisfy the predicate. This adaptor includes that element where
     /// [`.take_while()`][std::iter::Iterator::take_while] would drop it.
     ///
@@ -1407,7 +1407,6 @@ pub trait Itertools : Iterator {
     ///
     /// ```rust
     /// # use itertools::Itertools;
-    ///
     /// let items = vec![1, 2, 3, 4, 5];
     /// let filtered: Vec<_> = items
     ///     .into_iter()
@@ -1421,9 +1420,9 @@ pub trait Itertools : Iterator {
     /// # use itertools::Itertools;
     /// let items = vec![1, 2, 3, 4, 5];
     ///
-    /// let take_until_result: Vec<_> = items
-    ///     .clone()
-    ///     .into_iter()
+    /// let take_while_inclusive_result: Vec<_> = items
+    ///     .iter()
+    ///     .copied()
     ///     .take_while_inclusive(|&n| n % 3 != 0)
     ///     .collect();
     /// let take_while_result: Vec<_> = items
@@ -1431,8 +1430,10 @@ pub trait Itertools : Iterator {
     ///     .take_while(|&n| n % 3 != 0)
     ///     .collect();
     ///
-    /// assert_eq!(take_until_result, vec![1, 2, 3]);
+    /// assert_eq!(take_while_inclusive_result, vec![1, 2, 3]);
     /// assert_eq!(take_while_result, vec![1, 2]);
+    /// // both iterators have the same items remaining at this point---the 3
+    /// // is lost from the `take_while` vec
     /// ```
     ///
     /// ```rust
@@ -2762,7 +2763,6 @@ pub trait Itertools : Iterator {
     ///
     /// itertools::assert_equal(oldest_people_first,
     ///                         vec!["Jill", "Jack", "Jane", "John"]);
-    /// ```
     /// ```
     #[cfg(feature = "use_alloc")]
     fn sorted_by_cached_key<K, F>(self, f: F) -> VecIntoIter<Self::Item>

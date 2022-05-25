@@ -1,14 +1,16 @@
 use core::iter::FusedIterator;
 use std::fmt;
 
-/// An iterator adaptor that consumes elements while the given predicate is `true`, including the
-/// element for which the predicate first returned `false`.
+/// An iterator adaptor that consumes elements while the given predicate is
+/// `true`, including the element for which the predicate first returned
+/// `false`.
 ///
-/// See [`.take_while_inclusive()`](crate::Itertools::take_while_inclusive) for more information.
+/// See [`.take_while_inclusive()`](crate::Itertools::take_while_inclusive)
+/// for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct TakeWhileInclusive<'a, I: 'a, F> {
     iter: &'a mut I,
-    f: F,
+    predicate: F,
     done: bool,
 }
 
@@ -18,8 +20,8 @@ where
     F: FnMut(&I::Item) -> bool,
 {
     /// Create a new [`TakeWhileInclusive`] from an iterator and a predicate.
-    pub fn new(iter: &'a mut I, f: F) -> Self {
-        Self { iter, f, done: false}
+    pub fn new(iter: &'a mut I, predicate: F) -> Self {
+        Self { iter, predicate, done: false}
     }
 }
 
@@ -41,7 +43,7 @@ where
             None
         } else {
             self.iter.next().map(|item| {
-                if !(self.f)(&item) {
+                if !(self.predicate)(&item) {
                     self.done = true;
                 }
                 item
