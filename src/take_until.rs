@@ -1,8 +1,8 @@
 use core::iter::FusedIterator;
 use std::fmt;
 
-/// An iterator adaptor that consumes elements while the given predicate is true, including the
-/// element for which the predicate first returned false.
+/// An iterator adaptor that consumes elements while the given predicate is false, including the
+/// element for which the predicate first returned true.
 ///
 /// See [`.take_until()`](crate::Itertools::take_until) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
@@ -41,7 +41,7 @@ where
             None
         } else {
             self.iter.next().map(|item| {
-                if !(self.f)(&item) {
+                if (self.f)(&item) {
                     self.done = true;
                 }
                 item

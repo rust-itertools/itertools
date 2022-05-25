@@ -1392,14 +1392,19 @@ pub trait Itertools : Iterator {
     }
 
     /// Returns an iterator adaptor that consumes elements while the given
-    /// predicate is `true`, *including* the element for which the predicate
-    /// first returned `false`.
+    /// predicate is `false`, *including* the element for which the predicate
+    /// first returned `true`.
     ///
     /// The [`.take_while()`][std::iter::Iterator::take_while] adaptor is useful
     /// when you want items satisfying a predicate, but to know when to stop
     /// taking elements, we have to consume that last element that doesn't
-    /// satisfy the predicate. This adaptor simply includes that element where
+    /// satisfy the predicate. This adaptor includes that element where
     /// [`.take_while()`][std::iter::Iterator::take_while] would drop it.
+    ///
+    /// Note that the semantics of this predicate are reversed from
+    /// [`.take_while()`][std::iter::Iterator::take_while], i.e. this function's
+    /// predicate yields elements when it evaluates to `false` instead of when
+    /// it evaluates to `true`.
     ///
     /// The [`.take_while_ref()`][crate::Itertools::take_while_ref] adaptor
     /// serves a similar purpose, but this adaptor doesn't require [`Clone`]ing
@@ -1409,7 +1414,7 @@ pub trait Itertools : Iterator {
     /// # use itertools::Itertools;
     ///
     /// let items = vec![1, 2, 3, 4, 5];
-    /// let filtered: Vec<_> = items.into_iter().take_until(|&n| n % 3 != 0).collect();
+    /// let filtered: Vec<_> = items.into_iter().take_until(|&n| n % 3 == 0).collect();
     ///
     /// assert_eq!(filtered, vec![1, 2, 3]);
     /// ```
@@ -1421,7 +1426,7 @@ pub trait Itertools : Iterator {
     /// let take_until_result: Vec<_> = items
     ///     .clone()
     ///     .into_iter()
-    ///     .take_until(|&n| n % 3 != 0)
+    ///     .take_until(|&n| n % 3 == 0)
     ///     .collect();
     /// let take_while_result: Vec<_> = items
     ///     .into_iter()
@@ -1443,7 +1448,7 @@ pub trait Itertools : Iterator {
     ///     .collect();
     /// let filtered: Vec<_> = non_clonable_items
     ///     .into_iter()
-    ///     .take_until(|n| n.0 % 3 != 0)
+    ///     .take_until(|n| n.0 % 3 == 0)
     ///     .collect();
     /// let expected: Vec<_> = vec![1, 2, 3].into_iter().map(NoCloneImpl).collect();
     /// assert_eq!(filtered, expected);
