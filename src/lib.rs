@@ -146,7 +146,7 @@ pub mod structs {
     pub use crate::repeatn::RepeatN;
     #[allow(deprecated)]
     pub use crate::sources::{RepeatCall, Unfold, Iterate};
-    pub use crate::take_until::TakeUntil;
+    pub use crate::take_while_inclusive::TakeWhileInclusive;
     #[cfg(feature = "use_alloc")]
     pub use crate::tee::Tee;
     pub use crate::tuple_impl::{TupleBuffer, TupleWindows, CircularTupleWindows, Tuples};
@@ -234,7 +234,7 @@ mod rciter_impl;
 mod repeatn;
 mod size_hint;
 mod sources;
-mod take_until;
+mod take_while_inclusive;
 #[cfg(feature = "use_alloc")]
 mod tee;
 mod tuple_impl;
@@ -1392,19 +1392,14 @@ pub trait Itertools : Iterator {
     }
 
     /// Returns an iterator adaptor that consumes elements while the given
-    /// predicate is `false`, *including* the element for which the predicate
-    /// first returned `true`.
+    /// predicate is `true`, *including* the element for which the predicate
+    /// first returned `false`.
     ///
     /// The [`.take_while()`][std::iter::Iterator::take_while] adaptor is useful
     /// when you want items satisfying a predicate, but to know when to stop
     /// taking elements, we have to consume that last element that doesn't
     /// satisfy the predicate. This adaptor includes that element where
     /// [`.take_while()`][std::iter::Iterator::take_while] would drop it.
-    ///
-    /// Note that the semantics of this predicate are reversed from
-    /// [`.take_while()`][std::iter::Iterator::take_while], i.e. this function's
-    /// predicate yields elements when it evaluates to `false` instead of when
-    /// it evaluates to `true`.
     ///
     /// The [`.take_while_ref()`][crate::Itertools::take_while_ref] adaptor
     /// serves a similar purpose, but this adaptor doesn't require [`Clone`]ing
@@ -1414,7 +1409,10 @@ pub trait Itertools : Iterator {
     /// # use itertools::Itertools;
     ///
     /// let items = vec![1, 2, 3, 4, 5];
-    /// let filtered: Vec<_> = items.into_iter().take_until(|&n| n % 3 == 0).collect();
+    /// let filtered: Vec<_> = items
+    ///     .into_iter()
+    ///     .take_while_inclusive(|&n| n % 3 != 0)
+    ///     .collect();
     ///
     /// assert_eq!(filtered, vec![1, 2, 3]);
     /// ```
@@ -1426,7 +1424,7 @@ pub trait Itertools : Iterator {
     /// let take_until_result: Vec<_> = items
     ///     .clone()
     ///     .into_iter()
-    ///     .take_until(|&n| n % 3 == 0)
+    ///     .take_while_inclusive(|&n| n % 3 != 0)
     ///     .collect();
     /// let take_while_result: Vec<_> = items
     ///     .into_iter()
@@ -1448,16 +1446,16 @@ pub trait Itertools : Iterator {
     ///     .collect();
     /// let filtered: Vec<_> = non_clonable_items
     ///     .into_iter()
-    ///     .take_until(|n| n.0 % 3 == 0)
+    ///     .take_while_inclusive(|n| n.0 % 3 != 0)
     ///     .collect();
     /// let expected: Vec<_> = vec![1, 2, 3].into_iter().map(NoCloneImpl).collect();
     /// assert_eq!(filtered, expected);
-    fn take_until<F>(&mut self, accept: F) -> TakeUntil<Self, F>
+    fn take_while_inclusive<F>(&mut self, accept: F) -> TakeWhileInclusive<Self, F>
     where
         Self: Sized,
         F: FnMut(&Self::Item) -> bool,
     {
-        take_until::TakeUntil::new(self, accept)
+        take_while_inclusive::TakeWhileInclusive::new(self, accept)
     }
 
     /// Return an iterator adaptor that filters `Option<A>` iterator elements

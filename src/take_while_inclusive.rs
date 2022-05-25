@@ -1,35 +1,35 @@
 use core::iter::FusedIterator;
 use std::fmt;
 
-/// An iterator adaptor that consumes elements while the given predicate is false, including the
-/// element for which the predicate first returned true.
+/// An iterator adaptor that consumes elements while the given predicate is `true`, including the
+/// element for which the predicate first returned `false`.
 ///
-/// See [`.take_until()`](crate::Itertools::take_until) for more information.
+/// See [`.take_while_inclusive()`](crate::Itertools::take_while_inclusive) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct TakeUntil<'a, I: 'a, F> {
+pub struct TakeWhileInclusive<'a, I: 'a, F> {
     iter: &'a mut I,
     f: F,
     done: bool,
 }
 
-impl<'a, I, F> TakeUntil<'a, I, F>
+impl<'a, I, F> TakeWhileInclusive<'a, I, F>
 where
     I: Iterator,
     F: FnMut(&I::Item) -> bool,
 {
-    /// Create a new [`TakeUntil`] from an iterator and a predicate.
+    /// Create a new [`TakeWhileInclusive`] from an iterator and a predicate.
     pub fn new(iter: &'a mut I, f: F) -> Self {
         Self { iter, f, done: false}
     }
 }
 
-impl<'a, I, F> fmt::Debug for TakeUntil<'a, I, F>
+impl<'a, I, F> fmt::Debug for TakeWhileInclusive<'a, I, F>
     where I: Iterator + fmt::Debug,
 {
-    debug_fmt_fields!(TakeUntil, iter);
+    debug_fmt_fields!(TakeWhileInclusive, iter);
 }
 
-impl<'a, I, F> Iterator for TakeUntil<'a, I, F>
+impl<'a, I, F> Iterator for TakeWhileInclusive<'a, I, F>
 where
     I: Iterator,
     F: FnMut(&I::Item) -> bool
@@ -41,7 +41,7 @@ where
             None
         } else {
             self.iter.next().map(|item| {
-                if (self.f)(&item) {
+                if !(self.f)(&item) {
                     self.done = true;
                 }
                 item
@@ -58,7 +58,7 @@ where
     }
 }
 
-impl<I, F> FusedIterator for TakeUntil<'_, I, F>
+impl<I, F> FusedIterator for TakeWhileInclusive<'_, I, F>
 where
     I: Iterator,
     F: FnMut(&I::Item) -> bool
