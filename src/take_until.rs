@@ -1,3 +1,4 @@
+use core::iter::FusedIterator;
 use std::fmt;
 
 /// An iterator adaptor that consumes elements while the given predicate is true, including the
@@ -49,6 +50,17 @@ where
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        (0, self.iter.size_hint().1)
+        if self.done {
+            (0, Some(0))
+        } else {
+            (0, self.iter.size_hint().1)
+        }
     }
+}
+
+impl<I, F> FusedIterator for TakeUntil<'_, I, F>
+where
+    I: Iterator,
+    F: FnMut(&I::Item) -> bool
+{
 }
