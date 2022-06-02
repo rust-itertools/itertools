@@ -27,6 +27,13 @@ jobs:
           components: clippy
       - run: RUSTFLAGS="--deny warnings" cargo clippy ${{ matrix.features }}
 
+  doc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: RUSTDOCFLAGS="-Dwarnings" cargo doc --all-features
+
   msrv:
     runs-on: ubuntu-latest
     env:
@@ -60,7 +67,7 @@ jobs:
     name: All checks succeeded
     if: success()
     runs-on: ubuntu-latest
-    needs: [check, msrv, test, check-format]
+    needs: [check, msrv, test, check-format, doc]
     steps:
       - name: Mark the job as successful
         run: exit 0
