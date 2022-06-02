@@ -138,7 +138,6 @@ where
     T: IntoIterator,
     T::IntoIter: Clone,
 {
-    #[inline]
     clone_fields!(iter, inner_front, inner_back);
 }
 

@@ -490,7 +490,6 @@ impl<T: PartialOrd> MergePredicate<T> for MergeLte {
 /// Iterator element type is `I::Item`.
 ///
 /// See [`.merge()`](crate::Itertools::merge_by) for more information.
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub type Merge<I, J> = MergeBy<I, J, MergeLte>;
 
 /// Create an iterator that merges elements in `i` and `j`.
