@@ -968,8 +968,8 @@ quickcheck! {
 quickcheck! {
     fn fuzz_group_by_lazy_duo(data: Vec<u8>, order: Vec<(bool, bool)>) -> bool {
         let grouper = data.iter().group_by(|k| *k / 3);
-        let mut groups1 = grouper.into_iter();
-        let mut groups2 = grouper.into_iter();
+        let mut groups1 = grouper.borrowed_iter();
+        let mut groups2 = grouper.borrowed_iter();
         let mut elts = Vec::<&u8>::new();
         let mut old_groups = Vec::new();
 
