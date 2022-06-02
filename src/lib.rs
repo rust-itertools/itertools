@@ -2694,7 +2694,6 @@ pub trait Itertools : Iterator {
     /// itertools::assert_equal(oldest_people_first,
     ///                         vec!["Jill", "Jack", "Jane", "John"]);
     /// ```
-    /// ```
     #[cfg(feature = "use_alloc")]
     fn sorted_by_cached_key<K, F>(self, f: F) -> VecIntoIter<Self::Item>
     where
