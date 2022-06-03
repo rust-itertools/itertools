@@ -1797,7 +1797,7 @@ pub trait Itertools : Iterator {
         Some(if predicate(&first) {
             first
         } else {
-            self.find(|x| predicate(&x)).unwrap_or(first)
+            self.find(|x| predicate(x)).unwrap_or(first)
         })
     }
     /// Returns `true` if the given item is present in this iterator.
