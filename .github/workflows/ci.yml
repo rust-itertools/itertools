@@ -14,6 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: dtolnay/rust-toolchain@1.36.0
+      - run: cargo fmt --all -- --check
       - run: cargo check --no-default-features
       - run: cargo check --no-default-features --features "use_alloc"
       - run: cargo check
