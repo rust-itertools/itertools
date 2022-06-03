@@ -1286,7 +1286,7 @@ quickcheck! {
             .map(|i| (i % modulo, i))
             .into_group_map()
             .into_iter()
-            .map(|(key, vals)| (key, vals.into_iter().fold(0u64, |acc, val| acc + val)))
+            .map(|(key, vals)| (key, vals.into_iter().sum()))
             .collect::<HashMap<_,_>>();
         assert_eq!(lookup, group_map_lookup);
 
