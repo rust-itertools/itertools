@@ -474,7 +474,7 @@ impl<T: Clone + Send, R: Clone + Rng + SeedableRng + Send> qc::Arbitrary for Ran
 
 // Check that taking the k smallest is the same as
 //  sorting then taking the k first elements
-fn k_smallest_sort<I>(i: I, k: u16) -> ()
+fn k_smallest_sort<I>(i: I, k: u16)
 where
     I: Iterator + Clone,
     I::Item: Ord + Debug,
