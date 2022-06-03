@@ -943,8 +943,7 @@ quickcheck! {
     fn fuzz_group_by_lazy_1(it: Iter<u8>) -> bool {
         let jt = it.clone();
         let groups = it.group_by(|k| *k);
-        let res = itertools::equal(jt, groups.into_iter().flat_map(|(_, x)| x));
-        res
+        itertools::equal(jt, groups.into_iter().flat_map(|(_, x)| x))
     }
 }
 
