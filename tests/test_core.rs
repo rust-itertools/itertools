@@ -116,7 +116,7 @@ fn chain2() {
 fn write_to() {
     let xs = [7, 9, 8];
     let mut ys = [0; 5];
-    let cnt = ys.iter_mut().set_from(xs.iter().map(|x| *x));
+    let cnt = ys.iter_mut().set_from(xs.iter().copied());
     assert!(cnt == xs.len());
     assert!(ys == [7, 9, 8, 0, 0]);
 

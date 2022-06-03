@@ -128,7 +128,7 @@ fn intersperse() {
     assert_eq!(text, "a, , b, c".to_string());
 
     let ys = [0, 1, 2, 3];
-    let mut it = ys[..0].iter().map(|x| *x).intersperse(1);
+    let mut it = ys[..0].iter().copied().intersperse(1);
     assert!(it.next() == None);
 }
 
@@ -538,10 +538,10 @@ fn sorted_by_cached_key() {
 fn test_multipeek() {
     let nums = vec![1u8,2,3,4,5];
 
-    let mp = multipeek(nums.iter().map(|&x| x));
+    let mp = multipeek(nums.iter().copied());
     assert_eq!(nums, mp.collect::<Vec<_>>());
 
-    let mut mp = multipeek(nums.iter().map(|&x| x));
+    let mut mp = multipeek(nums.iter().copied());
     assert_eq!(mp.peek(), Some(&1));
     assert_eq!(mp.next(), Some(1));
     assert_eq!(mp.peek(), Some(&2));
@@ -579,7 +579,7 @@ fn test_multipeek_peeking_next() {
     use crate::it::PeekingNext;
     let nums = vec![1u8,2,3,4,5,6,7];
 
-    let mut mp = multipeek(nums.iter().map(|&x| x));
+    let mut mp = multipeek(nums.iter().copied());
     assert_eq!(mp.peeking_next(|&x| x != 0), Some(1));
     assert_eq!(mp.next(), Some(2));
     assert_eq!(mp.peek(), Some(&3));
@@ -604,10 +604,10 @@ fn test_multipeek_peeking_next() {
 fn test_peek_nth() {
     let nums = vec![1u8,2,3,4,5];
 
-    let iter = peek_nth(nums.iter().map(|&x| x));
+    let iter = peek_nth(nums.iter().copied());
     assert_eq!(nums, iter.collect::<Vec<_>>());
 
-    let mut iter = peek_nth(nums.iter().map(|&x| x));
+    let mut iter = peek_nth(nums.iter().copied());
 
     assert_eq!(iter.peek_nth(0), Some(&1));
     assert_eq!(iter.peek_nth(0), Some(&1));
@@ -638,7 +638,7 @@ fn test_peek_nth() {
 fn test_peek_nth_peeking_next() {
     use it::PeekingNext;
     let nums = vec![1u8,2,3,4,5,6,7];
-    let mut iter = peek_nth(nums.iter().map(|&x| x));
+    let mut iter = peek_nth(nums.iter().copied());
 
     assert_eq!(iter.peeking_next(|&x| x != 0), Some(1));
     assert_eq!(iter.next(), Some(2));
