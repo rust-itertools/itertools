@@ -721,7 +721,7 @@ quickcheck! {
 
         assert_eq!(expected_first, curr_perm);
 
-        while let Some(next_perm) = perms.next() {
+        for next_perm in perms {
             assert!(
                 next_perm > curr_perm,
                 "next perm isn't greater-than current; next_perm={:?} curr_perm={:?} n={}",
@@ -1602,7 +1602,7 @@ quickcheck! {
 
 fn is_fused<I: Iterator>(mut it: I) -> bool
 {
-    while let Some(_) = it.next() {}
+    for _ in it.by_ref() {}
     for _ in 0..10{
         if it.next().is_some(){
             return false;
