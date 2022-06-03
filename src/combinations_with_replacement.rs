@@ -64,7 +64,7 @@ where
         // If this is the first iteration, return early
         if self.first {
             // In empty edge cases, stop iterating immediately
-            return if self.indices.len() != 0 && !self.pool.get_next() {
+            return if !(self.indices.is_empty() || self.pool.get_next()) {
                 None
             // Otherwise, yield the initial state
             } else {
