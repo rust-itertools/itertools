@@ -1110,7 +1110,7 @@ fn fold_while() {
     let vec = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     let sum = vec.into_iter().fold_while(0, |acc, item| {
         iterations += 1;
-        let new_sum = acc.clone() + item;
+        let new_sum = acc + item;
         if new_sum <= 20 {
             FoldWhile::Continue(new_sum)
         } else {
