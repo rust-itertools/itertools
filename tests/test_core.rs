@@ -228,7 +228,7 @@ fn count_clones() {
     // Check that RepeatN only clones N - 1 times.
 
     use core::cell::Cell;
-    #[derive(PartialEq, Debug)]
+    #[derive(PartialEq, Eq, Debug)]
     struct Foo {
         n: Cell<usize>,
     }
