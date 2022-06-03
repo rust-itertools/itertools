@@ -1548,6 +1548,7 @@ quickcheck! {
     fn counts(nums: Vec<isize>) -> TestResult {
         let counts = nums.iter().counts();
         for (&item, &count) in counts.iter() {
+            #[allow(clippy::absurd_extreme_comparisons)]
             if count <= 0 {
                 return TestResult::failed();
             }
