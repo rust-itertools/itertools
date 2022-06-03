@@ -71,10 +71,8 @@ impl<I> PeekingNext for MultiPeek<I>
             if let Some(r) = self.peek() {
                 if !accept(r) { return None }
             }
-        } else {
-            if let Some(r) = self.buf.get(0) {
-                if !accept(r) { return None }
-            }
+        } else if let Some(r) = self.buf.get(0) {
+            if !accept(r) { return None }
         }
         self.next()
     }
