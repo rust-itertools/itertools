@@ -9,8 +9,9 @@ use std::iter::Iterator;
 /// See [`.into_group_map()`](crate::Itertools::into_group_map)
 /// for more information.
 pub fn into_group_map<I, K, V>(iter: I) -> HashMap<K, Vec<V>>
-    where I: Iterator<Item=(K, V)>,
-          K: Hash + Eq,
+where
+    I: Iterator<Item = (K, V)>,
+    K: Hash + Eq,
 {
     let mut lookup = HashMap::new();
 
@@ -22,11 +23,9 @@ pub fn into_group_map<I, K, V>(iter: I) -> HashMap<K, Vec<V>>
 }
 
 pub fn into_group_map_by<I, K, V>(iter: I, f: impl Fn(&V) -> K) -> HashMap<K, Vec<V>>
-    where
-        I: Iterator<Item=V>,
-        K: Hash + Eq,
+where
+    I: Iterator<Item = V>,
+    K: Hash + Eq,
 {
-    into_group_map(
-        iter.map(|v| (f(&v), v))
-    )
+    into_group_map(iter.map(|v| (f(&v), v)))
 }

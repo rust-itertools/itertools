@@ -37,8 +37,9 @@ pub struct Zip<T> {
 /// assert_eq!(results, [0 + 3, 10 + 7, 29, 36]);
 /// ```
 pub fn multizip<T, U>(t: U) -> Zip<T>
-    where Zip<T>: From<U>,
-          Zip<T>: Iterator,
+where
+    Zip<T>: From<U>,
+    Zip<T>: Iterator,
 {
     Zip::from(t)
 }

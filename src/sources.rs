@@ -7,14 +7,13 @@ use std::mem;
 
 /// See [`repeat_call`](crate::repeat_call) for more information.
 #[derive(Clone)]
-#[deprecated(note="Use std repeat_with() instead", since="0.8.0")]
+#[deprecated(note = "Use std repeat_with() instead", since = "0.8.0")]
 pub struct RepeatCall<F> {
     f: F,
 }
 
-impl<F> fmt::Debug for RepeatCall<F>
-{
-    debug_fmt_fields!(RepeatCall, );
+impl<F> fmt::Debug for RepeatCall<F> {
+    debug_fmt_fields!(RepeatCall,);
 }
 
 /// An iterator source that produces elements indefinitely by calling
@@ -39,15 +38,17 @@ impl<F> fmt::Debug for RepeatCall<F>
 ///     vec![1, 1, 1, 1, 1]
 /// );
 /// ```
-#[deprecated(note="Use std repeat_with() instead", since="0.8.0")]
+#[deprecated(note = "Use std repeat_with() instead", since = "0.8.0")]
 pub fn repeat_call<F, A>(function: F) -> RepeatCall<F>
-    where F: FnMut() -> A
+where
+    F: FnMut() -> A,
 {
     RepeatCall { f: function }
 }
 
 impl<A, F> Iterator for RepeatCall<F>
-    where F: FnMut() -> A
+where
+    F: FnMut() -> A,
 {
     type Item = A;
 
@@ -98,7 +99,8 @@ impl<A, F> Iterator for RepeatCall<F>
 /// assert_eq!(fibonacci.last(), Some(2_971_215_073))
 /// ```
 pub fn unfold<A, St, F>(initial_state: St, f: F) -> Unfold<St, F>
-    where F: FnMut(&mut St) -> Option<A>
+where
+    F: FnMut(&mut St) -> Option<A>,
 {
     Unfold {
         f,
@@ -107,7 +109,8 @@ pub fn unfold<A, St, F>(initial_state: St, f: F) -> Unfold<St, F>
 }
 
 impl<St, F> fmt::Debug for Unfold<St, F>
-    where St: fmt::Debug,
+where
+    St: fmt::Debug,
 {
     debug_fmt_fields!(Unfold, state);
 }
@@ -122,7 +125,8 @@ pub struct Unfold<St, F> {
 }
 
 impl<A, St, F> Iterator for Unfold<St, F>
-    where F: FnMut(&mut St) -> Option<A>
+where
+    F: FnMut(&mut St) -> Option<A>,
 {
     type Item = A;
 
@@ -144,13 +148,15 @@ pub struct Iterate<St, F> {
 }
 
 impl<St, F> fmt::Debug for Iterate<St, F>
-    where St: fmt::Debug,
+where
+    St: fmt::Debug,
 {
     debug_fmt_fields!(Iterate, state);
 }
 
 impl<St, F> Iterator for Iterate<St, F>
-    where F: FnMut(&St) -> St
+where
+    F: FnMut(&St) -> St,
 {
     type Item = St;
 
@@ -174,7 +180,8 @@ impl<St, F> Iterator for Iterate<St, F>
 /// itertools::assert_equal(iterate(1, |&i| i * 3).take(5), vec![1, 3, 9, 27, 81]);
 /// ```
 pub fn iterate<St, F>(initial_value: St, f: F) -> Iterate<St, F>
-    where F: FnMut(&St) -> St
+where
+    F: FnMut(&St) -> St,
 {
     Iterate {
         state: initial_value,

@@ -80,7 +80,7 @@ where
         // Work out where we need to update our indices
         let mut increment: Option<(usize, usize)> = None;
         for (i, indices_int) in self.indices.iter().enumerate().rev() {
-            if *indices_int < self.pool.len()-1 {
+            if *indices_int < self.pool.len() - 1 {
                 increment = Some((i, indices_int + 1));
                 break;
             }
@@ -106,4 +106,5 @@ impl<I> FusedIterator for CombinationsWithReplacement<I>
 where
     I: Iterator,
     I::Item: Clone,
-{}
+{
+}

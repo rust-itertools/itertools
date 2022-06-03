@@ -20,17 +20,29 @@ fn powerset_n(c: &mut Criterion, n: usize) {
     });
 }
 
-fn powerset_0(c: &mut Criterion) { powerset_n(c, 0); }
+fn powerset_0(c: &mut Criterion) {
+    powerset_n(c, 0);
+}
 
-fn powerset_1(c: &mut Criterion) { powerset_n(c, 1); }
+fn powerset_1(c: &mut Criterion) {
+    powerset_n(c, 1);
+}
 
-fn powerset_2(c: &mut Criterion) { powerset_n(c, 2); }
+fn powerset_2(c: &mut Criterion) {
+    powerset_n(c, 2);
+}
 
-fn powerset_4(c: &mut Criterion) { powerset_n(c, 4); }
+fn powerset_4(c: &mut Criterion) {
+    powerset_n(c, 4);
+}
 
-fn powerset_8(c: &mut Criterion) { powerset_n(c, 8); }
+fn powerset_8(c: &mut Criterion) {
+    powerset_n(c, 8);
+}
 
-fn powerset_12(c: &mut Criterion) { powerset_n(c, 12); }
+fn powerset_12(c: &mut Criterion) {
+    powerset_n(c, 12);
+}
 
 criterion_group!(
     benches,

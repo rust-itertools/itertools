@@ -12,17 +12,22 @@ pub struct RepeatN<A> {
 
 /// Create an iterator that produces `n` repetitions of `element`.
 pub fn repeat_n<A>(element: A, n: usize) -> RepeatN<A>
-    where A: Clone,
+where
+    A: Clone,
 {
     if n == 0 {
-        RepeatN { elt: None, n, }
+        RepeatN { elt: None, n }
     } else {
-        RepeatN { elt: Some(element), n, }
+        RepeatN {
+            elt: Some(element),
+            n,
+        }
     }
 }
 
 impl<A> Iterator for RepeatN<A>
-    where A: Clone
+where
+    A: Clone,
 {
     type Item = A;
 
@@ -42,7 +47,8 @@ impl<A> Iterator for RepeatN<A>
 }
 
 impl<A> DoubleEndedIterator for RepeatN<A>
-    where A: Clone
+where
+    A: Clone,
 {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
@@ -50,10 +56,6 @@ impl<A> DoubleEndedIterator for RepeatN<A>
     }
 }
 
-impl<A> ExactSizeIterator for RepeatN<A>
-    where A: Clone
-{}
+impl<A> ExactSizeIterator for RepeatN<A> where A: Clone {}
 
-impl<A> FusedIterator for RepeatN<A>
-    where A: Clone
-{}
+impl<A> FusedIterator for RepeatN<A> where A: Clone {}

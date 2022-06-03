@@ -1,9 +1,9 @@
+use alloc::vec::Vec;
 use std::fmt;
 use std::iter::FusedIterator;
 use std::usize;
-use alloc::vec::Vec;
 
-use super::combinations::{Combinations, combinations};
+use super::combinations::{combinations, Combinations};
 use super::size_hint;
 
 /// An iterator to iterate through the powerset of the elements from an iterator.
@@ -18,23 +18,26 @@ pub struct Powerset<I: Iterator> {
 }
 
 impl<I> Clone for Powerset<I>
-    where I: Clone + Iterator,
-          I::Item: Clone,
+where
+    I: Clone + Iterator,
+    I::Item: Clone,
 {
     clone_fields!(combs, pos);
 }
 
 impl<I> fmt::Debug for Powerset<I>
-    where I: Iterator + fmt::Debug,
-          I::Item: fmt::Debug,
+where
+    I: Iterator + fmt::Debug,
+    I::Item: fmt::Debug,
 {
     debug_fmt_fields!(Powerset, combs, pos);
 }
 
 /// Create a new `Powerset` from a clonable iterator.
 pub fn powerset<I>(src: I) -> Powerset<I>
-    where I: Iterator,
-          I::Item: Clone,
+where
+    I: Iterator,
+    I::Item: Clone,
 {
     Powerset {
         combs: combinations(src, 0),
@@ -43,9 +46,9 @@ pub fn powerset<I>(src: I) -> Powerset<I>
 }
 
 impl<I> Iterator for Powerset<I>
-    where
-        I: Iterator,
-        I::Item: Clone,
+where
+    I: Iterator,
+    I::Item: Clone,
 {
     type Item = Vec<I::Item>;
 
@@ -53,9 +56,7 @@ impl<I> Iterator for Powerset<I>
         if let Some(elt) = self.combs.next() {
             self.pos = self.pos.saturating_add(1);
             Some(elt)
-        } else if self.combs.k() < self.combs.n()
-            || self.combs.k() == 0
-        {
+        } else if self.combs.k() < self.combs.n() || self.combs.k() == 0 {
             self.combs.reset(self.combs.k() + 1);
             self.combs.next().map(|elt| {
                 self.pos = self.pos.saturating_add(1);
@@ -84,7 +85,8 @@ impl<I> Iterator for Powerset<I>
 }
 
 impl<I> FusedIterator for Powerset<I>
-    where
-        I: Iterator,
-        I::Item: Clone,
-{}
+where
+    I: Iterator,
+    I::Item: Clone,
+{
+}

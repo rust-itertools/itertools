@@ -1,5 +1,5 @@
-use std::ops::Index;
 use alloc::vec::Vec;
+use std::ops::Index;
 
 #[derive(Debug, Clone)]
 pub struct LazyBuffer<I: Iterator> {
@@ -57,7 +57,7 @@ impl<I, J> Index<J> for LazyBuffer<I>
 where
     I: Iterator,
     I::Item: Sized,
-    Vec<I::Item>: Index<J>
+    Vec<I::Item>: Index<J>,
 {
     type Output = <Vec<I::Item> as Index<J>>::Output;
 

@@ -1,9 +1,9 @@
 //! Arithmetic on **Iterator** *.size_hint()* values.
 //!
 
-use std::usize;
 use std::cmp;
 use std::u32;
+use std::usize;
 
 /// **SizeHint** is the return type of **Iterator::size_hint()**.
 pub type SizeHint = (usize, Option<usize>);
@@ -38,7 +38,6 @@ pub fn sub_scalar(sh: SizeHint, x: usize) -> SizeHint {
     hi = hi.map(|elt| elt.saturating_sub(x));
     (low, hi)
 }
-
 
 /// Multiply **SizeHint** correctly
 ///
