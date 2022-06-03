@@ -438,7 +438,7 @@ quickcheck! {
         }
         assert_eq!(answer, actual);
 
-        assert_eq!(answer.into_iter().last(), a.clone().multi_cartesian_product().last());
+        assert_eq!(answer.into_iter().last(), a.multi_cartesian_product().last());
     }
 
     #[allow(deprecated)]
@@ -498,15 +498,13 @@ quickcheck! {
         exact_size(it)
     }
 
-    fn equal_merge(a: Vec<i16>, b: Vec<i16>) -> bool {
-        let mut sa = a.clone();
-        let mut sb = b.clone();
-        sa.sort();
-        sb.sort();
-        let mut merged = sa.clone();
-        merged.extend(sb.iter().cloned());
+    fn equal_merge(mut a: Vec<i16>, mut b: Vec<i16>) -> bool {
+        a.sort();
+        b.sort();
+        let mut merged = a.clone();
+        merged.extend(b.iter().cloned());
         merged.sort();
-        itertools::equal(&merged, sa.iter().merge(&sb))
+        itertools::equal(&merged, a.iter().merge(&b))
     }
     fn size_merge(a: Iter<u16>, b: Iter<u16>) -> bool {
         correct_size_hint(a.merge(b))
@@ -517,7 +515,7 @@ quickcheck! {
             exact_size(multizip((a, b, c)))
     }
     fn size_zip_rc(a: Iter<i16>, b: Iter<i16>) -> bool {
-        let rc = rciter(a.clone());
+        let rc = rciter(a);
         correct_size_hint(multizip((&rc, &rc, b)))
     }
 
@@ -526,19 +524,16 @@ quickcheck! {
         correct_size_hint(izip!(filt, b.clone(), c.clone())) &&
             exact_size(izip!(a, b, c))
     }
-    fn equal_kmerge(a: Vec<i16>, b: Vec<i16>, c: Vec<i16>) -> bool {
+    fn equal_kmerge(mut a: Vec<i16>, mut b: Vec<i16>, mut c: Vec<i16>) -> bool {
         use itertools::free::kmerge;
-        let mut sa = a.clone();
-        let mut sb = b.clone();
-        let mut sc = c.clone();
-        sa.sort();
-        sb.sort();
-        sc.sort();
-        let mut merged = sa.clone();
-        merged.extend(sb.iter().cloned());
-        merged.extend(sc.iter().cloned());
+        a.sort();
+        b.sort();
+        c.sort();
+        let mut merged = a.clone();
+        merged.extend(b.iter().cloned());
+        merged.extend(c.iter().cloned());
         merged.sort();
-        itertools::equal(merged.into_iter(), kmerge(vec![sa, sb, sc]))
+        itertools::equal(merged.into_iter(), kmerge(vec![a, b, c]))
     }
 
     // Any number of input iterators
@@ -610,7 +605,7 @@ quickcheck! {
     fn size_2_zip_longest(a: Iter<i16>, b: Iter<i16>) -> bool {
         let it = a.clone().zip_longest(b.clone());
         let jt = a.clone().zip_longest(b.clone());
-        itertools::equal(a.clone(),
+        itertools::equal(a,
                          it.filter_map(|elt| match elt {
                              EitherOrBoth::Both(x, _) => Some(x),
                              EitherOrBoth::Left(x) => Some(x),
@@ -618,7 +613,7 @@ quickcheck! {
                          }
                          ))
             &&
-        itertools::equal(b.clone(),
+        itertools::equal(b,
                          jt.filter_map(|elt| match elt {
                              EitherOrBoth::Both(_, y) => Some(y),
                              EitherOrBoth::Right(y) => Some(y),
