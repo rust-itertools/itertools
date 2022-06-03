@@ -123,7 +123,7 @@ fn unique() {
 #[test]
 fn intersperse() {
     let xs = ["a", "", "b", "c"];
-    let v: Vec<&str> = xs.iter().map(|x| x.clone()).intersperse(", ").collect();
+    let v: Vec<&str> = xs.iter().cloned().intersperse(", ").collect();
     let text: String = v.concat();
     assert_eq!(text, "a, , b, c".to_string());
 
