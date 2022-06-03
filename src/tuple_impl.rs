@@ -54,6 +54,7 @@ where
         }
     }
 
+    #[allow(clippy::unnecessary_lazy_evaluations)] // buffer.len is more complex than usual
     fn size_hint(&self) -> (usize, Option<usize>) {
         let buffer = &self.buf.as_ref()[self.cur..];
         let len = if buffer.is_empty() {
