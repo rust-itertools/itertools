@@ -327,12 +327,7 @@ impl<I, J> Iterator for Product<I, J>
             }
             Some(x) => x
         };
-        match self.a_cur {
-            None => None,
-            Some(ref a) => {
-                Some((a.clone(), elt_b))
-            }
-        }
+        self.a_cur.as_ref().map(|a| (a.clone(), elt_b))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
