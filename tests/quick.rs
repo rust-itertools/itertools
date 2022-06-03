@@ -1550,7 +1550,6 @@ quickcheck! {
 }
 
 quickcheck! {
-    #[test]
     fn counts(nums: Vec<isize>) -> TestResult {
         let counts = nums.iter().counts();
         for (&item, &count) in counts.iter() {
