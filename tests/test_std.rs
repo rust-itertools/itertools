@@ -694,7 +694,7 @@ fn group_by() {
         }
     }
 
-    let toupper = |ch: &char| ch.to_uppercase().nth(0).unwrap();
+    let toupper = |ch: &char| ch.to_uppercase().next().unwrap();
 
     // try all possible orderings
     for indices in permutohedron::Heap::new(&mut [0, 1, 2, 3]) {
