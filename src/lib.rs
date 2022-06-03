@@ -1910,12 +1910,7 @@ pub trait Itertools: Iterator {
     where
         P: FnMut(&Self::Item) -> bool,
     {
-        for (index, elt) in self.enumerate() {
-            if pred(&elt) {
-                return Some((index, elt));
-            }
-        }
-        None
+        self.enumerate().find(|x| pred(&x.1))
     }
     /// Find the value of the first element satisfying a predicate or return the last element, if any.
     ///

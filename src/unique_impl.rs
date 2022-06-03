@@ -110,9 +110,10 @@ where
             if let Entry::Vacant(entry) = used.entry(v) {
                 let elt = entry.key().clone();
                 entry.insert(());
-                return Some(elt);
+                Some(elt)
+            } else {
+                None
             }
-            None
         })
     }
 
