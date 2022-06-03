@@ -107,8 +107,7 @@ impl<I, ElemF> Iterator for IntersperseWith<I, ElemF>
         self.iter.fold(accum,
             |accum, x| {
                 let accum = f(accum, element.generate());
-                let accum = f(accum, x);
-                accum
+                f(accum, x)
         })
     }
 }
