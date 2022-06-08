@@ -289,7 +289,7 @@ impl<I, K, V> GroupingMap<I>
         where F: FnMut(&K, &V) -> CK,
               CK: Ord,
     {
-        self.max_by(|key, v1, v2| f(key, &v1).cmp(&f(key, &v2)))
+        self.max_by(|key, v1, v2| f(key, v1).cmp(&f(key, v2)))
     }
 
     /// Groups elements from the `GroupingMap` source by key and finds the minimum of each group.
@@ -367,7 +367,7 @@ impl<I, K, V> GroupingMap<I>
         where F: FnMut(&K, &V) -> CK,
               CK: Ord,
     {
-        self.min_by(|key, v1, v2| f(key, &v1).cmp(&f(key, &v2)))
+        self.min_by(|key, v1, v2| f(key, v1).cmp(&f(key, v2)))
     }
 
     /// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of
@@ -480,7 +480,7 @@ impl<I, K, V> GroupingMap<I>
         where F: FnMut(&K, &V) -> CK,
               CK: Ord,
     {
-        self.minmax_by(|key, v1, v2| f(key, &v1).cmp(&f(key, &v2)))
+        self.minmax_by(|key, v1, v2| f(key, v1).cmp(&f(key, v2)))
     }
     
     /// Groups elements from the `GroupingMap` source by key and sums them.

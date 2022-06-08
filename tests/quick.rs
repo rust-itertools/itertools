@@ -258,12 +258,12 @@ where
         let mut it = get_it();
 
         for _ in 0..(counts.len() - 1) {
-            if let None = it.next() {
+            if it.next().is_none() {
                 panic!("Iterator shouldn't be finished, may not be deterministic");
             }
         }
 
-        if let None = it.next() {
+        if it.next().is_none() {
             break 'outer;
         }
 
@@ -721,7 +721,7 @@ quickcheck! {
 
         assert_eq!(expected_first, curr_perm);
 
-        while let Some(next_perm) = perms.next() {
+        for next_perm in perms {
             assert!(
                 next_perm > curr_perm,
                 "next perm isn't greater-than current; next_perm={:?} curr_perm={:?} n={}",
@@ -943,8 +943,7 @@ quickcheck! {
     fn fuzz_group_by_lazy_1(it: Iter<u8>) -> bool {
         let jt = it.clone();
         let groups = it.group_by(|k| *k);
-        let res = itertools::equal(jt, groups.into_iter().flat_map(|(_, x)| x));
-        res
+        itertools::equal(jt, groups.into_iter().flat_map(|(_, x)| x))
     }
 }
 
@@ -1286,7 +1285,7 @@ quickcheck! {
             .map(|i| (i % modulo, i))
             .into_group_map()
             .into_iter()
-            .map(|(key, vals)| (key, vals.into_iter().fold(0u64, |acc, val| acc + val)))
+            .map(|(key, vals)| (key, vals.into_iter().sum()))
             .collect::<HashMap<_,_>>();
         assert_eq!(lookup, group_map_lookup);
 
@@ -1551,7 +1550,6 @@ quickcheck! {
 }
 
 quickcheck! {
-    #[test]
     fn counts(nums: Vec<isize>) -> TestResult {
         let counts = nums.iter().counts();
         for (&item, &count) in counts.iter() {
@@ -1602,7 +1600,7 @@ quickcheck! {
 
 fn is_fused<I: Iterator>(mut it: I) -> bool
 {
-    while let Some(_) = it.next() {}
+    for _ in it.by_ref() {}
     for _ in 0..10{
         if it.next().is_some(){
             return false;

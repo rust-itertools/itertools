@@ -7,7 +7,7 @@ trait KeyFunction<A> {
     fn call_mut(&mut self, arg: A) -> Self::Key;
 }
 
-impl<'a, A, K, F: ?Sized> KeyFunction<A> for F
+impl<A, K, F: ?Sized> KeyFunction<A> for F
     where F: FnMut(A) -> K
 {
     type Key = K;
@@ -37,7 +37,7 @@ impl ChunkIndex {
     }
 }
 
-impl<'a, A> KeyFunction<A> for ChunkIndex {
+impl<A> KeyFunction<A> for ChunkIndex {
     type Key = usize;
     #[inline(always)]
     fn call_mut(&mut self, _arg: A) -> Self::Key {

@@ -1797,7 +1797,7 @@ pub trait Itertools : Iterator {
         Some(if predicate(&first) {
             first
         } else {
-            self.find(|x| predicate(&x)).unwrap_or(first)
+            self.find(|x| predicate(x)).unwrap_or(first)
         })
     }
     /// Returns `true` if the given item is present in this iterator.
@@ -2693,7 +2693,6 @@ pub trait Itertools : Iterator {
     ///
     /// itertools::assert_equal(oldest_people_first,
     ///                         vec!["Jill", "Jack", "Jane", "John"]);
-    /// ```
     /// ```
     #[cfg(feature = "use_alloc")]
     fn sorted_by_cached_key<K, F>(self, f: F) -> VecIntoIter<Self::Item>
