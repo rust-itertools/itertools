@@ -780,7 +780,7 @@ pub trait Itertools : Iterator {
     /// the original iterator.
     ///
     /// **Note:** If the iterator is clonable, prefer using that instead
-    /// of using this method. It is likely to be more efficient.
+    /// of using this method. Cloning is likely to be more efficient.
     ///
     /// Iterator element type is `Self::Item`.
     ///
