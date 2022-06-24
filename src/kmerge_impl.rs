@@ -213,6 +213,7 @@ impl<I, F> Iterator for KMergeBy<I, F>
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
+        #[allow(deprecated)] //TODO: once msrv hits 1.51. replace `fold1` with `reduce`
         self.heap.iter()
                  .map(|i| i.size_hint())
                  .fold1(size_hint::add)

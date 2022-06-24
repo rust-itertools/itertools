@@ -1,5 +1,3 @@
-use paste;
-use permutohedron;
 use quickcheck as qc;
 use rand::{distributions::{Distribution, Standard}, Rng, SeedableRng, rngs::StdRng};
 use rand::{seq::SliceRandom, thread_rng};
