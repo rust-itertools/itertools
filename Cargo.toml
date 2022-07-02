@@ -40,7 +40,7 @@ version = "0.2"
 
 [features]
 default = ["use_std"]
-use_std = ["use_alloc"]
+use_std = ["use_alloc", "either/use_std"]
 use_alloc = []
 
 [profile]
