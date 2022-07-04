@@ -43,7 +43,6 @@ impl<A, B> EitherOrBoth<A, B> {
     }
 
     /// If `Both`, return true. Otherwise, return false.
-    /// Equivalent to `self.as_ref().both().is_some()`.
     pub fn is_both(&self) -> bool {
         self.as_ref().both().is_some()
     }
