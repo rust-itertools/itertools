@@ -299,6 +299,103 @@ impl<A, B> EitherOrBoth<A, B> {
             Both(inner_l, inner_r) => (inner_l, inner_r),
         }
     }
+
+    /// Sets the `left` value of this instance, and returns a mutable reference to it.
+    /// Does not affect the `right` value.
+    ///
+    /// # Examples
+    /// ```
+    /// # use itertools::{EitherOrBoth, EitherOrBoth::{Left, Right, Both}};
+    ///
+    /// // Overwriting a pre-existing value.
+    /// let mut either: EitherOrBoth<_, ()> = Left(0_u32);
+    /// assert_eq!(*either.insert_left(69), 69);
+    ///
+    /// // Inserting a second value.
+    /// let mut either = Right("no");
+    /// assert_eq!(*either.insert_left("yes"), "yes");
+    /// assert_eq!(either, Both("yes", "no"));
+    /// ```
+    pub fn insert_left(&mut self, val: A) -> &mut A {
+        match self {
+            Left(left) | Both(left, _) => {
+                *left = val;
+                left
+            }
+            Right(right) => {
+                // This is like a map in place operation. We move out of the reference,
+                // change the value, and then move back into the reference.
+                unsafe {
+                    // SAFETY: We know this pointer is valid for reading since we got it from a reference.
+                    let right = std::ptr::read(right as *mut _);
+                    // SAFETY: Again, we know the pointer is valid since we got it from a reference.
+                    std::ptr::write(self as *mut _, Both(val, right));
+                }
+
+                if let Both(left, _) = self {
+                    left
+                } else {
+                    // SAFETY: The above pattern will always match, since we just
+                    // set `self` equal to `Both`.
+                    unsafe { std::hint::unreachable_unchecked() }
+                }
+            }
+        }
+    }
+
+    /// Sets the `right` value of this instance, and returns a mutable reference to it.
+    /// Does not affect the `left` value.
+    ///
+    /// # Examples
+    /// ```
+    /// # use itertools::{EitherOrBoth, EitherOrBoth::{Left, Both}};
+    /// // Overwriting a pre-existing value.
+    /// let mut either: EitherOrBoth<_, ()> = Left(0_u32);
+    /// assert_eq!(*either.insert_left(69), 69);
+    ///
+    /// // Inserting a second value.
+    /// let mut either = Left("what's");
+    /// assert_eq!(*either.insert_right(9 + 10), 21 - 2);
+    /// assert_eq!(either, Both("what's", 9+10));
+    /// ```
+    pub fn insert_right(&mut self, val: B) -> &mut B {
+        match self {
+            Right(right) | Both(_, right) => {
+                *right = val;
+                right
+            }
+            Left(left) => {
+                // This is like a map in place operation. We move out of the reference,
+                // change the value, and then move back into the reference.
+                unsafe {
+                    // SAFETY: We know this pointer is valid for reading since we got it from a reference.
+                    let left = std::ptr::read(left as *mut _);
+                    // SAFETY: Again, we know the pointer is valid since we got it from a reference.
+                    std::ptr::write(self as *mut _, Both(left, val));
+                }
+                if let Both(_, right) = self {
+                    right
+                } else {
+                    // SAFETY: The above pattern will always match, since we just
+                    // set `self` equal to `Both`.
+                    unsafe { std::hint::unreachable_unchecked() }
+                }
+            }
+        }
+    }
+
+    /// Set `self` to `Both(..)`, containing the specified left and right values,
+    /// and returns a mutable reference to those values.
+    pub fn insert_both(&mut self, left: A, right: B) -> (&mut A, &mut B) {
+        *self = Both(left, right);
+        if let Both(left, right) = self {
+            (left, right)
+        } else {
+            // SAFETY: The above pattern will always match, since we just
+            // set `self` equal to `Both`.
+            unsafe { std::hint::unreachable_unchecked() }
+        }
+    }
 }
 
 impl<T> EitherOrBoth<T, T> {
