@@ -14,7 +14,7 @@ pub enum EitherOrBoth<A, B> {
 }
 
 impl<A, B> EitherOrBoth<A, B> {
-    /// If `Left`, or `Both`, return true, otherwise, return false.
+    /// If `Left`, or `Both`, return true. Otherwise, return false.
     pub fn has_left(&self) -> bool {
         self.as_ref().left().is_some()
     }
@@ -24,7 +24,7 @@ impl<A, B> EitherOrBoth<A, B> {
         self.as_ref().right().is_some()
     }
 
-    /// If Left, return true otherwise, return false.
+    /// If `Left`, return true. Otherwise, return false.
     /// Exclusive version of [`has_left`](EitherOrBoth::has_left).
     pub fn is_left(&self) -> bool {
         match *self {
@@ -33,7 +33,7 @@ impl<A, B> EitherOrBoth<A, B> {
         }
     }
 
-    /// If Right, return true otherwise, return false.
+    /// If `Right`, return true. Otherwise, return false.
     /// Exclusive version of [`has_right`](EitherOrBoth::has_right).
     pub fn is_right(&self) -> bool {
         match *self {
@@ -42,13 +42,13 @@ impl<A, B> EitherOrBoth<A, B> {
         }
     }
 
-    /// If Right, return true otherwise, return false.
+    /// If `Both`, return true. Otherwise, return false.
     /// Equivalent to `self.as_ref().both().is_some()`.
     pub fn is_both(&self) -> bool {
         self.as_ref().both().is_some()
     }
 
-    /// If `Left`, or `Both`, return `Some` with the left value, otherwise, return `None`.
+    /// If `Left`, or `Both`, return `Some` with the left value. Otherwise, return `None`.
     pub fn left(self) -> Option<A> {
         match self {
             Left(left) | Both(left, _) => Some(left),
@@ -56,7 +56,7 @@ impl<A, B> EitherOrBoth<A, B> {
         }
     }
 
-    /// If `Right`, or `Both`, return `Some` with the right value, otherwise, return `None`.
+    /// If `Right`, or `Both`, return `Some` with the right value. Otherwise, return `None`.
     pub fn right(self) -> Option<B> {
         match self {
             Right(right) | Both(_, right) => Some(right),
@@ -64,7 +64,7 @@ impl<A, B> EitherOrBoth<A, B> {
         }
     }
 
-    /// If Both, return `Some` tuple containing left and right.
+    /// If `Both`, return `Some` containing the left and right values. Otherwise, return `None`.
     pub fn both(self) -> Option<(A, B)> {
         match self {
             Both(a, b) => Some((a, b)),
