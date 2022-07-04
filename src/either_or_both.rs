@@ -122,6 +122,28 @@ impl<A, B> EitherOrBoth<A, B> {
         }
     }
 
+    /// If `Left` or `Both`, return the left value. Otherwise, convert the right value and return it.
+    pub fn into_left(self) -> A
+    where
+        B: Into<A>,
+    {
+        match self {
+            Left(a) | Both(a, _) => a,
+            Right(b) => b.into(),
+        }
+    }
+
+    /// If `Right` or `Both`, return the right value. Otherwise, convert the left value and return it.
+    pub fn into_right(self) -> B
+    where
+        A: Into<B>,
+    {
+        match self {
+            Right(b) | Both(_, b) => b,
+            Left(a) => a.into(),
+        }
+    }
+
     /// Converts from `&EitherOrBoth<A, B>` to `EitherOrBoth<&A, &B>`.
     pub fn as_ref(&self) -> EitherOrBoth<&A, &B> {
         match *self {
