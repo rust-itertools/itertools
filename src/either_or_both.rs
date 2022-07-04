@@ -1,3 +1,5 @@
+use core::ops::{Deref, DerefMut};
+
 use crate::EitherOrBoth::*;
 
 use either::Either;
@@ -154,6 +156,32 @@ impl<A, B> EitherOrBoth<A, B> {
 
     /// Converts from `&mut EitherOrBoth<A, B>` to `EitherOrBoth<&mut A, &mut B>`.
     pub fn as_mut(&mut self) -> EitherOrBoth<&mut A, &mut B> {
+        match *self {
+            Left(ref mut left) => Left(left),
+            Right(ref mut right) => Right(right),
+            Both(ref mut left, ref mut right) => Both(left, right),
+        }
+    }
+
+    /// Converts from `&EitherOrBoth<A, B>` to `EitherOrBoth<&_, &_>` using the [`Deref`] trait.
+    pub fn as_deref(&self) -> EitherOrBoth<&A::Target, &B::Target>
+    where
+        A: Deref,
+        B: Deref,
+    {
+        match *self {
+            Left(ref left) => Left(left),
+            Right(ref right) => Right(right),
+            Both(ref left, ref right) => Both(left, right),
+        }
+    }
+
+    /// Converts from `&mut EitherOrBoth<A, B>` to `EitherOrBoth<&mut _, &mut _>` using the [`DerefMut`] trait.
+    pub fn as_deref_mut(&mut self) -> EitherOrBoth<&mut A::Target, &mut B::Target>
+    where
+        A: DerefMut,
+        B: DerefMut,
+    {
         match *self {
             Left(ref mut left) => Left(left),
             Right(ref mut right) => Right(right),
