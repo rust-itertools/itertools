@@ -64,6 +64,56 @@ impl<A, B> EitherOrBoth<A, B> {
         }
     }
 
+    /// If `Left`, return `Some` with the left value. If `Right` or `Both`, return `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// // On the `Left` variant.
+    /// # use itertools::{EitherOrBoth, EitherOrBoth::{Left, Right, Both}};
+    /// let x: EitherOrBoth<_, ()> = Left("bonjour");
+    /// assert_eq!(x.just_left(), Some("bonjour"));
+    ///
+    /// // On the `Right` variant.
+    /// let x: EitherOrBoth<(), _> = Right("hola");
+    /// assert_eq!(x.just_left(), None);
+    ///
+    /// // On the `Both` variant.
+    /// let x = Both("bonjour", "hola");
+    /// assert_eq!(x.just_left(), None);
+    /// ```
+    pub fn just_left(self) -> Option<A> {
+        match self {
+            Left(left) => Some(left),
+            _ => None,
+        }
+    }
+
+    /// If `Right`, return `Some` with the right value. If `Left` or `Both`, return `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// // On the `Left` variant.
+    /// # use itertools::{EitherOrBoth::{Left, Right, Both}, EitherOrBoth};
+    /// let x: EitherOrBoth<_, ()> = Left("auf wiedersehen");
+    /// assert_eq!(x.just_left(), Some("auf wiedersehen"));
+    ///
+    /// // On the `Right` variant.
+    /// let x: EitherOrBoth<(), _> = Right("adios");
+    /// assert_eq!(x.just_left(), None);
+    ///
+    /// // On the `Both` variant.
+    /// let x = Both("auf wiedersehen", "adios");
+    /// assert_eq!(x.just_left(), None);
+    /// ```
+    pub fn just_right(self) -> Option<B> {
+        match self {
+            Right(right) => Some(right),
+            _ => None,
+        }
+    }
+
     /// If `Both`, return `Some` containing the left and right values. Otherwise, return `None`.
     pub fn both(self) -> Option<(A, B)> {
         match self {
