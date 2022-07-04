@@ -300,6 +300,42 @@ impl<A, B> EitherOrBoth<A, B> {
         }
     }
 
+    /// Returns a mutable reference to the left value. If the left value is not present,
+    /// it is replaced with `val`.
+    pub fn left_or_insert(&mut self, val: A) -> &mut A {
+        self.left_or_insert_with(|| val)
+    }
+
+    /// Returns a mutable reference to the right value. If the right value is not present,
+    /// it is replaced with `val`.
+    pub fn right_or_insert(&mut self, val: B) -> &mut B {
+        self.right_or_insert_with(|| val)
+    }
+
+    /// If the left value is not present, replace it the value computed by the closure `f`.
+    /// Returns a mutable reference to the now-present left value.
+    pub fn left_or_insert_with<F>(&mut self, f: F) -> &mut A
+    where
+        F: FnOnce() -> A,
+    {
+        match self {
+            Left(left) | Both(left, _) => left,
+            Right(_) => self.insert_left(f()),
+        }
+    }
+
+    /// If the right value is not present, replace it the value computed by the closure `f`.
+    /// Returns a mutable reference to the now-present right value.
+    pub fn right_or_insert_with<F>(&mut self, f: F) -> &mut B
+    where
+        F: FnOnce() -> B,
+    {
+        match self {
+            Right(right) | Both(_, right) => right,
+            Left(_) => self.insert_right(f()),
+        }
+    }
+
     /// Sets the `left` value of this instance, and returns a mutable reference to it.
     /// Does not affect the `right` value.
     ///
