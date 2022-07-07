@@ -65,13 +65,13 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         // If this is the first iteration, return early
         if self.first {
-            // In empty edge cases, stop iterating immediately
-            return if !(self.indices.is_empty() || self.pool.get_next()) {
-                None
-            // Otherwise, yield the initial state
-            } else {
+            return if self.indices.is_empty() || self.pool.get_next() {
+                // yield the initial state
                 self.first = false;
                 Some(self.current())
+            } else {
+                // In empty edge cases, stop iterating immediately
+                None
             };
         }
 

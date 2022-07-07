@@ -91,16 +91,7 @@ where
         };
         let first_key = key_for(&first);
         let second_key = key_for(&second);
-        if !lt(&second, &first, &second_key, &first_key) {
-            if lt(&first, &min, &first_key, &min_key) {
-                min = first;
-                min_key = first_key;
-            }
-            if !lt(&second, &max, &second_key, &max_key) {
-                max = second;
-                max_key = second_key;
-            }
-        } else {
+        if lt(&second, &first, &second_key, &first_key) {
             if lt(&second, &min, &second_key, &min_key) {
                 min = second;
                 min_key = second_key;
@@ -108,6 +99,15 @@ where
             if !lt(&first, &max, &first_key, &max_key) {
                 max = first;
                 max_key = first_key;
+            }
+        } else {
+            if lt(&first, &min, &first_key, &min_key) {
+                min = first;
+                min_key = first_key;
+            }
+            if !lt(&second, &max, &second_key, &max_key) {
+                max = second;
+                max_key = second_key;
             }
         }
     }
