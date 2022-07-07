@@ -17,9 +17,10 @@ where
     f: F,
 }
 
-impl<I: Clone, F: Clone, C> Clone for CoalesceBy<I, F, C>
+impl<I, F, C> Clone for CoalesceBy<I, F, C>
 where
-    I: Iterator,
+    I: Clone + Iterator,
+    F: Clone,
     C: CountItem<I::Item>,
     C::CItem: Clone,
 {

@@ -2124,8 +2124,7 @@ pub trait Itertools: Iterator {
     /// ```
     fn dropping_back(mut self, n: usize) -> Self
     where
-        Self: Sized,
-        Self: DoubleEndedIterator,
+        Self: Sized + DoubleEndedIterator,
     {
         if n > 0 {
             (&mut self).rev().nth(n - 1);
@@ -3962,7 +3961,7 @@ pub trait Itertools: Iterator {
     }
 }
 
-impl<T: ?Sized> Itertools for T where T: Iterator {}
+impl<T> Itertools for T where T: Iterator + ?Sized {}
 
 /// Return `true` if both iterables produce equal sequences
 /// (elements pairwise equal and sequences of the same length),

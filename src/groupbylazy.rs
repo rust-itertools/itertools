@@ -7,9 +7,9 @@ trait KeyFunction<A> {
     fn call_mut(&mut self, arg: A) -> Self::Key;
 }
 
-impl<A, K, F: ?Sized> KeyFunction<A> for F
+impl<A, K, F> KeyFunction<A> for F
 where
-    F: FnMut(A) -> K,
+    F: FnMut(A) -> K + ?Sized,
 {
     type Key = K;
     #[inline]
@@ -370,10 +370,12 @@ where
 ///
 /// See [`.group_by()`](crate::Itertools::group_by) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct Groups<'a, K: 'a, I: 'a, F: 'a>
+pub struct Groups<'a, K, I, F>
 where
-    I: Iterator,
+    I: Iterator + 'a,
     I::Item: 'a,
+    K: 'a,
+    F: 'a,
 {
     parent: &'a GroupBy<K, I, F>,
 }
@@ -409,10 +411,12 @@ where
 /// An iterator for the elements in a single group.
 ///
 /// Iterator element type is `I::Item`.
-pub struct Group<'a, K: 'a, I: 'a, F: 'a>
+pub struct Group<'a, K, I, F>
 where
-    I: Iterator,
+    I: Iterator + 'a,
     I::Item: 'a,
+    K: 'a,
+    F: 'a,
 {
     parent: &'a GroupBy<K, I, F>,
     index: usize,
@@ -537,9 +541,9 @@ where
 /// See [`.chunks()`](crate::Itertools::chunks) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 #[derive(Clone)]
-pub struct Chunks<'a, I: 'a>
+pub struct Chunks<'a, I>
 where
-    I: Iterator,
+    I: Iterator + 'a,
     I::Item: 'a,
 {
     parent: &'a IntoChunks<I>,
@@ -568,9 +572,9 @@ where
 /// An iterator for the elements in a single chunk.
 ///
 /// Iterator element type is `I::Item`.
-pub struct Chunk<'a, I: 'a>
+pub struct Chunk<'a, I>
 where
-    I: Iterator,
+    I: Iterator + 'a,
     I::Item: 'a,
 {
     parent: &'a IntoChunks<I>,
