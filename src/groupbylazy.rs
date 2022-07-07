@@ -1,7 +1,7 @@
 use std::cell::{Cell, RefCell};
 use alloc::vec::{self, Vec};
 
-/// A trait to unify FnMut for GroupBy with the chunk key in IntoChunks
+/// A trait to unify `FnMut` for `GroupBy` with the chunk key in `IntoChunks`
 trait KeyFunction<A> {
     type Key;
     fn call_mut(&mut self, arg: A) -> Self::Key;
@@ -18,7 +18,7 @@ impl<A, K, F: ?Sized> KeyFunction<A> for F
 }
 
 
-/// ChunkIndex acts like the grouping key function for IntoChunks
+/// `ChunkIndex` acts like the grouping key function for `IntoChunks`
 #[derive(Debug)]
 struct ChunkIndex {
     size: usize,
