@@ -96,17 +96,17 @@ where
 /// See [`.peeking_take_while()`](crate::Itertools::peeking_take_while)
 /// for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct PeekingTakeWhile<'a, I: 'a, F>
+pub struct PeekingTakeWhile<'a, I, F>
 where
-    I: Iterator,
+    I: Iterator + 'a,
 {
     iter: &'a mut I,
     f: F,
 }
 
-impl<'a, I: 'a, F> std::fmt::Debug for PeekingTakeWhile<'a, I, F>
+impl<'a, I, F> std::fmt::Debug for PeekingTakeWhile<'a, I, F>
 where
-    I: Iterator + std::fmt::Debug,
+    I: Iterator + std::fmt::Debug + 'a,
 {
     debug_fmt_fields!(PeekingTakeWhile, iter);
 }

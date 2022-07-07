@@ -166,10 +166,10 @@ where
 ///
 /// assert_eq!(cloned(b"abc").next(), Some(b'a'));
 /// ```
-pub fn cloned<'a, I, T: 'a>(iterable: I) -> iter::Cloned<I::IntoIter>
+pub fn cloned<'a, I, T>(iterable: I) -> iter::Cloned<I::IntoIter>
 where
     I: IntoIterator<Item = &'a T>,
-    T: Clone,
+    T: Clone + 'a,
 {
     iterable.into_iter().cloned()
 }
