@@ -76,8 +76,7 @@ where
         let inner_hint = |inner: &Option<T::IntoIter>| {
             inner
                 .as_ref()
-                .map(Iterator::size_hint)
-                .unwrap_or((0, Some(0)))
+                .map_or((0, Some(0)), Iterator::size_hint)
         };
         let inner_front = inner_hint(&self.inner_front);
         let inner_back = inner_hint(&self.inner_back);

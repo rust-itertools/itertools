@@ -112,7 +112,7 @@ where
         if client < self.oldest_buffered_group {
             return None;
         }
-        let elt = self.buffer.get_mut(bufidx).and_then(|queue| queue.next());
+        let elt = self.buffer.get_mut(bufidx).and_then(Iterator::next);
         if elt.is_none() && client == self.oldest_buffered_group {
             // FIXME: VecDeque is unfortunately not zero allocation when empty,
             // so we do this job manually.

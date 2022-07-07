@@ -226,7 +226,7 @@ where
         #[allow(deprecated)] //TODO: once msrv hits 1.51. replace `fold1` with `reduce`
         self.heap
             .iter()
-            .map(|i| i.size_hint())
+            .map(HeadTail::size_hint)
             .fold1(size_hint::add)
             .unwrap_or((0, Some(0)))
     }

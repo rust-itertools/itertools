@@ -1,3 +1,8 @@
+// Use a Hashmap for the entry API in order to prevent hashing twice.
+// This can maybe be replaced with e a HashSet once `get_or_insert_with`
+// // or a proper Entry API for Hashset is stable and meets the msrv
+#![allow(clippy::zero_sized_map_values)]
+
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::fmt;
@@ -11,9 +16,7 @@ use std::iter::FusedIterator;
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct UniqueBy<I: Iterator, V, F> {
     iter: I,
-    // Use a Hashmap for the Entry API in order to prevent hashing twice.
-    // This can maybe be replaced with a HashSet once `get_or_insert_with`
-    // or a proper Entry API for Hashset is stable and meets this msrv
+    // see comment for `allow(clippy::zero_sized_map_values)` for reasoning
     used: HashMap<V, ()>,
     f: F,
 }

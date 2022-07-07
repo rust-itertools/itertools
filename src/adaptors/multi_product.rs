@@ -123,7 +123,7 @@ where
     /// Returns true if iteration has started and has not yet finished; false
     /// otherwise.
     fn in_progress(&self) -> bool {
-        self.0.last().map_or(false, |last| last.in_progress())
+        self.0.last().map_or(false, MultiProductIter::in_progress)
     }
 }
 
