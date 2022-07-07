@@ -258,6 +258,7 @@ where
         let mut it = get_it();
 
         for _ in 0..(counts.len() - 1) {
+            #[allow(clippy::manual_assert)]
             if it.next().is_none() {
                 panic!("Iterator shouldn't be finished, may not be deterministic");
             }
@@ -1548,6 +1549,7 @@ quickcheck! {
     fn counts(nums: Vec<isize>) -> TestResult {
         let counts = nums.iter().counts();
         for (&item, &count) in counts.iter() {
+            #[allow(clippy::absurd_extreme_comparisons)]
             if count <= 0 {
                 return TestResult::failed();
             }
