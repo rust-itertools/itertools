@@ -123,11 +123,7 @@ where
     /// Returns true if iteration has started and has not yet finished; false
     /// otherwise.
     fn in_progress(&self) -> bool {
-        if let Some(last) = self.0.last() {
-            last.in_progress()
-        } else {
-            false
-        }
+        self.0.last().map_or(false, |last| last.in_progress())
     }
 }
 
