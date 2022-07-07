@@ -1111,7 +1111,7 @@ pub trait Itertools : Iterator {
     /// ```
     #[cfg(feature = "use_alloc")]
     fn multi_cartesian_product(self) -> MultiProduct<<Self::Item as IntoIterator>::IntoIter>
-        where Self: Iterator + Sized,
+        where Self: Sized,
               Self::Item: IntoIterator,
               <Self::Item as IntoIterator>::IntoIter: Clone,
               <Self::Item as IntoIterator>::Item: Clone
