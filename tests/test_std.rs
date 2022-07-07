@@ -364,9 +364,9 @@ fn test_rciter() {
 fn trait_pointers() {
     struct ByRef<'r, I: ?Sized>(&'r mut I);
 
-    impl<'r, X, I: ?Sized> Iterator for ByRef<'r, I>
+    impl<'r, X, I> Iterator for ByRef<'r, I>
     where
-        I: 'r + Iterator<Item = X>,
+        I: ?Sized + 'r + Iterator<Item = X>,
     {
         type Item = X;
         fn next(&mut self) -> Option<Self::Item> {

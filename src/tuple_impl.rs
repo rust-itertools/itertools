@@ -244,7 +244,7 @@ where
 /// information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 #[derive(Debug, Clone)]
-pub struct CircularTupleWindows<I, T: Clone>
+pub struct CircularTupleWindows<I, T>
 where
     I: Iterator<Item = T::Item> + Clone,
     T: TupleCollect + Clone,
