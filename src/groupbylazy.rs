@@ -330,7 +330,7 @@ impl<K, I, F> GroupBy<K, I, F>
 
     /// `client`: Index of group
     fn drop_group(&self, client: usize) {
-        self.inner.borrow_mut().drop_group(client)
+        self.inner.borrow_mut().drop_group(client);
     }
 }
 
@@ -482,7 +482,7 @@ impl<I> IntoChunks<I>
 
     /// `client`: Index of chunk
     fn drop_group(&self, client: usize) {
-        self.inner.borrow_mut().drop_group(client)
+        self.inner.borrow_mut().drop_group(client);
     }
 }
 

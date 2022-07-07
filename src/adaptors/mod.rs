@@ -208,7 +208,7 @@ impl<I> PutBack<I>
     /// If a value is already in the put back slot, it is overwritten.
     #[inline]
     pub fn put_back(&mut self, x: I::Item) {
-        self.top = Some(x)
+        self.top = Some(x);
     }
 }
 

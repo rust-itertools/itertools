@@ -1953,7 +1953,7 @@ pub trait Itertools : Iterator {
         where F: FnMut(Self::Item),
               Self: Sized,
     {
-        self.for_each(f)
+        self.for_each(f);
     }
 
     /// Combine all an iterator's elements into one element by using [`Extend`].
