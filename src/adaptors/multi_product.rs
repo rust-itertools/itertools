@@ -77,16 +77,14 @@ where
         multi_iters: &mut [MultiProductIter<I>],
         mut state: MultiProductIterState,
     ) -> bool {
-        use self::MultiProductIterState::*;
-
         if let Some((last, rest)) = multi_iters.split_last_mut() {
             let on_first_iter = match state {
-                StartOfIter => {
+                MultiProductIterState::StartOfIter => {
                     let on_first_iter = !last.in_progress();
-                    state = MidIter { on_first_iter };
+                    state = MultiProductIterState::MidIter { on_first_iter };
                     on_first_iter
                 }
-                MidIter { on_first_iter } => on_first_iter,
+                MultiProductIterState::MidIter { on_first_iter } => on_first_iter,
             };
 
             if !on_first_iter {
@@ -108,8 +106,8 @@ where
             // Reached end of iterator list. On initialisation, return true.
             // At end of iteration (final iterator finishes), finish.
             match state {
-                StartOfIter => false,
-                MidIter { on_first_iter } => on_first_iter,
+                MultiProductIterState::StartOfIter => false,
+                MultiProductIterState::MidIter { on_first_iter } => on_first_iter,
             }
         }
     }
