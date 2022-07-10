@@ -112,10 +112,14 @@ pub fn rev<I>(iterable: I) -> iter::Rev<I::IntoIter>
 /// ```
 /// use itertools::zip;
 ///
-/// let data = [1, 2, 3, 4, 5];
-/// for (a, b) in zip(&data, &data[1..]) {
-///     /* loop body */
+/// let data_1 = [1, 2, 3, 4, 5];
+/// let data_2 = ['a', 'b', 'c'];
+/// let mut result: Vec<(i32, char)> = Vec::new();
+///
+/// for (a, b) in zip(&data_1, &data_2) {
+///     result.push((*a, *b));
 /// }
+/// assert_eq!(result, vec![(1, 'a'),(2, 'b'),(3, 'c')]);
 /// ```
 pub fn zip<I, J>(i: I, j: J) -> Zip<I::IntoIter, J::IntoIter>
     where I: IntoIterator,
