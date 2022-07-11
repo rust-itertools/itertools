@@ -105,22 +105,23 @@ pub fn rev<I>(iterable: I) -> iter::Rev<I::IntoIter>
     iterable.into_iter().rev()
 }
 
-/// Iterate `i` and `j` in lock step.
+/// Converts the arguments to iterators and zips them.
 ///
 /// [`IntoIterator`] enabled version of [`Iterator::zip`].
+/// 
+/// ## Example
 ///
 /// ```
 /// use itertools::zip;
 ///
-/// let data_1 = [1, 2, 3, 4, 5];
-/// let data_2 = ['a', 'b', 'c'];
 /// let mut result: Vec<(i32, char)> = Vec::new();
 ///
-/// for (a, b) in zip(&data_1, &data_2) {
+/// for (a, b) in zip(&[1, 2, 3, 4, 5], &['a', 'b', 'c']) {
 ///     result.push((*a, *b));
 /// }
 /// assert_eq!(result, vec![(1, 'a'),(2, 'b'),(3, 'c')]);
 /// ```
+#[deprecated(note="Use [std::iter::zip](https://doc.rust-lang.org/std/iter/fn.zip.html) instead", since="0.10.4")]
 pub fn zip<I, J>(i: I, j: J) -> Zip<I::IntoIter, J::IntoIter>
     where I: IntoIterator,
           J: IntoIterator
