@@ -2271,7 +2271,7 @@ pub trait Itertools : Iterator {
     /// ```
     ///
     /// Which, for non-associative functions, will typically produce a different
-    /// result than the linear call tree used by `fold1`:
+    /// result than the linear call tree used by [`Iterator::reduce`](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.reduce):
     ///
     /// ```text
     /// 1 2 3 4 5 6 7
@@ -2279,7 +2279,7 @@ pub trait Itertools : Iterator {
     /// └─f─f─f─f─f─f
     /// ```
     ///
-    /// If `f` is associative, prefer the normal `fold1` instead.
+    /// If `f` is associative, prefer the normal [`Iterator::reduce`](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.reduce) instead.
     ///
     /// ```
     /// use itertools::Itertools;
