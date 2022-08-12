@@ -210,6 +210,7 @@ mod minmax;
 #[cfg(feature = "use_alloc")]
 mod multipeek_impl;
 mod pad_tail;
+mod partitions;
 #[cfg(feature = "use_alloc")]
 mod peek_nth;
 mod peeking_take_while;
