@@ -128,16 +128,21 @@ pub fn zip<I, J>(i: I, j: J) -> Zip<I::IntoIter, J::IntoIter>
     i.into_iter().zip(j)
 }
 
-/// Create an iterator that first iterates `i` and then `j`.
+
+/// Takes two iterables and creates a new iterator over both in sequence. 
 ///
 /// [`IntoIterator`] enabled version of [`Iterator::chain`].
 ///
+/// ## Example
 /// ```
 /// use itertools::chain;
+/// 
+/// let mut result:Vec<i32> = Vec::new();
 ///
-/// for elt in chain(&[1, 2, 3], &[4]) {
-///     /* loop body */
+/// for element in chain(&[1, 2, 3], &[4]) {
+///     result.push(*element);
 /// }
+/// assert_eq!(result, vec![1, 2, 3, 4]);
 /// ```
 pub fn chain<I, J>(i: I, j: J) -> iter::Chain<<I as IntoIterator>::IntoIter, <J as IntoIterator>::IntoIter>
     where I: IntoIterator,
