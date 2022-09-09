@@ -115,6 +115,17 @@ impl<'a, I, F> Iterator for PeekingTakeWhile<'a, I, F>
     }
 }
 
+impl<'a, I, F> PeekingNext for PeekingTakeWhile<'a, I, F>
+    where I: PeekingNext,
+          F: FnMut(&I::Item) -> bool,
+{
+    fn peeking_next<G>(&mut self, accept: G) -> Option<Self::Item>
+        where G: FnOnce(&Self::Item) -> bool,
+    {
+        self.iter.peeking_next(accept)
+    }
+}
+
 // Some iterators are so lightweight we can simply clone them to save their
 // state and use that for peeking.
 macro_rules! peeking_next_by_clone {
