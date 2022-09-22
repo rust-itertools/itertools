@@ -904,7 +904,7 @@ pub trait Itertools : Iterator {
 
     /// Return an iterator adaptor that flattens every `Result::Ok` value into
     /// a series of `Result::Ok` values. `Result::Err` values are unchanged.
-    /// 
+    ///
     /// This is useful when you have some common error type for your crate and
     /// need to propagate it upwards, but the `Result::Ok` case needs to be flattened.
     ///
@@ -914,7 +914,7 @@ pub trait Itertools : Iterator {
     /// let input = vec![Ok(0..2), Err(false), Ok(2..4)];
     /// let it = input.iter().cloned().flatten_ok();
     /// itertools::assert_equal(it.clone(), vec![Ok(0), Ok(1), Err(false), Ok(2), Ok(3)]);
-    /// 
+    ///
     /// // This can also be used to propagate errors when collecting.
     /// let output_result: Result<Vec<i32>, bool> = it.collect();
     /// assert_eq!(output_result, Err(false));
@@ -1810,14 +1810,14 @@ pub trait Itertools : Iterator {
     ///
     /// #[derive(PartialEq, Debug)]
     /// enum Enum { A, B, C, D, E, }
-    /// 
+    ///
     /// let mut iter = vec![Enum::A, Enum::B, Enum::C, Enum::D].into_iter();
-    /// 
+    ///
     /// // search `iter` for `B`
     /// assert_eq!(iter.contains(&Enum::B), true);
     /// // `B` was found, so the iterator now rests at the item after `B` (i.e, `C`).
     /// assert_eq!(iter.next(), Some(Enum::C));
-    /// 
+    ///
     /// // search `iter` for `E`
     /// assert_eq!(iter.contains(&Enum::E), false);
     /// // `E` wasn't found, so `iter` is now exhausted
@@ -2867,13 +2867,13 @@ pub trait Itertools : Iterator {
         group_map::into_group_map_by(self, f)
     }
 
-    /// Constructs a `GroupingMap` to be used later with one of the efficient 
+    /// Constructs a `GroupingMap` to be used later with one of the efficient
     /// group-and-fold operations it allows to perform.
-    /// 
+    ///
     /// The input iterator must yield item in the form of `(K, V)` where the
     /// value of type `K` will be used as key to identify the groups and the
     /// value of type `V` as value for the folding operation.
-    /// 
+    ///
     /// See [`GroupingMap`] for more informations
     /// on what operations are available.
     #[cfg(feature = "use_std")]
@@ -2884,12 +2884,12 @@ pub trait Itertools : Iterator {
         grouping_map::new(self)
     }
 
-    /// Constructs a `GroupingMap` to be used later with one of the efficient 
+    /// Constructs a `GroupingMap` to be used later with one of the efficient
     /// group-and-fold operations it allows to perform.
-    /// 
+    ///
     /// The values from this iterator will be used as values for the folding operation
     /// while the keys will be obtained from the values by calling `key_mapper`.
-    /// 
+    ///
     /// See [`GroupingMap`] for more informations
     /// on what operations are available.
     #[cfg(feature = "use_std")]
@@ -3600,7 +3600,7 @@ pub trait Itertools : Iterator {
     ///   first_name: &'static str,
     ///   last_name:  &'static str,
     /// }
-    /// 
+    ///
     /// let characters =
     ///     vec![
     ///         Character { first_name: "Amy",   last_name: "Pond"      },
@@ -3611,12 +3611,12 @@ pub trait Itertools : Iterator {
     ///         Character { first_name: "James", last_name: "Norington" },
     ///         Character { first_name: "James", last_name: "Kirk"      },
     ///     ];
-    /// 
-    /// let first_name_frequency = 
+    ///
+    /// let first_name_frequency =
     ///     characters
     ///         .into_iter()
     ///         .counts_by(|c| c.first_name);
-    ///     
+    ///
     /// assert_eq!(first_name_frequency["Amy"], 3);
     /// assert_eq!(first_name_frequency["James"], 4);
     /// assert_eq!(first_name_frequency.contains_key("Asha"), false);
@@ -3637,7 +3637,7 @@ pub trait Itertools : Iterator {
     /// column.
     ///
     /// This function is, in some sense, the opposite of [`multizip`].
-    /// 
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
