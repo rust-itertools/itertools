@@ -222,10 +222,10 @@ fn all_equal() {
 
 #[test]
 fn all_equal_value() {
-    assert!("".chars().all_equal_value().is_none());
-    assert_eq!("A".chars().all_equal_value(), Some('A'));
-    assert!("AABBCCC".chars().all_equal_value().is_none());
-    assert_eq!("AAAAAAA".chars().all_equal_value(), Some('A'));
+    assert_eq!("".chars().all_equal_value(), Err(None));
+    assert_eq!("A".chars().all_equal_value(), Ok('A'));
+    assert_eq!("AABBCCC".chars().all_equal_value(), Err(Some(('A', 'B'))));
+    assert_eq!("AAAAAAA".chars().all_equal_value(), Ok('A'));
 }
 
 #[test]
