@@ -1,11 +1,17 @@
 # Changelog
 
+## 0.10.5
+  - Maintenance
+
 ## 0.10.4
   - Add `EitherOrBoth::or` and `EitherOrBoth::or_else` (#593)
   - Add `min_set`, `max_set` et al. (#613, #323)
   - Use `either/use_std` (#628)
   - Documentation fixes (#612, #625, #632, #633, #634, #638)
   - Code maintenance (#623, #624, #627, #630)
+
+## 0.10.3
+  - Maintenance
 
 ## 0.10.2
   - Add `Itertools::multiunzip` (#362, #565)
