@@ -221,6 +221,17 @@ fn all_equal() {
 }
 
 #[test]
+fn equal() {
+    assert_eq!("".chars().all_equal_item(), None);
+    assert_eq!("A".chars().all_equal_item(), Some('A'));
+    assert_eq!("AABBCCC".chars().all_equal_item(), None);
+    assert_eq!("AAAAAAA".chars().all_equal_item(), Some('A'));
+    for (key, mut sub) in &"AABBCCC".chars().group_by(|&x| x) {
+        assert_eq!(sub.all_equal_item(), Some(key));
+    }
+}
+
+#[test]
 fn all_unique() {
     assert!("ABCDEFGH".chars().all_unique());
     assert!(!"ABCDEFGA".chars().all_unique());
