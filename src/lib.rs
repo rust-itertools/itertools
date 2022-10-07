@@ -935,8 +935,8 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let a = (0..11).step(3);
-    /// let b = (0..11).step(5);
+    /// let a = (0..11).step_by(3);
+    /// let b = (0..11).step_by(5);
     /// let it = a.merge(b);
     /// itertools::assert_equal(it, vec![0, 0, 3, 5, 6, 9, 10]);
     /// ```
@@ -991,8 +991,8 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     /// use itertools::EitherOrBoth::{Left, Right, Both};
     ///
-    /// let multiples_of_2 = (0..10).step(2);
-    /// let multiples_of_3 = (0..10).step(3);
+    /// let multiples_of_2 = (0..10).step_by(2);
+    /// let multiples_of_3 = (0..10).step_by(3);
     ///
     /// itertools::assert_equal(
     ///     multiples_of_2.merge_join_by(multiples_of_3, |i, j| i.cmp(j)),
@@ -1018,9 +1018,9 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let a = (0..6).step(3);
-    /// let b = (1..6).step(3);
-    /// let c = (2..6).step(3);
+    /// let a = (0..6).step_by(3);
+    /// let b = (1..6).step_by(3);
+    /// let c = (2..6).step_by(3);
     /// let it = vec![a, b, c].into_iter().kmerge();
     /// itertools::assert_equal(it, vec![0, 1, 2, 3, 4, 5]);
     /// ```
