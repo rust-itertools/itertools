@@ -2950,14 +2950,108 @@ pub trait Itertools: Iterator {
     /// itertools::assert_equal(five_smallest, 0..5);
     /// ```
     #[cfg(feature = "use_alloc")]
-    fn k_smallest(self, k: usize) -> VecIntoIter<Self::Item>
+    fn k_smallest(mut self, k: usize) -> VecIntoIter<Self::Item>
     where
         Self: Sized,
         Self::Item: Ord,
     {
-        crate::k_smallest::k_smallest(self, k)
-            .into_sorted_vec()
-            .into_iter()
+        // The stdlib heap has optimised handling of "holes", which is not included in our heap implementation in k_smallest_general.
+        // While the difference is unlikely to have practical impact unless `Self::Item` is very large, this method uses the stdlib structure
+        // to maintain performance compared to previous versions of the crate.
+        use alloc::collections::BinaryHeap;
+
+        if k == 0 {
+            return Vec::new().into_iter();
+        }
+
+        let mut heap = self.by_ref().take(k).collect::<BinaryHeap<_>>();
+
+        self.for_each(|i| {
+            debug_assert_eq!(heap.len(), k);
+            // Equivalent to heap.push(min(i, heap.pop())) but more efficient.
+            // This should be done with a single `.peek_mut().unwrap()` but
+            //  `PeekMut` sifts-down unconditionally on Rust 1.46.0 and prior.
+            if *heap.peek().unwrap() > i {
+                *heap.peek_mut().unwrap() = i;
+            }
+        });
+
+        heap.into_sorted_vec().into_iter()
+    }
+
+    /// Sort the k smallest elements into a new iterator using the provided comparison.
+    ///
+    /// This corresponds to `self.sorted_by(cmp).take(k)` in the same way that
+    /// [Itertools::k_smallest] corresponds to `self.sorted().take(k)`, in both semantics and complexity.
+    /// Particularly, a custom heap implementation ensures the comparison is not cloned.
+    #[cfg(feature = "use_alloc")]
+    fn k_smallest_by<F>(self, k: usize, cmp: F) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        F: Fn(&Self::Item, &Self::Item) -> Ordering,
+    {
+        k_smallest::k_smallest_general(self, k, cmp).into_iter()
+    }
+
+    /// Return the elements producing the k smallest outputs of the provided function
+    ///
+    /// This corresponds to `self.sorted_by_key(cmp).take(k)` in the same way that
+    /// [Itertools::k_smallest] corresponds to `self.sorted().take(k)`, in both semantics and time complexity.
+    #[cfg(feature = "use_alloc")]
+    fn k_smallest_by_key<F, K>(self, k: usize, key: F) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        F: Fn(&Self::Item) -> K,
+        K: Ord,
+    {
+        self.k_smallest_by(k, k_smallest::key_to_cmp(key))
+    }
+
+    /// Sort the k largest elements into a new iterator, in descending order.
+    /// Semantically equivalent to `k_smallest` with a reversed `Ord`
+    /// However, this is implemented by way of a custom binary heap
+    /// which does not have the same performance characteristics for very large `Self::Item`
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_largest = numbers
+    ///     .into_iter()
+    ///     .k_largest(5);
+    ///
+    /// itertools::assert_equal(five_largest, vec![14,13,12,11,10]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_largest(self, k: usize) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        Self::Item: Ord,
+    {
+        self.k_largest_by(k, Self::Item::cmp)
+    }
+
+    /// Sort the k largest elements into a new iterator using the provided comparison.
+    /// Functionally equivalent to `k_smallest_by` with a reversed `Ord`
+    #[cfg(feature = "use_alloc")]
+    fn k_largest_by<F>(self, k: usize, cmp: F) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        F: Fn(&Self::Item, &Self::Item) -> Ordering,
+    {
+        self.k_smallest_by(k, move |a, b| cmp(b, a))
+    }
+
+    /// Return the elements producing the k largest outputs of the provided function
+    #[cfg(feature = "use_alloc")]
+    fn k_largest_by_key<F, K>(self, k: usize, key: F) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        F: Fn(&Self::Item) -> K,
+        K: Ord,
+    {
+        self.k_largest_by(k, k_smallest::key_to_cmp(key))
     }
 
     /// Collect all iterator elements into one of two

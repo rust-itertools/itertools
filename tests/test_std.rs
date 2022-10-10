@@ -492,23 +492,50 @@ fn sorted_by() {
 }
 
 qc::quickcheck! {
-    fn k_smallest_range(n: u64, m: u16, k: u16) -> () {
+    fn k_smallest_range(n: i64, m: u16, k: u16) -> () {
         // u16 is used to constrain k and m to 0..2¹⁶,
         //  otherwise the test could use too much memory.
-        let (k, m) = (k as u64, m as u64);
+        let (k, m) = (k as usize, m as u64);
 
+        let mut v: Vec<_> = (n..n.saturating_add(m as _)).collect();
         // Generate a random permutation of n..n+m
-        let i = {
-            let mut v: Vec<u64> = (n..n.saturating_add(m)).collect();
-            v.shuffle(&mut thread_rng());
-            v.into_iter()
-        };
+        v.shuffle(&mut thread_rng());
 
-        // Check that taking the k smallest elements yields n..n+min(k, m)
-        it::assert_equal(
-            i.k_smallest(k as usize),
-            n..n.saturating_add(min(k, m))
-        );
+        // Construct the right answers for the top and bottom elements
+        let mut sorted = v.clone();
+        sorted.sort();
+        // how many elements are we checking
+        let num_elements = min(k, m as _);
+
+        // Compute the top and bottom k in various combinations
+        let smallest = v.iter().cloned().k_smallest(k);
+        let smallest_by = v.iter().cloned().k_smallest_by(k, Ord::cmp);
+        let smallest_by_key = v.iter().cloned().k_smallest_by_key(k, |&x| x);
+
+        let largest = v.iter().cloned().k_largest(k);
+        let largest_by = v.iter().cloned().k_largest_by(k, Ord::cmp);
+        let largest_by_key = v.iter().cloned().k_largest_by_key(k, |&x| x);
+
+        // Check the variations produce the same answers and that they're right
+        for (a,b,c,d) in izip!(
+            sorted[..num_elements].iter().cloned(),
+            smallest,
+            smallest_by,
+            smallest_by_key) {
+            assert_eq!(a,b);
+            assert_eq!(a,c);
+            assert_eq!(a,d);
+        }
+
+        for (a,b,c,d) in izip!(
+            sorted[sorted.len()-num_elements..].iter().rev().cloned(),
+            largest,
+            largest_by,
+            largest_by_key) {
+            assert_eq!(a,b);
+            assert_eq!(a,c);
+            assert_eq!(a,d);
+        }
     }
 }
 
