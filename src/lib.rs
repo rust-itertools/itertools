@@ -1858,6 +1858,37 @@ pub trait Itertools : Iterator {
         }
     }
 
+    /// If there are elements and they are all equal, return a single copy of that element.
+    /// If there are no elements, return an Error containing None.
+    /// If there are elements and they are not all equal, return a tuple containing the first
+    /// two non-equal elements found.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![1, 1, 1, 2, 2, 3, 3, 3, 4, 5, 5];
+    /// assert_eq!(data.iter().all_equal_value(), Err(Some((&1, &2))));
+    /// assert_eq!(data[0..3].iter().all_equal_value(), Ok(&1));
+    /// assert_eq!(data[3..5].iter().all_equal_value(), Ok(&2));
+    /// assert_eq!(data[5..8].iter().all_equal_value(), Ok(&3));
+    ///
+    /// let data : Option<usize> = None;
+    /// assert_eq!(data.into_iter().all_equal_value(), Err(None));
+    /// ```
+    fn all_equal_value(&mut self) -> Result<Self::Item, Option<(Self::Item, Self::Item)>>
+        where
+            Self: Sized,
+            Self::Item: PartialEq
+    {
+        let first = self.next().ok_or(None)?;
+        let other = self.find(|x| !(x == &first));
+        if let Some(other) = other {
+            Err(Some((first, other)))
+        } else {
+            Ok(first)
+        }
+    }
+
     /// Check whether all elements are unique (non equal).
     ///
     /// Empty iterators are considered to have unique elements:
