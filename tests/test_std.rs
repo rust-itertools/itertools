@@ -226,6 +226,14 @@ fn all_equal_value() {
     assert_eq!("A".chars().all_equal_value(), Ok('A'));
     assert_eq!("AABBCCC".chars().all_equal_value(), Err(Some(('A', 'B'))));
     assert_eq!("AAAAAAA".chars().all_equal_value(), Ok('A'));
+    {
+        let mut it = [1,2,3].iter().copied();
+        let result = it.all_equal_value();
+        assert_eq!(result, Err(Some((1, 2))));
+        let remaining = it.next();
+        assert_eq!(remaining, Some(3));
+        assert!(it.next().is_none());
+    }
 }
 
 #[test]
