@@ -1881,7 +1881,7 @@ pub trait Itertools : Iterator {
             Self::Item: PartialEq
     {
         let first = self.next().ok_or(None)?;
-        let other = self.find(|x| !(x == &first));
+        let other = self.find(|x| x != &first);
         if let Some(other) = other {
             Err(Some((first, other)))
         } else {
