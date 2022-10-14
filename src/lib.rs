@@ -2655,7 +2655,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// // sort people in descending order by age
-    /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 27)];
+    /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 30)];
     ///
     /// let oldest_people_first = people
     ///     .into_iter()
@@ -2690,7 +2690,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// // sort people in descending order by age
-    /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 27)];
+    /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 30)];
     ///
     /// let oldest_people_first = people
     ///     .into_iter()
@@ -2727,7 +2727,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// // sort people in descending order by age
-    /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 27)];
+    /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 30)];
     ///
     /// let oldest_people_first = people
     ///     .into_iter()
