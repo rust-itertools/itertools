@@ -2257,7 +2257,6 @@ pub trait Itertools : Iterator {
     /// this effectively results in *((0 + 1) + 2) + 3*
     ///
     /// ```
-    /// use std::ops::Add;
     /// use itertools::Itertools;
     ///
     /// let values = [1, 2, -2, -1, 2, 1];
@@ -2331,7 +2330,6 @@ pub trait Itertools : Iterator {
     /// This is the `Option` equivalent to [`try_fold_ok`](Itertools::try_fold_ok).
     ///
     /// ```
-    /// use std::ops::Add;
     /// use itertools::Itertools;
     ///
     /// let mut values = vec![Some(1), Some(2), Some(-2)].into_iter();
