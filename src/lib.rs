@@ -2239,9 +2239,9 @@ pub trait Itertools : Iterator {
     ///
     /// The first accumulator value is the `start` parameter.
     /// Each iteration passes the accumulator value and the next value inside `Ok`
-    /// to the fold function `f`. If this value is `Err`, then the error is
-    /// returned. Otherwise the value inside the `Ok` output is extracted and used
-    /// as the next accumulator value.
+    /// to the fold function `f`. If the output is `Err`, then the error is
+    /// returned. Otherwise the value inside the `Ok` variant is extracted and
+    /// used as the next accumulator value.
     ///
     /// For example the sequence *Ok(1), Ok(2), Ok(3)* will result in a
     /// computation like this:
