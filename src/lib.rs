@@ -2230,6 +2230,64 @@ pub trait Itertools : Iterator {
         Ok(start)
     }
 
+    /// Fallibly fold `Result` values from an iterator.
+    ///
+    /// Only `Ok` values are folded. If no error is encountered, the folded
+    /// value is returned inside `Ok`. Otherwise, the operation terminates
+    /// and returns the first `Err` value it encounters. No iterator elements are
+    /// consumed after the first error.
+    ///
+    /// The first accumulator value is the `start` parameter.
+    /// Each iteration passes the accumulator value and the next value inside `Ok`
+    /// to the fold function `f` and its return value becomes the new accumulator value.
+    ///
+    /// For example the sequence *Ok(1), Ok(2), Ok(3)* will result in a
+    /// computation like this:
+    ///
+    /// ```ignore
+    /// let mut accum = Ok(start);
+    /// accum = accum.and_then(|val| f(val, 1));
+    /// accum = accum.and_then(|val| f(val, 2));
+    /// accum = accum.and_then(|val| f(val, 3));
+    /// ```
+    ///
+    /// With a `start` value of 0 and an addition as folding function,
+    /// this effectively results in *((0 + 1) + 2) + 3*
+    ///
+    /// ```
+    /// use std::ops::Add;
+    /// use itertools::Itertools;
+    ///
+    /// let values = [1, 2, -2, -1, 2, 1];
+    /// assert_eq!(
+    ///     values.iter()
+    ///           .map(Ok::<_, ()>)
+    ///           .try_fold_ok(0, |sum, &elt| Ok(sum + elt)),
+    ///     Ok(3)
+    /// );
+    /// assert!(
+    ///     values.iter()
+    ///           .map(Ok::<_, &'static str>)
+    ///           .try_fold_ok(0, |sum, &elt| if elt >= 0 { Ok(sum + elt) } else { Err("Negative number") })
+    ///           .is_err()
+    /// );
+    /// assert_eq!(
+    ///     values.iter()
+    ///           .map(|x| if x % 2 == 0 { Ok(x) } else { Err("Odd number") })
+    ///           .try_fold_ok(0, |sum, &elt| if elt >= 0 { Ok(sum + elt) } else { Err("Negative number") }),
+    ///     Err("Odd number")
+    /// );
+    /// ```
+    fn try_fold_ok<A, E, B, F>(&mut self, mut start: B, mut f: F) -> Result<B, E>
+        where Self: Iterator<Item = Result<A, E>>,
+              F: FnMut(B, A) -> Result<B, E>
+    {
+        for result_elt in self {
+            start = result_elt.and_then(|elt| f(start, elt))?;
+        }
+        Ok(start)
+    }
+
     /// Fold `Option` values from an iterator.
     ///
     /// Only `Some` values are folded. If no `None` is encountered, the folded
@@ -2258,6 +2316,39 @@ pub trait Itertools : Iterator {
                 Some(v) => start = f(start, v),
                 None => return None,
             }
+        }
+        Some(start)
+    }
+
+    /// Fallibly fold `Option` values from an iterator.
+    ///
+    /// Only `Some` values are folded. If no `None` is encountered, the folded
+    /// value is returned inside `Some`. Otherwise, the operation terminates
+    /// and returns `None`. No iterator elements are consumed after the `None`.
+    ///
+    /// This is the `Option` equivalent to [`try_fold_ok`](Itertools::try_fold_ok).
+    ///
+    /// ```
+    /// use std::ops::Add;
+    /// use itertools::Itertools;
+    ///
+    /// let mut values = vec![Some(1), Some(2), Some(-2)].into_iter();
+    /// assert_eq!(values.try_fold_options(5, |sum, elt| Some(sum + elt)), Some(5 + 1 + 2 - 2));
+    ///
+    /// let mut more_values = vec![Some(2), None, Some(0)].into_iter();
+    /// assert!(more_values.try_fold_options(0, |sum, elt| Some(sum + elt)).is_none());
+    /// assert_eq!(more_values.next().unwrap(), Some(0));
+    ///
+    /// let mut even_more_values = vec![Some(1), None, Some(0)].into_iter();
+    /// assert!(even_more_values.try_fold_options(0, |sum, elt| if elt % 2 == 0 { Some(sum + elt) } else { None }).is_none());
+    /// assert_eq!(even_more_values.next().unwrap(), None);
+    /// ```
+    fn try_fold_options<A, B, F>(&mut self, mut start: B, mut f: F) -> Option<B>
+        where Self: Iterator<Item = Option<A>>,
+              F: FnMut(B, A) -> Option<B>
+    {
+        for maybe_elt in self {
+            start = maybe_elt.and_then(|elt| f(start, elt))?;
         }
         Some(start)
     }
