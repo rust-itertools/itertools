@@ -194,7 +194,7 @@ impl<I, T> FusedIterator for TupleWindows<I, T>
           T::Item: Clone
 {}
 
-/// An iterator over all windows,wrapping back to the first elements when the
+/// An iterator over all windows, wrapping back to the first elements when the
 /// window would otherwise exceed the length of the iterator, producing tuples
 /// of a specific size.
 ///
