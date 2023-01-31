@@ -8,14 +8,19 @@ on:
       - trying
 
 jobs:
-
   check:
     name: check
     runs-on: ubuntu-latest
     strategy:
       matrix:
         build: [msrv, stable]
-        features: ["", "--no-default-features", "--no-default-features --features use_alloc",  "--all-targets --all-features"]
+        features:
+          [
+            "",
+            "--no-default-features",
+            "--no-default-features --features use_alloc",
+            "--all-targets --all-features",
+          ]
         include:
           - build: msrv
             rust: 1.62.1
@@ -40,13 +45,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo test --all-features
 
-
   # https://github.com/rust-lang/crater/blob/9ab6f9697c901c4a44025cf0a39b73ad5b37d198/.github/workflows/bors.yml#L125-L149
   end-success:
     name: bors build finished
     if: success()
     runs-on: ubuntu-latest
-    needs: [msrv,stable]
+    needs: [check, test]
 
     steps:
       - name: Mark the job as successful
