@@ -926,6 +926,43 @@ pub trait Itertools : Iterator {
         flatten_ok::flatten_ok(self)
     }
 
+    /// “Lift” a function of the values of the current iterator so as to process
+    /// an iterator of `Result` values instead.
+    ///
+    /// `processor` is a closure that receives an adapted version of the iterator
+    /// as the only argument — the adapted iterator produces elements of type `T`,
+    /// as long as the original iterator produces `Ok` values.
+    ///
+    /// If the original iterable produces an error at any point, the adapted
+    /// iterator ends and it will return the error iself.
+    ///
+    /// Otherwise, the return value from the closure is returned wrapped
+    /// inside `Ok`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// type Item = Result<i32, &'static str>;
+    ///
+    /// let first_values: Vec<Item> = vec![Ok(1), Ok(0), Ok(3)];
+    /// let second_values: Vec<Item> = vec![Ok(2), Ok(1), Err("overflow")];
+    ///
+    /// // “Lift” the iterator .max() method to work on the Ok-values.
+    /// let first_max = first_values.into_iter().process_results(|iter| iter.max().unwrap_or(0));
+    /// let second_max = second_values.into_iter().process_results(|iter| iter.max().unwrap_or(0));
+    ///
+    /// assert_eq!(first_max, Ok(3));
+    /// assert!(second_max.is_err());
+    /// ```
+    fn process_results<F, T, E, R>(self, processor: F) -> Result<R, E>
+        where Self: Iterator<Item = Result<T, E>> + Sized,
+              F: FnOnce(ProcessResults<Self, E>) -> R
+    {
+        process_results(self, processor)
+    }
+
     /// Return an iterator adaptor that merges the two base iterators in
     /// ascending order.  If both base iterators are sorted (ascending), the
     /// result is sorted.
