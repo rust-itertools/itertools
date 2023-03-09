@@ -4,6 +4,8 @@ use rand::{seq::SliceRandom, thread_rng};
 use std::{cmp::min, fmt::Debug, marker::PhantomData};
 use itertools as it;
 use crate::it::Itertools;
+#[cfg(feature = "lending_iters")]
+use crate::it::LendingIterator;
 use crate::it::ExactlyOneError;
 use crate::it::multizip;
 use crate::it::multipeek;
@@ -867,6 +869,7 @@ fn concat_non_empty() {
 
 #[test]
 fn combinations() {
+
     assert!((1..3).combinations(5).next().is_none());
 
     let it = (1..3).combinations(2);
@@ -883,6 +886,8 @@ fn combinations() {
         vec![2, 4],
         vec![3, 4],
         ]);
+
+
 
     it::assert_equal((0..0).tuple_combinations::<(_, _)>(), <Vec<_>>::new());
     it::assert_equal((0..1).tuple_combinations::<(_, _)>(), <Vec<_>>::new());
@@ -908,6 +913,61 @@ fn combinations_zero() {
     it::assert_equal((1..3).combinations(0), vec![vec![]]);
     it::assert_equal((0..0).combinations(0), vec![vec![]]);
 }
+
+#[test]
+#[cfg(feature = "lending_iters")]
+fn combinations_lending_feature_parity_to_non_lending() {
+    assert!((1..3).combinations_lending(5).next().is_none());
+
+    let it = (1..3).combinations_lending(2).map_into_iter(|x| x.collect_vec()).collect::<Vec<_>>();
+    it::assert_equal(it, vec![
+        vec![1, 2],
+        ]);
+
+    let mut out = Vec::new();
+    for i in (1..3).combinations_lending(2) {
+        out.push(i);
+    }
+    it::assert_equal(out, vec![vec![1, 2]]);
+
+    let it = (1..5).combinations_lending(2).collect_nested_vec();
+    it::assert_equal(it, vec![
+        vec![1, 2],
+        vec![1, 3],
+        vec![1, 4],
+        vec![2, 3],
+        vec![2, 4],
+        vec![3, 4],
+        ]);
+
+    it::assert_equal((0..0).combinations_lending(2).map_into_iter(|x| x.collect_vec()).collect_vec(), <Vec<Vec<_>>>::new());
+
+    it::assert_equal((0..1).combinations_lending(1).collect_nested_vec(), vec![vec![0]]);
+    it::assert_equal((0..2).combinations_lending(1).collect_nested_vec(), vec![vec![0], vec![1]]);
+    it::assert_equal((0..2).combinations_lending(2).collect_nested_vec(), vec![vec![0, 1]]);
+
+    for i in 1..10 {
+    assert!((0..0).combinations_lending(i).next().is_none());
+    assert!((0..i - 1).combinations_lending(i).next().is_none());
+
+    }
+    it::assert_equal((1..3).combinations_lending(0), vec![vec![]]);
+    it::assert_equal((0..0).combinations_lending(0), vec![vec![]]);
+
+    it::assert_equal((1..3).combinations(0), (1..3).combinations_lending(0));
+    it::assert_equal((0..0).combinations(0), (0..0).combinations_lending(0));
+    assert_eq!((1..3).combinations(0).collect_vec(), (1..3).combinations_lending(0).collect_nested_vec()); // Should match exactly including type.
+    it::assert_equal((0..0).combinations(0), (0..0).combinations_lending(0));
+}
+
+// Below shouldn't compile because of attempt to reference an already mut reference.
+// #[test]
+// fn combinations_lending_cant_double_mut() {
+//     let mut out = (1..4).combinations_lending(2);
+//     let mut combination = out.next().unwrap();
+//     let combination2 = out.next().unwrap();
+//     combination.next();
+// }
 
 #[test]
 fn permutations_zero() {

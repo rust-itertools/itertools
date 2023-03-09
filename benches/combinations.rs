@@ -1,3 +1,5 @@
+use std::collections::{HashSet, VecDeque};
+
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use itertools::Itertools;
 
@@ -110,6 +112,91 @@ fn comb_c14(c: &mut Criterion) {
     });
 }
 
+fn comb_single_use(c: &mut Criterion) {
+    c.bench_function("comb single use", move |b| {
+        b.iter(|| {
+            let mut combination_bitmask = 0usize;
+            (0..N14).combinations(14).for_each(|combo| {
+                let compared_bitmask = 0b101010101010101011110000usize;
+                combo.into_iter().for_each(|bit_pos| {
+                    combination_bitmask |= 1 << bit_pos;
+                });
+                black_box((combination_bitmask & compared_bitmask).count_ones());
+            });
+        })
+    });
+}
+
+fn comb_into_hash_set(c: &mut Criterion) {
+    c.bench_function("comb into hash set", move |b| {
+        b.iter(|| {
+            (0..N14).combinations(14).for_each(|combo| {
+                black_box({
+                    let mut out = HashSet::with_capacity(14);
+                    out.extend(combo);
+                    out
+                });
+            });
+        })
+    });
+}
+
+fn comb_into_vec_deque(c: &mut Criterion) {
+    c.bench_function("comb into vec deque", move |b| {
+        b.iter(|| {
+            (0..N14).combinations(14).for_each(|combo| {
+                black_box(VecDeque::from(combo));
+            });
+        })
+    });
+}
+
+fn comb_into_slice(c: &mut Criterion) {
+    c.bench_function("comb into slice", move |b| {
+        b.iter(|| {
+            (0..N14).combinations(14).for_each(|combo| {
+                black_box({
+                    let mut out = [0; 14];
+                    let mut combo_iter = combo.into_iter();
+                    out.fill_with(|| combo_iter.next().unwrap_or_default());
+                    out
+                });
+            });
+        })
+    });
+}
+
+fn comb_into_slice_unchecked(c: &mut Criterion) {
+    c.bench_function("comb into slice unchecked", move |b| {
+        b.iter(|| {
+            (0..N14).combinations(14).for_each(|combo| {
+                black_box({
+                    let mut out = [0; 14];
+                    let mut combo_iter = combo.into_iter();
+                    out.fill_with(|| combo_iter.next().unwrap());
+                    out
+                });
+            });
+        })
+    });
+}
+
+fn comb_into_slice_for_loop(c: &mut Criterion) {
+    c.bench_function("comb into slice for loop", move |b| {
+        b.iter(|| {
+            (0..N14).combinations(14).for_each(|combo| {
+                black_box({
+                    let mut out = [0; 14];
+                    for (i, elem) in combo.into_iter().enumerate() {
+                        out[i] = elem;
+                    }
+                    out
+                });
+            });
+        })
+    });
+}
+
 criterion_group!(
     benches,
     comb_for1,
@@ -121,5 +208,12 @@ criterion_group!(
     comb_c3,
     comb_c4,
     comb_c14,
+    comb_single_use,
+    comb_into_hash_set,
+    comb_into_vec_deque,
+    comb_into_slice,
+    comb_into_slice_unchecked,
+    comb_into_slice_for_loop,
 );
+
 criterion_main!(benches);
