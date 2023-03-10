@@ -113,7 +113,7 @@ pub mod structs {
     #[cfg(feature = "use_alloc")]
     pub use crate::adaptors::MultiProduct;
     #[cfg(feature = "use_alloc")]
-    pub use crate::combinations::{Combinations};
+    pub use crate::combinations::Combinations;
     #[cfg(feature = "lending_iters")]
     pub use crate::combinations::{Lending, NonLending, lending::{Combination, LendingIterator}};
     #[cfg(feature = "use_alloc")]
@@ -1536,7 +1536,7 @@ pub trait Itertools : Iterator {
     /// ```
     /// use itertools::{Itertools, LendingIterator};
     ///
-    /// let it = vec![1, 2, 2].into_iter().combinations(2);
+    /// let it = vec![1, 2, 2].into_iter().combinations_lending(2);
     /// itertools::assert_equal(it, vec![
     ///     vec![1, 2], // Note: these are the same
     ///     vec![1, 2], // Note: these are the same

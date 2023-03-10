@@ -869,7 +869,6 @@ fn concat_non_empty() {
 
 #[test]
 fn combinations() {
-
     assert!((1..3).combinations(5).next().is_none());
 
     let it = (1..3).combinations(2);
@@ -886,8 +885,6 @@ fn combinations() {
         vec![2, 4],
         vec![3, 4],
         ]);
-
-
 
     it::assert_equal((0..0).tuple_combinations::<(_, _)>(), <Vec<_>>::new());
     it::assert_equal((0..1).tuple_combinations::<(_, _)>(), <Vec<_>>::new());
@@ -951,6 +948,7 @@ fn combinations_lending_feature_parity_to_non_lending() {
     assert!((0..i - 1).combinations_lending(i).next().is_none());
 
     }
+
     it::assert_equal((1..3).combinations_lending(0), vec![vec![]]);
     it::assert_equal((0..0).combinations_lending(0), vec![vec![]]);
 

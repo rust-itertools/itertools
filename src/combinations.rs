@@ -38,7 +38,7 @@ where
     debug_fmt_fields!(Combinations, indices, pool, first);
 }
 
-/// Create a new `Iterator` from an iterator.
+/// Create a new `Combinations` `Iterator` from an iterator.
 pub fn combinations<I>(iter: I, k: usize) -> Combinations<I>
 where
     I: Iterator,
@@ -137,7 +137,7 @@ where
             }
         }
 
-        // Create result vector based on the indices
+        // Create result vector based on the indices. If there is a combination it is always of length k.
         let mut out = Vec::with_capacity(self.k());
         out.extend(self.indices.iter().map(|i| self.pool[*i].clone()));
         Some(out)
@@ -156,7 +156,7 @@ pub mod lending {
     use super::*;
     pub use lending_iterator::prelude::{gat, LendingIterator, LendingIteratorඞItem};
 
-    /// Create a new `LendingIterator` from an iterator.
+    /// Create a new `Combinations` `LendingIterator` from an iterator.
     pub fn combinations_lending<I>(iter: I, k: usize) -> Combinations<I, Lending>
     where
         I: Iterator,
