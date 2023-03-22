@@ -61,6 +61,45 @@ impl<I: Iterator, State> Combinations<I, State> {
         self.indices.len()
     }
 
+    #[inline]
+    /// Does all calculation required to for next combination. Shared between lending and non-lending implementations.
+    /// Returns false if no next combination. Returns true if there is.
+    fn next_combination_logic(&mut self) -> bool {
+        if self.first {
+            if self.k() > self.n() {
+                return false;
+            }
+            self.first = false;
+        } else if self.indices.is_empty() {
+            return false;
+        } else {
+            // Scan from the end, looking for an index to increment
+            let mut i: usize = self.indices.len() - 1;
+
+            // Check if we need to consume more from the iterator
+            if self.indices[i] == self.pool.len() - 1 {
+                self.pool.get_next(); // may change pool size
+            }
+
+            while self.indices[i] == i + self.pool.len() - self.indices.len() {
+                if i > 0 {
+                    i -= 1;
+                } else {
+                    // Reached the last combination
+                    return false;
+                }
+            }
+
+            // Increment index, and reset the ones to its right
+            self.indices[i] += 1;
+            for j in i + 1..self.indices.len() {
+                self.indices[j] = self.indices[j - 1] + 1;
+            }
+        }
+
+        true // next combination exists
+    }
+
     /// Returns the (current) length of the pool from which combination elements are
     /// selected. This value can change between invocations of [`next`](Combinations::next).
     #[inline]
@@ -105,36 +144,9 @@ where
 {
     type Item = Vec<I::Item>;
     fn next(&mut self) -> Option<Self::Item> {
-        if self.first {
-            if self.k() > self.n() {
-                return None;
-            }
-            self.first = false;
-        } else if self.indices.is_empty() {
+        let next_comb_exists = self.next_combination_logic();
+        if !next_comb_exists {
             return None;
-        } else {
-            // Scan from the end, looking for an index to increment
-            let mut i: usize = self.indices.len() - 1;
-
-            // Check if we need to consume more from the iterator
-            if self.indices[i] == self.pool.len() - 1 {
-                self.pool.get_next(); // may change pool size
-            }
-
-            while self.indices[i] == i + self.pool.len() - self.indices.len() {
-                if i > 0 {
-                    i -= 1;
-                } else {
-                    // Reached the last combination
-                    return None;
-                }
-            }
-
-            // Increment index, and reset the ones to its right
-            self.indices[i] += 1;
-            for j in i + 1..self.indices.len() {
-                self.indices[j] = self.indices[j - 1] + 1;
-            }
         }
 
         // Create result vector based on the indices. If there is a combination it is always of length k.
@@ -183,36 +195,9 @@ pub mod lending {
             Self: 'next,
         = Combination<'next, I>;
         fn next(&mut self) -> Option<Combination<I>> {
-            if self.first {
-                if self.k() > self.n() {
-                    return None;
-                }
-                self.first = false;
-            } else if self.indices.is_empty() {
+            let next_comb_exists = self.next_combination_logic();
+            if !next_comb_exists {
                 return None;
-            } else {
-                // Scan from the end, looking for an index to increment
-                let mut i: usize = self.indices.len() - 1;
-
-                // Check if we need to consume more from the iterator
-                if self.indices[i] == self.pool.len() - 1 {
-                    self.pool.get_next(); // may change pool size
-                }
-
-                while self.indices[i] == i + self.pool.len() - self.indices.len() {
-                    if i > 0 {
-                        i -= 1;
-                    } else {
-                        // Reached the last combination
-                        return None;
-                    }
-                }
-
-                // Increment index, and reset the ones to its right
-                self.indices[i] += 1;
-                for j in i + 1..self.indices.len() {
-                    self.indices[j] = self.indices[j - 1] + 1;
-                }
             }
 
             // Create result vector based on the indices
