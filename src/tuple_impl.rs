@@ -201,7 +201,7 @@ impl<I, T> FusedIterator for TupleWindows<I, T>
 /// See [`.circular_tuple_windows()`](crate::Itertools::circular_tuple_windows) for more
 /// information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CircularTupleWindows<I, T: Clone>
     where I: Iterator<Item = T::Item> + Clone,
           T: TupleCollect + Clone
