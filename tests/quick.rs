@@ -994,6 +994,17 @@ quickcheck! {
 }
 
 quickcheck! {
+    fn chunk_clone_equal(a: Vec<u8>, size: u8) -> () {
+        let mut size = size;
+        if size == 0 {
+            size += 1;
+        }
+        let it = a.chunks(size as usize);
+        itertools::assert_equal(it.clone(), it);
+    }
+}
+
+quickcheck! {
     fn equal_chunks_lazy(a: Vec<u8>, size: u8) -> bool {
         let mut size = size;
         if size == 0 {
