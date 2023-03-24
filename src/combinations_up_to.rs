@@ -7,10 +7,9 @@ use std::iter::FusedIterator;
 /// See [`.combinations_up_to()`](Itertools::combinations_up_to) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct CombinationsUpTo<I: Iterator> {
-    end: bool,
-    k: usize,
-    orig_iter: I,
     iter: Combinations<I>,
+    orig_iter: I,
+    end: bool,
 }
 
 impl<I> Clone for CombinationsUpTo<I>
@@ -36,10 +35,9 @@ pub fn combinations_up_to<I>(iter: I, k: usize) -> CombinationsUpTo<I>
         I::Item: Clone,
 {
     CombinationsUpTo {
-        end: false,
-        k,
         iter: iter.clone().combinations(k),
         orig_iter: iter,
+        end: false,
     }
 }
 
@@ -59,8 +57,7 @@ impl<I> Iterator for CombinationsUpTo<I>
             }
             Some(result)
         } else {
-            self.k -= 1;
-            self.iter = self.orig_iter.clone().combinations(self.k);
+            self.iter = self.orig_iter.clone().combinations(self.iter.k() - 1);
             let result = self.iter.next();
             if let Some(result) = &result {
                 if result.is_empty() {
