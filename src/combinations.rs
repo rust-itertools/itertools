@@ -200,8 +200,7 @@ pub mod lending {
                 return None;
             }
 
-            // Create result vector based on the indices
-            // let out: () = Some(self.indices.iter().map(|i| self.pool[*i].clone()));
+            // Create result iterator based on the indices.
             Some(Combination {
                 combinations: &*self,
                 index: 0,
