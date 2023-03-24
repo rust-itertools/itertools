@@ -1010,7 +1010,71 @@ quickcheck! {
     }
 }
 
+// tuple iterators
 quickcheck! {
+    fn equal_circular_tuple_windows_1(a: Vec<u8>) -> bool {
+        let x = a.iter().map(|e| (e,) );
+        let y = a.iter().circular_tuple_windows::<(_,)>();
+        itertools::assert_equal(x,y);
+        true
+    }
+
+    fn equal_circular_tuple_windows_2(a: Vec<u8>) -> bool {
+        let x = (0..a.len()).map(|start_idx| (
+            &a[start_idx],
+            &a[(start_idx + 1) % a.len()],
+        ));
+        let y = a.iter().circular_tuple_windows::<(_, _)>();
+        itertools::assert_equal(x,y);
+        true
+    }
+
+    fn equal_circular_tuple_windows_3(a: Vec<u8>) -> bool {
+        let x = (0..a.len()).map(|start_idx| (
+            &a[start_idx],
+            &a[(start_idx + 1) % a.len()],
+            &a[(start_idx + 2) % a.len()],
+        ));
+        let y = a.iter().circular_tuple_windows::<(_, _, _)>();
+        itertools::assert_equal(x,y);
+        true
+    }
+
+    fn equal_circular_tuple_windows_4(a: Vec<u8>) -> bool {
+        let x = (0..a.len()).map(|start_idx| (
+            &a[start_idx],
+            &a[(start_idx + 1) % a.len()],
+            &a[(start_idx + 2) % a.len()],
+            &a[(start_idx + 3) % a.len()],
+        ));
+        let y = a.iter().circular_tuple_windows::<(_, _, _, _)>();
+        itertools::assert_equal(x,y);
+        true
+    }
+
+    fn equal_cloned_circular_tuple_windows(a: Vec<u8>) -> bool {
+        let x = a.iter().circular_tuple_windows::<(_, _, _, _)>();
+        let y = x.clone();
+        itertools::assert_equal(x,y);
+        true
+    }
+
+    fn equal_cloned_circular_tuple_windows_noninitial(a: Vec<u8>) -> bool {
+        let mut x = a.iter().circular_tuple_windows::<(_, _, _, _)>();
+        let _ = x.next();
+        let y = x.clone();
+        itertools::assert_equal(x,y);
+        true
+    }
+
+    fn equal_cloned_circular_tuple_windows_complete(a: Vec<u8>) -> bool {
+        let mut x = a.iter().circular_tuple_windows::<(_, _, _, _)>();
+        for _ in x.by_ref() {}
+        let y = x.clone();
+        itertools::assert_equal(x,y);
+        true
+    }
+
     fn equal_tuple_windows_1(a: Vec<u8>) -> bool {
         let x = a.windows(1).map(|s| (&s[0], ));
         let y = a.iter().tuple_windows::<(_,)>();
