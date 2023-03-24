@@ -115,6 +115,8 @@ pub mod structs {
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations::Combinations;
     #[cfg(feature = "use_alloc")]
+    pub use crate::combinations_up_to::CombinationsUpTo;
+    #[cfg(feature = "use_alloc")]
     pub use crate::combinations_with_replacement::CombinationsWithReplacement;
     pub use crate::cons_tuples_impl::ConsTuples;
     pub use crate::exactly_one_err::ExactlyOneError;
@@ -192,6 +194,8 @@ mod concat_impl;
 mod cons_tuples_impl;
 #[cfg(feature = "use_alloc")]
 mod combinations;
+#[cfg(feature = "use_alloc")]
+mod combinations_up_to;
 #[cfg(feature = "use_alloc")]
 mod combinations_with_replacement;
 mod exactly_one_err;
@@ -1522,6 +1526,59 @@ pub trait Itertools : Iterator {
               Self::Item: Clone
     {
         combinations::combinations(self, k)
+    }
+
+    /// Return an iterator adaptor that iterates over the up to `k`-length combinations of
+    /// the elements from an iterator.
+    ///
+    /// Iterator element type is `Vec<Self::Item>`. The iterator produces a new Vec per iteration,
+    /// and clones the iterator elements.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let it = (1..5).combinations_up_to(3);
+    /// itertools::assert_equal(it, vec![
+    ///     vec![1, 2, 3],
+    ///     vec![1, 2, 4],
+    ///     vec![1, 3, 4],
+    ///     vec![2, 3, 4],
+    ///     vec![1, 2],
+    ///     vec![1, 3],
+    ///     vec![1, 4],
+    ///     vec![2, 3],
+    ///     vec![2, 4],
+    ///     vec![3, 4],
+    ///     vec![1],
+    ///     vec![2],
+    ///     vec![3],
+    ///     vec![4],
+    ///     vec![]
+    /// ]);
+    /// ```
+    ///
+    /// Note: Combinations does not take into account the equality of the iterated values.
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let it = vec![1, 2, 2].into_iter().combinations_up_to(2);
+    /// itertools::assert_equal(it, vec![
+    ///     vec![1, 2], // Note: these are the same
+    ///     vec![1, 2], // Note: these are the same
+    ///     vec![2, 2],
+    ///     vec![1],
+    ///     vec![2],
+    ///     vec![2],
+    ///     vec![]
+    /// ]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn combinations_up_to(self, k: usize) -> CombinationsUpTo<Self>
+        where
+            Self: Sized + Clone,
+            Self::Item: Clone,
+    {
+        combinations_up_to::combinations_up_to(self, k)
     }
 
     /// Return an iterator that iterates over the `k`-length combinations of
