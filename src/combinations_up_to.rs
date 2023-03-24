@@ -17,7 +17,7 @@ impl<I> Clone for CombinationsUpTo<I>
         I: Clone + Iterator,
         I::Item: Clone,
 {
-    clone_fields!(end, k, orig_iter, iter);
+    clone_fields!(iter, orig_iter, end);
 }
 
 impl<I> fmt::Debug for CombinationsUpTo<I>
@@ -25,7 +25,7 @@ impl<I> fmt::Debug for CombinationsUpTo<I>
         I: fmt::Debug + Iterator,
         I::Item: fmt::Debug,
 {
-    debug_fmt_fields!(CombinationsUpTo, end, k, orig_iter, iter);
+    debug_fmt_fields!(CombinationsUpTo, iter, orig_iter, end);
 }
 
 #[inline]
