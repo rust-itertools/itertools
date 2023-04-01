@@ -244,7 +244,15 @@ impl<T> EitherOrBoth<T, T> {
 }
 
 impl<T: Ord> EitherOrBoth<T, T> {
-    /// Return max of all existing values
+    /// Return max of all existing values.
+    /// # Examples
+    /// 
+    /// ```
+    /// # use itertools::EitherOrBoth;
+    /// assert_eq!(EitherOrBoth::Both(2, 3).max(), 3);
+    /// assert_eq!(EitherOrBoth::Right(2).max(), 2);
+    /// assert_eq!(EitherOrBoth::Right(1).max(), 1);
+    /// ```
     pub fn max(self) -> T {
         match self {
             Both(a, b) => a.max(b),
@@ -252,7 +260,15 @@ impl<T: Ord> EitherOrBoth<T, T> {
             Right(b) => b
         }
     }
-    /// Return minimum of all existing values
+    /// Return minimum of all existing values.
+    /// # Examples
+    /// 
+    /// ```
+    /// # use itertools::EitherOrBoth;
+    /// assert_eq!(EitherOrBoth::Both(2, 3).min(), 2);
+    /// assert_eq!(EitherOrBoth::Right(2).min(), 2);
+    /// assert_eq!(EitherOrBoth::Left(1).min(), 1);
+    /// ```
     pub fn min(self) -> T {
         match self {
             Both(a, b) => a.min(b),
