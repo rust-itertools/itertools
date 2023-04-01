@@ -243,6 +243,25 @@ impl<T> EitherOrBoth<T, T> {
     }
 }
 
+impl<T: Ord> EitherOrBoth<T, T> {
+    /// Return max of all existing values
+    pub fn max(self) -> T {
+        match self {
+            Both(a, b) => a.max(b),
+            Left(a) => a,
+            Right(b) => b
+        }
+    }
+    /// Return minimum of all existing values
+    pub fn min(self) -> T {
+        match self {
+            Both(a, b) => a.min(b),
+            Left(a) => a,
+            Right(b) => b
+        }
+    }
+}
+
 impl<A, B> Into<Option<Either<A, B>>> for EitherOrBoth<A, B> {
     fn into(self) -> Option<Either<A, B>> {
         match self {
