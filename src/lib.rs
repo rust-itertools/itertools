@@ -3127,7 +3127,7 @@ pub trait Itertools : Iterator {
         )
     }
 
-    /// Return all minimum elements of an iterator, as determined by
+    /// Return all maximum elements of an iterator, as determined by
     /// the specified function.
     ///
     /// # Examples
