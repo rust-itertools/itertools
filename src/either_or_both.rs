@@ -230,7 +230,16 @@ impl<A, B> EitherOrBoth<A, B> {
 }
 
 impl<T> EitherOrBoth<T, T> {
-    /// Return either value of left, right, or the product of `f` applied where `Both` are present.
+    /// Return either value of left, right, or apply a function `f` to both values if both are present.
+    /// The input function has to return the same type as both Right and Left carry.
+    /// 
+    /// # Examples
+    /// ```
+    /// # use itertools::EitherOrBoth;
+    /// assert_eq!(EitherOrBoth::Both(3, 7).reduce(u32::max), 7);
+    /// assert_eq!(EitherOrBoth::Left(3).reduce(u32::max), 3);
+    /// assert_eq!(EitherOrBoth::Right(7).reduce(u32::max), 7);
+    /// ```
     pub fn reduce<F>(self, f: F) -> T
     where
         F: FnOnce(T, T) -> T,
