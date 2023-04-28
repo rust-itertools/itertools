@@ -865,6 +865,51 @@ fn concat_non_empty() {
     assert_eq!(data.into_iter().concat(), vec![1,2,3,4,5,6,7,8,9])
 }
 
+
+#[test]
+fn combinations_by_len() {
+    let it = it::combinations_by_len(1..3, 0);
+    it::assert_equal(it, vec![
+        vec![],
+    ]);
+
+    let it = it::combinations_by_len(1..3, 1);
+    it::assert_equal(it, vec![
+        vec![1],
+        vec![2],
+    ]);
+
+    let it = it::combinations_by_len(1..3, 2);
+    it::assert_equal(it, vec![
+        vec![1, 2],
+    ]);
+
+    assert!(it::combinations_by_len(1..3, 3).next().is_none());
+
+    let it = it::combinations_by_len(1..5, 2);
+    it::assert_equal(it, vec![
+        vec![1, 2],
+        vec![1, 3],
+        vec![2, 3],
+        vec![1, 4],
+        vec![2, 4],
+        vec![3, 4],
+        ]);
+
+    let mut it = it::combinations_by_len(1..,3);
+    assert_eq!(it.next(), Some(vec![1,2,3]));
+    assert_eq!(it.next(), Some(vec![1,2,4]));
+    assert_eq!(it.next(), Some(vec![1,3,4]));
+    assert_eq!(it.next(), Some(vec![2,3,4]));
+    assert_eq!(it.next(), Some(vec![1,2,5]));
+    assert_eq!(it.next(), Some(vec![1,3,5]));
+    assert_eq!(it.next(), Some(vec![1,4,5]));
+    assert_eq!(it.next(), Some(vec![2,3,5]));
+    assert_eq!(it.next(), Some(vec![2,4,5]));
+    assert_eq!(it.next(), Some(vec![3,4,5]));
+    assert_eq!(it.next(), Some(vec![1,2,6]));
+}
+
 #[test]
 fn combinations() {
     assert!((1..3).combinations(5).next().is_none());

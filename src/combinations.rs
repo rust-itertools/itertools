@@ -4,7 +4,9 @@ use std::iter::FusedIterator;
 use super::lazy_buffer::LazyBuffer;
 use alloc::vec::Vec;
 
-/// An iterator to iterate through all the `k`-length combinations in an iterator.
+/// An iterator to iterate through all the `n`-length combinations in an iterator.
+/// Note: it iterates in lexicographic order so in case of infinite iterator,
+///   some of the combinations will never be reached. See also: [`combinations_by_len()`](../trait.Itertools.html#fn.combinations_by_len')
 ///
 /// See [`.combinations()`](crate::Itertools::combinations) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
