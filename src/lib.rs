@@ -1657,24 +1657,24 @@ pub trait Itertools : Iterator {
         pad_tail::pad_using(self, min, f)
     }
 
-    /// Return an iterator adaptor that wraps each element in a `Position` to
+    /// Return an iterator adaptor that combines each element with a `Position` to
     /// ease special-case handling of the first or last elements.
     ///
     /// Iterator element type is
-    /// [`Position<Self::Item>`](Position)
+    /// [`(Position, Self::Item)`](Position)
     ///
     /// ```
     /// use itertools::{Itertools, Position};
     ///
     /// let it = (0..4).with_position();
     /// itertools::assert_equal(it,
-    ///                         vec![Position::First(0),
-    ///                              Position::Middle(1),
-    ///                              Position::Middle(2),
-    ///                              Position::Last(3)]);
+    ///                         vec![(Position::First, 0),
+    ///                              (Position::Middle, 1),
+    ///                              (Position::Middle, 2),
+    ///                              (Position::Last, 3)]);
     ///
     /// let it = (0..1).with_position();
-    /// itertools::assert_equal(it, vec![Position::Only(0)]);
+    /// itertools::assert_equal(it, vec![(Position::Only, 0)]);
     /// ```
     fn with_position(self) -> WithPosition<Self>
         where Self: Sized,
