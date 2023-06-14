@@ -2549,6 +2549,8 @@ pub trait Itertools : Iterator {
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort_unstable`] method and returns the result as a new
     /// iterator that owns its elements.
+    /// 
+    /// This sort is unstable (i.e., may reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
     /// without any extra copying or allocation cost.
@@ -2578,6 +2580,8 @@ pub trait Itertools : Iterator {
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort_unstable_by`] method and returns the result as a new
     /// iterator that owns its elements.
+    /// 
+    /// This sort is unstable (i.e., may reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
     /// without any extra copying or allocation cost.
@@ -2611,6 +2615,8 @@ pub trait Itertools : Iterator {
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort_unstable_by_key`] method and returns the result as a new
     /// iterator that owns its elements.
+    /// 
+    /// This sort is unstable (i.e., may reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
     /// without any extra copying or allocation cost.
@@ -2645,6 +2651,8 @@ pub trait Itertools : Iterator {
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort`] method and returns the result as a new
     /// iterator that owns its elements.
+    /// 
+    /// This sort is stable (i.e., does not reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
     /// without any extra copying or allocation cost.
@@ -2674,6 +2682,8 @@ pub trait Itertools : Iterator {
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort_by`] method and returns the result as a new
     /// iterator that owns its elements.
+    /// 
+    /// This sort is stable (i.e., does not reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
     /// without any extra copying or allocation cost.
@@ -2682,7 +2692,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// // sort people in descending order by age
-    /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 27)];
+    /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 30)];
     ///
     /// let oldest_people_first = people
     ///     .into_iter()
@@ -2707,6 +2717,8 @@ pub trait Itertools : Iterator {
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort_by_key`] method and returns the result as a new
     /// iterator that owns its elements.
+    /// 
+    /// This sort is stable (i.e., does not reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
     /// without any extra copying or allocation cost.
@@ -2715,7 +2727,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// // sort people in descending order by age
-    /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 27)];
+    /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 30)];
     ///
     /// let oldest_people_first = people
     ///     .into_iter()
@@ -2742,6 +2754,8 @@ pub trait Itertools : Iterator {
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort_by_cached_key`] method and returns the result as a new
     /// iterator that owns its elements.
+    /// 
+    /// This sort is stable (i.e., does not reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
     /// without any extra copying or allocation cost.
@@ -2750,7 +2764,7 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// // sort people in descending order by age
-    /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 27)];
+    /// let people = vec![("Jane", 20), ("John", 18), ("Jill", 30), ("Jack", 30)];
     ///
     /// let oldest_people_first = people
     ///     .into_iter()
