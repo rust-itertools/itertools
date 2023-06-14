@@ -1,3 +1,5 @@
+use core::ops::{Deref, DerefMut};
+
 use crate::EitherOrBoth::*;
 
 use either::Either;
@@ -14,7 +16,7 @@ pub enum EitherOrBoth<A, B> {
 }
 
 impl<A, B> EitherOrBoth<A, B> {
-    /// If `Left`, or `Both`, return true, otherwise, return false.
+    /// If `Left`, or `Both`, return true. Otherwise, return false.
     pub fn has_left(&self) -> bool {
         self.as_ref().left().is_some()
     }
@@ -24,7 +26,7 @@ impl<A, B> EitherOrBoth<A, B> {
         self.as_ref().right().is_some()
     }
 
-    /// If Left, return true otherwise, return false.
+    /// If `Left`, return true. Otherwise, return false.
     /// Exclusive version of [`has_left`](EitherOrBoth::has_left).
     pub fn is_left(&self) -> bool {
         match *self {
@@ -33,7 +35,7 @@ impl<A, B> EitherOrBoth<A, B> {
         }
     }
 
-    /// If Right, return true otherwise, return false.
+    /// If `Right`, return true. Otherwise, return false.
     /// Exclusive version of [`has_right`](EitherOrBoth::has_right).
     pub fn is_right(&self) -> bool {
         match *self {
@@ -42,13 +44,12 @@ impl<A, B> EitherOrBoth<A, B> {
         }
     }
 
-    /// If Right, return true otherwise, return false.
-    /// Equivalent to `self.as_ref().both().is_some()`.
+    /// If `Both`, return true. Otherwise, return false.
     pub fn is_both(&self) -> bool {
         self.as_ref().both().is_some()
     }
 
-    /// If `Left`, or `Both`, return `Some` with the left value, otherwise, return `None`.
+    /// If `Left`, or `Both`, return `Some` with the left value. Otherwise, return `None`.
     pub fn left(self) -> Option<A> {
         match self {
             Left(left) | Both(left, _) => Some(left),
@@ -56,7 +57,7 @@ impl<A, B> EitherOrBoth<A, B> {
         }
     }
 
-    /// If `Right`, or `Both`, return `Some` with the right value, otherwise, return `None`.
+    /// If `Right`, or `Both`, return `Some` with the right value. Otherwise, return `None`.
     pub fn right(self) -> Option<B> {
         match self {
             Right(right) | Both(_, right) => Some(right),
@@ -64,11 +65,83 @@ impl<A, B> EitherOrBoth<A, B> {
         }
     }
 
-    /// If Both, return `Some` tuple containing left and right.
+    /// If `Left`, return `Some` with the left value. If `Right` or `Both`, return `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// // On the `Left` variant.
+    /// # use itertools::{EitherOrBoth, EitherOrBoth::{Left, Right, Both}};
+    /// let x: EitherOrBoth<_, ()> = Left("bonjour");
+    /// assert_eq!(x.just_left(), Some("bonjour"));
+    ///
+    /// // On the `Right` variant.
+    /// let x: EitherOrBoth<(), _> = Right("hola");
+    /// assert_eq!(x.just_left(), None);
+    ///
+    /// // On the `Both` variant.
+    /// let x = Both("bonjour", "hola");
+    /// assert_eq!(x.just_left(), None);
+    /// ```
+    pub fn just_left(self) -> Option<A> {
+        match self {
+            Left(left) => Some(left),
+            _ => None,
+        }
+    }
+
+    /// If `Right`, return `Some` with the right value. If `Left` or `Both`, return `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// // On the `Left` variant.
+    /// # use itertools::{EitherOrBoth::{Left, Right, Both}, EitherOrBoth};
+    /// let x: EitherOrBoth<_, ()> = Left("auf wiedersehen");
+    /// assert_eq!(x.just_left(), Some("auf wiedersehen"));
+    ///
+    /// // On the `Right` variant.
+    /// let x: EitherOrBoth<(), _> = Right("adios");
+    /// assert_eq!(x.just_left(), None);
+    ///
+    /// // On the `Both` variant.
+    /// let x = Both("auf wiedersehen", "adios");
+    /// assert_eq!(x.just_left(), None);
+    /// ```
+    pub fn just_right(self) -> Option<B> {
+        match self {
+            Right(right) => Some(right),
+            _ => None,
+        }
+    }
+
+    /// If `Both`, return `Some` containing the left and right values. Otherwise, return `None`.
     pub fn both(self) -> Option<(A, B)> {
         match self {
             Both(a, b) => Some((a, b)),
             _ => None,
+        }
+    }
+
+    /// If `Left` or `Both`, return the left value. Otherwise, convert the right value and return it.
+    pub fn into_left(self) -> A
+    where
+        B: Into<A>,
+    {
+        match self {
+            Left(a) | Both(a, _) => a,
+            Right(b) => b.into(),
+        }
+    }
+
+    /// If `Right` or `Both`, return the right value. Otherwise, convert the left value and return it.
+    pub fn into_right(self) -> B
+    where
+        A: Into<B>,
+    {
+        match self {
+            Right(b) | Both(_, b) => b,
+            Left(a) => a.into(),
         }
     }
 
@@ -83,6 +156,32 @@ impl<A, B> EitherOrBoth<A, B> {
 
     /// Converts from `&mut EitherOrBoth<A, B>` to `EitherOrBoth<&mut A, &mut B>`.
     pub fn as_mut(&mut self) -> EitherOrBoth<&mut A, &mut B> {
+        match *self {
+            Left(ref mut left) => Left(left),
+            Right(ref mut right) => Right(right),
+            Both(ref mut left, ref mut right) => Both(left, right),
+        }
+    }
+
+    /// Converts from `&EitherOrBoth<A, B>` to `EitherOrBoth<&_, &_>` using the [`Deref`] trait.
+    pub fn as_deref(&self) -> EitherOrBoth<&A::Target, &B::Target>
+    where
+        A: Deref,
+        B: Deref,
+    {
+        match *self {
+            Left(ref left) => Left(left),
+            Right(ref right) => Right(right),
+            Both(ref left, ref right) => Both(left, right),
+        }
+    }
+
+    /// Converts from `&mut EitherOrBoth<A, B>` to `EitherOrBoth<&mut _, &mut _>` using the [`DerefMut`] trait.
+    pub fn as_deref_mut(&mut self) -> EitherOrBoth<&mut A::Target, &mut B::Target>
+    where
+        A: DerefMut,
+        B: DerefMut,
+    {
         match *self {
             Left(ref mut left) => Left(left),
             Right(ref mut right) => Right(right),
@@ -225,6 +324,139 @@ impl<A, B> EitherOrBoth<A, B> {
             Left(inner_l) => (inner_l, r()),
             Right(inner_r) => (l(), inner_r),
             Both(inner_l, inner_r) => (inner_l, inner_r),
+        }
+    }
+
+    /// Returns a mutable reference to the left value. If the left value is not present,
+    /// it is replaced with `val`.
+    pub fn left_or_insert(&mut self, val: A) -> &mut A {
+        self.left_or_insert_with(|| val)
+    }
+
+    /// Returns a mutable reference to the right value. If the right value is not present,
+    /// it is replaced with `val`.
+    pub fn right_or_insert(&mut self, val: B) -> &mut B {
+        self.right_or_insert_with(|| val)
+    }
+
+    /// If the left value is not present, replace it the value computed by the closure `f`.
+    /// Returns a mutable reference to the now-present left value.
+    pub fn left_or_insert_with<F>(&mut self, f: F) -> &mut A
+    where
+        F: FnOnce() -> A,
+    {
+        match self {
+            Left(left) | Both(left, _) => left,
+            Right(_) => self.insert_left(f()),
+        }
+    }
+
+    /// If the right value is not present, replace it the value computed by the closure `f`.
+    /// Returns a mutable reference to the now-present right value.
+    pub fn right_or_insert_with<F>(&mut self, f: F) -> &mut B
+    where
+        F: FnOnce() -> B,
+    {
+        match self {
+            Right(right) | Both(_, right) => right,
+            Left(_) => self.insert_right(f()),
+        }
+    }
+
+    /// Sets the `left` value of this instance, and returns a mutable reference to it.
+    /// Does not affect the `right` value.
+    ///
+    /// # Examples
+    /// ```
+    /// # use itertools::{EitherOrBoth, EitherOrBoth::{Left, Right, Both}};
+    ///
+    /// // Overwriting a pre-existing value.
+    /// let mut either: EitherOrBoth<_, ()> = Left(0_u32);
+    /// assert_eq!(*either.insert_left(69), 69);
+    ///
+    /// // Inserting a second value.
+    /// let mut either = Right("no");
+    /// assert_eq!(*either.insert_left("yes"), "yes");
+    /// assert_eq!(either, Both("yes", "no"));
+    /// ```
+    pub fn insert_left(&mut self, val: A) -> &mut A {
+        match self {
+            Left(left) | Both(left, _) => {
+                *left = val;
+                left
+            }
+            Right(right) => {
+                // This is like a map in place operation. We move out of the reference,
+                // change the value, and then move back into the reference.
+                unsafe {
+                    // SAFETY: We know this pointer is valid for reading since we got it from a reference.
+                    let right = std::ptr::read(right as *mut _);
+                    // SAFETY: Again, we know the pointer is valid since we got it from a reference.
+                    std::ptr::write(self as *mut _, Both(val, right));
+                }
+
+                if let Both(left, _) = self {
+                    left
+                } else {
+                    // SAFETY: The above pattern will always match, since we just
+                    // set `self` equal to `Both`.
+                    unsafe { std::hint::unreachable_unchecked() }
+                }
+            }
+        }
+    }
+
+    /// Sets the `right` value of this instance, and returns a mutable reference to it.
+    /// Does not affect the `left` value.
+    ///
+    /// # Examples
+    /// ```
+    /// # use itertools::{EitherOrBoth, EitherOrBoth::{Left, Both}};
+    /// // Overwriting a pre-existing value.
+    /// let mut either: EitherOrBoth<_, ()> = Left(0_u32);
+    /// assert_eq!(*either.insert_left(69), 69);
+    ///
+    /// // Inserting a second value.
+    /// let mut either = Left("what's");
+    /// assert_eq!(*either.insert_right(9 + 10), 21 - 2);
+    /// assert_eq!(either, Both("what's", 9+10));
+    /// ```
+    pub fn insert_right(&mut self, val: B) -> &mut B {
+        match self {
+            Right(right) | Both(_, right) => {
+                *right = val;
+                right
+            }
+            Left(left) => {
+                // This is like a map in place operation. We move out of the reference,
+                // change the value, and then move back into the reference.
+                unsafe {
+                    // SAFETY: We know this pointer is valid for reading since we got it from a reference.
+                    let left = std::ptr::read(left as *mut _);
+                    // SAFETY: Again, we know the pointer is valid since we got it from a reference.
+                    std::ptr::write(self as *mut _, Both(left, val));
+                }
+                if let Both(_, right) = self {
+                    right
+                } else {
+                    // SAFETY: The above pattern will always match, since we just
+                    // set `self` equal to `Both`.
+                    unsafe { std::hint::unreachable_unchecked() }
+                }
+            }
+        }
+    }
+
+    /// Set `self` to `Both(..)`, containing the specified left and right values,
+    /// and returns a mutable reference to those values.
+    pub fn insert_both(&mut self, left: A, right: B) -> (&mut A, &mut B) {
+        *self = Both(left, right);
+        if let Both(left, right) = self {
+            (left, right)
+        } else {
+            // SAFETY: The above pattern will always match, since we just
+            // set `self` equal to `Both`.
+            unsafe { std::hint::unreachable_unchecked() }
         }
     }
 }
