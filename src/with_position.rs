@@ -2,7 +2,7 @@ use std::iter::{Fuse,Peekable, FusedIterator};
 
 /// An iterator adaptor that wraps each element in an [`Position`].
 ///
-/// Iterator element type is `Position<I::Item>`.
+/// Iterator element type is `(Position, I::Item)`.
 ///
 /// See [`.with_position()`](crate::Itertools::with_position) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
@@ -30,36 +30,24 @@ pub fn with_position<I>(iter: I) -> WithPosition<I>
     }
 }
 
-/// A value yielded by `WithPosition`.
+/// The first component of the value yielded by `WithPosition`.
 /// Indicates the position of this element in the iterator results.
 ///
 /// See [`.with_position()`](crate::Itertools::with_position) for more information.
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub enum Position<T> {
+pub enum Position {
     /// This is the first element.
-    First(T),
+    First,
     /// This is neither the first nor the last element.
-    Middle(T),
+    Middle,
     /// This is the last element.
-    Last(T),
+    Last,
     /// This is the only element.
-    Only(T),
-}
-
-impl<T> Position<T> {
-    /// Return the inner value.
-    pub fn into_inner(self) -> T {
-        match self {
-            Position::First(x) |
-            Position::Middle(x) |
-            Position::Last(x) |
-            Position::Only(x) => x,
-        }
-    }
+    Only,
 }
 
 impl<I: Iterator> Iterator for WithPosition<I> {
-    type Item = Position<I::Item>;
+    type Item = (Position, I::Item);
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.peekable.next() {
@@ -70,15 +58,15 @@ impl<I: Iterator> Iterator for WithPosition<I> {
                     // Peek to see if this is also the last item,
                     // in which case tag it as `Only`.
                     match self.peekable.peek() {
-                        Some(_) => Some(Position::First(item)),
-                        None => Some(Position::Only(item)),
+                        Some(_) => Some((Position::First, item)),
+                        None => Some((Position::Only, item)),
                     }
                 } else {
                     // Have seen the first item, and there's something left.
                     // Peek to see if this is the last item.
                     match self.peekable.peek() {
-                        Some(_) => Some(Position::Middle(item)),
-                        None => Some(Position::Last(item)),
+                        Some(_) => Some((Position::Middle, item)),
+                        None => Some((Position::Last, item)),
                     }
                 }
             }
