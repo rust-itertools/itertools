@@ -19,7 +19,7 @@ impl<A, K, F: ?Sized> KeyFunction<A> for F
 
 
 /// `ChunkIndex` acts like the grouping key function for `IntoChunks`
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct ChunkIndex {
     size: usize,
     index: usize,
@@ -50,7 +50,7 @@ impl<A> KeyFunction<A> for ChunkIndex {
     }
 }
 
-
+#[derive(Clone)]
 struct GroupInner<K, I, F>
     where I: Iterator
 {
@@ -471,6 +471,13 @@ pub struct IntoChunks<I>
     index: Cell<usize>,
 }
 
+impl<I> Clone for IntoChunks<I>
+    where I: Clone + Iterator,
+          I::Item: Clone,
+{
+    clone_fields!(inner, index);
+}
+
 
 impl<I> IntoChunks<I>
     where I: Iterator,
@@ -507,6 +514,7 @@ impl<'a, I> IntoIterator for &'a IntoChunks<I>
 ///
 /// See [`.chunks()`](crate::Itertools::chunks) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+#[derive(Clone)]
 pub struct Chunks<'a, I: 'a>
     where I: Iterator,
           I::Item: 'a,
