@@ -1012,7 +1012,10 @@ pub trait Itertools : Iterator {
     /// Create an iterator that merges items from both this and the specified
     /// iterator in ascending order.
     ///
-    /// It chooses whether to pair elements based on the `Ordering` returned by the
+    /// The function can either return an `Ordering` variant or a boolean.
+    ///
+    /// If `cmp_fn` returns `Ordering`,
+    /// it chooses whether to pair elements based on the `Ordering` returned by the
     /// specified compare function. At any point, inspecting the tip of the
     /// iterators `I` and `J` as items `i` of type `I::Item` and `j` of type
     /// `J::Item` respectively, the resulting iterator will:
@@ -1028,18 +1031,46 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     /// use itertools::EitherOrBoth::{Left, Right, Both};
     ///
-    /// let multiples_of_2 = (0..10).step_by(2);
-    /// let multiples_of_3 = (0..10).step_by(3);
+    /// let a = vec![0, 2, 4, 6, 1].into_iter();
+    /// let b = (0..10).step_by(3);
     ///
     /// itertools::assert_equal(
-    ///     multiples_of_2.merge_join_by(multiples_of_3, |i, j| i.cmp(j)),
-    ///     vec![Both(0, 0), Left(2), Right(3), Left(4), Both(6, 6), Left(8), Right(9)]
+    ///     a.merge_join_by(b, |i, j| i.cmp(j)),
+    ///     vec![Both(0, 0), Left(2), Right(3), Left(4), Both(6, 6), Left(1), Right(9)]
+    /// );
+    /// ```
+    ///
+    /// If `cmp_fn` returns `bool`,
+    /// it chooses whether to pair elements based on the boolean returned by the
+    /// specified function. At any point, inspecting the tip of the
+    /// iterators `I` and `J` as items `i` of type `I::Item` and `j` of type
+    /// `J::Item` respectively, the resulting iterator will:
+    ///
+    /// - Emit `Either::Left(i)` when `true`,
+    ///   and remove `i` from its source iterator
+    /// - Emit `Either::Right(j)` when `false`,
+    ///   and remove `j` from its source iterator
+    ///
+    /// It is similar to the `Ordering` case if the first argument is considered
+    /// "less" than the second argument.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::Either::{Left, Right};
+    ///
+    /// let a = vec![0, 2, 4, 6, 1].into_iter();
+    /// let b = (0..10).step_by(3);
+    ///
+    /// itertools::assert_equal(
+    ///     a.merge_join_by(b, |i, j| i <= j),
+    ///     vec![Left(0), Right(0), Left(2), Right(3), Left(4), Left(6), Left(1), Right(6), Right(9)]
     /// );
     /// ```
     #[inline]
-    fn merge_join_by<J, F>(self, other: J, cmp_fn: F) -> MergeJoinBy<Self, J::IntoIter, F>
+    fn merge_join_by<J, F, T>(self, other: J, cmp_fn: F) -> MergeJoinBy<Self, J::IntoIter, F>
         where J: IntoIterator,
-              F: FnMut(&Self::Item, &J::Item) -> std::cmp::Ordering,
+              F: FnMut(&Self::Item, &J::Item) -> T,
+              T: merge_join::OrderingOrBool<Self::Item, J::Item>,
               Self: Sized
     {
         merge_join_by(self, other, cmp_fn)

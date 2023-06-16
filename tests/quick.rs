@@ -830,6 +830,31 @@ quickcheck! {
 }
 
 quickcheck! {
+    fn merge_join_by_ordering_vs_bool(a: Vec<u8>, b: Vec<u8>) -> bool {
+        use either::Either;
+        use itertools::free::merge_join_by;
+        let mut has_equal = false;
+        let it_ord = merge_join_by(a.clone(), b.clone(), Ord::cmp).flat_map(|v| match v {
+            EitherOrBoth::Both(l, r) => {
+                has_equal = true;
+                vec![Either::Left(l), Either::Right(r)]
+            }
+            EitherOrBoth::Left(l) => vec![Either::Left(l)],
+            EitherOrBoth::Right(r) => vec![Either::Right(r)],
+        });
+        let it_bool = merge_join_by(a, b, PartialOrd::le);
+        itertools::equal(it_ord, it_bool) || has_equal
+    }
+    fn merge_join_by_bool_unwrapped_is_merge_by(a: Vec<u8>, b: Vec<u8>) -> bool {
+        use either::Either;
+        use itertools::free::merge_join_by;
+        let it = a.clone().into_iter().merge_by(b.clone(), PartialOrd::ge);
+        let it_join = merge_join_by(a, b, PartialOrd::ge).map(Either::into_inner);
+        itertools::equal(it, it_join)
+    }
+}
+
+quickcheck! {
     fn size_tee(a: Vec<u8>) -> bool {
         let (mut t1, mut t2) = a.iter().tee();
         t1.next();
