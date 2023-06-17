@@ -99,8 +99,6 @@ pub mod structs {
         Batching,
         MapInto,
         MapOk,
-        Merge,
-        MergeBy,
         TakeWhileRef,
         WhileSome,
         Coalesce,
@@ -127,7 +125,7 @@ pub mod structs {
     pub use crate::intersperse::{Intersperse, IntersperseWith};
     #[cfg(feature = "use_alloc")]
     pub use crate::kmerge_impl::{KMerge, KMergeBy};
-    pub use crate::merge_join::MergeJoinBy;
+    pub use crate::merge_join::{Merge, MergeBy, MergeJoinBy};
     #[cfg(feature = "use_alloc")]
     pub use crate::multipeek_impl::MultiPeek;
     #[cfg(feature = "use_alloc")]
@@ -1008,7 +1006,7 @@ pub trait Itertools : Iterator {
               J: IntoIterator<Item = Self::Item>,
               F: FnMut(&Self::Item, &Self::Item) -> bool
     {
-        adaptors::merge_by_new(self, other.into_iter(), is_first)
+        merge_join::merge_by_new(self, other.into_iter(), is_first)
     }
 
     /// Create an iterator that merges items from both this and the specified

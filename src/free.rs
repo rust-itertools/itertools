@@ -19,7 +19,6 @@ use crate::intersperse::{Intersperse, IntersperseWith};
 
 pub use crate::adaptors::{
     interleave,
-    merge,
     put_back,
 };
 #[cfg(feature = "use_alloc")]
@@ -31,7 +30,7 @@ pub use crate::peek_nth::peek_nth;
 #[cfg(feature = "use_alloc")]
 pub use crate::kmerge_impl::kmerge;
 pub use crate::zip_eq_impl::zip_eq;
-pub use crate::merge_join::merge_join_by;
+pub use crate::merge_join::{merge, merge_join_by};
 #[cfg(feature = "use_alloc")]
 pub use crate::rciter_impl::rciter;
 
