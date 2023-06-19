@@ -146,6 +146,7 @@ pub mod structs {
     pub use crate::repeatn::RepeatN;
     #[allow(deprecated)]
     pub use crate::sources::{RepeatCall, Unfold, Iterate};
+    pub use crate::take_while_inclusive::TakeWhileInclusive;
     #[cfg(feature = "use_alloc")]
     pub use crate::tee::Tee;
     pub use crate::tuple_impl::{TupleBuffer, TupleWindows, CircularTupleWindows, Tuples};
@@ -233,6 +234,7 @@ mod rciter_impl;
 mod repeatn;
 mod size_hint;
 mod sources;
+mod take_while_inclusive;
 #[cfg(feature = "use_alloc")]
 mod tee;
 mod tuple_impl;
@@ -1455,6 +1457,74 @@ pub trait Itertools : Iterator {
               F: FnMut(&Self::Item) -> bool
     {
         adaptors::take_while_ref(self, accept)
+    }
+
+    /// Returns an iterator adaptor that consumes elements while the given
+    /// predicate is `true`, *including* the element for which the predicate
+    /// first returned `false`.
+    ///
+    /// The [`.take_while()`][std::iter::Iterator::take_while] adaptor is useful
+    /// when you want items satisfying a predicate, but to know when to stop
+    /// taking elements, we have to consume that first element that doesn't
+    /// satisfy the predicate. This adaptor includes that element where
+    /// [`.take_while()`][std::iter::Iterator::take_while] would drop it.
+    ///
+    /// The [`.take_while_ref()`][crate::Itertools::take_while_ref] adaptor
+    /// serves a similar purpose, but this adaptor doesn't require [`Clone`]ing
+    /// the underlying elements.
+    ///
+    /// ```rust
+    /// # use itertools::Itertools;
+    /// let items = vec![1, 2, 3, 4, 5];
+    /// let filtered: Vec<_> = items
+    ///     .into_iter()
+    ///     .take_while_inclusive(|&n| n % 3 != 0)
+    ///     .collect();
+    ///
+    /// assert_eq!(filtered, vec![1, 2, 3]);
+    /// ```
+    ///
+    /// ```rust
+    /// # use itertools::Itertools;
+    /// let items = vec![1, 2, 3, 4, 5];
+    ///
+    /// let take_while_inclusive_result: Vec<_> = items
+    ///     .iter()
+    ///     .copied()
+    ///     .take_while_inclusive(|&n| n % 3 != 0)
+    ///     .collect();
+    /// let take_while_result: Vec<_> = items
+    ///     .into_iter()
+    ///     .take_while(|&n| n % 3 != 0)
+    ///     .collect();
+    ///
+    /// assert_eq!(take_while_inclusive_result, vec![1, 2, 3]);
+    /// assert_eq!(take_while_result, vec![1, 2]);
+    /// // both iterators have the same items remaining at this point---the 3
+    /// // is lost from the `take_while` vec
+    /// ```
+    ///
+    /// ```rust
+    /// # use itertools::Itertools;
+    /// #[derive(Debug, PartialEq)]
+    /// struct NoCloneImpl(i32);
+    ///
+    /// let non_clonable_items: Vec<_> = vec![1, 2, 3, 4, 5]
+    ///     .into_iter()
+    ///     .map(NoCloneImpl)
+    ///     .collect();
+    /// let filtered: Vec<_> = non_clonable_items
+    ///     .into_iter()
+    ///     .take_while_inclusive(|n| n.0 % 3 != 0)
+    ///     .collect();
+    /// let expected: Vec<_> = vec![1, 2, 3].into_iter().map(NoCloneImpl).collect();
+    /// assert_eq!(filtered, expected);
+    fn take_while_inclusive<F>(&mut self, accept: F) -> TakeWhileInclusive<Self, F>
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item) -> bool,
+    {
+        take_while_inclusive::TakeWhileInclusive::new(self, accept)
     }
 
     /// Return an iterator adaptor that filters `Option<A>` iterator elements
