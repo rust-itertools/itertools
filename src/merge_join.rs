@@ -1,6 +1,5 @@
 use std::cmp::Ordering;
-use std::iter::Fuse;
-// use std::iter::FusedIterator;
+use std::iter::{Fuse, FusedIterator};
 use std::fmt;
 use std::marker::PhantomData;
 
@@ -78,12 +77,6 @@ pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I::IntoIter, J::Into
         cmp_fn: MergeFuncT { f: cmp, _t: PhantomData },
     }
 }
-
-// impl<I, J, F> FusedIterator for MergeBy<I, J, F>
-//     where I: FusedIterator,
-//           J: FusedIterator<Item = I::Item>,
-//           F: FnMut(&I::Item, &I::Item) -> bool,
-// {}
 
 /// Return an iterator adaptor that merge-joins items from the two base iterators in ascending order.
 ///
@@ -338,3 +331,9 @@ impl<I, J, F, T> Iterator for MergeJoinBy<I, J, F>
         }
     }
 }
+
+impl<I, J, F, T> FusedIterator for MergeJoinBy<I, J, F>
+    where I: FusedIterator,
+          J: FusedIterator,
+          F: MergePredicate<I::Item, J::Item, Out = T>,
+{}
