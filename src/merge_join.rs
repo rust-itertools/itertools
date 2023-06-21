@@ -327,7 +327,7 @@ impl<I, J, F, T> Iterator for MergeJoinBy<I, J, F>
 }
 
 impl<I, J, F, T> FusedIterator for MergeJoinBy<I, J, F>
-    where I: FusedIterator,
-          J: FusedIterator,
+    where I: Iterator,
+          J: Iterator,
           F: MergePredicate<I::Item, J::Item, Out = T>,
 {}
