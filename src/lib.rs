@@ -1065,7 +1065,7 @@ pub trait Itertools : Iterator {
     /// );
     /// ```
     #[inline]
-    fn merge_join_by<J, F, T>(self, other: J, cmp_fn: F) -> MergeJoinBy<Self, J::IntoIter, F, T, false>
+    fn merge_join_by<J, F, T>(self, other: J, cmp_fn: F) -> MergeJoinBy<Self, J::IntoIter, F, false>
         where J: IntoIterator,
               F: FnMut(&Self::Item, &J::Item) -> T,
               T: merge_join::OrderingOrBool<Self::Item, J::Item, false>,

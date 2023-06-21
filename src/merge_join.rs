@@ -2,7 +2,6 @@ use std::cmp::Ordering;
 use std::iter::Fuse;
 // use std::iter::FusedIterator;
 use std::fmt;
-use std::marker::PhantomData;
 
 use either::Either;
 
@@ -12,11 +11,13 @@ use crate::size_hint::{self, SizeHint};
 #[cfg(doc)]
 use crate::Itertools;
 
-pub trait MergePredicate<L, R, T> {
-    fn merge_pred(&mut self, left: &L, right: &R) -> T;
+pub trait MergePredicate<L, R> {
+    type Out;
+    fn merge_pred(&mut self, left: &L, right: &R) -> Self::Out;
 }
 
-impl<L, R, T, F: FnMut(&L, &R) -> T> MergePredicate<L, R, T> for F {
+impl<L, R, T, F: FnMut(&L, &R) -> T> MergePredicate<L, R> for F {
+    type Out = T;
     fn merge_pred(&mut self, left: &L, right: &R) -> T {
         self(left, right)
     }
@@ -25,7 +26,8 @@ impl<L, R, T, F: FnMut(&L, &R) -> T> MergePredicate<L, R, T> for F {
 #[derive(Clone, Debug)]
 pub struct MergeLte;
 
-impl<T: PartialOrd> MergePredicate<T, T, bool> for MergeLte {
+impl<T: PartialOrd> MergePredicate<T, T> for MergeLte {
+    type Out = bool;
     fn merge_pred(&mut self, left: &T, right: &T) -> bool {
         left <= right
     }
@@ -64,19 +66,18 @@ pub fn merge<I, J>(i: I, j: J) -> Merge<<I as IntoIterator>::IntoIter, <J as Int
 /// Iterator element type is `I::Item`.
 ///
 /// See [`.merge_by()`](crate::Itertools::merge_by) for more information.
-pub type MergeBy<I, J, F> = MergeJoinBy<I, J, F, bool, true>;
+pub type MergeBy<I, J, F> = MergeJoinBy<I, J, F, true>;
 
 /// Create a `MergeBy` iterator.
 pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I::IntoIter, J::IntoIter, F>
     where I: IntoIterator,
           J: IntoIterator<Item = I::Item>,
-          F: MergePredicate<I::Item, I::Item, bool>,
+          F: MergePredicate<I::Item, I::Item, Out = bool>,
 {
     MergeJoinBy {
         left: put_back(a.into_iter().fuse()),
         right: put_back(b.into_iter().fuse()),
         cmp_fn: cmp,
-        _t: PhantomData,
     }
 }
 
@@ -90,7 +91,7 @@ pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I::IntoIter, J::Into
 ///
 /// [`IntoIterator`] enabled version of [`Itertools::merge_join_by`].
 pub fn merge_join_by<I, J, F, T>(left: I, right: J, cmp_fn: F)
-    -> MergeJoinBy<I::IntoIter, J::IntoIter, F, T, false>
+    -> MergeJoinBy<I::IntoIter, J::IntoIter, F, false>
     where I: IntoIterator,
           J: IntoIterator,
           F: FnMut(&I::Item, &J::Item) -> T,
@@ -100,7 +101,6 @@ pub fn merge_join_by<I, J, F, T>(left: I, right: J, cmp_fn: F)
         left: put_back(left.into_iter().fuse()),
         right: put_back(right.into_iter().fuse()),
         cmp_fn,
-        _t: PhantomData,
     }
 }
 
@@ -108,11 +108,10 @@ pub fn merge_join_by<I, J, F, T>(left: I, right: J, cmp_fn: F)
 ///
 /// See [`.merge_join_by()`](crate::Itertools::merge_join_by) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct MergeJoinBy<I: Iterator, J: Iterator, F, T, const SAME: bool> {
+pub struct MergeJoinBy<I: Iterator, J: Iterator, F, const SAME: bool> {
     left: PutBack<Fuse<I>>,
     right: PutBack<Fuse<J>>,
     cmp_fn: F,
-    _t: PhantomData<T>,
 }
 
 pub trait OrderingOrBool<L, R, const SAME: bool> {
@@ -195,17 +194,17 @@ impl<T> OrderingOrBool<T, T, true> for bool {
     }
 }
 
-impl<I, J, F, T, const SAME: bool> Clone for MergeJoinBy<I, J, F, T, SAME>
+impl<I, J, F, const SAME: bool> Clone for MergeJoinBy<I, J, F, SAME>
     where I: Iterator,
           J: Iterator,
           PutBack<Fuse<I>>: Clone,
           PutBack<Fuse<J>>: Clone,
           F: Clone,
 {
-    clone_fields!(left, right, cmp_fn, _t);
+    clone_fields!(left, right, cmp_fn);
 }
 
-impl<I, J, F, T, const SAME: bool> fmt::Debug for MergeJoinBy<I, J, F, T, SAME>
+impl<I, J, F, const SAME: bool> fmt::Debug for MergeJoinBy<I, J, F, SAME>
     where I: Iterator + fmt::Debug,
           I::Item: fmt::Debug,
           J: Iterator + fmt::Debug,
@@ -214,10 +213,10 @@ impl<I, J, F, T, const SAME: bool> fmt::Debug for MergeJoinBy<I, J, F, T, SAME>
     debug_fmt_fields!(MergeJoinBy, left, right);
 }
 
-impl<I, J, F, T, const SAME: bool> Iterator for MergeJoinBy<I, J, F, T, SAME>
+impl<I, J, F, T, const SAME: bool> Iterator for MergeJoinBy<I, J, F, SAME>
     where I: Iterator,
           J: Iterator,
-          F: MergePredicate<I::Item, J::Item, T>,
+          F: MergePredicate<I::Item, J::Item, Out = T>,
           T: OrderingOrBool<I::Item, J::Item, SAME>,
 {
     type Item = T::MergeResult;
