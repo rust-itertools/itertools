@@ -2,6 +2,7 @@ use std::cmp::Ordering;
 use std::iter::Fuse;
 // use std::iter::FusedIterator;
 use std::fmt;
+use std::marker::PhantomData;
 
 use either::Either;
 
@@ -11,26 +12,19 @@ use crate::size_hint::{self, SizeHint};
 #[cfg(doc)]
 use crate::Itertools;
 
-pub trait MergePredicate<L, R> {
-    type Out;
-    fn merge_pred(&mut self, left: &L, right: &R) -> Self::Out;
-}
-
-impl<L, R, T, F: FnMut(&L, &R) -> T> MergePredicate<L, R> for F {
-    type Out = T;
-    fn merge_pred(&mut self, left: &L, right: &R) -> T {
-        self(left, right)
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct MergeLte;
 
-impl<T: PartialOrd> MergePredicate<T, T> for MergeLte {
-    type Out = bool;
-    fn merge_pred(&mut self, left: &T, right: &T) -> bool {
-        left <= right
-    }
+#[derive(Clone, Debug)]
+pub struct MergeFuncLR<F, T> {
+    f: F,
+    _t: PhantomData<T>,
+}
+
+#[derive(Clone, Debug)]
+pub struct MergeFuncT<F, T> {
+    f: F,
+    _t: PhantomData<T>,
 }
 
 /// An iterator adaptor that merges the two base iterators in ascending order.
@@ -57,7 +51,11 @@ pub fn merge<I, J>(i: I, j: J) -> Merge<<I as IntoIterator>::IntoIter, <J as Int
           J: IntoIterator<Item = I::Item>,
           I::Item: PartialOrd
 {
-    merge_by_new(i, j, MergeLte)
+    MergeJoinBy {
+        left: put_back(i.into_iter().fuse()),
+        right: put_back(j.into_iter().fuse()),
+        cmp_fn: MergeFuncT { f: MergeLte, _t: PhantomData },
+    }
 }
 
 /// An iterator adaptor that merges the two base iterators in ascending order.
@@ -66,18 +64,18 @@ pub fn merge<I, J>(i: I, j: J) -> Merge<<I as IntoIterator>::IntoIter, <J as Int
 /// Iterator element type is `I::Item`.
 ///
 /// See [`.merge_by()`](crate::Itertools::merge_by) for more information.
-pub type MergeBy<I, J, F> = MergeJoinBy<I, J, F, true>;
+pub type MergeBy<I, J, F> = MergeJoinBy<I, J, MergeFuncT<F, bool>>;
 
 /// Create a `MergeBy` iterator.
 pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I::IntoIter, J::IntoIter, F>
     where I: IntoIterator,
           J: IntoIterator<Item = I::Item>,
-          F: MergePredicate<I::Item, I::Item, Out = bool>,
+          F: FnMut(&I::Item, &I::Item) -> bool,
 {
     MergeJoinBy {
         left: put_back(a.into_iter().fuse()),
         right: put_back(b.into_iter().fuse()),
-        cmp_fn: cmp,
+        cmp_fn: MergeFuncT { f: cmp, _t: PhantomData },
     }
 }
 
@@ -91,16 +89,15 @@ pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I::IntoIter, J::Into
 ///
 /// [`IntoIterator`] enabled version of [`Itertools::merge_join_by`].
 pub fn merge_join_by<I, J, F, T>(left: I, right: J, cmp_fn: F)
-    -> MergeJoinBy<I::IntoIter, J::IntoIter, F, false>
+    -> MergeJoinBy<I::IntoIter, J::IntoIter, MergeFuncLR<F, T>>
     where I: IntoIterator,
           J: IntoIterator,
           F: FnMut(&I::Item, &J::Item) -> T,
-          T: OrderingOrBool<I::Item, J::Item, false>,
 {
     MergeJoinBy {
         left: put_back(left.into_iter().fuse()),
         right: put_back(right.into_iter().fuse()),
-        cmp_fn,
+        cmp_fn: MergeFuncLR { f: cmp_fn, _t: PhantomData },
     }
 }
 
@@ -108,24 +105,26 @@ pub fn merge_join_by<I, J, F, T>(left: I, right: J, cmp_fn: F)
 ///
 /// See [`.merge_join_by()`](crate::Itertools::merge_join_by) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct MergeJoinBy<I: Iterator, J: Iterator, F, const SAME: bool> {
+pub struct MergeJoinBy<I: Iterator, J: Iterator, F> {
     left: PutBack<Fuse<I>>,
     right: PutBack<Fuse<J>>,
     cmp_fn: F,
 }
 
-pub trait OrderingOrBool<L, R, const SAME: bool> {
+pub trait MergePredicate<L, R> {
+    type Out;
     type MergeResult;
     fn left(left: L) -> Self::MergeResult;
     fn right(right: R) -> Self::MergeResult;
     // "merge" never returns (Some(...), Some(...), ...) so Option<Either<I::Item, J::Item>>
     // is appealing but it is always followed by two put_backs, so we think the compiler is
     // smart enough to optimize it. Or we could move put_backs into "merge".
-    fn merge(self, left: L, right: R) -> (Option<L>, Option<R>, Self::MergeResult);
+    fn merge(&mut self, left: L, right: R) -> (Option<L>, Option<R>, Self::MergeResult);
     fn size_hint(left: SizeHint, right: SizeHint) -> SizeHint;
 }
 
-impl<L, R> OrderingOrBool<L, R, false> for Ordering {
+impl<L, R, F: FnMut(&L, &R) -> Ordering> MergePredicate<L, R> for MergeFuncLR<F, Ordering> {
+    type Out = Ordering;
     type MergeResult = EitherOrBoth<L, R>;
     fn left(left: L) -> Self::MergeResult {
         EitherOrBoth::Left(left)
@@ -133,8 +132,8 @@ impl<L, R> OrderingOrBool<L, R, false> for Ordering {
     fn right(right: R) -> Self::MergeResult {
         EitherOrBoth::Right(right)
     }
-    fn merge(self, left: L, right: R) -> (Option<L>, Option<R>, Self::MergeResult) {
-        match self {
+    fn merge(&mut self, left: L, right: R) -> (Option<L>, Option<R>, Self::MergeResult) {
+        match (self.f)(&left, &right) {
             Ordering::Equal => (None, None, EitherOrBoth::Both(left, right)),
             Ordering::Less => (None, Some(right), EitherOrBoth::Left(left)),
             Ordering::Greater => (Some(left), None, EitherOrBoth::Right(right)),
@@ -152,7 +151,8 @@ impl<L, R> OrderingOrBool<L, R, false> for Ordering {
     }
 }
 
-impl<L, R> OrderingOrBool<L, R, false> for bool {
+impl<L, R, F: FnMut(&L, &R) -> bool> MergePredicate<L, R> for MergeFuncLR<F, bool> {
+    type Out = bool;
     type MergeResult = Either<L, R>;
     fn left(left: L) -> Self::MergeResult {
         Either::Left(left)
@@ -160,8 +160,8 @@ impl<L, R> OrderingOrBool<L, R, false> for bool {
     fn right(right: R) -> Self::MergeResult {
         Either::Right(right)
     }
-    fn merge(self, left: L, right: R) -> (Option<L>, Option<R>, Self::MergeResult) {
-        if self {
+    fn merge(&mut self, left: L, right: R) -> (Option<L>, Option<R>, Self::MergeResult) {
+        if (self.f)(&left, &right) {
             (None, Some(right), Either::Left(left))
         } else {
             (Some(left), None, Either::Right(right))
@@ -173,7 +173,8 @@ impl<L, R> OrderingOrBool<L, R, false> for bool {
     }
 }
 
-impl<T> OrderingOrBool<T, T, true> for bool {
+impl<T, F: FnMut(&T, &T) -> bool> MergePredicate<T, T> for MergeFuncT<F, bool> {
+    type Out = bool;
     type MergeResult = T;
     fn left(left: T) -> Self::MergeResult {
         left
@@ -181,8 +182,8 @@ impl<T> OrderingOrBool<T, T, true> for bool {
     fn right(right: T) -> Self::MergeResult {
         right
     }
-    fn merge(self, left: T, right: T) -> (Option<T>, Option<T>, Self::MergeResult) {
-        if self {
+    fn merge(&mut self, left: T, right: T) -> (Option<T>, Option<T>, Self::MergeResult) {
+        if (self.f)(&left, &right) {
             (None, Some(right), left)
         } else {
             (Some(left), None, right)
@@ -194,7 +195,29 @@ impl<T> OrderingOrBool<T, T, true> for bool {
     }
 }
 
-impl<I, J, F, const SAME: bool> Clone for MergeJoinBy<I, J, F, SAME>
+impl<T: PartialOrd> MergePredicate<T, T> for MergeFuncT<MergeLte, bool> {
+    type Out = bool;
+    type MergeResult = T;
+    fn left(left: T) -> Self::MergeResult {
+        left
+    }
+    fn right(right: T) -> Self::MergeResult {
+        right
+    }
+    fn merge(&mut self, left: T, right: T) -> (Option<T>, Option<T>, Self::MergeResult) {
+        if left <= right {
+            (None, Some(right), left)
+        } else {
+            (Some(left), None, right)
+        }
+    }
+    fn size_hint(left: SizeHint, right: SizeHint) -> SizeHint {
+        // Not ExactSizeIterator because size may be larger than usize
+        size_hint::add(left, right)
+    }
+}
+
+impl<I, J, F> Clone for MergeJoinBy<I, J, F>
     where I: Iterator,
           J: Iterator,
           PutBack<Fuse<I>>: Clone,
@@ -204,7 +227,7 @@ impl<I, J, F, const SAME: bool> Clone for MergeJoinBy<I, J, F, SAME>
     clone_fields!(left, right, cmp_fn);
 }
 
-impl<I, J, F, const SAME: bool> fmt::Debug for MergeJoinBy<I, J, F, SAME>
+impl<I, J, F> fmt::Debug for MergeJoinBy<I, J, F>
     where I: Iterator + fmt::Debug,
           I::Item: fmt::Debug,
           J: Iterator + fmt::Debug,
@@ -213,21 +236,20 @@ impl<I, J, F, const SAME: bool> fmt::Debug for MergeJoinBy<I, J, F, SAME>
     debug_fmt_fields!(MergeJoinBy, left, right);
 }
 
-impl<I, J, F, T, const SAME: bool> Iterator for MergeJoinBy<I, J, F, SAME>
+impl<I, J, F, T> Iterator for MergeJoinBy<I, J, F>
     where I: Iterator,
           J: Iterator,
           F: MergePredicate<I::Item, J::Item, Out = T>,
-          T: OrderingOrBool<I::Item, J::Item, SAME>,
 {
-    type Item = T::MergeResult;
+    type Item = F::MergeResult;
 
     fn next(&mut self) -> Option<Self::Item> {
         match (self.left.next(), self.right.next()) {
             (None, None) => None,
-            (Some(left), None) => Some(T::left(left)),
-            (None, Some(right)) => Some(T::right(right)),
+            (Some(left), None) => Some(F::left(left)),
+            (None, Some(right)) => Some(F::right(right)),
             (Some(left), Some(right)) => {
-                let (left, right, next) = self.cmp_fn.merge_pred(&left, &right).merge(left, right);
+                let (left, right, next) = self.cmp_fn.merge(left, right);
                 if let Some(left) = left {
                     self.left.put_back(left);
                 }
@@ -240,7 +262,7 @@ impl<I, J, F, T, const SAME: bool> Iterator for MergeJoinBy<I, J, F, SAME>
     }
 
     fn size_hint(&self) -> SizeHint {
-        T::size_hint(self.left.size_hint(), self.right.size_hint())
+        F::size_hint(self.left.size_hint(), self.right.size_hint())
     }
 
     fn count(mut self) -> usize {
@@ -252,7 +274,7 @@ impl<I, J, F, T, const SAME: bool> Iterator for MergeJoinBy<I, J, F, SAME>
                 (None, Some(_right)) => break count + 1 + self.right.into_parts().1.count(),
                 (Some(left), Some(right)) => {
                     count += 1;
-                    let (left, right, _) = self.cmp_fn.merge_pred(&left, &right).merge(left, right);
+                    let (left, right, _) = self.cmp_fn.merge(left, right);
                     if let Some(left) = left {
                         self.left.put_back(left);
                     }
@@ -270,17 +292,17 @@ impl<I, J, F, T, const SAME: bool> Iterator for MergeJoinBy<I, J, F, SAME>
             match (self.left.next(), self.right.next()) {
                 (None, None) => break previous_element,
                 (Some(left), None) => {
-                    break Some(T::left(
+                    break Some(F::left(
                         self.left.into_parts().1.last().unwrap_or(left),
                     ))
                 }
                 (None, Some(right)) => {
-                    break Some(T::right(
+                    break Some(F::right(
                         self.right.into_parts().1.last().unwrap_or(right),
                     ))
                 }
                 (Some(left), Some(right)) => {
-                    let (left, right, elem) = self.cmp_fn.merge_pred(&left, &right).merge(left, right);
+                    let (left, right, elem) = self.cmp_fn.merge(left, right);
                     if let Some(left) = left {
                         self.left.put_back(left);
                     }
@@ -301,10 +323,10 @@ impl<I, J, F, T, const SAME: bool> Iterator for MergeJoinBy<I, J, F, SAME>
             n -= 1;
             match (self.left.next(), self.right.next()) {
                 (None, None) => break None,
-                (Some(_left), None) => break self.left.nth(n).map(T::left),
-                (None, Some(_right)) => break self.right.nth(n).map(T::right),
+                (Some(_left), None) => break self.left.nth(n).map(F::left),
+                (None, Some(_right)) => break self.right.nth(n).map(F::right),
                 (Some(left), Some(right)) => {
-                    let (left, right, _) = self.cmp_fn.merge_pred(&left, &right).merge(left, right);
+                    let (left, right, _) = self.cmp_fn.merge(left, right);
                     if let Some(left) = left {
                         self.left.put_back(left);
                     }
