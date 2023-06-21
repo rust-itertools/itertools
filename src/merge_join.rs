@@ -15,16 +15,10 @@ use crate::Itertools;
 pub struct MergeLte;
 
 #[derive(Clone, Debug)]
-pub struct MergeFuncLR<F, T> {
-    f: F,
-    _t: PhantomData<T>,
-}
+pub struct MergeFuncLR<F, T>(F, PhantomData<T>);
 
 #[derive(Clone, Debug)]
-pub struct MergeFuncT<F, T> {
-    f: F,
-    _t: PhantomData<T>,
-}
+pub struct MergeFuncT<F>(F);
 
 /// An iterator adaptor that merges the two base iterators in ascending order.
 /// If both base iterators are sorted (ascending), the result is sorted.
@@ -53,7 +47,7 @@ pub fn merge<I, J>(i: I, j: J) -> Merge<<I as IntoIterator>::IntoIter, <J as Int
     MergeJoinBy {
         left: put_back(i.into_iter().fuse()),
         right: put_back(j.into_iter().fuse()),
-        cmp_fn: MergeFuncT { f: MergeLte, _t: PhantomData },
+        cmp_fn: MergeFuncT(MergeLte),
     }
 }
 
@@ -63,7 +57,7 @@ pub fn merge<I, J>(i: I, j: J) -> Merge<<I as IntoIterator>::IntoIter, <J as Int
 /// Iterator element type is `I::Item`.
 ///
 /// See [`.merge_by()`](crate::Itertools::merge_by) for more information.
-pub type MergeBy<I, J, F> = MergeJoinBy<I, J, MergeFuncT<F, bool>>;
+pub type MergeBy<I, J, F> = MergeJoinBy<I, J, MergeFuncT<F>>;
 
 /// Create a `MergeBy` iterator.
 pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I::IntoIter, J::IntoIter, F>
@@ -74,7 +68,7 @@ pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I::IntoIter, J::Into
     MergeJoinBy {
         left: put_back(a.into_iter().fuse()),
         right: put_back(b.into_iter().fuse()),
-        cmp_fn: MergeFuncT { f: cmp, _t: PhantomData },
+        cmp_fn: MergeFuncT(cmp),
     }
 }
 
@@ -90,7 +84,7 @@ pub fn merge_join_by<I, J, F, T>(left: I, right: J, cmp_fn: F)
     MergeJoinBy {
         left: put_back(left.into_iter().fuse()),
         right: put_back(right.into_iter().fuse()),
-        cmp_fn: MergeFuncLR { f: cmp_fn, _t: PhantomData },
+        cmp_fn: MergeFuncLR(cmp_fn, PhantomData),
     }
 }
 
@@ -126,7 +120,7 @@ impl<L, R, F: FnMut(&L, &R) -> Ordering> MergePredicate<L, R> for MergeFuncLR<F,
         EitherOrBoth::Right(right)
     }
     fn merge(&mut self, left: L, right: R) -> (Option<L>, Option<R>, Self::MergeResult) {
-        match (self.f)(&left, &right) {
+        match self.0(&left, &right) {
             Ordering::Equal => (None, None, EitherOrBoth::Both(left, right)),
             Ordering::Less => (None, Some(right), EitherOrBoth::Left(left)),
             Ordering::Greater => (Some(left), None, EitherOrBoth::Right(right)),
@@ -154,7 +148,7 @@ impl<L, R, F: FnMut(&L, &R) -> bool> MergePredicate<L, R> for MergeFuncLR<F, boo
         Either::Right(right)
     }
     fn merge(&mut self, left: L, right: R) -> (Option<L>, Option<R>, Self::MergeResult) {
-        if (self.f)(&left, &right) {
+        if self.0(&left, &right) {
             (None, Some(right), Either::Left(left))
         } else {
             (Some(left), None, Either::Right(right))
@@ -166,7 +160,7 @@ impl<L, R, F: FnMut(&L, &R) -> bool> MergePredicate<L, R> for MergeFuncLR<F, boo
     }
 }
 
-impl<T, F: FnMut(&T, &T) -> bool> MergePredicate<T, T> for MergeFuncT<F, bool> {
+impl<T, F: FnMut(&T, &T) -> bool> MergePredicate<T, T> for MergeFuncT<F> {
     type Out = bool;
     type MergeResult = T;
     fn left(left: T) -> Self::MergeResult {
@@ -176,7 +170,7 @@ impl<T, F: FnMut(&T, &T) -> bool> MergePredicate<T, T> for MergeFuncT<F, bool> {
         right
     }
     fn merge(&mut self, left: T, right: T) -> (Option<T>, Option<T>, Self::MergeResult) {
-        if (self.f)(&left, &right) {
+        if self.0(&left, &right) {
             (None, Some(right), left)
         } else {
             (Some(left), None, right)
@@ -188,7 +182,7 @@ impl<T, F: FnMut(&T, &T) -> bool> MergePredicate<T, T> for MergeFuncT<F, bool> {
     }
 }
 
-impl<T: PartialOrd> MergePredicate<T, T> for MergeFuncT<MergeLte, bool> {
+impl<T: PartialOrd> MergePredicate<T, T> for MergeFuncT<MergeLte> {
     type Out = bool;
     type MergeResult = T;
     fn left(left: T) -> Self::MergeResult {
