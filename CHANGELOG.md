@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.11.0
+
+### Breaking
+- Make `Itertools::merge_join_by` also accept functions returning bool (#704)
+- Implement `PeekingNext` transitively over mutable references (#643)
+- Change `with_position` to yield `(Position, Item)` instead of `Position<Item>` (#699)
+
+### Added
+- Add `Itertools::take_while_inclusive` (#616)
+- Implement `PeekingNext` for `PeekingTakeWhile` (#644)
+- Add `EitherOrBoth::{just_left, just_right, into_left, into_right, as_deref, as_deref_mut, left_or_insert, right_or_insert, left_or_insert_with, right_or_insert_with, insert_left, insert_right, insert_both}` (#629)
+- Implement `Clone` for `CircularTupleWindows` (#686)
+- Implement `Clone` for `Chunks` (#683)
+- Add `Itertools::process_results` (#680)
+
+### Changed
+- Use `Cell` instead of `RefCell` in `Format` and `FormatWith` (#608)
+- CI tweaks (#674, #675)
+- Document and test the difference between stable and unstable sorts (#653)
+- Fix documentation error on `Itertools::max_set_by_key` (#692)
+- Move MSRV metadata to `Cargo.toml` (#672)
+- Implement `equal` with `Iterator::eq` (#591)
+
 ## 0.10.5
   - Maintenance
 
