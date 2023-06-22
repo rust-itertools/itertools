@@ -18,9 +18,6 @@ edition = "2018"
 
 rust-version = "1.36.0"
 
-[package.metadata.release]
-no-dev-version = true
-
 [lib]
 bench = false
 test = false
