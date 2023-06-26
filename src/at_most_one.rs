@@ -1,7 +1,6 @@
 use crate::size_hint;
-#[cfg(feature = "use_std")]
-use std::iter::ExactSizeIterator;
-use std::mem;
+use core::iter::ExactSizeIterator;
+use core::mem;
 
 /// The enum returned by `at_most_one`, depending on the number of remaining
 /// elements in the iterator.
