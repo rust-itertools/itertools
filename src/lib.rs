@@ -3699,12 +3699,13 @@ pub trait Itertools : Iterator {
     ///
     /// This function is especially useful in `match` statements, to clearly assert the number of elements
     /// in an iterator or take different paths depending on this number. 
-    /// For example, using [`.find()`](std::iter::Iterator::find) will stop at the first element, 
+    /// For example, using [`.find()`](std::iter::Iterator::find) will stop at the first matched element, 
     /// but you may additionally want to validate that no more than a single element satisfies the predicate.
     /// 
     /// # Examples
     /// ```
-    /// use itertools::Itertools;
+    /// use itertools::{Itertools, AtMostOneResult};
+    /// use core::iter::{empty, once};
     /// 
     /// let numbers = [-9, -1, -7, 4, -38, -21].iter().copied();
     /// let positive_number: Option<i32> = match numbers.filter(|&num| num >= 0).at_most_one() {
@@ -3714,10 +3715,11 @@ pub trait Itertools : Iterator {
     /// };
     /// assert_eq!(positive_number, Some(4));
     /// 
-    /// let zero_elements = empty().at_most_one();
-    /// assert_eq!(zero_elements, AtMostOneResult::Zero);
+    /// let zero_elements = empty::<i32>().at_most_one();
+    /// assert!(matches!(zero_elements, AtMostOneResult::Zero));
     /// 
-    /// assert_eq!(one_element, AtMostOneResult::One(5));
+    /// let one_element = once(5).at_most_one();
+    /// assert!(matches!(one_element, AtMostOneResult::One(5)));
     /// 
     /// let many_elements = (1..=10).at_most_one();
     /// let AtMostOneResult::MoreThanOne(more_than_one) = many_elements else { panic!() };

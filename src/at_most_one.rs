@@ -6,7 +6,7 @@ use core::mem;
 /// elements in the iterator.
 /// 
 /// See [`.at_most_one()`](crate::Itertools::at_most_one) for more detail.
-#[derive(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub enum AtMostOneResult<I: Iterator> {
     /// The iterator was empty and therefore had zero elements.
     Zero,
@@ -15,11 +15,11 @@ pub enum AtMostOneResult<I: Iterator> {
     One(I::Item),
 
     /// The iterator had more than one element. 
-    /// `MoreThanOne` is an iterator which yields the same elements as the original iterator.
+    /// [`MoreThanOne`](crate::MoreThanOne) is an iterator which yields the same elements as the original iterator. 
     MoreThanOne(MoreThanOne<I>),
 }
 
-#[derive(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 enum IterSource<T> {
     FirstElement(T, T),
     SecondElement(T),
@@ -28,7 +28,7 @@ enum IterSource<T> {
 
 /// The iterator returned by [`.at_most_one()`](crate::Itertools::at_most_one), if the original iterator
 /// had at least two elements remaining. Yields the same elements as the original iterator.
-#[derive(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct MoreThanOne<I: Iterator> {
     next_source: IterSource<I::Item>,
     inner: I,
