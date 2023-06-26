@@ -1300,12 +1300,32 @@ quickcheck! {
 
 quickcheck! {
     fn at_most_one_i32(a: Vec<i32>) -> TestResult {
-        let ret = a.iter().cloned().at_most_one();
-        match a.len() {
-            0 => TestResult::from_bool(ret.unwrap() == None),
-            1 => TestResult::from_bool(ret.unwrap() == Some(a[0])),
-            _ => TestResult::from_bool(ret.unwrap_err().eq(a.iter().cloned())),
-        }
+        use itertools::AtMostOneResult;
+        
+        let iter = a.iter().copied();
+
+        let (first, second, tail) = {
+            let mut iter = iter.clone();
+            (iter.next(), iter.next(), iter)
+        };
+
+        let amo_result = iter.at_most_one();
+        let expected = match a.len() {
+            0 => matches!(amo_result, AtMostOneResult::Zero),
+            1 => matches!(amo_result, AtMostOneResult::One(n) if first == Some(n)),
+            _ => {
+                let AtMostOneResult::MoreThanOne(mut more_than_one) = amo_result else {
+                    return TestResult::failed();
+                };
+
+                let actual_first = more_than_one.next();
+                let actual_second = more_than_one.next();
+
+                first == actual_first && second == actual_second && more_than_one.eq(tail)
+            },
+        };
+
+        TestResult::from_bool(expected)
     }
 }
 

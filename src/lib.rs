@@ -112,6 +112,7 @@ pub mod structs {
     pub use crate::adaptors::{MapResults, Step};
     #[cfg(feature = "use_alloc")]
     pub use crate::adaptors::MultiProduct;
+    pub use crate::at_most_one::{AtMostOneResult, MoreThanOne};
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations::Combinations;
     #[cfg(feature = "use_alloc")]
@@ -183,6 +184,7 @@ pub use crate::with_position::Position;
 pub use crate::unziptuple::{multiunzip, MultiUnzip};
 pub use crate::ziptuple::multizip;
 mod adaptors;
+mod at_most_one;
 mod either_or_both;
 pub use crate::either_or_both::EitherOrBoth;
 #[doc(hidden)]
@@ -3690,39 +3692,48 @@ pub trait Itertools : Iterator {
         }
     }
 
-    /// If the iterator yields no elements, Ok(None) will be returned. If the iterator yields
-    /// exactly one element, that element will be returned, otherwise an error will be returned
-    /// containing an iterator that has the same output as the input iterator.
+    /// If the iterator yields no elements, [`AtMostOneResult::Zero`] will be returned. 
+    /// If the iterator yields exactly one element, that element will be returned as [`AtMostOneResult::One`]. 
+    /// Otherwise [`AtMostOneResult::MoreThanOne`] will be returned, containing an iterator that has the same 
+    /// output as the input iterator.
     ///
-    /// This provides an additional layer of validation over just calling `Iterator::next()`.
-    /// If your assumption that there should be at most one element yielded is false this provides
-    /// the opportunity to detect and handle that, preventing errors at a distance.
-    ///
+    /// This function is especially useful in `match` statements, to clearly assert the number of elements
+    /// in an iterator or take different paths depending on this number. 
+    /// For example, using [`.find()`](std::iter::Iterator::find) will stop at the first element, 
+    /// but you may additionally want to validate that no more than a single element satisfies the predicate.
+    /// 
     /// # Examples
     /// ```
     /// use itertools::Itertools;
-    ///
-    /// assert_eq!((0..10).filter(|&x| x == 2).at_most_one().unwrap(), Some(2));
-    /// assert!((0..10).filter(|&x| x > 1 && x < 4).at_most_one().unwrap_err().eq(2..4));
-    /// assert!((0..10).filter(|&x| x > 1 && x < 5).at_most_one().unwrap_err().eq(2..5));
-    /// assert_eq!((0..10).filter(|&_| false).at_most_one().unwrap(), None);
+    /// 
+    /// let numbers = [-9, -1, -7, 4, -38, -21].iter().copied();
+    /// let positive_number: Option<i32> = match numbers.filter(|&num| num >= 0).at_most_one() {
+    ///     AtMostOneResult::Zero => None,
+    ///     AtMostOneResult::One(n) => Some(n),
+    ///     AtMostOneResult::MoreThanOne(_) => panic!("expected no more than one positive number"),
+    /// };
+    /// assert_eq!(positive_number, Some(4));
+    /// 
+    /// let zero_elements = empty().at_most_one();
+    /// assert_eq!(zero_elements, AtMostOneResult::Zero);
+    /// 
+    /// assert_eq!(one_element, AtMostOneResult::One(5));
+    /// 
+    /// let many_elements = (1..=10).at_most_one();
+    /// let AtMostOneResult::MoreThanOne(more_than_one) = many_elements else { panic!() };
+    /// assert!(more_than_one.eq(1..=10));
     /// ```
-    fn at_most_one(mut self) -> Result<Option<Self::Item>, ExactlyOneError<Self>>
+    fn at_most_one(mut self) -> AtMostOneResult<Self>
     where
         Self: Sized,
     {
-        match self.next() {
-            Some(first) => {
-                match self.next() {
-                    Some(second) => {
-                        Err(ExactlyOneError::new(Some(Either::Left([first, second])), self))
-                    }
-                    None => {
-                        Ok(Some(first))
-                    }
-                }
+        match (self.next(), self.next()) {
+            (None, _) => AtMostOneResult::Zero,
+            (Some(first), None) => AtMostOneResult::One(first),
+            (Some(first), Some(second)) => {
+                let more_than_one = MoreThanOne::new([first, second], self); 
+                AtMostOneResult::MoreThanOne(more_than_one)
             }
-            None => Ok(None),
         }
     }
 
