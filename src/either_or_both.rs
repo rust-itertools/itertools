@@ -464,7 +464,7 @@ impl<A, B> EitherOrBoth<A, B> {
 impl<T> EitherOrBoth<T, T> {
     /// Return either value of left, right, or apply a function `f` to both values if both are present.
     /// The input function has to return the same type as both Right and Left carry.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// # use itertools::EitherOrBoth;
@@ -490,6 +490,16 @@ impl<A, B> Into<Option<Either<A, B>>> for EitherOrBoth<A, B> {
             EitherOrBoth::Left(l) => Some(Either::Left(l)),
             EitherOrBoth::Right(r) => Some(Either::Right(r)),
             _ => None,
+        }
+    }
+}
+
+impl<A, B> Into<(Option<A>, Option<B>)> for EitherOrBoth<A, B> {
+    fn into(self) -> (Option<A>, Option<B>) {
+        match self.map_any(Some, Some) {
+            EitherOrBoth::Left(l) => (l, None),
+            EitherOrBoth::Right(r) => (None, r),
+            EitherOrBoth::Both(l, r) => (l, r),
         }
     }
 }
