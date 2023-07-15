@@ -65,7 +65,7 @@ impl<A, B> EitherOrBoth<A, B> {
         }
     }
 
-    /// Return tupel of options corresponding to the left and right value respectively
+    /// Return tuple of options corresponding to the left and right value respectively
     ///
     /// If `Left` return `(Some(..), None)`, if `Right` return `(None,Some(..))`, else return
     /// `(Some(..),Some(..))`
