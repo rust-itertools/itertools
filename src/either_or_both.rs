@@ -507,6 +507,7 @@ impl<A, B> Into<Option<Either<A, B>>> for EitherOrBoth<A, B> {
 }
 
 impl<A, B> From<EitherOrBoth<A, B>> for (Option<A>, Option<B>) {
+    #[inline(always)]
     fn from(val: EitherOrBoth<A, B>) -> Self {
         val.left_and_right()
     }
