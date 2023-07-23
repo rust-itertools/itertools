@@ -100,6 +100,7 @@ pub mod structs {
         MapInto,
         MapOk,
         MapErr,
+        ErrInto,
         Merge,
         MergeBy,
         TakeWhileRef,
@@ -947,6 +948,26 @@ pub trait Itertools : Iterator {
         F: FnMut(E) -> E2,
     {
         adaptors::map_err(self, f)
+    }
+
+    /// Return an iterator adaptor that converts every [`Result::Err`] value
+    /// using the [`Into`] trait.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let iterator = vec![Ok(()), Err(5i32)].into_iter();
+    /// let converted = iterator.err_into::<_, _, i64>();
+    /// itertools::assert_equal(converted, vec![Ok(()), Err(5i64)]);
+    /// ```
+    fn err_into<T, E, E2>(self) -> ErrInto<Self, E2>
+    where
+        Self: Iterator<Item = Result<T, E>> + Sized,
+        E: Into<E2>,
+    {
+        adaptors::err_into(self)
     }
 
     /// “Lift” a function of the values of the current iterator so as to process
