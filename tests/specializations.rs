@@ -113,7 +113,7 @@ quickcheck! {
 
 quickcheck! {
     fn err_into(v: Vec<Result<char, u8>>) -> () {
-        test_specializations(&v.into_iter().err_into::<_, _, u16>());
+        test_specializations(&v.into_iter().err_into::<u16>());
     }
 }
 

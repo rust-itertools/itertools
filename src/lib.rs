@@ -164,6 +164,7 @@ pub mod structs {
 
 /// Traits helpful for using certain `Itertools` methods in generic contexts.
 pub mod traits {
+    pub use crate::try_iterator::TryIterator;
     pub use crate::tuple_impl::HomogeneousTuple;
 }
 
@@ -239,6 +240,7 @@ mod sources;
 mod take_while_inclusive;
 #[cfg(feature = "use_alloc")]
 mod tee;
+mod try_iterator;
 mod tuple_impl;
 #[cfg(feature = "use_std")]
 mod duplicates_impl;
@@ -959,13 +961,13 @@ pub trait Itertools : Iterator {
     /// use itertools::Itertools;
     ///
     /// let iterator = vec![Ok(()), Err(5i32)].into_iter();
-    /// let converted = iterator.err_into::<_, _, i64>();
+    /// let converted = iterator.err_into::<i64>();
     /// itertools::assert_equal(converted, vec![Ok(()), Err(5i64)]);
     /// ```
-    fn err_into<T, E, E2>(self) -> ErrInto<Self, E2>
+    fn err_into<E>(self) -> ErrInto<Self, E>
     where
-        Self: Iterator<Item = Result<T, E>> + Sized,
-        E: Into<E2>,
+        Self: traits::TryIterator + Sized,
+        <Self as traits::TryIterator>::Error: Into<E>,
     {
         adaptors::err_into(self)
     }

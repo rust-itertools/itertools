@@ -1,6 +1,8 @@
 use std::iter::FromIterator;
 use std::marker::PhantomData;
 
+use crate::traits::TryIterator;
+
 #[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct MapSpecialCase<I, F> {
@@ -164,10 +166,10 @@ where
 pub type ErrInto<I, F> = MapSpecialCase<I, MapSpecialCaseFnErrInto<F>>;
 
 /// Create a new `ErrInto` iterator.
-pub(crate) fn err_into<I, F, T, E, E2>(iter: I) -> ErrInto<I, F>
+pub(crate) fn err_into<I, E>(iter: I) -> ErrInto<I, E>
 where
-    I: Iterator<Item = Result<T, E>>,
-    E: Into<E2>,
+    I: TryIterator,
+    <I as TryIterator>::Error: Into<E>,
 {
     MapSpecialCase {
         iter,
