@@ -122,3 +122,38 @@ pub fn map_into<I, R>(iter: I) -> MapInto<I, R> {
         f: MapSpecialCaseFnInto(PhantomData),
     }
 }
+
+/// An iterator adapter to apply a transformation within a nested `Result::Err`.
+///
+/// See [`.map_err()`](crate::Itertools::map_err) for more information.
+pub type MapErr<I, F> = MapSpecialCase<I, MapSpecialCaseFnErr<F>>;
+
+/// Create a new `MapErr` iterator.
+pub(crate) fn map_err<I, F, T, E, E2>(iter: I, f: F) -> MapErr<I, F>
+where
+    I: Iterator<Item = Result<T, E>>,
+    F: FnMut(E) -> E2,
+{
+    MapSpecialCase {
+        iter,
+        f: MapSpecialCaseFnErr(f),
+    }
+}
+
+#[derive(Clone)]
+pub struct MapSpecialCaseFnErr<F>(F);
+
+impl<F> std::fmt::Debug for MapSpecialCaseFnErr<F> {
+    debug_fmt_fields!(MapSpecialCaseFnErr,);
+}
+
+impl<F, T, E, E2> MapSpecialCaseFn<Result<T, E>> for MapSpecialCaseFnErr<F>
+where
+    F: FnMut(E) -> E2,
+{
+    type Out = Result<T, E2>;
+
+    fn call(&mut self, r: Result<T, E>) -> Self::Out {
+        r.map_err(|v| self.0(v))
+    }
+}

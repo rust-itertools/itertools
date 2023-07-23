@@ -99,6 +99,7 @@ pub mod structs {
         Batching,
         MapInto,
         MapOk,
+        MapErr,
         Merge,
         MergeBy,
         TakeWhileRef,
@@ -926,6 +927,26 @@ pub trait Itertools : Iterator {
               T: IntoIterator
     {
         flatten_ok::flatten_ok(self)
+    }
+
+    /// Return an iterator adaptor that applies the provided closure to every
+    /// [`Result::Err`] value. [`Result::Ok`] values are unchanged.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let iterator = vec![Ok(41), Err(0), Ok(11)].into_iter();
+    /// let mapped = iterator.map_err(|x| x + 2);
+    /// itertools::assert_equal(mapped, vec![Ok(41), Err(2), Ok(11)]);
+    /// ```
+    fn map_err<F, T, E, E2>(self, f: F) -> MapErr<Self, F>
+    where
+        Self: Iterator<Item = Result<T, E>> + Sized,
+        F: FnMut(E) -> E2,
+    {
+        adaptors::map_err(self, f)
     }
 
     /// “Lift” a function of the values of the current iterator so as to process

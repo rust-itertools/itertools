@@ -7,12 +7,15 @@
 mod coalesce;
 mod map;
 mod multi_product;
+
 pub use self::coalesce::*;
-pub use self::map::{map_into, map_ok, MapInto, MapOk};
+pub use self::map::{map_into, map_ok, MapInto, MapOk, MapErr};
 #[allow(deprecated)]
 pub use self::map::MapResults;
 #[cfg(feature = "use_alloc")]
 pub use self::multi_product::*;
+
+pub(crate) use self::map::map_err;
 
 use std::fmt;
 use std::iter::{Fuse, Peekable, FromIterator, FusedIterator};
