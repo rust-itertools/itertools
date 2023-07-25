@@ -493,3 +493,12 @@ impl<A, B> Into<Option<Either<A, B>>> for EitherOrBoth<A, B> {
         }
     }
 }
+
+impl<A, B> From<Either<A, B>> for EitherOrBoth<A, B> {
+    fn from(either: Either<A, B>) -> Self {
+        match either {
+            Either::Left(l) => EitherOrBoth::Left(l),
+            Either::Right(l) => EitherOrBoth::Right(l),
+        }
+    }
+}
