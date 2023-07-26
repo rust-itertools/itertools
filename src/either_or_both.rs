@@ -239,6 +239,120 @@ impl<A, B> EitherOrBoth<A, B> {
         }
     }
 
+    /// Apply the function `f` on the value `a` in `Left(a)` or `Both(a, _)` variants. If the
+    /// function returns `true`, the value is kept, otherwise, the value is filtered out.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use itertools::EitherOrBoth;
+    /// assert_eq!(
+    ///     EitherOrBoth::Both("tree", 1).filter_left(|l| *l == "tree"),
+    ///     Some(EitherOrBoth::Both("tree", 1))
+    /// );
+    /// assert_eq!(
+    ///     EitherOrBoth::Both("tree", 1).filter_left(|l| *l != "tree"),
+    ///     Some(EitherOrBoth::Right(1))
+    /// );
+    /// assert_eq!(
+    ///     EitherOrBoth::<_, ()>::Left("tree").filter_left(|l| *l == "tree"),
+    ///     Some(EitherOrBoth::Left("tree"))
+    /// );
+    /// assert_eq!(
+    ///     EitherOrBoth::<_, ()>::Left("tree").filter_left(|l| *l != "tree"),
+    ///     None
+    /// );
+    /// ```
+    pub fn filter_left<F>(self, f: F) -> Option<EitherOrBoth<A, B>>
+    where
+        F: FnOnce(&A) -> bool,
+    {
+        match self {
+            Left(a) => if f(&a) { Some(Left(a)) } else { None },
+            Right(b) => Some(Right(b)),
+            Both(a, b) => if f(&a) { Some(Both(a, b)) } else { Some(Right(b)) },
+        }
+    }
+
+    /// Apply the function `f` on the value `b` in `Right(b)` or `Both(_, b)` variants. If the
+    /// function returns `true`, the value is kept, otherwise, the value is filtered out.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use itertools::EitherOrBoth;
+    /// assert_eq!(
+    ///     EitherOrBoth::Both("tree", 1).filter_right(|r| *r == 1),
+    ///     Some(EitherOrBoth::Both("tree", 1))
+    /// );
+    /// assert_eq!(
+    ///     EitherOrBoth::Both("tree", 1).filter_right(|r| *r != 1),
+    ///     Some(EitherOrBoth::Left("tree"))
+    /// );
+    /// assert_eq!(
+    ///     EitherOrBoth::<(), _>::Right(1).filter_right(|r| *r == 1),
+    ///     Some(EitherOrBoth::Right(1))
+    /// );
+    /// assert_eq!(
+    ///     EitherOrBoth::<(), _>::Right(1).filter_right(|r| *r != 1),
+    ///     None
+    /// );
+    /// ```
+    pub fn filter_right<F>(self, f: F) -> Option<EitherOrBoth<A, B>>
+    where
+        F: FnOnce(&B) -> bool,
+    {
+        match self {
+            Left(a) => Some(Left(a)),
+            Right(b) => if f(&b) { Some(Right(b)) } else { None },
+            Both(a, b) => if f(&b) { Some(Both(a, b)) } else { Some(Left(a)) },
+        }
+    }
+
+    /// Apply the functions `f` and `g` on the value `a` and `b` respectively;
+    /// found in `Left(a)`, `Right(b)`, or `Both(a, b)` variants. If the result
+    /// of function `f` is `true`, the value `a` is kept, otherwise, the value
+    /// is filtered out. If the result of function `g` is `true`, the value `b`
+    /// is kept, otherwise the value is filtered out.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use itertools::EitherOrBoth;
+    /// assert_eq!(
+    ///     EitherOrBoth::Both("tree", 1).filter_any(|l| *l == "tree", |r| *r == 1),
+    ///     Some(EitherOrBoth::Both("tree", 1))
+    /// );
+    /// assert_eq!(
+    ///     EitherOrBoth::Both("tree", 1).filter_any(|l| *l != "tree", |r| *r == 1),
+    ///     Some(EitherOrBoth::Right(1))
+    /// );
+    /// assert_eq!(
+    ///     EitherOrBoth::Both("tree", 1).filter_any(|l| *l == "tree", |r| *r != 1),
+    ///     Some(EitherOrBoth::Left("tree"))
+    /// );
+    /// assert_eq!(
+    ///     EitherOrBoth::Both("tree", 1).filter_any(|l| *l != "tree", |r| *r != 1),
+    ///     None
+    /// );
+    /// ```
+    pub fn filter_any<F, G>(self, f: F, g: G) -> Option<EitherOrBoth<A, B>>
+    where
+        F: FnOnce(&A) -> bool,
+        G: FnOnce(&B) -> bool,
+    {
+        match self {
+            Left(a) => if f(&a) { Some(Left(a)) } else { None },
+            Right(b) => if g(&b) { Some(Right(b)) } else { None },
+            Both(a, b) => match (f(&a), g(&b)) {
+                (false, false) => None,
+                (true, false) => Some(Left(a)),
+                (false, true) => Some(Right(b)),
+                (true, true) => Some(Both(a, b)),
+            }
+        }
+    }
+
     /// Apply the function `f` on the value `a` in `Left(a)` or `Both(a, _)` variants if it is
     /// present.
     pub fn left_and_then<F, L>(self, f: F) -> EitherOrBoth<L, B>
