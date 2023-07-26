@@ -39,6 +39,11 @@ where
         self.peek_nth(0)
     }
 
+    /// Works exactly like the `peek_mut` method in `std::iter::Peekable`
+    pub fn peek_mut(&mut self) -> Option<&mut I::Item> {
+        self.peek_nth_mut(0)
+    }
+
     /// Returns a reference to the `nth` value without advancing the iterator.
     ///
     /// # Examples
@@ -68,6 +73,47 @@ where
         self.buf.extend(self.iter.by_ref().take(unbuffered_items));
 
         self.buf.get(n)
+    }
+
+    /// Returns a mutable reference to the `nth` value without advancing the iterator.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use itertools::peek_nth;
+    ///
+    /// let xs = vec![1, 2, 3, 4, 5];
+    /// let mut iter = peek_nth(xs.into_iter());
+    ///
+    /// assert_eq!(iter.peek_nth_mut(0), Some(&mut 1));
+    /// assert_eq!(iter.next(), Some(1));
+    ///
+    /// // The iterator does not advance even if we call `peek_nth_mut` multiple times
+    /// assert_eq!(iter.peek_nth_mut(0), Some(&mut 2));
+    /// assert_eq!(iter.peek_nth_mut(1), Some(&mut 3));
+    /// assert_eq!(iter.next(), Some(2));
+    ///
+    /// // Peek into the iterator and set the value behind the mutable reference.
+    /// if let Some(p) = iter.peek_nth_mut(1) {
+    ///     assert_eq!(*p, 4);
+    ///     *p = 9;
+    /// }
+    ///
+    /// // The value we put in reappears as the iterator continues.
+    /// assert_eq!(iter.next(), Some(3));
+    /// assert_eq!(iter.next(), Some(9));
+    ///
+    /// // Calling `peek_nth_mut` past the end of the iterator will return `None`
+    /// assert_eq!(iter.peek_nth_mut(1), None);
+    /// ```
+    pub fn peek_nth_mut(&mut self, n: usize) -> Option<&mut I::Item> {
+        let unbuffered_items = (n + 1).saturating_sub(self.buf.len());
+
+        self.buf.extend(self.iter.by_ref().take(unbuffered_items));
+
+        self.buf.get_mut(n)
     }
 }
 
