@@ -353,6 +353,126 @@ impl<A, B> EitherOrBoth<A, B> {
         }
     }
 
+    /// Apply the function `f` on the value `a` in `Left(a)` or `Both(a, _)` variants. If the
+    /// function returns `Some(value)`, the value `a` is replaced, otherwise, the value `a` is
+    /// filtered out.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::str::FromStr;
+    /// # use itertools::EitherOrBoth;
+    /// assert_eq!(
+    ///     EitherOrBoth::Both("1", 1).filter_map_left(|l| u16::from_str(l).ok()),
+    ///     Some(EitherOrBoth::Both(1u16, 1))
+    /// );
+    /// assert_eq!(
+    ///     EitherOrBoth::Both("tree", 1).filter_map_left(|l| u16::from_str(l).ok()),
+    ///     Some(EitherOrBoth::Right(1))
+    /// );
+    /// assert_eq!(
+    ///     EitherOrBoth::<_, ()>::Left("1").filter_map_left(|l| u16::from_str(l).ok()),
+    ///     Some(EitherOrBoth::Left(1u16))
+    /// );
+    /// assert_eq!(
+    ///     EitherOrBoth::<_, ()>::Left("tree").filter_map_left(|l| u16::from_str(l).ok()),
+    ///     None
+    /// );
+    /// ```
+    pub fn filter_map_left<F, L>(self, f: F) -> Option<EitherOrBoth<L, B>>
+    where
+        F: FnOnce(A) -> Option<L>,
+    {
+        match self {
+            Left(a) => f(a).map(Left),
+            Right(b) => Some(Right(b)),
+            Both(a, b) => if let Some(l) = f(a) { Some(Both(l, b)) } else { Some(Right(b)) },
+        }
+    }
+
+    /// Apply the function `f` on the value `b` in `Right(b)` or `Both(_, b)` variants. If the
+    /// function returns `Some(value)`, the value `b` is replaced, otherwise, the value `b` is
+    /// filtered out.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::convert::TryFrom;
+    /// # use itertools::EitherOrBoth;
+    /// assert_eq!(
+    ///     EitherOrBoth::Both("1", 1).filter_map_right(|r| u8::try_from(r).ok()),
+    ///     Some(EitherOrBoth::Both("1", 1u8))
+    /// );
+    /// assert_eq!(
+    ///     EitherOrBoth::Both("1", 1024).filter_map_right(|r| u8::try_from(r).ok()),
+    ///     Some(EitherOrBoth::Left("1"))
+    /// );
+    /// assert_eq!(
+    ///     EitherOrBoth::<(), _>::Right(1).filter_map_right(|r| u8::try_from(r).ok()),
+    ///     Some(EitherOrBoth::Right(1u8))
+    /// );
+    /// assert_eq!(
+    ///     EitherOrBoth::<(), _>::Right(1024).filter_map_right(|r| u8::try_from(r).ok()),
+    ///     None
+    /// );
+    /// ```
+    pub fn filter_map_right<F, R>(self, f: F) -> Option<EitherOrBoth<A, R>>
+    where
+        F: FnOnce(B) -> Option<R>,
+    {
+        match self {
+            Left(a) => Some(Left(a)),
+            Right(b) => f(b).map(Right),
+            Both(a, b) => if let Some(r) = f(b) { Some(Both(a, r)) } else { Some(Left(a)) },
+        }
+    }
+
+    /// Apply the functions `f` and `g` on the value `a` and `b` respectively;
+    /// found in `Left(a)`, `Right(b)`, or `Both(a, b)` variants. If the result
+    /// of function `f` is `Some(value)`, the value `a` is replaced, otherwise,
+    /// the value is filtered out. If the result of function `g` is `Some(value)`,
+    /// the value `b` is replaced, otherwise the value is filtered out.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::str::FromStr;
+    /// # use std::convert::TryFrom;
+    /// # use itertools::EitherOrBoth;
+    /// assert_eq!(
+    ///     EitherOrBoth::Both("1", 1).filter_map_any(|l| u16::from_str(l).ok(), |r| u8::try_from(r).ok()),
+    ///     Some(EitherOrBoth::Both(1u16, 1u8))
+    /// );
+    /// assert_eq!(
+    ///     EitherOrBoth::Both("tree", 1).filter_map_any(|l| u16::from_str(l).ok(), |r| u8::try_from(r).ok()),
+    ///     Some(EitherOrBoth::Right(1u8))
+    /// );
+    /// assert_eq!(
+    ///     EitherOrBoth::Both("1", 1024).filter_map_any(|l| u16::from_str(l).ok(), |r| u8::try_from(r).ok()),
+    ///     Some(EitherOrBoth::Left(1u16))
+    /// );
+    /// assert_eq!(
+    ///     EitherOrBoth::Both("tree", 1024).filter_map_any(|l| u16::from_str(l).ok(), |r| u8::try_from(r).ok()),
+    ///     None
+    /// );
+    /// ```
+    pub fn filter_map_any<F, G, L, R>(self, f: F, g: G) -> Option<EitherOrBoth<L, R>>
+    where
+        F: FnOnce(A) -> Option<L>,
+        G: FnOnce(B) -> Option<R>,
+    {
+        match self {
+            Left(a) => f(a).map(Left),
+            Right(b) => g(b).map(Right),
+            Both(a, b) => match (f(a), g(b)) {
+                (None, None) => None,
+                (Some(l), None) => Some(Left(l)),
+                (None, Some(r)) => Some(Right(r)),
+                (Some(l), Some(r)) => Some(Both(l, r)),
+            }
+        }
+    }
+
     /// Apply the function `f` on the value `a` in `Left(a)` or `Both(a, _)` variants if it is
     /// present.
     pub fn left_and_then<F, L>(self, f: F) -> EitherOrBoth<L, B>
