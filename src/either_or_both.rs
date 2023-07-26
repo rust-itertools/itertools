@@ -716,6 +716,33 @@ impl<T> EitherOrBoth<T, T> {
             Both(a, b) => f(a, b),
         }
     }
+
+    /// Equivalent to `map_any`, but using the same function for both values when
+    /// they have the same type.
+    pub fn map<F, U>(self, f: F) -> EitherOrBoth<U, U>
+    where
+        F: Fn(T) -> U
+    {
+        self.map_any(&f, &f)
+    }
+
+    /// Equivalent to `filter_any`, but using the same function for both values when
+    /// they have the same type.
+    pub fn filter<F>(self, f: F) -> Option<EitherOrBoth<T, T>>
+    where
+        F: Fn(&T) -> bool
+    {
+        self.filter_any(&f, &f)
+    }
+
+    /// Equivalent to `filter_map_any`, but using the same function for both values when
+    /// they have the same type.
+    pub fn filter_map<F, U>(self, f: F) -> Option<EitherOrBoth<U, U>>
+    where
+        F: Fn(T) -> Option<U>
+    {
+        self.filter_map_any(&f, &f)
+    }
 }
 
 impl<A, B> Into<Option<Either<A, B>>> for EitherOrBoth<A, B> {
