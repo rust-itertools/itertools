@@ -759,6 +759,32 @@ quickcheck! {
 }
 
 quickcheck! {
+    fn correct_peek_nth(mut a: Vec<u16>) -> () {
+        let mut it = peek_nth(a.clone());
+        for start_pos in 0..a.len() + 2 {
+            for real_idx in start_pos..a.len() + 2 {
+                let peek_idx = real_idx - start_pos;
+                assert_eq!(it.peek_nth(peek_idx), a.get(real_idx));
+                assert_eq!(it.peek_nth_mut(peek_idx), a.get_mut(real_idx));
+            }
+            assert_eq!(it.next(), a.get(start_pos).copied());
+        }
+    }
+
+    fn peek_nth_mut_replace(a: Vec<u16>, b: Vec<u16>) -> () {
+        let mut it = peek_nth(a.iter());
+        for i in 0..a.len().min(b.len()) {
+            *it.peek_nth_mut(i).unwrap() = &b[i];
+        }
+        for i in 0..a.len() {
+            assert_eq!(it.next().unwrap(), b.get(i).unwrap_or(&a[i]));
+        }
+        assert_eq!(it.next(), None);
+        assert_eq!(it.next(), None);
+    }
+}
+
+quickcheck! {
     fn dedup_via_coalesce(a: Vec<i32>) -> bool {
         let mut b = a.clone();
         b.dedup();
