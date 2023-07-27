@@ -70,11 +70,7 @@ impl<A, B> EitherOrBoth<A, B> {
     /// If `Left` return `(Some(..), None)`, if `Right` return `(None,Some(..))`, else return
     /// `(Some(..),Some(..))`
     pub fn left_and_right(self) -> (Option<A>, Option<B>) {
-        match self.map_any(Some, Some) {
-            EitherOrBoth::Left(l) => (l, None),
-            EitherOrBoth::Right(r) => (None, r),
-            EitherOrBoth::Both(l, r) => (l, r),
-        }
+        self.map_any(Some, Some).or_default()
     }
 
     /// If `Left`, return `Some` with the left value. If `Right` or `Both`, return `None`.
@@ -503,12 +499,5 @@ impl<A, B> Into<Option<Either<A, B>>> for EitherOrBoth<A, B> {
             EitherOrBoth::Right(r) => Some(Either::Right(r)),
             _ => None,
         }
-    }
-}
-
-impl<A, B> From<EitherOrBoth<A, B>> for (Option<A>, Option<B>) {
-    #[inline(always)]
-    fn from(val: EitherOrBoth<A, B>) -> Self {
-        val.left_and_right()
     }
 }
