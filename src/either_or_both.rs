@@ -65,6 +65,14 @@ impl<A, B> EitherOrBoth<A, B> {
         }
     }
 
+    /// Return tuple of options corresponding to the left and right value respectively
+    ///
+    /// If `Left` return `(Some(..), None)`, if `Right` return `(None,Some(..))`, else return
+    /// `(Some(..),Some(..))`
+    pub fn left_and_right(self) -> (Option<A>, Option<B>) {
+        self.map_any(Some, Some).or_default()
+    }
+
     /// If `Left`, return `Some` with the left value. If `Right` or `Both`, return `None`.
     ///
     /// # Examples
@@ -464,7 +472,7 @@ impl<A, B> EitherOrBoth<A, B> {
 impl<T> EitherOrBoth<T, T> {
     /// Return either value of left, right, or apply a function `f` to both values if both are present.
     /// The input function has to return the same type as both Right and Left carry.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// # use itertools::EitherOrBoth;
