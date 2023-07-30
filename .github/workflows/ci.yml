@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo check ${{ matrix.features }}
+      - run: RUSTFLAGS="--deny warnings" cargo check ${{ matrix.features }}
 
   msrv:
     runs-on: ubuntu-latest
