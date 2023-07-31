@@ -490,6 +490,44 @@ impl<T> EitherOrBoth<T, T> {
             Both(a, b) => f(a, b),
         }
     }
+
+    /// Returns either left or right, or if both are present returns right
+    ///
+    /// Complement of [`left_or_right`](EitherOrBoth::left_or_right).
+    ///
+    /// # Examples
+    /// ```
+    /// # use itertools::EitherOrBoth;
+    /// assert_eq!(EitherOrBoth::Both(3, 7).right_or_left(), 7);
+    /// assert_eq!(EitherOrBoth::Left(3).right_or_left(), 3);
+    /// assert_eq!(EitherOrBoth::Right(7).right_or_left(), 7);
+    /// ```
+    pub fn right_or_left(self) -> T {
+        match self {
+            Left(t) => t,
+            Right(t) => t,
+            Both(_, t) => t,
+        }
+    }
+
+    /// Returns either left or right, or if both are present returns left
+    ///
+    /// Complement of [`right_or_left`](EitherOrBoth::right_or_left).
+    ///
+    /// # Examples
+    /// ```
+    /// # use itertools::EitherOrBoth;
+    /// assert_eq!(EitherOrBoth::Both(3, 7).left_or_right(), 3);
+    /// assert_eq!(EitherOrBoth::Left(3).left_or_right(), 3);
+    /// assert_eq!(EitherOrBoth::Right(7).left_or_right(), 7);
+    /// ```
+    pub fn left_or_right(self) -> T {
+        match self {
+            Left(t) => t,
+            Right(t) => t,
+            Both(t, _) => t,
+        }
+    }
 }
 
 impl<A, B> Into<Option<Either<A, B>>> for EitherOrBoth<A, B> {
