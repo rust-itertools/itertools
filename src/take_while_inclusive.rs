@@ -8,30 +8,30 @@ use std::fmt;
 /// See [`.take_while_inclusive()`](crate::Itertools::take_while_inclusive)
 /// for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct TakeWhileInclusive<'a, I: 'a, F> {
-    iter: &'a mut I,
+pub struct TakeWhileInclusive<I, F> {
+    iter: I,
     predicate: F,
     done: bool,
 }
 
-impl<'a, I, F> TakeWhileInclusive<'a, I, F>
+impl<I, F> TakeWhileInclusive<I, F>
 where
     I: Iterator,
     F: FnMut(&I::Item) -> bool,
 {
     /// Create a new [`TakeWhileInclusive`] from an iterator and a predicate.
-    pub fn new(iter: &'a mut I, predicate: F) -> Self {
+    pub fn new(iter: I, predicate: F) -> Self {
         Self { iter, predicate, done: false}
     }
 }
 
-impl<'a, I, F> fmt::Debug for TakeWhileInclusive<'a, I, F>
+impl<I, F> fmt::Debug for TakeWhileInclusive<I, F>
     where I: Iterator + fmt::Debug,
 {
     debug_fmt_fields!(TakeWhileInclusive, iter);
 }
 
-impl<'a, I, F> Iterator for TakeWhileInclusive<'a, I, F>
+impl<I, F> Iterator for TakeWhileInclusive<I, F>
 where
     I: Iterator,
     F: FnMut(&I::Item) -> bool
@@ -60,7 +60,7 @@ where
     }
 }
 
-impl<I, F> FusedIterator for TakeWhileInclusive<'_, I, F>
+impl<I, F> FusedIterator for TakeWhileInclusive<I, F>
 where
     I: Iterator,
     F: FnMut(&I::Item) -> bool

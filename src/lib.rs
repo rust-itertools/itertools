@@ -1519,7 +1519,7 @@ pub trait Itertools : Iterator {
     ///     .collect();
     /// let expected: Vec<_> = vec![1, 2, 3].into_iter().map(NoCloneImpl).collect();
     /// assert_eq!(filtered, expected);
-    fn take_while_inclusive<F>(&mut self, accept: F) -> TakeWhileInclusive<Self, F>
+    fn take_while_inclusive<F>(self, accept: F) -> TakeWhileInclusive<Self, F>
     where
         Self: Sized,
         F: FnMut(&Self::Item) -> bool,
@@ -2650,7 +2650,7 @@ pub trait Itertools : Iterator {
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort_unstable`] method and returns the result as a new
     /// iterator that owns its elements.
-    /// 
+    ///
     /// This sort is unstable (i.e., may reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -2681,7 +2681,7 @@ pub trait Itertools : Iterator {
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort_unstable_by`] method and returns the result as a new
     /// iterator that owns its elements.
-    /// 
+    ///
     /// This sort is unstable (i.e., may reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -2716,7 +2716,7 @@ pub trait Itertools : Iterator {
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort_unstable_by_key`] method and returns the result as a new
     /// iterator that owns its elements.
-    /// 
+    ///
     /// This sort is unstable (i.e., may reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -2752,7 +2752,7 @@ pub trait Itertools : Iterator {
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort`] method and returns the result as a new
     /// iterator that owns its elements.
-    /// 
+    ///
     /// This sort is stable (i.e., does not reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -2783,7 +2783,7 @@ pub trait Itertools : Iterator {
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort_by`] method and returns the result as a new
     /// iterator that owns its elements.
-    /// 
+    ///
     /// This sort is stable (i.e., does not reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -2818,7 +2818,7 @@ pub trait Itertools : Iterator {
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort_by_key`] method and returns the result as a new
     /// iterator that owns its elements.
-    /// 
+    ///
     /// This sort is stable (i.e., does not reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -2855,7 +2855,7 @@ pub trait Itertools : Iterator {
     /// **Note:** This consumes the entire iterator, uses the
     /// [`slice::sort_by_cached_key`] method and returns the result as a new
     /// iterator that owns its elements.
-    /// 
+    ///
     /// This sort is stable (i.e., does not reorder equal elements).
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
