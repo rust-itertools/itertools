@@ -3851,7 +3851,7 @@ pub trait Itertools : Iterator {
     /// assert_eq!((15..10).try_len(), Some(0));
     /// assert_eq!((10..).try_len(), None);
     /// ```
-    fn try_len(self) -> Option<usize>
+    fn try_len(&self) -> Option<usize>
     where Self: Sized
     {
         size_hint::try_len(self)
