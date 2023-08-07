@@ -3840,6 +3840,22 @@ pub trait Itertools : Iterator {
     {
         MultiUnzip::multiunzip(self)
     }
+
+    /// Returns the length of the iterator if one exists.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// assert_eq!([0; 10].into_iter().try_len(), Some(10));
+    /// assert_eq!((10..15).try_len(), Some(5));
+    /// assert_eq!((15..10).try_len(), Some(0));
+    /// assert_eq!((10..).try_len(), None);
+    /// ```
+    fn try_len(self) -> Option<usize>
+    where Self: Sized
+    {
+        size_hint::try_len(self)
+    }
 }
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }

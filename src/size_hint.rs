@@ -117,3 +117,12 @@ pub fn min(a: SizeHint, b: SizeHint) -> SizeHint {
     };
     (lower, upper)
 }
+
+/// Returns the length of the iterator if one exists.
+#[inline]
+pub fn try_len(it: impl Iterator) -> Option<usize> {
+    match it.size_hint() {
+        (lo, Some(hi)) if lo == hi => Some(lo),
+        _ => None
+    }
+}
