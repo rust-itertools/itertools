@@ -473,12 +473,20 @@ impl<T> EitherOrBoth<T, T> {
     /// Return either value of left, right, or apply a function `f` to both values if both are present.
     /// The input function has to return the same type as both Right and Left carry.
     ///
+    /// This function can be used to preferrably extract the left resp. right value,
+    /// but fall back to the other (i.e. right resp. left) if the preferred one is not present.
+    /// 
     /// # Examples
     /// ```
     /// # use itertools::EitherOrBoth;
     /// assert_eq!(EitherOrBoth::Both(3, 7).reduce(u32::max), 7);
     /// assert_eq!(EitherOrBoth::Left(3).reduce(u32::max), 3);
     /// assert_eq!(EitherOrBoth::Right(7).reduce(u32::max), 7);
+    ///
+    /// // Extract the left value if present, fall back to the right otherwise.
+    /// assert_eq!(EitherOrBoth::Left("left").reduce(|l, _r| l), "left");
+    /// assert_eq!(EitherOrBoth::Right("right").reduce(|l, _r| l), "right");
+    /// assert_eq!(EitherOrBoth::Both("left", "right").reduce(|l, _r| l), "left");
     /// ```
     pub fn reduce<F>(self, f: F) -> T
     where
