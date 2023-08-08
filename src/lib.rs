@@ -114,6 +114,8 @@ pub mod structs {
     pub use crate::adaptors::MultiProduct;
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations::Combinations;
+    #[cfg(feature = "lending_iters")]
+    pub use crate::combinations::{Lending, NonLending, lending::{Combination, LendingIterator}};
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations_with_replacement::CombinationsWithReplacement;
     pub use crate::cons_tuples_impl::ConsTuples;
@@ -1623,6 +1625,68 @@ pub trait Itertools : Iterator {
               Self::Item: Clone
     {
         combinations::combinations(self, k)
+    }
+
+    /// Return an iterator adaptor that iterates over the `k`-length combinations of
+    /// the elements from an iterator. It is a `LendingIterator` of an `Iterator` of the elements.
+    ///
+    /// LendingIterator element type is another iterator of type [`Combination<'next, I>`](crate::Combination) where
+    /// `'next` is the lifetime passed to the `.next()` call.
+    ///
+    /// The element type of the interior iterator is the `Self::Item` this iterator is adapting.
+    ///
+    /// This means that no extra heap allocation for a vector is necessary and can be multiple times faster.
+    ///
+    /// Use `.into_iter()` (preferred) or `.map_into_iter(|x| x.collect_vec())` if you wish to convert it to a normal non lending `Iterator`.
+    /// This will lose the speed benefits of lending.
+    /// If used in a for loop implicit call to `.into_iter()` will allocate a vector on the heap like the non lending version.
+    /// Consider using `.for_each` or `while let Some(combination) = combinations_lending_iter.next()` instead.
+    ///
+    /// Must import `itertools::LendingIterator` type. If you do not you will encounter a
+    /// "no method named `next` found for struct `Combinations` in the current scope" error.
+    /// ```
+    /// use itertools::{Itertools, LendingIterator};
+    ///
+    /// let it = (1..5).combinations_lending(3);
+    /// itertools::assert_equal(it, vec![
+    ///     vec![1, 2, 3],
+    ///     vec![1, 2, 4],
+    ///     vec![1, 3, 4],
+    ///     vec![2, 3, 4],
+    /// ]);
+    /// ```
+    ///
+    /// Collection into a non-vec type is more efficient with this method:
+    /// ```
+    /// use std::collections::HashSet;
+    /// use std::iter::FromIterator;
+    /// use itertools::{Itertools, LendingIterator};
+    ///
+    /// let mut combinations_lending_iter = (0..20).combinations_lending(4);
+    /// let mut combinations_iter = (0..20).combinations(4);
+    /// while let Some(combination) = combinations_lending_iter.next() {
+    /// let combination_slow = combinations_iter.next().unwrap();
+    /// assert_eq!(combination.collect::<HashSet<_>>(), HashSet::from_iter(combination_slow.into_iter()))
+    /// }
+    /// ```
+    ///
+    /// Note: Combinations does not take into account the equality of the iterated values.
+    /// ```
+    /// use itertools::{Itertools, LendingIterator};
+    ///
+    /// let it = vec![1, 2, 2].into_iter().combinations_lending(2);
+    /// itertools::assert_equal(it, vec![
+    ///     vec![1, 2], // Note: these are the same
+    ///     vec![1, 2], // Note: these are the same
+    ///     vec![2, 2],
+    /// ]);
+    /// ```
+    #[cfg(feature = "lending_iters")]
+    fn combinations_lending(self, k: usize) -> combinations::Combinations<Self, combinations::Lending>
+        where Self: Sized,
+              Self::Item: Clone
+    {
+        combinations::lending::combinations_lending(self, k)
     }
 
     /// Return an iterator that iterates over the `k`-length combinations of

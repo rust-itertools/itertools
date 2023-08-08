@@ -916,6 +916,16 @@ quickcheck! {
     }
 }
 
+#[cfg(feature = "lending_iters")]
+qc::quickcheck! {
+fn combinations_lending_parity_to_non_lending(it: Iter<i8>, k: usize) -> () {
+    const NUM: usize = 18;
+    let it = it.take(NUM); // Worst case amount is NUM!/(NUM/2)!^2. at 20 is 1.8*10^5. At 19 is 9.2*10^4. 18 is 4862.
+    itertools::assert_equal(it.clone().combinations(k), it.clone().combinations_lending(k));
+    assert_eq!(it.clone().combinations(k).collect_vec(), it.combinations_lending(k).collect_nested_vec());
+    }
+}
+
 quickcheck! {
     fn size_pad_tail(it: Iter<i8>, pad: u8) -> bool {
         correct_size_hint(it.clone().pad_using(pad as usize, |_| 0)) &&

@@ -24,6 +24,7 @@ test = false
 
 [dependencies]
 either = { version = "1.0", default-features = false }
+lending-iterator = { version = "0.1.6", optional = true}
 
 [dev-dependencies]
 rand = "0.7"
@@ -36,6 +37,7 @@ quickcheck = { version = "0.9", default_features = false }
 default = ["use_std"]
 use_std = ["use_alloc", "either/use_std"]
 use_alloc = []
+lending_iters = ["dep:lending-iterator"]
 
 [profile]
 bench = { debug = true }
@@ -67,6 +69,11 @@ harness = false
 [[bench]]
 name = "combinations"
 harness = false
+
+[[bench]]
+name = "combinations_lending"
+harness = false
+required-features = ["default", "lending_iters"]
 
 [[bench]]
 name = "powerset"

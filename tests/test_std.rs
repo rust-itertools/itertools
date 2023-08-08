@@ -909,6 +909,15 @@ fn combinations_zero() {
     it::assert_equal((0..0).combinations(0), vec![vec![]]);
 }
 
+// Below shouldn't compile because of attempt to reference an already mut reference.
+// #[test]
+// fn combinations_lending_cant_double_mut() {
+//     let mut out = (1..4).combinations_lending(2);
+//     let mut combination = out.next().unwrap();
+//     let combination2 = out.next().unwrap();
+//     combination.next();
+// }
+
 #[test]
 fn permutations_zero() {
     it::assert_equal((1..3).permutations(0), vec![vec![]]);
