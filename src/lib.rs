@@ -3842,6 +3842,7 @@ pub trait Itertools : Iterator {
     }
 
     /// Returns the length of the iterator if one exists.
+    /// Relies on the [`size_hint`] of the iterator being correct.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -3854,7 +3855,7 @@ pub trait Itertools : Iterator {
     fn try_len(&self) -> Option<usize>
     where Self: Sized
     {
-        size_hint::try_len(self)
+        size_hint::try_len(self.size_hint())
     }
 }
 
