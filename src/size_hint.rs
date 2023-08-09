@@ -120,9 +120,9 @@ pub fn min(a: SizeHint, b: SizeHint) -> SizeHint {
 
 /// Returns the length of the iterator if one exists.
 #[inline]
-pub fn try_len(sh: SizeHint) -> Option<usize> {
+pub fn try_len(sh: SizeHint) -> Result<usize, SizeHint> {
     match sh {
-        (lo, Some(hi)) if lo == hi => Some(lo),
-        _ => None
+        (lo, Some(hi)) if lo == hi => Ok(lo),
+        _ => Err(sh)
     }
 }
