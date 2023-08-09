@@ -3857,10 +3857,12 @@ pub trait Itertools : Iterator {
     /// assert_eq!((10..).try_len(), Err((usize::MAX, None)));
     /// assert_eq!((10..15).filter(|x| x % 2 == 0).try_len(), Err((0, Some(5))));
     /// ```
-    #[inline]
-    fn try_len(&self) -> Result<usize, size_hint::SizeHint>
-    {
-        size_hint::try_len(self.size_hint())
+    fn try_len(&self) -> Result<usize, size_hint::SizeHint> {
+        let sh = self.size_hint();
+        match sh {
+            (lo, Some(hi)) if lo == hi => Ok(lo),
+            _ => Err(sh),
+        }
     }
 }
 
