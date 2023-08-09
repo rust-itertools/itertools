@@ -3840,6 +3840,30 @@ pub trait Itertools : Iterator {
     {
         MultiUnzip::multiunzip(self)
     }
+
+    /// Returns the length of the iterator if one exists.
+    /// Otherwise return `self.size_hint()`.
+    ///
+    /// Fallible [`ExactSizeIterator::len`].
+    ///
+    /// Inherits guarantees and restrictions from [`Iterator::size_hint`].
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// assert_eq!([0; 10].iter().try_len(), Ok(10));
+    /// assert_eq!((10..15).try_len(), Ok(5));
+    /// assert_eq!((15..10).try_len(), Ok(0));
+    /// assert_eq!((10..).try_len(), Err((usize::MAX, None)));
+    /// assert_eq!((10..15).filter(|x| x % 2 == 0).try_len(), Err((0, Some(5))));
+    /// ```
+    fn try_len(&self) -> Result<usize, size_hint::SizeHint> {
+        let sh = self.size_hint();
+        match sh {
+            (lo, Some(hi)) if lo == hi => Ok(lo),
+            _ => Err(sh),
+        }
+    }
 }
 
 impl<T: ?Sized> Itertools for T where T: Iterator { }
