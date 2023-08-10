@@ -1,6 +1,8 @@
 use std::iter::FromIterator;
 use std::marker::PhantomData;
 
+use crate::traits::TryIterator;
+
 #[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct MapSpecialCase<I, F> {
@@ -120,5 +122,75 @@ pub fn map_into<I, R>(iter: I) -> MapInto<I, R> {
     MapSpecialCase {
         iter,
         f: MapSpecialCaseFnInto(PhantomData),
+    }
+}
+
+/// An iterator adapter to apply a transformation within a nested `Result::Err`.
+///
+/// See [`.map_err()`](crate::Itertools::map_err) for more information.
+pub type MapErr<I, F> = MapSpecialCase<I, MapSpecialCaseFnErr<F>>;
+
+/// Create a new `MapErr` iterator.
+pub(crate) fn map_err<I, F, T, E, E2>(iter: I, f: F) -> MapErr<I, F>
+where
+    I: Iterator<Item = Result<T, E>>,
+    F: FnMut(E) -> E2,
+{
+    MapSpecialCase {
+        iter,
+        f: MapSpecialCaseFnErr(f),
+    }
+}
+
+#[derive(Clone)]
+pub struct MapSpecialCaseFnErr<F>(F);
+
+impl<F> std::fmt::Debug for MapSpecialCaseFnErr<F> {
+    debug_fmt_fields!(MapSpecialCaseFnErr,);
+}
+
+impl<F, T, E, E2> MapSpecialCaseFn<Result<T, E>> for MapSpecialCaseFnErr<F>
+where
+    F: FnMut(E) -> E2,
+{
+    type Out = Result<T, E2>;
+
+    fn call(&mut self, r: Result<T, E>) -> Self::Out {
+        r.map_err(|v| self.0(v))
+    }
+}
+
+/// An iterator adapter to convert a nested `Result::Err` using [`Into`].
+///
+/// See [`.map_err()`](crate::Itertools::map_err) for more information.
+pub type ErrInto<I, F> = MapSpecialCase<I, MapSpecialCaseFnErrInto<F>>;
+
+/// Create a new `ErrInto` iterator.
+pub(crate) fn err_into<I, E>(iter: I) -> ErrInto<I, E>
+where
+    I: TryIterator,
+    <I as TryIterator>::Error: Into<E>,
+{
+    MapSpecialCase {
+        iter,
+        f: MapSpecialCaseFnErrInto(PhantomData),
+    }
+}
+
+#[derive(Clone)]
+pub struct MapSpecialCaseFnErrInto<E2>(PhantomData<E2>);
+
+impl<F> std::fmt::Debug for MapSpecialCaseFnErrInto<F> {
+    debug_fmt_fields!(MapSpecialCaseFnErrInto,);
+}
+
+impl<T, E, E2> MapSpecialCaseFn<Result<T, E>> for MapSpecialCaseFnErrInto<E2>
+where
+    E: Into<E2>,
+{
+    type Out = Result<T, E2>;
+
+    fn call(&mut self, r: Result<T, E>) -> Self::Out {
+        r.map_err(Into::into)
     }
 }

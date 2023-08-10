@@ -99,6 +99,8 @@ pub mod structs {
         Batching,
         MapInto,
         MapOk,
+        MapErr,
+        ErrInto,
         Merge,
         MergeBy,
         TakeWhileRef,
@@ -162,6 +164,7 @@ pub mod structs {
 
 /// Traits helpful for using certain `Itertools` methods in generic contexts.
 pub mod traits {
+    pub use crate::try_iterator::TryIterator;
     pub use crate::tuple_impl::HomogeneousTuple;
 }
 
@@ -237,6 +240,7 @@ mod sources;
 mod take_while_inclusive;
 #[cfg(feature = "use_alloc")]
 mod tee;
+mod try_iterator;
 mod tuple_impl;
 #[cfg(feature = "use_std")]
 mod duplicates_impl;
@@ -926,6 +930,46 @@ pub trait Itertools : Iterator {
               T: IntoIterator
     {
         flatten_ok::flatten_ok(self)
+    }
+
+    /// Return an iterator adaptor that applies the provided closure to every
+    /// [`Result::Err`] value. [`Result::Ok`] values are unchanged.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let iterator = vec![Ok(41), Err(0), Ok(11)].into_iter();
+    /// let mapped = iterator.map_err(|x| x + 2);
+    /// itertools::assert_equal(mapped, vec![Ok(41), Err(2), Ok(11)]);
+    /// ```
+    fn map_err<F, T, E, E2>(self, f: F) -> MapErr<Self, F>
+    where
+        Self: Iterator<Item = Result<T, E>> + Sized,
+        F: FnMut(E) -> E2,
+    {
+        adaptors::map_err(self, f)
+    }
+
+    /// Return an iterator adaptor that converts every [`Result::Err`] value
+    /// using the [`Into`] trait.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let iterator = vec![Ok(()), Err(5i32)].into_iter();
+    /// let converted = iterator.err_into::<i64>();
+    /// itertools::assert_equal(converted, vec![Ok(()), Err(5i64)]);
+    /// ```
+    fn err_into<E>(self) -> ErrInto<Self, E>
+    where
+        Self: traits::TryIterator + Sized,
+        <Self as traits::TryIterator>::Error: Into<E>,
+    {
+        adaptors::err_into(self)
     }
 
     /// “Lift” a function of the values of the current iterator so as to process

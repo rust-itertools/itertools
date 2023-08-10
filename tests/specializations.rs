@@ -106,6 +106,18 @@ quickcheck! {
 }
 
 quickcheck! {
+    fn map_err(v: Vec<Result<char, u8>>) -> () {
+        test_specializations(&v.into_iter().map_err(|u| u.checked_add(1)));
+    }
+}
+
+quickcheck! {
+    fn err_into(v: Vec<Result<char, u8>>) -> () {
+        test_specializations(&v.into_iter().err_into::<u16>());
+    }
+}
+
+quickcheck! {
     fn process_results(v: Vec<Result<u8, u8>>) -> () {
         helper(v.iter().copied());
         helper(v.iter().copied().filter(Result::is_ok));
