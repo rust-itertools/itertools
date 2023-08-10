@@ -1676,6 +1676,9 @@ pub trait Itertools: Iterator {
     /// If `k` is greater than the length of the input iterator, the resultant
     /// iterator adaptor will be empty.
     ///
+    /// If you are looking for permutations with replacements,
+    /// use `repeat_n(iter, k).multi_cartesian_product()` instead.
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
