@@ -3,6 +3,7 @@ use std::fmt;
 use std::iter::once;
 
 use super::lazy_buffer::LazyBuffer;
+use super::size_hint::{self, SizeHint};
 
 /// An iterator adaptor that iterates through all the `k`-permutations of the
 /// elements from an iterator.
@@ -47,11 +48,6 @@ enum CompleteState {
     }
 }
 
-enum CompleteStateRemaining {
-    Known(usize),
-    Overflow,
-}
-
 impl<I> fmt::Debug for Permutations<I>
     where I: Iterator + fmt::Debug,
           I::Item: fmt::Debug,
@@ -72,14 +68,8 @@ pub fn permutations<I: Iterator>(iter: I, k: usize) -> Permutations<I> {
         };
     }
 
-    let mut enough_vals = true;
-
-    while vals.len() < k {
-        if !vals.get_next() {
-            enough_vals = false;
-            break;
-        }
-    }
+    vals.prefill(k);
+    let enough_vals = vals.len() == k;
 
     let state = if enough_vals {
         PermutationState::StartUnknownLen { k }
@@ -122,42 +112,42 @@ where
     }
 
     fn count(self) -> usize {
-        fn from_complete(complete_state: CompleteState) -> usize {
-            match complete_state.remaining() {
-                CompleteStateRemaining::Known(count) => count,
-                CompleteStateRemaining::Overflow => {
-                    panic!("Iterator count greater than usize::MAX");
-                }
-            }
-        }
-
         let Permutations { vals, state } = self;
         match state {
             PermutationState::StartUnknownLen { k } => {
                 let n = vals.len() + vals.it.count();
-                let complete_state = CompleteState::Start { n, k };
-
-                from_complete(complete_state)
+                CompleteState::Start { n, k }.count()
             }
             PermutationState::OngoingUnknownLen { k, min_n } => {
                 let prev_iteration_count = min_n - k + 1;
                 let n = vals.len() + vals.it.count();
-                let complete_state = CompleteState::Start { n, k };
-
-                from_complete(complete_state) - prev_iteration_count
+                CompleteState::Start { n, k }.count() - prev_iteration_count
             },
-            PermutationState::Complete(state) => from_complete(state),
+            PermutationState::Complete(state) => state.count(),
             PermutationState::Empty => 0
         }
     }
 
-    fn size_hint(&self) -> (usize, Option<usize>) {
+    fn size_hint(&self) -> SizeHint {
         match self.state {
-            PermutationState::StartUnknownLen { .. } |
-            PermutationState::OngoingUnknownLen { .. } => (0, None), // TODO can we improve this lower bound?
+            // Note: the product for `CompleteState::Start` in `remaining` increases with `n`.
+            PermutationState::StartUnknownLen { k } => {
+                size_hint::try_map(
+                    self.vals.size_hint(),
+                    |n| CompleteState::Start { n, k }.remaining(),
+                )
+            }
+            PermutationState::OngoingUnknownLen { k, min_n } => {
+                let prev_iteration_count = min_n - k + 1;
+                size_hint::try_map(self.vals.size_hint(), |n| {
+                    CompleteState::Start { n, k }
+                        .remaining()
+                        .and_then(|count| count.checked_sub(prev_iteration_count))
+                })
+            }
             PermutationState::Complete(ref state) => match state.remaining() {
-                CompleteStateRemaining::Known(count) => (count, Some(count)),
-                CompleteStateRemaining::Overflow => (::std::usize::MAX, None)
+                Some(count) => (count, Some(count)),
+                None => (::std::usize::MAX, None)
             }
             PermutationState::Empty => (0, Some(0))
         }
@@ -185,7 +175,7 @@ where
                     let mut complete_state = CompleteState::Start { n, k };
 
                     // Advance the complete-state iterator to the correct point
-                    for _ in 0..(prev_iteration_count + 1) {
+                    for _ in 0..=prev_iteration_count {
                         complete_state.advance();
                     }
 
@@ -238,40 +228,30 @@ impl CompleteState {
         }
     }
 
-    fn remaining(&self) -> CompleteStateRemaining {
-        use self::CompleteStateRemaining::{Known, Overflow};
-
+    /// The remaining count of elements, if it does not overflow.
+    fn remaining(&self) -> Option<usize> {
         match *self {
             CompleteState::Start { n, k } => {
                 if n < k {
-                    return Known(0);
+                    return Some(0);
                 }
-
-                let count: Option<usize> = (n - k + 1..n + 1).fold(Some(1), |acc, i| {
+                (n - k + 1..n + 1).fold(Some(1), |acc, i| {
                     acc.and_then(|acc| acc.checked_mul(i))
-                });
-
-                match count {
-                    Some(count) => Known(count),
-                    None => Overflow
-                }
+                })
             }
             CompleteState::Ongoing { ref indices, ref cycles } => {
-                let mut count: usize = 0;
-
-                for (i, &c) in cycles.iter().enumerate() {
-                    let radix = indices.len() - i;
-                    let next_count = count.checked_mul(radix)
-                        .and_then(|count| count.checked_add(c));
-
-                    count = match next_count {
-                        Some(count) => count,
-                        None => { return Overflow; }
-                    };
-                }
-
-                Known(count)
+                cycles.iter().enumerate().fold(Some(0), |acc, (i, c)| {
+                    acc.and_then(|count| {
+                        let radix = indices.len() - i;
+                        count.checked_mul(radix)?.checked_add(*c)
+                    })
+                })
             }
         }
+    }
+
+    /// The remaining count of elements, panics if it overflows.
+    fn count(&self) -> usize {
+        self.remaining().expect("Iterator count greater than usize::MAX")
     }
 }

@@ -1,6 +1,8 @@
 use std::ops::Index;
 use alloc::vec::Vec;
 
+use crate::size_hint::{self, SizeHint};
+
 #[derive(Debug, Clone)]
 pub struct LazyBuffer<I: Iterator> {
     pub it: I,
@@ -22,6 +24,15 @@ where
 
     pub fn len(&self) -> usize {
         self.buffer.len()
+    }
+
+    pub fn size_hint(&self) -> SizeHint {
+        let len = self.len();
+        if self.done {
+            (len, Some(len))
+        } else {
+            size_hint::add_scalar(self.it.size_hint(), len)
+        }
     }
 
     pub fn get_next(&mut self) -> bool {

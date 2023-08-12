@@ -117,3 +117,15 @@ pub fn min(a: SizeHint, b: SizeHint) -> SizeHint {
     };
     (lower, upper)
 }
+
+/// Try to apply a function `f` on both bounds of a `SizeHint`, failure means overflow.
+#[inline]
+pub fn try_map<F>(sh: SizeHint, mut f: F) -> SizeHint
+where
+    F: FnMut(usize) -> Option<usize>,
+{
+    let (mut low, mut hi) = sh;
+    low = f(low).unwrap_or(usize::MAX);
+    hi = hi.and_then(f);
+    (low, hi)
+}

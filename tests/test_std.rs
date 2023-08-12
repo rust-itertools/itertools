@@ -916,6 +916,20 @@ fn permutations_zero() {
 }
 
 #[test]
+fn permutations_range_size_hint() {
+    for n in 0..6 {
+        for k in 0..=n {
+            let len: usize = (n - k + 1..=n).product();
+            let mut it = (0..n).permutations(k);
+            for count in (0..=len).rev() {
+                assert_eq!(it.size_hint(), (count, Some(count)));
+                it.next();
+            }
+        }
+    }
+}
+
+#[test]
 fn combinations_with_replacement() {
     // Pool smaller than n
     it::assert_equal((0..1).combinations_with_replacement(2), vec![vec![0, 0]]);
