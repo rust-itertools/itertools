@@ -53,6 +53,12 @@ impl<I: Iterator> Combinations<I> {
     #[inline]
     pub fn n(&self) -> usize { self.pool.len() }
 
+    /// Fill the pool to get its length.
+    pub(crate) fn real_n(&mut self) -> usize {
+        while self.pool.get_next() {}
+        self.pool.len()
+    }
+
     /// Returns a reference to the source iterator.
     #[inline]
     pub(crate) fn src(&self) -> &I { &self.pool.it }
@@ -76,6 +82,20 @@ impl<I: Iterator> Combinations<I> {
             }
             self.indices.extend(self.indices.len()..k);
             self.pool.prefill(k);
+        }
+    }
+
+    fn remaining_for(&self, n: usize) -> Option<usize> {
+        let k = self.k();
+        if self.first {
+            binomial(n, k)
+        } else {
+            self.indices
+                .iter()
+                .enumerate()
+                .fold(Some(0), |sum, (k0, n0)| {
+                    sum.and_then(|s| s.checked_add(binomial(n - 1 - *n0, k - k0)?))
+                })
         }
     }
 }
@@ -123,19 +143,12 @@ impl<I> Iterator for Combinations<I>
     }
 
     fn size_hint(&self) -> SizeHint {
-        let k = self.k();
-        size_hint::try_map(self.pool.size_hint(), |n| {
-            if self.first {
-                binomial(n, k)
-            } else {
-                self.indices
-                    .iter()
-                    .enumerate()
-                    .fold(Some(0), |sum, (k0, n0)| {
-                        sum.and_then(|s| s.checked_add(binomial(n - 1 - *n0, k - k0)?))
-                    })
-            }
-        })
+        size_hint::try_map(self.pool.size_hint(), |n| self.remaining_for(n))
+    }
+
+    fn count(mut self) -> usize {
+        let n = self.real_n();
+        self.remaining_for(n).expect("Iterator count greater than usize::MAX")
     }
 }
 

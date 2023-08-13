@@ -3,7 +3,7 @@ use std::iter::FusedIterator;
 use std::usize;
 use alloc::vec::Vec;
 
-use super::combinations::{Combinations, combinations};
+use super::combinations::{Combinations, binomial, combinations};
 use super::size_hint;
 
 /// An iterator to iterate through the powerset of the elements from an iterator.
@@ -80,6 +80,13 @@ impl<I> Iterator for Powerset<I>
             // Fallback: self.pos is saturated and no longer reliable.
             (0, self_total.1)
         }
+    }
+
+    fn count(mut self) -> usize {
+        let k = self.combs.k();
+        let n = self.combs.real_n();
+        // It could be `(1 << n) - self.pos` but `1 << n` might overflow.
+        self.combs.count() + (k + 1..=n).map(|k| binomial(n, k).unwrap()).sum::<usize>()
     }
 }
 

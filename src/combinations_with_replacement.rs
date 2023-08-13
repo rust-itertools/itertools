@@ -38,6 +38,21 @@ where
     fn current(&self) -> Vec<I::Item> {
         self.indices.iter().map(|i| self.pool[*i].clone()).collect()
     }
+
+    fn remaining_for(&self, n: usize) -> Option<usize> {
+        let k_perms = |n: usize, k: usize| binomial((n + k).saturating_sub(1), k);
+        let k = self.indices.len();
+        if self.first {
+            k_perms(n, k)
+        } else {
+            self.indices
+                .iter()
+                .enumerate()
+                .fold(Some(0), |sum, (k0, n0)| {
+                    sum.and_then(|s| s.checked_add(k_perms(n - 1 - *n0, k - k0)?))
+                })
+        }
+    }
 }
 
 /// Create a new `CombinationsWithReplacement` from a clonable iterator.
@@ -104,20 +119,13 @@ where
     }
 
     fn size_hint(&self) -> SizeHint {
-        let k_perms = |n: usize, k: usize| binomial((n + k).saturating_sub(1), k);
-        let k = self.indices.len();
-        size_hint::try_map(self.pool.size_hint(), |n| {
-            if self.first {
-                k_perms(n, k)
-            } else {
-                self.indices
-                    .iter()
-                    .enumerate()
-                    .fold(Some(0), |sum, (k0, n0)| {
-                        sum.and_then(|s| s.checked_add(k_perms(n - 1 - *n0, k - k0)?))
-                    })
-            }
-        })
+        size_hint::try_map(self.pool.size_hint(), |n| self.remaining_for(n))
+    }
+
+    fn count(mut self) -> usize {
+        while self.pool.get_next() {}
+        let n = self.pool.len();
+        self.remaining_for(n).expect("Iterator count greater than usize::MAX")
     }
 }
 

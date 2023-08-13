@@ -910,13 +910,14 @@ fn combinations_zero() {
 }
 
 #[test]
-fn combinations_range_size_hint() {
+fn combinations_range_count() {
     for n in 0..6 {
         for k in 0..=n {
             let len = (n - k + 1..=n).product::<usize>() / (1..=k).product::<usize>();
             let mut it = (0..n).combinations(k);
             for count in (0..=len).rev() {
                 assert_eq!(it.size_hint(), (count, Some(count)));
+                assert_eq!(it.clone().count(), count);
                 assert_eq!(it.next().is_none(), count == 0);
             }
         }
@@ -930,13 +931,14 @@ fn permutations_zero() {
 }
 
 #[test]
-fn permutations_range_size_hint() {
+fn permutations_range_count() {
     for n in 0..6 {
         for k in 0..=n {
             let len: usize = (n - k + 1..=n).product();
             let mut it = (0..n).permutations(k);
             for count in (0..=len).rev() {
                 assert_eq!(it.size_hint(), (count, Some(count)));
+                assert_eq!(it.clone().count(), count);
                 assert_eq!(it.next().is_none(), count == 0);
             }
         }
@@ -977,13 +979,14 @@ fn combinations_with_replacement() {
 }
 
 #[test]
-fn combinations_with_replacement_range_size_hint() {
+fn combinations_with_replacement_range_count() {
     for n in 0..6 {
         for k in 0..=n {
             let len = (n..n + k).product::<usize>() / (1..=k).product::<usize>();
             let mut it = (0..n).combinations_with_replacement(k);
             for count in (0..=len).rev() {
                 assert_eq!(it.size_hint(), (count, Some(count)));
+                assert_eq!(it.clone().count(), count);
                 assert_eq!(it.next().is_none(), count == 0);
             }
         }
@@ -1005,6 +1008,11 @@ fn powerset() {
     assert_eq!((0..4).powerset().count(), 1 << 4);
     assert_eq!((0..8).powerset().count(), 1 << 8);
     assert_eq!((0..16).powerset().count(), 1 << 16);
+    let mut it = (0..8).powerset();
+    for count in (0..=(1 << 8)).rev() {
+        assert_eq!(it.clone().count(), count);
+        assert_eq!(it.next().is_none(), count == 0);
+    }
 }
 
 #[test]
