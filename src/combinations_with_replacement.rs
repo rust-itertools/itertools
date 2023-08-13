@@ -3,6 +3,7 @@ use std::fmt;
 use std::iter::FusedIterator;
 
 use super::lazy_buffer::LazyBuffer;
+use super::size_hint::{self, SizeHint};
 
 /// An iterator to iterate through all the `n`-length combinations in an iterator, with replacement.
 ///
@@ -99,6 +100,31 @@ where
             // Otherwise, we're done
             None => None,
         }
+    }
+
+    fn size_hint(&self) -> SizeHint {
+        fn binomial(n: usize, k: usize) -> Option<usize> {
+            if n < k {
+                return Some(0);
+            }
+            // n! / (n - k)! / k! but trying to avoid it overflows:
+            let k = (n - k).min(k);
+            (1..=k).fold(Some(1), |res, i| res.and_then(|x| x.checked_mul(n - i + 1).map(|x| x / i)))
+        }
+        let k_perms = |n: usize, k: usize| binomial((n + k).saturating_sub(1), k);
+        let k = self.indices.len();
+        size_hint::try_map(self.pool.size_hint(), |n| {
+            if self.first {
+                k_perms(n, k)
+            } else {
+                self.indices
+                    .iter()
+                    .enumerate()
+                    .fold(Some(0), |sum, (k0, n0)| {
+                        sum.and_then(|s| s.checked_add(k_perms(n - 1 - *n0, k - k0)?))
+                    })
+            }
+        })
     }
 }
 

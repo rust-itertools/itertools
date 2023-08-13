@@ -923,7 +923,7 @@ fn permutations_range_size_hint() {
             let mut it = (0..n).permutations(k);
             for count in (0..=len).rev() {
                 assert_eq!(it.size_hint(), (count, Some(count)));
-                it.next();
+                assert_eq!(it.next().is_none(), count == 0);
             }
         }
     }
@@ -960,6 +960,20 @@ fn combinations_with_replacement() {
         (0..0).combinations_with_replacement(2),
         <Vec<Vec<_>>>::new(),
     );
+}
+
+#[test]
+fn combinations_with_replacement_range_size_hint() {
+    for n in 0..6 {
+        for k in 0..=n {
+            let len = (n..n + k).product::<usize>() / (1..=k).product::<usize>();
+            let mut it = (0..n).combinations_with_replacement(k);
+            for count in (0..=len).rev() {
+                assert_eq!(it.size_hint(), (count, Some(count)));
+                assert_eq!(it.next().is_none(), count == 0);
+            }
+        }
+    }
 }
 
 #[test]
