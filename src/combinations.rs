@@ -144,11 +144,16 @@ impl<I> FusedIterator for Combinations<I>
           I::Item: Clone
 {}
 
-pub(crate) fn binomial(n: usize, k: usize) -> Option<usize> {
+pub(crate) fn binomial(mut n: usize, mut k: usize) -> Option<usize> {
     if n < k {
         return Some(0);
     }
     // n! / (n - k)! / k! but trying to avoid it overflows:
-    let k = (n - k).min(k);
-    (1..=k).fold(Some(1), |res, i| res.and_then(|x| x.checked_mul(n - i + 1).map(|x| x / i)))
+    k = (n - k).min(k);
+    let mut c = 1;
+    for i in 1..=k {
+        c = (c / i).checked_mul(n)? + c % i * n / i;
+        n -= 1;
+    }
+    Some(c)
 }
