@@ -910,6 +910,20 @@ fn combinations_zero() {
 }
 
 #[test]
+fn combinations_range_size_hint() {
+    for n in 0..6 {
+        for k in 0..=n {
+            let len = (n - k + 1..=n).product::<usize>() / (1..=k).product::<usize>();
+            let mut it = (0..n).combinations(k);
+            for count in (0..=len).rev() {
+                assert_eq!(it.size_hint(), (count, Some(count)));
+                assert_eq!(it.next().is_none(), count == 0);
+            }
+        }
+    }
+}
+
+#[test]
 fn permutations_zero() {
     it::assert_equal((1..3).permutations(0), vec![vec![]]);
     it::assert_equal((0..0).permutations(0), vec![vec![]]);

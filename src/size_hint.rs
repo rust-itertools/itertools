@@ -119,6 +119,8 @@ pub fn min(a: SizeHint, b: SizeHint) -> SizeHint {
 }
 
 /// Try to apply a function `f` on both bounds of a `SizeHint`, failure means overflow.
+///
+/// For the resulting size hint to be correct, `f` must be increasing.
 #[inline]
 pub fn try_map<F>(sh: SizeHint, mut f: F) -> SizeHint
 where

@@ -2,6 +2,7 @@ use std::fmt;
 use std::iter::FusedIterator;
 
 use super::lazy_buffer::LazyBuffer;
+use super::size_hint::{self, SizeHint};
 use alloc::vec::Vec;
 
 /// An iterator to iterate through all the `k`-length combinations in an iterator.
@@ -120,9 +121,34 @@ impl<I> Iterator for Combinations<I>
         // Create result vector based on the indices
         Some(self.indices.iter().map(|i| self.pool[*i].clone()).collect())
     }
+
+    fn size_hint(&self) -> SizeHint {
+        let k = self.k();
+        size_hint::try_map(self.pool.size_hint(), |n| {
+            if self.first {
+                binomial(n, k)
+            } else {
+                self.indices
+                    .iter()
+                    .enumerate()
+                    .fold(Some(0), |sum, (k0, n0)| {
+                        sum.and_then(|s| s.checked_add(binomial(n - 1 - *n0, k - k0)?))
+                    })
+            }
+        })
+    }
 }
 
 impl<I> FusedIterator for Combinations<I>
     where I: Iterator,
           I::Item: Clone
 {}
+
+pub(crate) fn binomial(n: usize, k: usize) -> Option<usize> {
+    if n < k {
+        return Some(0);
+    }
+    // n! / (n - k)! / k! but trying to avoid it overflows:
+    let k = (n - k).min(k);
+    (1..=k).fold(Some(1), |res, i| res.and_then(|x| x.checked_mul(n - i + 1).map(|x| x / i)))
+}
