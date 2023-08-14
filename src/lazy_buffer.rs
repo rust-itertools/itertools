@@ -1,3 +1,4 @@
+use std::iter::Fuse;
 use std::ops::Index;
 use alloc::vec::Vec;
 
@@ -5,8 +6,7 @@ use crate::size_hint::{self, SizeHint};
 
 #[derive(Debug, Clone)]
 pub struct LazyBuffer<I: Iterator> {
-    pub it: I,
-    done: bool,
+    pub it: Fuse<I>,
     buffer: Vec<I::Item>,
 }
 
@@ -16,8 +16,7 @@ where
 {
     pub fn new(it: I) -> LazyBuffer<I> {
         LazyBuffer {
-            it,
-            done: false,
+            it: it.fuse(),
             buffer: Vec::new(),
         }
     }
@@ -27,35 +26,23 @@ where
     }
 
     pub fn size_hint(&self) -> SizeHint {
-        let len = self.len();
-        if self.done {
-            (len, Some(len))
-        } else {
-            size_hint::add_scalar(self.it.size_hint(), len)
-        }
+        size_hint::add_scalar(self.it.size_hint(), self.len())
     }
 
     pub fn get_next(&mut self) -> bool {
-        if self.done {
-            return false;
-        }
         if let Some(x) = self.it.next() {
             self.buffer.push(x);
             true
         } else {
-            self.done = true;
             false
         }
     }
 
     pub fn prefill(&mut self, len: usize) {
         let buffer_len = self.buffer.len();
-
-        if !self.done && len > buffer_len {
+        if len > buffer_len {
             let delta = len - buffer_len;
-
             self.buffer.extend(self.it.by_ref().take(delta));
-            self.done = self.buffer.len() < len;
         }
     }
 }
