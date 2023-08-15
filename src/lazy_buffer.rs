@@ -1,10 +1,10 @@
+use std::iter::Fuse;
 use std::ops::Index;
 use alloc::vec::Vec;
 
 #[derive(Debug, Clone)]
 pub struct LazyBuffer<I: Iterator> {
-    pub it: I,
-    done: bool,
+    pub it: Fuse<I>,
     buffer: Vec<I::Item>,
 }
 
@@ -14,8 +14,7 @@ where
 {
     pub fn new(it: I) -> LazyBuffer<I> {
         LazyBuffer {
-            it,
-            done: false,
+            it: it.fuse(),
             buffer: Vec::new(),
         }
     }
@@ -25,26 +24,19 @@ where
     }
 
     pub fn get_next(&mut self) -> bool {
-        if self.done {
-            return false;
-        }
         if let Some(x) = self.it.next() {
             self.buffer.push(x);
             true
         } else {
-            self.done = true;
             false
         }
     }
 
     pub fn prefill(&mut self, len: usize) {
         let buffer_len = self.buffer.len();
-
-        if !self.done && len > buffer_len {
+        if len > buffer_len {
             let delta = len - buffer_len;
-
             self.buffer.extend(self.it.by_ref().take(delta));
-            self.done = self.buffer.len() < len;
         }
     }
 }
