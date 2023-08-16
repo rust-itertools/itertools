@@ -77,21 +77,6 @@ impl<I: Iterator> Combinations<I> {
             self.pool.prefill(k);
         }
     }
-
-    /// For a given size `n`, return the count of remaining elements or None if it would overflow.
-    fn remaining_for(&self, n: usize) -> Option<usize> {
-        let k = self.k();
-        if self.first {
-            checked_binomial(n, k)
-        } else {
-            self.indices
-                .iter()
-                .enumerate()
-                .fold(Some(0), |sum, (k0, n0)| {
-                    sum.and_then(|s| s.checked_add(checked_binomial(n - 1 - *n0, k - k0)?))
-                })
-        }
-    }
 }
 
 impl<I> Iterator for Combinations<I>
@@ -138,14 +123,15 @@ impl<I> Iterator for Combinations<I>
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (mut low, mut upp) = self.pool.size_hint();
-        low = self.remaining_for(low).unwrap_or(usize::MAX);
-        upp = upp.and_then(|upp| self.remaining_for(upp));
+        low = remaining_for(low, self.first, &self.indices).unwrap_or(usize::MAX);
+        upp = upp.and_then(|upp| remaining_for(upp, self.first, &self.indices));
         (low, upp)
     }
 
-    fn count(mut self) -> usize {
-        self.pool.fill();
-        self.remaining_for(self.n()).expect("Iterator count greater than usize::MAX")
+    fn count(self) -> usize {
+        let Self { indices, pool, first } = self;
+        let n = pool.len() + pool.it.count();
+        remaining_for(n, first, &indices).expect("Iterator count greater than usize::MAX")
     }
 }
 
@@ -166,4 +152,19 @@ pub(crate) fn checked_binomial(mut n: usize, mut k: usize) -> Option<usize> {
         n -= 1;
     }
     Some(c)
+}
+
+/// For a given size `n`, return the count of remaining combinations or None if it would overflow.
+fn remaining_for(n: usize, first: bool, indices: &[usize]) -> Option<usize> {
+    let k = indices.len();
+    if first {
+        checked_binomial(n, k)
+    } else {
+        indices
+            .iter()
+            .enumerate()
+            .fold(Some(0), |sum, (k0, n0)| {
+                sum.and_then(|s| s.checked_add(checked_binomial(n - 1 - *n0, k - k0)?))
+            })
+    }
 }
