@@ -77,6 +77,21 @@ impl<I: Iterator> Combinations<I> {
             self.pool.prefill(k);
         }
     }
+
+    /// For a given size `n`, return the count of remaining elements or None if it would overflow.
+    fn remaining_for(&self, n: usize) -> Option<usize> {
+        let k = self.k();
+        if self.first {
+            checked_binomial(n, k)
+        } else {
+            self.indices
+                .iter()
+                .enumerate()
+                .fold(Some(0), |sum, (k0, n0)| {
+                    sum.and_then(|s| s.checked_add(checked_binomial(n - 1 - *n0, k - k0)?))
+                })
+        }
+    }
 }
 
 impl<I> Iterator for Combinations<I>
