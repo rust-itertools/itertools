@@ -95,7 +95,7 @@ pub fn minmax_impl<I, K, F, L>(mut it: I, mut key_for: F,
                 min = first;
                 min_key = first_key;
             }
-            if !lt(&second, &max, &second_key, &max_key) {
+            if lt(&max, &second, &max_key, &second_key) {
                 max = second;
                 max_key = second_key;
             }
@@ -104,7 +104,7 @@ pub fn minmax_impl<I, K, F, L>(mut it: I, mut key_for: F,
                 min = second;
                 min_key = second_key;
             }
-            if !lt(&first, &max, &first_key, &max_key) {
+            if lt(&max, &first, &max_key, &first_key) {
                 max = first;
                 max_key = first_key;
             }
