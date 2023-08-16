@@ -916,6 +916,7 @@ fn combinations_range_count() {
             let len = (n - k + 1..=n).product::<usize>() / (1..=k).product::<usize>();
             let mut it = (0..n).combinations(k);
             for count in (0..=len).rev() {
+                assert_eq!(it.size_hint(), (count, Some(count)));
                 assert_eq!(it.clone().count(), count);
                 assert_eq!(it.next().is_none(), count == 0);
             }

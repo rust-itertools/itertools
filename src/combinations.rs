@@ -136,6 +136,13 @@ impl<I> Iterator for Combinations<I>
         Some(self.indices.iter().map(|i| self.pool[*i].clone()).collect())
     }
 
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let (mut low, mut upp) = self.pool.size_hint();
+        low = self.remaining_for(low).unwrap_or(usize::MAX);
+        upp = upp.and_then(|upp| self.remaining_for(upp));
+        (low, upp)
+    }
+
     fn count(mut self) -> usize {
         self.pool.fill();
         self.remaining_for(self.n()).expect("Iterator count greater than usize::MAX")
