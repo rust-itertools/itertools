@@ -135,6 +135,11 @@ impl<I> Iterator for Combinations<I>
         // Create result vector based on the indices
         Some(self.indices.iter().map(|i| self.pool[*i].clone()).collect())
     }
+
+    fn count(mut self) -> usize {
+        self.pool.fill();
+        self.remaining_for(self.n()).expect("Iterator count greater than usize::MAX")
+    }
 }
 
 impl<I> FusedIterator for Combinations<I>
