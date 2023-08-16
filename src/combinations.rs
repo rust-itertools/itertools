@@ -126,3 +126,17 @@ impl<I> FusedIterator for Combinations<I>
     where I: Iterator,
           I::Item: Clone
 {}
+
+pub(crate) fn checked_binomial(mut n: usize, mut k: usize) -> Option<usize> {
+    if n < k {
+        return Some(0);
+    }
+    // `factorial(n) / factorial(n - k) / factorial(k)` but trying to avoid it overflows:
+    k = (n - k).min(k); // symmetry
+    let mut c = 1;
+    for i in 1..=k {
+        c = (c / i).checked_mul(n)?.checked_add((c % i).checked_mul(n)? / i)?;
+        n -= 1;
+    }
+    Some(c)
+}
