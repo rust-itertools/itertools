@@ -45,6 +45,10 @@ where
             self.buffer.extend(self.it.by_ref().take(delta));
         }
     }
+
+    pub fn fill(&mut self) {
+        self.buffer.extend(self.it.by_ref());
+    }
 }
 
 impl<I, J> Index<J> for LazyBuffer<I>
