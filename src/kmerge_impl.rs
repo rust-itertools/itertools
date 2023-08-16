@@ -177,9 +177,9 @@ pub fn kmerge_by<I, F>(iterable: I, mut less_than: F)
           F: KMergePredicate<<<I as IntoIterator>::Item as IntoIterator>::Item>,
 {
     let iter = iterable.into_iter();
-    let (lower, _) = iter.size_hint();
-    let mut heap: Vec<_> = Vec::with_capacity(lower);
-    heap.extend(iter.filter_map(|it| HeadTail::new(it.into_iter())));
+    let mut heap: Vec<_> = iter
+        .filter_map(|it| HeadTail::new(it.into_iter()))
+        .collect();
     heapify(&mut heap, |a, b| less_than.kmerge_pred(&a.head, &b.head));
     KMergeBy { heap, less_than }
 }
