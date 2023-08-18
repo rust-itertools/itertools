@@ -6,7 +6,7 @@ use crate::size_hint::{self, SizeHint};
 
 #[derive(Debug, Clone)]
 pub struct LazyBuffer<I: Iterator> {
-    pub it: Fuse<I>,
+    it: Fuse<I>,
     buffer: Vec<I::Item>,
 }
 
