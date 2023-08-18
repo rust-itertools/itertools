@@ -140,6 +140,7 @@ impl<I> FusedIterator for Combinations<I>
           I::Item: Clone
 {}
 
+// https://en.wikipedia.org/wiki/Binomial_coefficient#In_programming_languages
 pub(crate) fn checked_binomial(mut n: usize, mut k: usize) -> Option<usize> {
     if n < k {
         return Some(0);
