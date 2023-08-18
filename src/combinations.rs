@@ -130,8 +130,9 @@ impl<I> Iterator for Combinations<I>
 
     fn count(self) -> usize {
         let Self { indices, pool, first } = self;
+        // TODO: make `pool.it` private
         let n = pool.len() + pool.it.count();
-        remaining_for(n, first, &indices).expect("Iterator count greater than usize::MAX")
+        remaining_for(n, first, &indices).unwrap()
     }
 }
 
