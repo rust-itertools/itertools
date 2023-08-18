@@ -134,14 +134,14 @@ where
         let Permutations { vals, state } = self;
         match state {
             PermutationState::StartUnknownLen { k } => {
-                let n = vals.len() + vals.it.count();
+                let n = vals.count();
                 let complete_state = CompleteState::Start { n, k };
 
                 from_complete(complete_state)
             }
             PermutationState::OngoingUnknownLen { k, min_n } => {
                 let prev_iteration_count = min_n - k + 1;
-                let n = vals.len() + vals.it.count();
+                let n = vals.count();
                 let complete_state = CompleteState::Start { n, k };
 
                 from_complete(complete_state) - prev_iteration_count
