@@ -912,8 +912,12 @@ fn combinations_zero() {
 #[test]
 fn combinations_range_count() {
     for n in 0..=10 {
-        for k in 0..=n {
-            let len = (n - k + 1..=n).product::<usize>() / (1..=k).product::<usize>();
+        for k in 0..=10 {
+            let len = if k<=n {
+                (n - k + 1..=n).product::<usize>() / (1..=k).product::<usize>()
+            } else {
+                0
+            };
             let mut it = (0..n).combinations(k);
             assert_eq!(len, it.clone().count());
             assert_eq!(len, it.size_hint().0);
