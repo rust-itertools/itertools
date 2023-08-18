@@ -158,7 +158,9 @@ pub(crate) fn checked_binomial(mut n: usize, mut k: usize) -> Option<usize> {
 /// For a given size `n`, return the count of remaining combinations or None if it would overflow.
 fn remaining_for(n: usize, first: bool, indices: &[usize]) -> Option<usize> {
     let k = indices.len();
-    if first {
+    if n < k {
+        Some(0)
+    } else if first {
         checked_binomial(n, k)
     } else {
         indices
