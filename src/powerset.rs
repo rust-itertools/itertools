@@ -68,7 +68,7 @@ impl<I> Iterator for Powerset<I>
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         // Total bounds for source iterator.
-        let src_total = size_hint::add_scalar(self.combs.src().size_hint(), self.combs.n());
+        let src_total = self.combs.src().size_hint();
 
         // Total bounds for self ( length(powerset(set) == 2 ^ length(set) )
         let self_total = size_hint::pow_scalar_base(2, src_total);
