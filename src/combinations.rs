@@ -164,11 +164,29 @@ fn remaining_for(n: usize, first: bool, indices: &[usize]) -> Option<usize> {
     } else if first {
         checked_binomial(n, k)
     } else {
+        // https://en.wikipedia.org/wiki/Combinatorial_number_system
+        // http://www.site.uottawa.ca/~lucia/courses/5165-09/GenCombObj.pdf
+
+        // The combinations generated after the current one can be counted by counting as follows:
+        // - The subsequent combinations that differ in indices[0]:
+        //   If subsequent combinations differ in indices[0], then their value for indices[0]
+        //   must be at least 1 greater than the current indices[0].
+        //   As indices is strictly monotonically sorted, this means we can effectively choose k values
+        //   from (n - 1 - indices[0]), leading to binomial(n - 1 - indices[0], k) possibilities.
+        // - The subsequent combinations with same indices[0], but differing indices[1]:
+        //   Here we can choose k - 1 values from (n - 1 - indices[1]) values,
+        //   leading to binomial(n - 1 - indices[1], k - 1) possibilities.
+        // - (...)
+        // - The subsequent combinations with same indices[0..=i], but differing indices[i]:
+        //   Here we can choose k - i values from (n - 1 - indices[i]) values: binomial(n - 1 - indices[i], k - i).
+        //   Since subsequent combinations can in any index, we must sum up the aforementioned binomial coefficients.
+
+        // Below, `n0` resembles indices[i].
         indices
             .iter()
             .enumerate()
-            .fold(Some(0), |sum, (k0, n0)| {
-                sum.and_then(|s| s.checked_add(checked_binomial(n - 1 - *n0, k - k0)?))
+            .fold(Some(0), |sum, (i, n0)| {
+                sum.and_then(|s| s.checked_add(checked_binomial(n - 1 - *n0, k - i)?))
             })
     }
 }
