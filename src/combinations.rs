@@ -1,5 +1,5 @@
 use std::fmt;
-use std::iter::{Fuse, FusedIterator};
+use std::iter::FusedIterator;
 
 use super::lazy_buffer::LazyBuffer;
 use alloc::vec::Vec;
@@ -52,9 +52,9 @@ impl<I: Iterator> Combinations<I> {
     #[inline]
     pub fn n(&self) -> usize { self.pool.len() }
 
-    /// Returns a reference to the source iterator.
+    /// Returns a reference to the source pool.
     #[inline]
-    pub(crate) fn src(&self) -> &Fuse<I> { &self.pool.it }
+    pub(crate) fn src(&self) -> &LazyBuffer<I> { &self.pool }
 
     /// Resets this `Combinations` back to an initial state for combinations of length
     /// `k` over the same pool data source. If `k` is larger than the current length
