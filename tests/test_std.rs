@@ -911,15 +911,22 @@ fn combinations_zero() {
 
 #[test]
 fn combinations_range_count() {
-    for n in 0..6 {
+    for n in 0..=10 {
         for k in 0..=n {
             let len = (n - k + 1..=n).product::<usize>() / (1..=k).product::<usize>();
             let mut it = (0..n).combinations(k);
-            for count in (0..=len).rev() {
-                assert_eq!(it.size_hint(), (count, Some(count)));
-                assert_eq!(it.clone().count(), count);
-                assert_eq!(it.next().is_none(), count == 0);
+            assert_eq!(len, it.clone().count());
+            assert_eq!(len, it.size_hint().0);
+            assert_eq!(Some(len), it.size_hint().1);
+            for count in (0..len).rev() {
+                let elem = it.next();
+                assert!(elem.is_some());
+                assert_eq!(count, it.clone().count());
+                assert_eq!(count, it.size_hint().0);
+                assert_eq!(Some(count), it.size_hint().1);
             }
+            let should_be_none = it.next();
+            assert!(should_be_none.is_none());
         }
     }
 }
