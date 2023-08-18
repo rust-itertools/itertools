@@ -29,6 +29,10 @@ where
         size_hint::add_scalar(self.it.size_hint(), self.len())
     }
 
+    pub fn count(self) -> usize {
+        self.len() + self.it.count()
+    }
+
     pub fn get_next(&mut self) -> bool {
         if let Some(x) = self.it.next() {
             self.buffer.push(x);
