@@ -42,7 +42,7 @@
 //!
 //! ## Rust Version
 //!
-//! This version of itertools requires Rust 1.32 or later.
+//! This version of itertools requires Rust 1.34 or later.
 #![doc(html_root_url="https://docs.rs/itertools/0.8/")]
 
 #[cfg(not(feature = "use_std"))]
@@ -216,6 +216,8 @@ mod merge_join;
 mod minmax;
 #[cfg(feature = "use_alloc")]
 mod multipeek_impl;
+#[cfg(has_min_const_generics)]
+mod next_array;
 mod pad_tail;
 #[cfg(feature = "use_alloc")]
 mod peek_nth;
@@ -1819,6 +1821,58 @@ pub trait Itertools : Iterator {
     }
 
     // non-adaptor methods
+    /// Advances the iterator and returns the next items grouped in an array of
+    /// a specific size.
+    ///
+    /// If there are enough elements to be grouped in an array, then the array
+    /// is returned inside `Some`, otherwise `None` is returned.
+    ///
+    /// Requires Rust version 1.51 or later.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut iter = 1..5;
+    ///
+    /// assert_eq!(Some([1, 2]), iter.next_array());
+    /// ```
+    #[cfg(has_min_const_generics)]
+    fn next_array<T, const N: usize>(&mut self) -> Option<[T; N]>
+    where
+        Self: Sized + Iterator<Item = T>,
+    {
+        next_array::next_array(self)
+    }
+
+
+    /// Collects all items from the iterator into an array of a specific size.
+    ///
+    /// If the number of elements inside the iterator is **exactly** equal to
+    /// the array size, then the array is returned inside `Some`, otherwise
+    /// `None` is returned.
+    ///
+    /// Requires Rust version 1.51 or later.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let iter = 1..3;
+    ///
+    /// if let Some([x, y]) = iter.collect_array() {
+    ///     assert_eq!([x, y], [1, 2])
+    /// } else {
+    ///     panic!("Expected two elements")
+    /// }
+    /// ```
+    #[cfg(has_min_const_generics)]
+    fn collect_array<T, const N: usize>(mut self) -> Option<[T; N]>
+    where
+        Self: Sized + Iterator<Item = T>,
+    {
+        self.next_array().filter(|_| self.next().is_none())
+    }
+
+
     /// Advances the iterator and returns the next items grouped in a tuple of
     /// a specific size (up to 12).
     ///
@@ -1838,6 +1892,7 @@ pub trait Itertools : Iterator {
     {
         T::collect_from_iter_no_buf(self)
     }
+
 
     /// Collects all items from the iterator into a tuple of a specific size
     /// (up to 12).
@@ -1861,13 +1916,7 @@ pub trait Itertools : Iterator {
         where Self: Sized + Iterator<Item = T::Item>,
               T: traits::HomogeneousTuple
     {
-        match self.next_tuple() {
-            elt @ Some(_) => match self.next() {
-                Some(_) => None,
-                None => elt,
-            },
-            _ => None
-        }
+        self.next_tuple().filter(|_| self.next().is_none())
     }
 
 

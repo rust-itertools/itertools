@@ -25,6 +25,9 @@ test = false
 [dependencies]
 either = { version = "1.0", default-features = false }
 
+[build-dependencies]
+version_check = "0.9"
+
 [dev-dependencies]
 rand = "0.7"
 criterion = "0.4.0"
