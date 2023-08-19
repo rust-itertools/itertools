@@ -76,7 +76,7 @@ pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I::IntoIter, J::Into
 ///
 /// [`IntoIterator`] enabled version of [`Itertools::merge_join_by`].
 pub fn merge_join_by<I, J, F, T>(left: I, right: J, cmp_fn: F)
-    -> MergeJoinBy<I::IntoIter, J::IntoIter, F, T>
+    -> MergeJoinBy<I::IntoIter, J::IntoIter, F>
     where I: IntoIterator,
           J: IntoIterator,
           F: FnMut(&I::Item, &J::Item) -> T,
@@ -88,10 +88,18 @@ pub fn merge_join_by<I, J, F, T>(left: I, right: J, cmp_fn: F)
     }
 }
 
+pub trait FuncLR<L, R> {
+    type T;
+}
+
+impl<L, R, T, F: FnMut(&L, &R) -> T> FuncLR<L, R> for F {
+    type T = T;
+}
+
 /// An iterator adaptor that merge-joins items from the two base iterators in ascending order.
 ///
 /// See [`.merge_join_by()`](crate::Itertools::merge_join_by) for more information.
-pub type MergeJoinBy<I, J, F, T> = InternalMergeJoinBy<I, J, MergeFuncLR<F, T>>;
+pub type MergeJoinBy<I, J, F> = InternalMergeJoinBy<I, J, MergeFuncLR<F, <F as FuncLR<<I as Iterator>::Item, <J as Iterator>::Item>>::T>>;
 
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct InternalMergeJoinBy<I: Iterator, J: Iterator, F> {
