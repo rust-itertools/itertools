@@ -115,6 +115,23 @@ where
 
         self.buf.get_mut(n)
     }
+
+    /// Works exactly like the `next_if` method in `std::iter::Peekable`
+    pub fn next_if(&mut self, func: impl FnOnce(&I::Item) -> bool) -> Option<I::Item> {
+        match self.peek() {
+            Some(m) if func(&m) => self.next(),
+            _ => None,
+        }
+    }
+
+    /// Works exactly like the `next_if_eq` method in `std::iter::Peekable`
+    pub fn next_if_eq<T>(&mut self, expected: &T) -> Option<I::Item>
+    where
+        T: ?Sized,
+        I::Item: PartialEq<T>,
+    {
+        self.next_if(|next| next == expected)
+    }
 }
 
 impl<I> Iterator for PeekNth<I>
