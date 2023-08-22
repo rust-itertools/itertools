@@ -58,6 +58,17 @@ impl<I> Iterator for Powerset<I>
         }
     }
 
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let k = self.combs.k();
+        // Total bounds for source iterator.
+        let (n_min, n_max) = self.combs.src().size_hint();
+        // Total bounds for the current combinations.
+        let (mut low, mut upp) = self.combs.size_hint();
+        low = remaining_for(low, n_min, k).unwrap_or(usize::MAX);
+        upp = upp.and_then(|upp| remaining_for(upp, n_max?, k));
+        (low, upp)
+    }
+
     fn count(self) -> usize {
         let k = self.combs.k();
         let (n, combs_count) = self.combs.n_and_count();
