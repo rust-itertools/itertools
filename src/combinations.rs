@@ -77,6 +77,12 @@ impl<I: Iterator> Combinations<I> {
             self.pool.prefill(k);
         }
     }
+
+    pub(crate) fn n_and_count(self) -> (usize, usize) {
+        let Self { indices, pool, first } = self;
+        let n = pool.count();
+        (n, remaining_for(n, first, &indices).unwrap())
+    }
 }
 
 impl<I> Iterator for Combinations<I>
@@ -128,10 +134,9 @@ impl<I> Iterator for Combinations<I>
         (low, upp)
     }
 
+    #[inline]
     fn count(self) -> usize {
-        let Self { indices, pool, first } = self;
-        let n = pool.count();
-        remaining_for(n, first, &indices).unwrap()
+        self.n_and_count().1
     }
 }
 
