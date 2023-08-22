@@ -77,6 +77,7 @@ pub fn mul_scalar(sh: SizeHint, x: usize) -> SizeHint {
 
 /// Raise `base` correctly by a `SizeHint` exponent.
 #[inline]
+#[allow(dead_code)]
 pub fn pow_scalar_base(base: usize, exp: SizeHint) -> SizeHint {
     let exp_low = cmp::min(exp.0, u32::MAX as usize) as u32;
     let low = base.saturating_pow(exp_low);
