@@ -61,7 +61,7 @@ impl<I> Iterator for Powerset<I>
     fn count(self) -> usize {
         let k = self.combs.k();
         let (n, combs_count) = self.combs.n_and_count();
-        combs_count + (k + 1..=n).map(|i| checked_binomial(n, i).unwrap()).sum::<usize>()
+        remaining_for(combs_count, n, k).unwrap()
     }
 }
 
@@ -70,3 +70,9 @@ impl<I> FusedIterator for Powerset<I>
         I: Iterator,
         I::Item: Clone,
 {}
+
+fn remaining_for(init_count: usize, n: usize, k: usize) -> Option<usize> {
+    (k + 1..=n).fold(Some(init_count), |sum, i| {
+        sum.and_then(|s| s.checked_add(checked_binomial(n, i)?))
+    })
+}
