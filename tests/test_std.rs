@@ -989,6 +989,19 @@ fn powerset() {
     assert_eq!((0..4).powerset().count(), 1 << 4);
     assert_eq!((0..8).powerset().count(), 1 << 8);
     assert_eq!((0..16).powerset().count(), 1 << 16);
+
+    for n in 0..=10 {
+        let mut it = (0..n).powerset();
+        let len = 1 << n;
+        assert_eq!(len, it.clone().count());
+        for count in (0..len).rev() {
+            let elem = it.next();
+            assert!(elem.is_some());
+            assert_eq!(count, it.clone().count());
+        }
+        let should_be_none = it.next();
+        assert!(should_be_none.is_none());
+    }
 }
 
 #[test]
