@@ -1075,7 +1075,6 @@ pub trait Itertools: Iterator {
     where
         J: IntoIterator,
         F: FnMut(&Self::Item, &J::Item) -> T,
-        T: merge_join::OrderingOrBool<Self::Item, J::Item>,
         Self: Sized,
     {
         merge_join_by(self, other, cmp_fn)
