@@ -992,7 +992,7 @@ fn powerset() {
 
     for n in 0..=10 {
         let mut it = (0..n).powerset();
-        let len = 1 << n;
+        let len = 2_usize.pow(n);
         assert_eq!(len, it.clone().count());
         assert_eq!(len, it.size_hint().0);
         assert_eq!(Some(len), it.size_hint().1);
