@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 use std::fmt;
-use std::iter::Fuse;
+use std::iter::{Fuse, FusedIterator};
 use std::marker::PhantomData;
 
 use either::Either;
@@ -338,4 +338,12 @@ where
             }
         }
     }
+}
+
+impl<I, J, F, T> FusedIterator for InternalMergeJoinBy<I, J, F>
+where
+    I: Iterator,
+    J: Iterator,
+    F: OrderingOrBool<I::Item, J::Item, Out = T>,
+{
 }
