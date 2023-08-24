@@ -4,6 +4,7 @@ use std::usize;
 use alloc::vec::Vec;
 
 use super::combinations::{Combinations, checked_binomial, combinations};
+use crate::size_hint::{self, SizeHint};
 
 /// An iterator to iterate through the powerset of the elements from an iterator.
 ///
@@ -58,21 +59,19 @@ impl<I> Iterator for Powerset<I>
         }
     }
 
-    fn size_hint(&self) -> (usize, Option<usize>) {
+    fn size_hint(&self) -> SizeHint {
         let k = self.combs.k();
         // Total bounds for source iterator.
         let (n_min, n_max) = self.combs.src().size_hint();
-        // Total bounds for the current combinations.
-        let (mut low, mut upp) = self.combs.size_hint();
-        low = remaining_for(low, n_min, k).unwrap_or(usize::MAX);
-        upp = upp.and_then(|upp| remaining_for(upp, n_max?, k));
-        (low, upp)
+        let low = remaining_for(n_min, k).unwrap_or(usize::MAX);
+        let upp = n_max.and_then(|n| remaining_for(n, k));
+        size_hint::add(self.combs.size_hint(), (low, upp))
     }
 
     fn count(self) -> usize {
         let k = self.combs.k();
         let (n, combs_count) = self.combs.n_and_count();
-        remaining_for(combs_count, n, k).unwrap()
+        combs_count + remaining_for(n, k).unwrap()
     }
 }
 
@@ -82,8 +81,8 @@ impl<I> FusedIterator for Powerset<I>
         I::Item: Clone,
 {}
 
-fn remaining_for(init_count: usize, n: usize, k: usize) -> Option<usize> {
-    (k + 1..=n).fold(Some(init_count), |sum, i| {
+fn remaining_for(n: usize, k: usize) -> Option<usize> {
+    (k + 1..=n).fold(Some(0), |sum, i| {
         sum.and_then(|s| s.checked_add(checked_binomial(n, i)?))
     })
 }
