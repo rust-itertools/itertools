@@ -1,7 +1,6 @@
 use std::cmp::Ordering;
 use std::fmt;
 use std::iter::Fuse;
-use std::iter::{FusedIterator, Peekable};
 use std::marker::PhantomData;
 
 use either::Either;
@@ -12,18 +11,8 @@ use crate::size_hint::{self, SizeHint};
 #[cfg(doc)]
 use crate::Itertools;
 
-pub trait MergePredicate<T> {
-    fn merge_pred(&mut self, a: &T, b: &T) -> bool;
-}
-
 #[derive(Clone, Debug)]
 pub struct MergeLte;
-
-impl<T: PartialOrd> MergePredicate<T> for MergeLte {
-    fn merge_pred(&mut self, a: &T, b: &T) -> bool {
-        a <= b
-    }
-}
 
 /// An iterator adaptor that merges the two base iterators in ascending order.
 /// If both base iterators are sorted (ascending), the result is sorted.
@@ -62,102 +51,19 @@ where
 /// Iterator element type is `I::Item`.
 ///
 /// See [`.merge_by()`](crate::Itertools::merge_by) for more information.
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct MergeBy<I, J, F>
-where
-    I: Iterator,
-    J: Iterator<Item = I::Item>,
-{
-    a: Peekable<I>,
-    b: Peekable<J>,
-    fused: Option<bool>,
-    cmp: F,
-}
-
-impl<I, J, F> fmt::Debug for MergeBy<I, J, F>
-where
-    I: Iterator + fmt::Debug,
-    J: Iterator<Item = I::Item> + fmt::Debug,
-    I::Item: fmt::Debug,
-{
-    debug_fmt_fields!(MergeBy, a, b);
-}
-
-impl<T, F: FnMut(&T, &T) -> bool> MergePredicate<T> for F {
-    fn merge_pred(&mut self, a: &T, b: &T) -> bool {
-        self(a, b)
-    }
-}
+pub type MergeBy<I, J, F> = InternalMergeJoinBy<I, J, F>;
 
 /// Create a `MergeBy` iterator.
 pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I::IntoIter, J::IntoIter, F>
 where
     I: IntoIterator,
     J: IntoIterator<Item = I::Item>,
-    F: MergePredicate<I::Item>,
 {
-    MergeBy {
-        a: a.into_iter().peekable(),
-        b: b.into_iter().peekable(),
-        fused: None,
-        cmp,
+    InternalMergeJoinBy {
+        left: put_back(a.into_iter().fuse()),
+        right: put_back(b.into_iter().fuse()),
+        cmp_fn: cmp,
     }
-}
-
-impl<I, J, F> Clone for MergeBy<I, J, F>
-where
-    I: Iterator,
-    J: Iterator<Item = I::Item>,
-    Peekable<I>: Clone,
-    Peekable<J>: Clone,
-    F: Clone,
-{
-    clone_fields!(a, b, fused, cmp);
-}
-
-impl<I, J, F> Iterator for MergeBy<I, J, F>
-where
-    I: Iterator,
-    J: Iterator<Item = I::Item>,
-    F: MergePredicate<I::Item>,
-{
-    type Item = I::Item;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let less_than = match self.fused {
-            Some(lt) => lt,
-            None => match (self.a.peek(), self.b.peek()) {
-                (Some(a), Some(b)) => self.cmp.merge_pred(a, b),
-                (Some(_), None) => {
-                    self.fused = Some(true);
-                    true
-                }
-                (None, Some(_)) => {
-                    self.fused = Some(false);
-                    false
-                }
-                (None, None) => return None,
-            },
-        };
-        if less_than {
-            self.a.next()
-        } else {
-            self.b.next()
-        }
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        // Not ExactSizeIterator because size may be larger than usize
-        size_hint::add(self.a.size_hint(), self.b.size_hint())
-    }
-}
-
-impl<I, J, F> FusedIterator for MergeBy<I, J, F>
-where
-    I: FusedIterator,
-    J: FusedIterator<Item = I::Item>,
-    F: MergePredicate<I::Item>,
-{
 }
 
 /// Return an iterator adaptor that merge-joins items from the two base iterators in ascending order.
@@ -261,6 +167,50 @@ impl<L, R, F: FnMut(&L, &R) -> bool> OrderingOrBool<L, R> for MergeFuncLR<F, boo
             (None, Some(right), Either::Left(left))
         } else {
             (Some(left), None, Either::Right(right))
+        }
+    }
+    fn size_hint(left: SizeHint, right: SizeHint) -> SizeHint {
+        // Not ExactSizeIterator because size may be larger than usize
+        size_hint::add(left, right)
+    }
+}
+
+impl<T, F: FnMut(&T, &T) -> bool> OrderingOrBool<T, T> for F {
+    type Out = bool;
+    type MergeResult = T;
+    fn left(left: T) -> Self::MergeResult {
+        left
+    }
+    fn right(right: T) -> Self::MergeResult {
+        right
+    }
+    fn merge(&mut self, left: T, right: T) -> (Option<T>, Option<T>, Self::MergeResult) {
+        if self(&left, &right) {
+            (None, Some(right), left)
+        } else {
+            (Some(left), None, right)
+        }
+    }
+    fn size_hint(left: SizeHint, right: SizeHint) -> SizeHint {
+        // Not ExactSizeIterator because size may be larger than usize
+        size_hint::add(left, right)
+    }
+}
+
+impl<T: PartialOrd> OrderingOrBool<T, T> for MergeLte {
+    type Out = bool;
+    type MergeResult = T;
+    fn left(left: T) -> Self::MergeResult {
+        left
+    }
+    fn right(right: T) -> Self::MergeResult {
+        right
+    }
+    fn merge(&mut self, left: T, right: T) -> (Option<T>, Option<T>, Self::MergeResult) {
+        if left <= right {
+            (None, Some(right), left)
+        } else {
+            (Some(left), None, right)
         }
     }
     fn size_hint(left: SizeHint, right: SizeHint) -> SizeHint {
