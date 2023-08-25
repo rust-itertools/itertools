@@ -909,15 +909,19 @@ fn combinations_zero() {
     it::assert_equal((0..0).combinations(0), vec![vec![]]);
 }
 
+fn binomial(n: usize, k: usize) -> usize {
+    if k > n {
+        0
+    } else {
+        (n - k + 1..=n).product::<usize>() / (1..=k).product::<usize>()
+    }
+}
+
 #[test]
 fn combinations_range_count() {
     for n in 0..=10 {
         for k in 0..=10 {
-            let len = if k<=n {
-                (n - k + 1..=n).product::<usize>() / (1..=k).product::<usize>()
-            } else {
-                0
-            };
+            let len = binomial(n, k);
             let mut it = (0..n).combinations(k);
             assert_eq!(len, it.clone().count());
             assert_eq!(len, it.size_hint().0);
@@ -932,6 +936,47 @@ fn combinations_range_count() {
             let should_be_none = it.next();
             assert!(should_be_none.is_none());
         }
+    }
+}
+
+#[test]
+fn combinations_inexact_size_hints() {
+    for k in 0..=10 {
+        let mut numbers = (0..18).filter(|i| i % 2 == 0); // 9 elements
+        let mut it = numbers.clone().combinations(k);
+        let real_n = numbers.clone().count();
+        let len = binomial(real_n, k);
+        assert_eq!(len, it.clone().count());
+
+        let mut nb_loaded = numbers.by_ref().take(k).count(); // because of `LazyBuffer::prefill(k)`
+        let sh = numbers.size_hint();
+        assert_eq!(binomial(sh.0 + nb_loaded, k), it.size_hint().0);
+        assert_eq!(sh.1.map(|n| binomial(n + nb_loaded, k)), it.size_hint().1);
+
+        for next_count in 1..=len {
+            let elem = it.next();
+            assert!(elem.is_some());
+            assert_eq!(len - next_count, it.clone().count());
+            // It does not load anything more the very first time (it's prefilled).
+            if next_count > 1 {
+                // Then it loads one item each time until exhausted.
+                let nb = numbers.next();
+                if nb.is_some() {
+                    nb_loaded += 1;
+                }
+            }
+            let sh = numbers.size_hint();
+            if next_count > real_n - k + 1 {
+                assert_eq!(0, sh.0);
+                assert_eq!(Some(0), sh.1);
+                assert_eq!(real_n, nb_loaded);
+                // Once it's fully loaded, size hints of `it` are exacts.
+            }
+            assert_eq!(binomial(sh.0 + nb_loaded, k) - next_count, it.size_hint().0);
+            assert_eq!(sh.1.map(|n| binomial(n + nb_loaded, k) - next_count), it.size_hint().1);
+        }
+        let should_be_none = it.next();
+        assert!(should_be_none.is_none());
     }
 }
 
