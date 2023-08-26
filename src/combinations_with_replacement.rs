@@ -101,6 +101,13 @@ where
             None => None,
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let (mut low, mut upp) = self.pool.size_hint();
+        low = remaining_for(low, self.first, &self.indices).unwrap_or(usize::MAX);
+        upp = upp.and_then(|upp| remaining_for(upp, self.first, &self.indices));
+        (low, upp)
+    }
 }
 
 impl<I> FusedIterator for CombinationsWithReplacement<I>
