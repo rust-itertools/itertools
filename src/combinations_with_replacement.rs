@@ -108,6 +108,12 @@ where
         upp = upp.and_then(|upp| remaining_for(upp, self.first, &self.indices));
         (low, upp)
     }
+
+    fn count(self) -> usize {
+        let Self { indices, pool, first } = self;
+        let n = pool.count();
+        remaining_for(n, first, &indices).unwrap()
+    }
 }
 
 impl<I> FusedIterator for CombinationsWithReplacement<I>
