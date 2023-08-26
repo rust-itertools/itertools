@@ -25,7 +25,7 @@ where
     I: Iterator + fmt::Debug,
     I::Item: fmt::Debug + Clone,
 {
-    debug_fmt_fields!(Combinations, indices, pool, first);
+    debug_fmt_fields!(CombinationsWithReplacement, indices, pool, first);
 }
 
 impl<I> CombinationsWithReplacement<I>
