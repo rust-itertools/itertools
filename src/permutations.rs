@@ -143,7 +143,20 @@ where
                 upp = upp.and_then(|n| CompleteState::Start { n, k }.remaining());
                 (low, upp)
             }
-            PermutationState::OngoingUnknownLen { .. } => (0, None), // TODO can we improve this lower bound?
+            PermutationState::OngoingUnknownLen { k, min_n } => {
+                let prev_iteration_count = min_n - k + 1;
+                let (mut low, mut upp) = self.vals.size_hint();
+                low = CompleteState::Start { n: low, k }
+                    .remaining()
+                    .unwrap_or(usize::MAX)
+                    .saturating_sub(prev_iteration_count);
+                upp = upp.and_then(|n| {
+                    CompleteState::Start { n, k }
+                        .remaining()
+                        .map(|count| count.saturating_sub(prev_iteration_count))
+                });
+                (low, upp)
+            }
             PermutationState::Complete(ref state) => match state.remaining() {
                 Some(count) => (count, Some(count)),
                 None => (::std::usize::MAX, None)
