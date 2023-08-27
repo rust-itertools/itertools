@@ -137,7 +137,12 @@ where
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         match self.state {
-            PermutationState::StartUnknownLen { .. } |
+            PermutationState::StartUnknownLen { k } => {
+                let (mut low, mut upp) = self.vals.size_hint();
+                low = CompleteState::Start { n: low, k }.remaining().unwrap_or(usize::MAX);
+                upp = upp.and_then(|n| CompleteState::Start { n, k }.remaining());
+                (low, upp)
+            }
             PermutationState::OngoingUnknownLen { .. } => (0, None), // TODO can we improve this lower bound?
             PermutationState::Complete(ref state) => match state.remaining() {
                 Some(count) => (count, Some(count)),
