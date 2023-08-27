@@ -67,14 +67,8 @@ pub fn permutations<I: Iterator>(iter: I, k: usize) -> Permutations<I> {
         };
     }
 
-    let mut enough_vals = true;
-
-    while vals.len() < k {
-        if !vals.get_next() {
-            enough_vals = false;
-            break;
-        }
-    }
+    vals.prefill(k);
+    let enough_vals = vals.len() == k;
 
     let state = if enough_vals {
         PermutationState::StartUnknownLen { k }
