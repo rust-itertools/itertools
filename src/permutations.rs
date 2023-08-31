@@ -138,12 +138,14 @@ where
     fn size_hint(&self) -> (usize, Option<usize>) {
         match self.state {
             PermutationState::StartUnknownLen { k } => {
+                // At the beginning, there are `n!/(n-k)!` items to come (see `remaining`) but `n` might be unknown.
                 let (mut low, mut upp) = self.vals.size_hint();
                 low = CompleteState::Start { n: low, k }.remaining().unwrap_or(usize::MAX);
                 upp = upp.and_then(|n| CompleteState::Start { n, k }.remaining());
                 (low, upp)
             }
             PermutationState::OngoingUnknownLen { k, min_n } => {
+                // Same as `StartUnknownLen` minus the `prev_iteration_count` previously generated items.
                 let prev_iteration_count = min_n - k + 1;
                 let (mut low, mut upp) = self.vals.size_hint();
                 low = CompleteState::Start { n: low, k }
