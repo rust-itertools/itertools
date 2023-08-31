@@ -51,7 +51,12 @@ where
 /// Iterator element type is `I::Item`.
 ///
 /// See [`.merge_by()`](crate::Itertools::merge_by) for more information.
-pub type MergeBy<I, J, F> = InternalMergeJoinBy<I, J, F>;
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+pub struct MergeBy<I: Iterator, J: Iterator, F> {
+    left: PutBack<Fuse<I>>,
+    right: PutBack<Fuse<J>>,
+    cmp_fn: F,
+}
 
 /// Create a `MergeBy` iterator.
 pub fn merge_by_new<I, J, F>(a: I, b: J, cmp: F) -> MergeBy<I::IntoIter, J::IntoIter, F>
@@ -59,7 +64,7 @@ where
     I: IntoIterator,
     J: IntoIterator<Item = I::Item>,
 {
-    InternalMergeJoinBy {
+    MergeBy {
         left: put_back(a.into_iter().fuse()),
         right: put_back(b.into_iter().fuse()),
         cmp_fn: cmp,
@@ -79,7 +84,7 @@ where
     J: IntoIterator,
     F: FnMut(&I::Item, &J::Item) -> T,
 {
-    InternalMergeJoinBy {
+    MergeBy {
         left: put_back(left.into_iter().fuse()),
         right: put_back(right.into_iter().fuse()),
         cmp_fn: MergeFuncLR(cmp_fn, PhantomData),
@@ -89,18 +94,8 @@ where
 /// An iterator adaptor that merge-joins items from the two base iterators in ascending order.
 ///
 /// See [`.merge_join_by()`](crate::Itertools::merge_join_by) for more information.
-pub type MergeJoinBy<I, J, F> = InternalMergeJoinBy<
-    I,
-    J,
-    MergeFuncLR<F, <F as FuncLR<<I as Iterator>::Item, <J as Iterator>::Item>>::T>,
->;
-
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct InternalMergeJoinBy<I: Iterator, J: Iterator, F> {
-    left: PutBack<Fuse<I>>,
-    right: PutBack<Fuse<J>>,
-    cmp_fn: F,
-}
+pub type MergeJoinBy<I, J, F> =
+    MergeBy<I, J, MergeFuncLR<F, <F as FuncLR<<I as Iterator>::Item, <J as Iterator>::Item>>::T>>;
 
 #[derive(Clone, Debug)]
 pub struct MergeFuncLR<F, T>(F, PhantomData<T>);
@@ -219,7 +214,7 @@ impl<T: PartialOrd> OrderingOrBool<T, T> for MergeLte {
     }
 }
 
-impl<I, J, F> Clone for InternalMergeJoinBy<I, J, F>
+impl<I, J, F> Clone for MergeBy<I, J, F>
 where
     I: Iterator,
     J: Iterator,
@@ -230,17 +225,17 @@ where
     clone_fields!(left, right, cmp_fn);
 }
 
-impl<I, J, F> fmt::Debug for InternalMergeJoinBy<I, J, F>
+impl<I, J, F> fmt::Debug for MergeBy<I, J, F>
 where
     I: Iterator + fmt::Debug,
     I::Item: fmt::Debug,
     J: Iterator + fmt::Debug,
     J::Item: fmt::Debug,
 {
-    debug_fmt_fields!(InternalMergeJoinBy, left, right);
+    debug_fmt_fields!(MergeBy, left, right);
 }
 
-impl<I, J, F, T> Iterator for InternalMergeJoinBy<I, J, F>
+impl<I, J, F, T> Iterator for MergeBy<I, J, F>
 where
     I: Iterator,
     J: Iterator,
@@ -340,7 +335,7 @@ where
     }
 }
 
-impl<I, J, F, T> FusedIterator for InternalMergeJoinBy<I, J, F>
+impl<I, J, F, T> FusedIterator for MergeBy<I, J, F>
 where
     I: Iterator,
     J: Iterator,
