@@ -917,6 +917,22 @@ quickcheck! {
 }
 
 quickcheck! {
+    fn equal_combinations_array(it: Iter<i16>) -> bool {
+        let values = it.clone().collect_vec();
+        let mut cmb = it.array_combinations();
+        for j in 1..values.len() {
+            for i in 0..j {
+                let pair = [values[i], values[j]];
+                if pair != cmb.next().unwrap() {
+                    return false;
+                }
+            }
+        }
+        cmb.next() == None
+    }
+}
+
+quickcheck! {
     fn size_pad_tail(it: Iter<i8>, pad: u8) -> bool {
         correct_size_hint(it.clone().pad_using(pad as usize, |_| 0)) &&
             correct_size_hint(it.dropping(1).rev().pad_using(pad as usize, |_| 0))
