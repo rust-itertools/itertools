@@ -136,6 +136,24 @@ fn remaining_for(n: usize, first: bool, indices: &[usize]) -> Option<usize> {
     if first {
         count(n, k)
     } else {
+        // The algorithm is similar to the one for combinations *without replacement*,
+        // except we choose values *with replacement* and indices are *non-strictly* monotonically sorted.
+
+        // The combinations generated after the current one can be counted by counting as follows:
+        // - The subsequent combinations that differ in indices[0]:
+        //   If subsequent combinations differ in indices[0], then their value for indices[0]
+        //   must be at least 1 greater than the current indices[0].
+        //   As indices is monotonically sorted, this means we can effectively choose k values with
+        //   replacement from (n - 1 - indices[0]), leading to count(n - 1 - indices[0], k) possibilities.
+        // - The subsequent combinations with same indices[0], but differing indices[1]:
+        //   Here we can choose k - 1 values with replacement from (n - 1 - indices[1]) values,
+        //   leading to count(n - 1 - indices[1], k - 1) possibilities.
+        // - (...)
+        // - The subsequent combinations with same indices[0..=i], but differing indices[i]:
+        //   Here we can choose k - i values with replacement from (n - 1 - indices[i]) values: count(n - 1 - indices[i], k - i).
+        //   Since subsequent combinations can in any index, we must sum up the aforementioned binomial coefficients.
+
+        // Below, `n0` resembles indices[i].
         indices
             .iter()
             .enumerate()
