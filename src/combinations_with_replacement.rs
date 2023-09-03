@@ -124,6 +124,10 @@ where
 
 /// For a given size `n`, return the count of remaining combinations with replacement or None if it would overflow.
 fn remaining_for(n: usize, first: bool, indices: &[usize]) -> Option<usize> {
+    // With a "stars and bars" representation, choose k values with replacement from n values is
+    // like choosing k out of k + n − 1 positions (hence binomial(k + n - 1, k) possibilities)
+    // to place k stars and therefore n - 1 bars.
+    // Example (n=4, k=6): ***|*||** represents [0,0,0,1,3,3].
     let count = |n: usize, k: usize| checked_binomial((n + k).saturating_sub(1), k);
     let k = indices.len();
     if first {
