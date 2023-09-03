@@ -128,7 +128,10 @@ fn remaining_for(n: usize, first: bool, indices: &[usize]) -> Option<usize> {
     // like choosing k out of k + n − 1 positions (hence binomial(k + n - 1, k) possibilities)
     // to place k stars and therefore n - 1 bars.
     // Example (n=4, k=6): ***|*||** represents [0,0,0,1,3,3].
-    let count = |n: usize, k: usize| checked_binomial((n + k).saturating_sub(1), k);
+    let count = |n: usize, k: usize| {
+        let positions = if n == 0 { k.saturating_sub(1) } else { (n - 1).checked_add(k)? };
+        checked_binomial(positions, k)
+    };
     let k = indices.len();
     if first {
         count(n, k)
