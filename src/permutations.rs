@@ -137,21 +137,18 @@ where
     }
 
     fn size_hint(&self) -> SizeHint {
+        let at_start = |k| {
+            // At the beginning, there are `n!/(n-k)!` items to come (see `remaining`) but `n` might be unknown.
+            let (mut low, mut upp) = self.vals.size_hint();
+            low = CompleteState::Start { n: low, k }.remaining().unwrap_or(usize::MAX);
+            upp = upp.and_then(|n| CompleteState::Start { n, k }.remaining());
+            (low, upp)
+        };
         match self.state {
-            PermutationState::StartUnknownLen { k } => {
-                // At the beginning, there are `n!/(n-k)!` items to come (see `remaining`) but `n` might be unknown.
-                let (mut low, mut upp) = self.vals.size_hint();
-                low = CompleteState::Start { n: low, k }.remaining().unwrap_or(usize::MAX);
-                upp = upp.and_then(|n| CompleteState::Start { n, k }.remaining());
-                (low, upp)
-            }
+            PermutationState::StartUnknownLen { k } => at_start(k),
             PermutationState::OngoingUnknownLen { k, min_n } => {
-                // Same as `StartUnknownLen` minus the `prev_iteration_count` previously generated items.
-                let prev_iteration_count = min_n - k + 1;
-                let (mut low, mut upp) = self.vals.size_hint();
-                low = CompleteState::Start { n: low, k }.remaining().unwrap_or(usize::MAX);
-                upp = upp.and_then(|n| CompleteState::Start { n, k }.remaining());
-                size_hint::sub_scalar((low, upp), prev_iteration_count)
+                // Same as `StartUnknownLen` minus the previously generated items.
+                size_hint::sub_scalar(at_start(k), min_n - k + 1)
             }
             PermutationState::Complete(ref state) => match state.remaining() {
                 Some(count) => (count, Some(count)),
