@@ -3,6 +3,7 @@ use std::fmt;
 use std::iter::once;
 
 use super::lazy_buffer::LazyBuffer;
+use crate::size_hint::{self, SizeHint};
 
 /// An iterator adaptor that iterates through all the `k`-permutations of the
 /// elements from an iterator.
@@ -135,7 +136,7 @@ where
         }
     }
 
-    fn size_hint(&self) -> (usize, Option<usize>) {
+    fn size_hint(&self) -> SizeHint {
         match self.state {
             PermutationState::StartUnknownLen { k } => {
                 // At the beginning, there are `n!/(n-k)!` items to come (see `remaining`) but `n` might be unknown.
@@ -148,16 +149,9 @@ where
                 // Same as `StartUnknownLen` minus the `prev_iteration_count` previously generated items.
                 let prev_iteration_count = min_n - k + 1;
                 let (mut low, mut upp) = self.vals.size_hint();
-                low = CompleteState::Start { n: low, k }
-                    .remaining()
-                    .unwrap_or(usize::MAX)
-                    .saturating_sub(prev_iteration_count);
-                upp = upp.and_then(|n| {
-                    CompleteState::Start { n, k }
-                        .remaining()
-                        .map(|count| count.saturating_sub(prev_iteration_count))
-                });
-                (low, upp)
+                low = CompleteState::Start { n: low, k }.remaining().unwrap_or(usize::MAX);
+                upp = upp.and_then(|n| CompleteState::Start { n, k }.remaining());
+                size_hint::sub_scalar((low, upp), prev_iteration_count)
             }
             PermutationState::Complete(ref state) => match state.remaining() {
                 Some(count) => (count, Some(count)),
