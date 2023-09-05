@@ -1013,6 +1013,18 @@ fn permutations_range_count() {
 }
 
 #[test]
+fn permutations_overflowed_size_hints() {
+    let mut it = std::iter::repeat(()).permutations(2);
+    assert_eq!(it.size_hint().0, usize::MAX);
+    assert_eq!(it.size_hint().1, None);
+    for nb_generated in 1..=1000 {
+        it.next();
+        assert!(it.size_hint().0 >= usize::MAX - nb_generated);
+        assert_eq!(it.size_hint().1, None);
+    }
+}
+
+#[test]
 fn combinations_with_replacement() {
     // Pool smaller than n
     it::assert_equal((0..1).combinations_with_replacement(2), vec![vec![0, 0]]);

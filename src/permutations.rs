@@ -243,7 +243,7 @@ impl CompleteState {
                 if n < k {
                     return Some(0);
                 }
-                (n - k + 1..n + 1).fold(Some(1), |acc, i| {
+                (n - k + 1..=n).fold(Some(1), |acc, i| {
                     acc.and_then(|acc| acc.checked_mul(i))
                 })
             }
