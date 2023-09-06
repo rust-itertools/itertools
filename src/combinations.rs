@@ -208,8 +208,8 @@ fn remaining_for(n: usize, first: bool, indices: &[usize]) -> Option<usize> {
         indices
             .iter()
             .enumerate()
-            .fold(Some(0), |sum, (i, n0)| {
-                sum.and_then(|s| s.checked_add(checked_binomial(n - 1 - *n0, k - i)?))
+            .try_fold(0usize, |sum, (i, n0)| {
+                sum.checked_add(checked_binomial(n - 1 - *n0, k - i)?)
             })
     }
 }
