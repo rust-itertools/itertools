@@ -83,44 +83,6 @@ pub fn permutations<I: Iterator>(iter: I, k: usize) -> Permutations<I> {
     }
 }
 
-impl<I> Permutations<I>
-where
-    I: Iterator,
-    I::Item: Clone
-{
-    fn advance(&mut self) {
-        let &mut Permutations { ref mut vals, ref mut state } = self;
-
-        *state = match *state {
-            PermutationState::StartUnknownLen { k } => {
-                PermutationState::OngoingUnknownLen { k, min_n: k }
-            }
-            PermutationState::OngoingUnknownLen { k, min_n } => {
-                if vals.get_next() {
-                    PermutationState::OngoingUnknownLen { k, min_n: min_n + 1 }
-                } else {
-                    let n = min_n;
-                    let prev_iteration_count = n - k + 1;
-                    let mut complete_state = CompleteState::Start { n, k };
-
-                    // Advance the complete-state iterator to the correct point
-                    for _ in 0..(prev_iteration_count + 1) {
-                        complete_state.advance();
-                    }
-
-                    PermutationState::Complete(complete_state)
-                }
-            }
-            PermutationState::Complete(ref mut state) => {
-                state.advance();
-
-                return;
-            }
-            PermutationState::Empty => { return; }
-        };
-    }
-}
-
 impl<I> Iterator for Permutations<I>
 where
     I: Iterator,
@@ -129,10 +91,35 @@ where
     type Item = Vec<I::Item>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.advance();
+        {
+            let &mut Permutations { ref mut vals, ref mut state } = self;
+            match *state {
+                PermutationState::StartUnknownLen { k } => {
+                    *state = PermutationState::OngoingUnknownLen { k, min_n: k };
+                },
+                PermutationState::OngoingUnknownLen { k, min_n } => {
+                    if vals.get_next() {
+                        *state = PermutationState::OngoingUnknownLen { k, min_n: min_n + 1 };
+                    } else {
+                        let n = min_n;
+                        let prev_iteration_count = n - k + 1;
+                        let mut complete_state = CompleteState::Start { n, k };
 
+                        // Advance the complete-state iterator to the correct point
+                        for _ in 0..(prev_iteration_count + 1) {
+                            complete_state.advance();
+                        }
+
+                        *state = PermutationState::Complete(complete_state);
+                    }
+                },
+                PermutationState::Complete(ref mut state) => {
+                    state.advance();
+                },
+                PermutationState::Empty => {},
+            };
+        }
         let &mut Permutations { ref vals, ref state } = self;
-
         match *state {
             PermutationState::StartUnknownLen { .. } => panic!("unexpected iterator state"),
             PermutationState::OngoingUnknownLen { k, min_n } => {
