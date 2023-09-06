@@ -157,9 +157,6 @@ fn remaining_for(n: usize, first: bool, indices: &[usize]) -> Option<usize> {
         indices
             .iter()
             .enumerate()
-            // TODO: Once the MSRV hits 1.37.0, we can sum options instead:
-            // .map(|(i, n0)| count(n - 1 - *n0, k - i))
-            // .sum()
             .fold(Some(0), |sum, (i, n0)| {
                 sum.and_then(|s| s.checked_add(count(n - 1 - *n0, k - i)?))
             })
