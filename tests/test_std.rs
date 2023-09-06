@@ -987,6 +987,44 @@ fn permutations_zero() {
 }
 
 #[test]
+fn permutations_range_count() {
+    for n in 0..=7 {
+        for k in 0..=7 {
+            let len = if k <= n {
+                (n - k + 1..=n).product()
+            } else {
+                0
+            };
+            let mut it = (0..n).permutations(k);
+            assert_eq!(len, it.clone().count());
+            assert_eq!(len, it.size_hint().0);
+            assert_eq!(Some(len), it.size_hint().1);
+            for count in (0..len).rev() {
+                let elem = it.next();
+                assert!(elem.is_some());
+                assert_eq!(count, it.clone().count());
+                assert_eq!(count, it.size_hint().0);
+                assert_eq!(Some(count), it.size_hint().1);
+            }
+            let should_be_none = it.next();
+            assert!(should_be_none.is_none());
+        }
+    }
+}
+
+#[test]
+fn permutations_overflowed_size_hints() {
+    let mut it = std::iter::repeat(()).permutations(2);
+    assert_eq!(it.size_hint().0, usize::MAX);
+    assert_eq!(it.size_hint().1, None);
+    for nb_generated in 1..=1000 {
+        it.next();
+        assert!(it.size_hint().0 >= usize::MAX - nb_generated);
+        assert_eq!(it.size_hint().1, None);
+    }
+}
+
+#[test]
 fn combinations_with_replacement() {
     // Pool smaller than n
     it::assert_equal((0..1).combinations_with_replacement(2), vec![vec![0, 0]]);
