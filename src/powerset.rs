@@ -82,7 +82,7 @@ impl<I> FusedIterator for Powerset<I>
 {}
 
 fn remaining_for(n: usize, k: usize) -> Option<usize> {
-    (k + 1..=n).fold(Some(0), |sum, i| {
-        sum.and_then(|s| s.checked_add(checked_binomial(n, i)?))
+    (k + 1..=n).try_fold(0usize, |sum, i| {
+        sum.checked_add(checked_binomial(n, i)?)
     })
 }
