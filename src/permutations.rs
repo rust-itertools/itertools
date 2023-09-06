@@ -240,20 +240,16 @@ impl CompleteState {
                 if n < k {
                     return Some(0);
                 }
-                (n - k + 1..=n).fold(Some(1), |acc, i| {
-                    acc.and_then(|acc| acc.checked_mul(i))
-                })
+                (n - k + 1..=n).try_fold(1usize, |acc, i| acc.checked_mul(i))
             }
             CompleteState::Ongoing { ref indices, ref cycles } => {
-                let mut count: usize = 0;
-
-                for (i, &c) in cycles.iter().enumerate() {
-                    let radix = indices.len() - i;
-                    count = count.checked_mul(radix)
-                        .and_then(|count| count.checked_add(c))?;
-                }
-
-                Some(count)
+                cycles
+                    .iter()
+                    .enumerate()
+                    .try_fold(0usize, |acc, (i, &c)| {
+                        acc.checked_mul(indices.len() - i)
+                            .and_then(|count| count.checked_add(c))
+                    })
             }
         }
     }
