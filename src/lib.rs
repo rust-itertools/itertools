@@ -161,6 +161,7 @@ pub mod structs {
 /// Traits helpful for using certain `Itertools` methods in generic contexts.
 pub mod traits {
     pub use crate::tuple_impl::HomogeneousTuple;
+    pub use crate::iter_index::IteratorIndex;
 }
 
 #[allow(deprecated)]
@@ -175,6 +176,7 @@ pub use crate::minmax::MinMaxResult;
 pub use crate::peeking_take_while::PeekingNext;
 pub use crate::process_results_impl::process_results;
 pub use crate::repeatn::repeat_n;
+pub use crate::iter_index::get;
 #[allow(deprecated)]
 pub use crate::sources::{repeat_call, unfold, iterate};
 pub use crate::with_position::Position;
@@ -195,6 +197,7 @@ mod combinations;
 mod combinations_with_replacement;
 mod exactly_one_err;
 mod diff;
+mod iter_index;
 mod flatten_ok;
 #[cfg(feature = "use_std")]
 mod extrema_set;
@@ -487,6 +490,52 @@ pub trait Itertools : Iterator {
         intersperse::intersperse(self, element)
     }
 
+    /// Returns an element at a specific location, or returns an iterator
+    /// over a subsection of the iterator.
+    ///
+    /// Works similarly to [`slice::get`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
+    ///
+    /// It's a generalisation of [`take`], [`skip`] and [`nth`], and uses these
+    /// under the hood.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let vec = vec![3, 1, 4, 1, 5];
+    ///
+    /// let mut range: Vec<_> = 
+    ///        vec.iter().get(1..=3).copied().collect();
+    /// assert_eq!(&range, &[1, 4, 1]);
+    ///
+    /// // It works with other types of ranges, too
+    /// range = vec.iter().get(..2).copied().collect();
+    /// assert_eq!(&range, &[3, 1]);
+    ///
+    /// range = vec.iter().get(0..1).copied().collect();
+    /// assert_eq!(&range, &[3]);
+    ///
+    /// range = vec.iter().get(2..).copied().collect();
+    /// assert_eq!(&range, &[4, 1, 5]);
+    ///
+    /// range = vec.iter().get(..).copied().collect();
+    /// assert_eq!(range, vec);
+    /// ```
+    ///
+    /// # Unspecified Behavior
+    /// The result of indexing with an exhausted [`core::ops::RangeInclusive`] is unspecified.
+    ///
+    /// [`take`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.take
+    /// [`skip`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.skip
+    /// [`nth`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.nth
+    fn get<R>(self, index: R) -> R::Output
+        where R: iter_index::IteratorIndex<Self>,
+              Self: Sized
+    {
+        iter_index::get(self, index)
+    }
+  
     /// An iterator adaptor to insert a particular value created by a function
     /// between each element of the adapted iterator.
     ///
