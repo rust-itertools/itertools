@@ -75,3 +75,18 @@ fn zip_eq_panic2()
 
     zip_eq(&a, &b).count();
 }
+
+#[test]
+fn zip_eq_backwards() {
+    let mut it = zip_eq(0..3, 4..7);
+    assert_eq!(it.next_back(), Some((2, 6)));
+    assert_eq!(it.next_back(), Some((1, 5)));
+    assert_eq!(it.next_back(), Some((0, 4)));
+    assert_eq!(it.next_back(), None);
+}
+
+#[should_panic]
+#[test]
+fn zip_eq_backwards_panic() {
+    zip_eq(&[1, 2], &[1, 2, 3]).rev().count();
+}

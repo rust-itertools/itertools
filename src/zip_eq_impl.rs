@@ -1,3 +1,5 @@
+use std::iter::FusedIterator;
+
 use super::size_hint;
 
 /// An iterator which iterates two other iterators simultaneously
@@ -45,7 +47,7 @@ impl<I, J> Iterator for ZipEq<I, J>
             (None, None) => None,
             (Some(a), Some(b)) => Some((a, b)),
             (None, Some(_)) | (Some(_), None) =>
-            panic!("itertools: .zip_eq() reached end of one iterator before the other")
+                panic!("itertools: .zip_eq() reached end of one iterator before the other")
         }
     }
 
@@ -54,7 +56,27 @@ impl<I, J> Iterator for ZipEq<I, J>
     }
 }
 
+impl<I, J> DoubleEndedIterator for ZipEq<I, J>
+    where I: DoubleEndedIterator,
+          J: DoubleEndedIterator {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        match (self.a.next_back(), self.b.next_back()) {
+            (None, None) => None,
+            (Some(a), Some(b)) => Some((a, b)),
+            (None, Some(_)) | (Some(_), None) =>
+                panic!("itertools: .zip_eq() reached start of one iterator before the other")
+        }
+    }
+}
+
 impl<I, J> ExactSizeIterator for ZipEq<I, J>
     where I: ExactSizeIterator,
           J: ExactSizeIterator
+{}
+
+// technically we only need at least one of the iterators to implement FusedIterator, but for that we either need
+// negative trait bounds or maybe specialization
+impl<I, J> FusedIterator for ZipEq<I, J>
+    where I: FusedIterator,
+          J: FusedIterator
 {}
