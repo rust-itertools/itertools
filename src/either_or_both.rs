@@ -475,7 +475,7 @@ impl<T> EitherOrBoth<T, T> {
     ///
     /// This function can be used to preferrably extract the left resp. right value,
     /// but fall back to the other (i.e. right resp. left) if the preferred one is not present.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// # use itertools::EitherOrBoth;

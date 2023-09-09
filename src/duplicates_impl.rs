@@ -2,8 +2,8 @@ use std::hash::Hash;
 
 mod private {
     use std::collections::HashMap;
-    use std::hash::Hash;
     use std::fmt;
+    use std::hash::Hash;
 
     #[derive(Clone)]
     #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
@@ -213,4 +213,3 @@ where
 {
     Duplicates::new(iter, private::ById)
 }
-

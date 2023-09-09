@@ -1,5 +1,5 @@
-use std::iter::{Fuse, FusedIterator};
 use super::size_hint;
+use std::iter::{Fuse, FusedIterator};
 
 pub trait IntersperseElement<Item> {
     fn generate(&mut self) -> Item;
@@ -26,12 +26,13 @@ pub type Intersperse<I> = IntersperseWith<I, IntersperseElementSimple<<I as Iter
 
 /// Create a new Intersperse iterator
 pub fn intersperse<I>(iter: I, elt: I::Item) -> Intersperse<I>
-    where I: Iterator,
+where
+    I: Iterator,
 {
     intersperse_with(iter, IntersperseElementSimple(elt))
 }
 
-impl<Item, F: FnMut()->Item> IntersperseElement<Item> for F {
+impl<Item, F: FnMut() -> Item> IntersperseElement<Item> for F {
     fn generate(&mut self) -> Item {
         self()
     }
@@ -48,7 +49,8 @@ impl<Item, F: FnMut()->Item> IntersperseElement<Item> for F {
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 #[derive(Clone, Debug)]
 pub struct IntersperseWith<I, ElemF>
-    where I: Iterator,
+where
+    I: Iterator,
 {
     element: ElemF,
     iter: Fuse<I>,
@@ -57,7 +59,8 @@ pub struct IntersperseWith<I, ElemF>
 
 /// Create a new `IntersperseWith` iterator
 pub fn intersperse_with<I, ElemF>(iter: I, elt: ElemF) -> IntersperseWith<I, ElemF>
-    where I: Iterator,
+where
+    I: Iterator,
 {
     let mut iter = iter.fuse();
     IntersperseWith {
@@ -68,8 +71,9 @@ pub fn intersperse_with<I, ElemF>(iter: I, elt: ElemF) -> IntersperseWith<I, Ele
 }
 
 impl<I, ElemF> Iterator for IntersperseWith<I, ElemF>
-    where I: Iterator,
-          ElemF: IntersperseElement<I::Item>
+where
+    I: Iterator,
+    ElemF: IntersperseElement<I::Item>,
 {
     type Item = I::Item;
     #[inline]
@@ -93,8 +97,10 @@ impl<I, ElemF> Iterator for IntersperseWith<I, ElemF>
         size_hint::add_scalar(size_hint::add(sh, sh), has_peek)
     }
 
-    fn fold<B, F>(mut self, init: B, mut f: F) -> B where
-        Self: Sized, F: FnMut(B, Self::Item) -> B,
+    fn fold<B, F>(mut self, init: B, mut f: F) -> B
+    where
+        Self: Sized,
+        F: FnMut(B, Self::Item) -> B,
     {
         let mut accum = init;
 
@@ -104,15 +110,16 @@ impl<I, ElemF> Iterator for IntersperseWith<I, ElemF>
 
         let element = &mut self.element;
 
-        self.iter.fold(accum,
-            |accum, x| {
-                let accum = f(accum, element.generate());
-                f(accum, x)
+        self.iter.fold(accum, |accum, x| {
+            let accum = f(accum, element.generate());
+            f(accum, x)
         })
     }
 }
 
 impl<I, ElemF> FusedIterator for IntersperseWith<I, ElemF>
-    where I: Iterator,
-          ElemF: IntersperseElement<I::Item>
-{}
+where
+    I: Iterator,
+    ElemF: IntersperseElement<I::Item>,
+{
+}

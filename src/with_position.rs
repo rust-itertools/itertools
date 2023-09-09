@@ -1,4 +1,4 @@
-use std::iter::{Fuse,Peekable, FusedIterator};
+use std::iter::{Fuse, FusedIterator, Peekable};
 
 /// An iterator adaptor that wraps each element in an [`Position`].
 ///
@@ -7,22 +7,25 @@ use std::iter::{Fuse,Peekable, FusedIterator};
 /// See [`.with_position()`](crate::Itertools::with_position) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct WithPosition<I>
-    where I: Iterator,
+where
+    I: Iterator,
 {
     handled_first: bool,
     peekable: Peekable<Fuse<I>>,
 }
 
 impl<I> Clone for WithPosition<I>
-    where I: Clone + Iterator,
-          I::Item: Clone,
+where
+    I: Clone + Iterator,
+    I::Item: Clone,
 {
     clone_fields!(handled_first, peekable);
 }
 
 /// Create a new `WithPosition` iterator.
 pub fn with_position<I>(iter: I) -> WithPosition<I>
-    where I: Iterator,
+where
+    I: Iterator,
 {
     WithPosition {
         handled_first: false,
@@ -80,9 +83,6 @@ impl<I: Iterator> Iterator for WithPosition<I> {
     }
 }
 
-impl<I> ExactSizeIterator for WithPosition<I>
-    where I: ExactSizeIterator,
-{ }
+impl<I> ExactSizeIterator for WithPosition<I> where I: ExactSizeIterator {}
 
-impl<I: Iterator> FusedIterator for WithPosition<I> 
-{}
+impl<I: Iterator> FusedIterator for WithPosition<I> {}

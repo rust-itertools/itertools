@@ -2,9 +2,9 @@ use crate::size_hint;
 use crate::Itertools;
 
 use alloc::vec::Vec;
+use std::fmt;
 use std::iter::FusedIterator;
 use std::mem::replace;
-use std::fmt;
 
 /// Head element and Tail iterator pair
 ///
@@ -15,24 +15,21 @@ use std::fmt;
 /// `KMerge` into a min-heap.
 #[derive(Debug)]
 struct HeadTail<I>
-    where I: Iterator
+where
+    I: Iterator,
 {
     head: I::Item,
     tail: I,
 }
 
 impl<I> HeadTail<I>
-    where I: Iterator
+where
+    I: Iterator,
 {
     /// Constructs a `HeadTail` from an `Iterator`. Returns `None` if the `Iterator` is empty.
     fn new(mut it: I) -> Option<HeadTail<I>> {
         let head = it.next();
-        head.map(|h| {
-            HeadTail {
-                head: h,
-                tail: it,
-            }
-        })
+        head.map(|h| HeadTail { head: h, tail: it })
     }
 
     /// Get the next element and update `head`, returning the old head in `Some`.
@@ -53,15 +50,17 @@ impl<I> HeadTail<I>
 }
 
 impl<I> Clone for HeadTail<I>
-    where I: Iterator + Clone,
-          I::Item: Clone
+where
+    I: Iterator + Clone,
+    I::Item: Clone,
 {
     clone_fields!(head, tail);
 }
 
 /// Make `data` a heap (min-heap w.r.t the sorting).
 fn heapify<T, S>(data: &mut [T], mut less_than: S)
-    where S: FnMut(&T, &T) -> bool
+where
+    S: FnMut(&T, &T) -> bool,
 {
     for i in (0..data.len() / 2).rev() {
         sift_down(data, i, &mut less_than);
@@ -70,7 +69,8 @@ fn heapify<T, S>(data: &mut [T], mut less_than: S)
 
 /// Sift down element at `index` (`heap` is a min-heap wrt the ordering)
 fn sift_down<T, S>(heap: &mut [T], index: usize, mut less_than: S)
-    where S: FnMut(&T, &T) -> bool
+where
+    S: FnMut(&T, &T) -> bool,
 {
     debug_assert!(index <= heap.len());
     let mut pos = index;
@@ -81,7 +81,7 @@ fn sift_down<T, S>(heap: &mut [T], index: usize, mut less_than: S)
     while child + 1 < heap.len() {
         // pick the smaller of the two children
         // use arithmetic to avoid an unpredictable branch
-        child += less_than(&heap[child+1], &heap[child]) as usize;
+        child += less_than(&heap[child + 1], &heap[child]) as usize;
 
         // sift down is done if we are already in order
         if !less_than(&heap[child], &heap[pos]) {
@@ -119,7 +119,7 @@ impl<T: PartialOrd> KMergePredicate<T> for KMergeByLt {
     }
 }
 
-impl<T, F: FnMut(&T, &T)->bool> KMergePredicate<T> for F {
+impl<T, F: FnMut(&T, &T) -> bool> KMergePredicate<T> for F {
     fn kmerge_pred(&mut self, a: &T, b: &T) -> bool {
         self(a, b)
     }
@@ -138,9 +138,10 @@ impl<T, F: FnMut(&T, &T)->bool> KMergePredicate<T> for F {
 /// }
 /// ```
 pub fn kmerge<I>(iterable: I) -> KMerge<<I::Item as IntoIterator>::IntoIter>
-    where I: IntoIterator,
-          I::Item: IntoIterator,
-          <<I as IntoIterator>::Item as IntoIterator>::Item: PartialOrd
+where
+    I: IntoIterator,
+    I::Item: IntoIterator,
+    <<I as IntoIterator>::Item as IntoIterator>::Item: PartialOrd,
 {
     kmerge_by(iterable, KMergeByLt)
 }
@@ -154,15 +155,17 @@ pub fn kmerge<I>(iterable: I) -> KMerge<<I::Item as IntoIterator>::IntoIter>
 /// information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct KMergeBy<I, F>
-    where I: Iterator,
+where
+    I: Iterator,
 {
     heap: Vec<HeadTail<I>>,
     less_than: F,
 }
 
 impl<I, F> fmt::Debug for KMergeBy<I, F>
-    where I: Iterator + fmt::Debug,
-          I::Item: fmt::Debug,
+where
+    I: Iterator + fmt::Debug,
+    I::Item: fmt::Debug,
 {
     debug_fmt_fields!(KMergeBy, heap);
 }
@@ -170,11 +173,14 @@ impl<I, F> fmt::Debug for KMergeBy<I, F>
 /// Create an iterator that merges elements of the contained iterators.
 ///
 /// [`IntoIterator`] enabled version of [`Itertools::kmerge_by`].
-pub fn kmerge_by<I, F>(iterable: I, mut less_than: F)
-    -> KMergeBy<<I::Item as IntoIterator>::IntoIter, F>
-    where I: IntoIterator,
-          I::Item: IntoIterator,
-          F: KMergePredicate<<<I as IntoIterator>::Item as IntoIterator>::Item>,
+pub fn kmerge_by<I, F>(
+    iterable: I,
+    mut less_than: F,
+) -> KMergeBy<<I::Item as IntoIterator>::IntoIter, F>
+where
+    I: IntoIterator,
+    I::Item: IntoIterator,
+    F: KMergePredicate<<<I as IntoIterator>::Item as IntoIterator>::Item>,
 {
     let iter = iterable.into_iter();
     let (lower, _) = iter.size_hint();
@@ -185,16 +191,18 @@ pub fn kmerge_by<I, F>(iterable: I, mut less_than: F)
 }
 
 impl<I, F> Clone for KMergeBy<I, F>
-    where I: Iterator + Clone,
-          I::Item: Clone,
-          F: Clone,
+where
+    I: Iterator + Clone,
+    I::Item: Clone,
+    F: Clone,
 {
     clone_fields!(heap, less_than);
 }
 
 impl<I, F> Iterator for KMergeBy<I, F>
-    where I: Iterator,
-          F: KMergePredicate<I::Item>
+where
+    I: Iterator,
+    F: KMergePredicate<I::Item>,
 {
     type Item = I::Item;
 
@@ -208,20 +216,25 @@ impl<I, F> Iterator for KMergeBy<I, F>
             self.heap.swap_remove(0).head
         };
         let less_than = &mut self.less_than;
-        sift_down(&mut self.heap, 0, |a, b| less_than.kmerge_pred(&a.head, &b.head));
+        sift_down(&mut self.heap, 0, |a, b| {
+            less_than.kmerge_pred(&a.head, &b.head)
+        });
         Some(result)
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         #[allow(deprecated)] //TODO: once msrv hits 1.51. replace `fold1` with `reduce`
-        self.heap.iter()
-                 .map(|i| i.size_hint())
-                 .fold1(size_hint::add)
-                 .unwrap_or((0, Some(0)))
+        self.heap
+            .iter()
+            .map(|i| i.size_hint())
+            .fold1(size_hint::add)
+            .unwrap_or((0, Some(0)))
     }
 }
 
 impl<I, F> FusedIterator for KMergeBy<I, F>
-    where I: Iterator,
-          F: KMergePredicate<I::Item>
-{}
+where
+    I: Iterator,
+    F: KMergePredicate<I::Item>,
+{
+}
