@@ -1,9 +1,9 @@
 //! Some iterator that produces tuples
 
+use std::iter::Cycle;
 use std::iter::Fuse;
 use std::iter::FusedIterator;
 use std::iter::Take;
-use std::iter::Cycle;
 use std::marker::PhantomData;
 
 // `HomogeneousTuple` is a public facade for `TupleCollect`, allowing
@@ -12,9 +12,7 @@ use std::marker::PhantomData;
 // See https://github.com/rust-itertools/itertools/issues/387
 
 /// Implemented for homogeneous tuples of size up to 12.
-pub trait HomogeneousTuple
-    : TupleCollect
-{}
+pub trait HomogeneousTuple: TupleCollect {}
 
 impl<T: TupleCollect> HomogeneousTuple for T {}
 
@@ -24,25 +22,25 @@ impl<T: TupleCollect> HomogeneousTuple for T {}
 /// [`Tuples::into_buffer()`].
 #[derive(Clone, Debug)]
 pub struct TupleBuffer<T>
-    where T: HomogeneousTuple
+where
+    T: HomogeneousTuple,
 {
     cur: usize,
     buf: T::Buffer,
 }
 
 impl<T> TupleBuffer<T>
-    where T: HomogeneousTuple
+where
+    T: HomogeneousTuple,
 {
     fn new(buf: T::Buffer) -> Self {
-        TupleBuffer {
-            cur: 0,
-            buf,
-        }
+        TupleBuffer { cur: 0, buf }
     }
 }
 
 impl<T> Iterator for TupleBuffer<T>
-    where T: HomogeneousTuple
+where
+    T: HomogeneousTuple,
 {
     type Item = T::Item;
 
@@ -61,18 +59,16 @@ impl<T> Iterator for TupleBuffer<T>
         let len = if buffer.is_empty() {
             0
         } else {
-            buffer.iter()
-                  .position(|x| x.is_none())
-                  .unwrap_or_else(|| buffer.len())
+            buffer
+                .iter()
+                .position(|x| x.is_none())
+                .unwrap_or_else(|| buffer.len())
         };
         (len, Some(len))
     }
 }
 
-impl<T> ExactSizeIterator for TupleBuffer<T>
-    where T: HomogeneousTuple
-{
-}
+impl<T> ExactSizeIterator for TupleBuffer<T> where T: HomogeneousTuple {}
 
 /// An iterator that groups the items in tuples of a specific size.
 ///
@@ -80,8 +76,9 @@ impl<T> ExactSizeIterator for TupleBuffer<T>
 #[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Tuples<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: HomogeneousTuple
+where
+    I: Iterator<Item = T::Item>,
+    T: HomogeneousTuple,
 {
     iter: Fuse<I>,
     buf: T::Buffer,
@@ -89,8 +86,9 @@ pub struct Tuples<I, T>
 
 /// Create a new tuples iterator.
 pub fn tuples<I, T>(iter: I) -> Tuples<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: HomogeneousTuple
+where
+    I: Iterator<Item = T::Item>,
+    T: HomogeneousTuple,
 {
     Tuples {
         iter: iter.fuse(),
@@ -99,8 +97,9 @@ pub fn tuples<I, T>(iter: I) -> Tuples<I, T>
 }
 
 impl<I, T> Iterator for Tuples<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: HomogeneousTuple
+where
+    I: Iterator<Item = T::Item>,
+    T: HomogeneousTuple,
 {
     type Item = T;
 
@@ -110,8 +109,9 @@ impl<I, T> Iterator for Tuples<I, T>
 }
 
 impl<I, T> Tuples<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: HomogeneousTuple
+where
+    I: Iterator<Item = T::Item>,
+    T: HomogeneousTuple,
 {
     /// Return a buffer with the produced items that was not enough to be grouped in a tuple.
     ///
@@ -128,7 +128,6 @@ impl<I, T> Tuples<I, T>
     }
 }
 
-
 /// An iterator over all contiguous windows that produces tuples of a specific size.
 ///
 /// See [`.tuple_windows()`](crate::Itertools::tuple_windows) for more
@@ -136,8 +135,9 @@ impl<I, T> Tuples<I, T>
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 #[derive(Clone, Debug)]
 pub struct TupleWindows<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: HomogeneousTuple
+where
+    I: Iterator<Item = T::Item>,
+    T: HomogeneousTuple,
 {
     iter: I,
     last: Option<T>,
@@ -145,9 +145,10 @@ pub struct TupleWindows<I, T>
 
 /// Create a new tuple windows iterator.
 pub fn tuple_windows<I, T>(mut iter: I) -> TupleWindows<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: HomogeneousTuple,
-          T::Item: Clone
+where
+    I: Iterator<Item = T::Item>,
+    T: HomogeneousTuple,
+    T::Item: Clone,
 {
     use std::iter::once;
 
@@ -161,22 +162,20 @@ pub fn tuple_windows<I, T>(mut iter: I) -> TupleWindows<I, T>
         }
     }
 
-    TupleWindows {
-        iter,
-        last,
-    }
+    TupleWindows { iter, last }
 }
 
 impl<I, T> Iterator for TupleWindows<I, T>
-    where I: Iterator<Item = T::Item>,
-          T: HomogeneousTuple + Clone,
-          T::Item: Clone
+where
+    I: Iterator<Item = T::Item>,
+    T: HomogeneousTuple + Clone,
+    T::Item: Clone,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
         if T::num_items() == 1 {
-            return T::collect_from_iter_no_buf(&mut self.iter)
+            return T::collect_from_iter_no_buf(&mut self.iter);
         }
         if let Some(ref mut last) = self.last {
             if let Some(new) = self.iter.next() {
@@ -189,10 +188,12 @@ impl<I, T> Iterator for TupleWindows<I, T>
 }
 
 impl<I, T> FusedIterator for TupleWindows<I, T>
-    where I: FusedIterator<Item = T::Item>,
-          T: HomogeneousTuple + Clone,
-          T::Item: Clone
-{}
+where
+    I: FusedIterator<Item = T::Item>,
+    T: HomogeneousTuple + Clone,
+    T::Item: Clone,
+{
+}
 
 /// An iterator over all windows, wrapping back to the first elements when the
 /// window would otherwise exceed the length of the iterator, producing tuples
@@ -203,31 +204,34 @@ impl<I, T> FusedIterator for TupleWindows<I, T>
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 #[derive(Debug, Clone)]
 pub struct CircularTupleWindows<I, T: Clone>
-    where I: Iterator<Item = T::Item> + Clone,
-          T: TupleCollect + Clone
+where
+    I: Iterator<Item = T::Item> + Clone,
+    T: TupleCollect + Clone,
 {
     iter: Take<TupleWindows<Cycle<I>, T>>,
-    phantom_data: PhantomData<T>
+    phantom_data: PhantomData<T>,
 }
 
 pub fn circular_tuple_windows<I, T>(iter: I) -> CircularTupleWindows<I, T>
-    where I: Iterator<Item = T::Item> + Clone + ExactSizeIterator,
-          T: TupleCollect + Clone,
-          T::Item: Clone
+where
+    I: Iterator<Item = T::Item> + Clone + ExactSizeIterator,
+    T: TupleCollect + Clone,
+    T::Item: Clone,
 {
     let len = iter.len();
     let iter = tuple_windows(iter.cycle()).take(len);
 
     CircularTupleWindows {
         iter,
-        phantom_data: PhantomData{}
+        phantom_data: PhantomData {},
     }
 }
 
 impl<I, T> Iterator for CircularTupleWindows<I, T>
-    where I: Iterator<Item = T::Item> + Clone,
-          T: TupleCollect + Clone,
-          T::Item: Clone
+where
+    I: Iterator<Item = T::Item> + Clone,
+    T: TupleCollect + Clone,
+    T::Item: Clone,
 {
     type Item = T;
 
@@ -241,10 +245,12 @@ pub trait TupleCollect: Sized {
     type Buffer: Default + AsRef<[Option<Self::Item>]> + AsMut<[Option<Self::Item>]>;
 
     fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
-        where I: IntoIterator<Item = Self::Item>;
+    where
+        I: IntoIterator<Item = Self::Item>;
 
     fn collect_from_iter_no_buf<I>(iter: I) -> Option<Self>
-        where I: IntoIterator<Item = Self::Item>;
+    where
+        I: IntoIterator<Item = Self::Item>;
 
     fn num_items() -> usize;
 

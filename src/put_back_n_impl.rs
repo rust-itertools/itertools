@@ -17,7 +17,8 @@ pub struct PutBackN<I: Iterator> {
 ///
 /// Iterator element type is `I::Item`.
 pub fn put_back_n<I>(iterable: I) -> PutBackN<I::IntoIter>
-    where I: IntoIterator
+where
+    I: IntoIterator,
 {
     PutBackN {
         top: Vec::new(),
@@ -58,4 +59,3 @@ impl<I: Iterator> Iterator for PutBackN<I> {
         size_hint::add_scalar(self.iter.size_hint(), self.top.len())
     }
 }
-

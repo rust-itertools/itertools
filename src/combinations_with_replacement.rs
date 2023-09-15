@@ -81,7 +81,7 @@ where
         // Work out where we need to update our indices
         let mut increment: Option<(usize, usize)> = None;
         for (i, indices_int) in self.indices.iter().enumerate().rev() {
-            if *indices_int < self.pool.len()-1 {
+            if *indices_int < self.pool.len() - 1 {
                 increment = Some((i, indices_int + 1));
                 break;
             }
@@ -110,7 +110,11 @@ where
     }
 
     fn count(self) -> usize {
-        let Self { indices, pool, first } = self;
+        let Self {
+            indices,
+            pool,
+            first,
+        } = self;
         let n = pool.count();
         remaining_for(n, first, &indices).unwrap()
     }
@@ -120,7 +124,8 @@ impl<I> FusedIterator for CombinationsWithReplacement<I>
 where
     I: Iterator,
     I::Item: Clone,
-{}
+{
+}
 
 /// For a given size `n`, return the count of remaining combinations with replacement or None if it would overflow.
 fn remaining_for(n: usize, first: bool, indices: &[usize]) -> Option<usize> {
@@ -129,7 +134,11 @@ fn remaining_for(n: usize, first: bool, indices: &[usize]) -> Option<usize> {
     // to place k stars and therefore n - 1 bars.
     // Example (n=4, k=6): ***|*||** represents [0,0,0,1,3,3].
     let count = |n: usize, k: usize| {
-        let positions = if n == 0 { k.saturating_sub(1) } else { (n - 1).checked_add(k)? };
+        let positions = if n == 0 {
+            k.saturating_sub(1)
+        } else {
+            (n - 1).checked_add(k)?
+        };
         checked_binomial(positions, k)
     };
     let k = indices.len();
@@ -154,11 +163,8 @@ fn remaining_for(n: usize, first: bool, indices: &[usize]) -> Option<usize> {
         //   Since subsequent combinations can in any index, we must sum up the aforementioned binomial coefficients.
 
         // Below, `n0` resembles indices[i].
-        indices
-            .iter()
-            .enumerate()
-            .try_fold(0usize, |sum, (i, n0)| {
-                sum.checked_add(count(n - 1 - *n0, k - i)?)
-            })
+        indices.iter().enumerate().try_fold(0usize, |sum, (i, n0)| {
+            sum.checked_add(count(n - 1 - *n0, k - i)?)
+        })
     }
 }

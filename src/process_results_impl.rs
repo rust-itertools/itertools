@@ -14,7 +14,8 @@ pub struct ProcessResults<'a, I, E: 'a> {
 }
 
 impl<'a, I, T, E> Iterator for ProcessResults<'a, I, E>
-    where I: Iterator<Item = Result<T, E>>
+where
+    I: Iterator<Item = Result<T, E>>,
 {
     type Item = T;
 
@@ -56,13 +57,17 @@ impl<'a, I, T, E> Iterator for ProcessResults<'a, I, E>
 ///
 /// [`IntoIterator`] enabled version of [`Itertools::process_results`].
 pub fn process_results<I, F, T, E, R>(iterable: I, processor: F) -> Result<R, E>
-    where I: IntoIterator<Item = Result<T, E>>,
-          F: FnOnce(ProcessResults<I::IntoIter, E>) -> R
+where
+    I: IntoIterator<Item = Result<T, E>>,
+    F: FnOnce(ProcessResults<I::IntoIter, E>) -> R,
 {
     let iter = iterable.into_iter();
     let mut error = Ok(());
 
-    let result = processor(ProcessResults { error: &mut error, iter });
+    let result = processor(ProcessResults {
+        error: &mut error,
+        iter,
+    });
 
     error.map(|_| result)
 }

@@ -3,7 +3,6 @@
 /// and does some simple manipulations.
 ///
 /// Iterators and itertools functionality are used throughout.
-
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::iter::repeat;
@@ -35,7 +34,10 @@ impl FromStr for Iris {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut iris = Iris { name: "".into(), data: [0.; 4] };
+        let mut iris = Iris {
+            name: "".into(),
+            data: [0.; 4],
+        };
         let mut parts = s.split(",").map(str::trim);
 
         // using Iterator::by_ref()
@@ -45,7 +47,7 @@ impl FromStr for Iris {
         if let Some(name) = parts.next() {
             iris.name = name.into();
         } else {
-            return Err(ParseError::Other("Missing name"))
+            return Err(ParseError::Other("Missing name"));
         }
         Ok(iris)
     }
@@ -53,12 +55,13 @@ impl FromStr for Iris {
 
 fn main() {
     // using Itertools::fold_results to create the result of parsing
-    let irises = DATA.lines()
-                     .map(str::parse)
-                     .fold_ok(Vec::new(), |mut v, iris: Iris| {
-                         v.push(iris);
-                         v
-                     });
+    let irises = DATA
+        .lines()
+        .map(str::parse)
+        .fold_ok(Vec::new(), |mut v, iris: Iris| {
+            v.push(iris);
+            v
+        });
     let mut irises = match irises {
         Err(e) => {
             println!("Error parsing: {:?}", e);
@@ -77,16 +80,15 @@ fn main() {
     // using Itertools::group_by
     for (species, species_group) in &irises.iter().group_by(|iris| &iris.name) {
         // assign a plot symbol
-        symbolmap.entry(species).or_insert_with(|| {
-            plot_symbols.next().unwrap()
-        });
+        symbolmap
+            .entry(species)
+            .or_insert_with(|| plot_symbols.next().unwrap());
         println!("{} (symbol={})", species, symbolmap[species]);
 
         for iris in species_group {
             // using Itertools::format for lazy formatting
             println!("{:>3.1}", iris.data.iter().format(", "));
         }
-
     }
 
     // Look at all combinations of the four columns
