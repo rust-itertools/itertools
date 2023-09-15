@@ -1,4 +1,3 @@
-
 macro_rules! impl_cons_iter(
     ($_A:ident, $_B:ident, ) => (); // stop
 
@@ -44,13 +43,15 @@ impl_cons_iter!(A, B, C, D, E, F, G, H, I, J, K, L,);
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 #[derive(Debug)]
 pub struct ConsTuples<I, J>
-    where I: Iterator<Item=J>,
+where
+    I: Iterator<Item = J>,
 {
     iter: I,
 }
 
 impl<I, J> Clone for ConsTuples<I, J>
-    where I: Clone + Iterator<Item=J>,
+where
+    I: Clone + Iterator<Item = J>,
 {
     clone_fields!(iter);
 }
@@ -58,7 +59,10 @@ impl<I, J> Clone for ConsTuples<I, J>
 /// Create an iterator that maps for example iterators of
 /// `((A, B), C)` to `(A, B, C)`.
 pub fn cons_tuples<I, J>(iterable: I) -> ConsTuples<I::IntoIter, J>
-    where I: IntoIterator<Item=J>
+where
+    I: IntoIterator<Item = J>,
 {
-    ConsTuples { iter: iterable.into_iter() }
+    ConsTuples {
+        iter: iterable.into_iter(),
+    }
 }

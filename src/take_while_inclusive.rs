@@ -21,12 +21,17 @@ where
 {
     /// Create a new [`TakeWhileInclusive`] from an iterator and a predicate.
     pub fn new(iter: I, predicate: F) -> Self {
-        Self { iter, predicate, done: false}
+        Self {
+            iter,
+            predicate,
+            done: false,
+        }
     }
 }
 
 impl<I, F> fmt::Debug for TakeWhileInclusive<I, F>
-    where I: Iterator + fmt::Debug,
+where
+    I: Iterator + fmt::Debug,
 {
     debug_fmt_fields!(TakeWhileInclusive, iter);
 }
@@ -34,7 +39,7 @@ impl<I, F> fmt::Debug for TakeWhileInclusive<I, F>
 impl<I, F> Iterator for TakeWhileInclusive<I, F>
 where
     I: Iterator,
-    F: FnMut(&I::Item) -> bool
+    F: FnMut(&I::Item) -> bool,
 {
     type Item = I::Item;
 
@@ -63,6 +68,6 @@ where
 impl<I, F> FusedIterator for TakeWhileInclusive<I, F>
 where
     I: Iterator,
-    F: FnMut(&I::Item) -> bool
+    F: FnMut(&I::Item) -> bool,
 {
 }
