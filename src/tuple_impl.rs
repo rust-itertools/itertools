@@ -255,6 +255,14 @@ where
 {
 }
 
+impl<I, T> FusedIterator for CircularTupleWindows<I, T>
+where
+    I: Iterator<Item = T::Item> + Clone,
+    T: TupleCollect + Clone,
+    T::Item: Clone,
+{
+}
+
 pub trait TupleCollect: Sized {
     type Item;
     type Buffer: Default + AsRef<[Option<Self::Item>]> + AsMut<[Option<Self::Item>]>;
