@@ -209,6 +209,7 @@ where
     T: TupleCollect + Clone,
 {
     iter: Take<TupleWindows<Cycle<I>, T>>,
+    len: usize,
     phantom_data: PhantomData<T>,
 }
 
@@ -223,6 +224,7 @@ where
 
     CircularTupleWindows {
         iter,
+        len,
         phantom_data: PhantomData {},
     }
 }
@@ -236,7 +238,12 @@ where
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
+        self.len = self.len.saturating_sub(1);
         self.iter.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.len, Some(self.len))
     }
 }
 
