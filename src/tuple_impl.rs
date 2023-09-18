@@ -3,7 +3,6 @@
 use std::iter::Cycle;
 use std::iter::Fuse;
 use std::iter::FusedIterator;
-use std::iter::Take;
 use std::marker::PhantomData;
 
 // `HomogeneousTuple` is a public facade for `TupleCollect`, allowing
@@ -208,7 +207,7 @@ where
     I: Iterator<Item = T::Item> + Clone,
     T: TupleCollect + Clone,
 {
-    iter: Take<TupleWindows<Cycle<I>, T>>,
+    iter: TupleWindows<Cycle<I>, T>,
     len: usize,
     phantom_data: PhantomData<T>,
 }
@@ -220,7 +219,7 @@ where
     T::Item: Clone,
 {
     let len = iter.len();
-    let iter = tuple_windows(iter.cycle()).take(len);
+    let iter = tuple_windows(iter.cycle());
 
     CircularTupleWindows {
         iter,
@@ -238,8 +237,12 @@ where
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.len = self.len.saturating_sub(1);
-        self.iter.next()
+        if self.len != 0 {
+            self.len -= 1;
+            self.iter.next()
+        } else {
+            None
+        }
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
