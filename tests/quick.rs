@@ -1117,6 +1117,10 @@ quickcheck! {
         true
     }
 
+    fn circular_tuple_windows_exact_size(a: Vec<u8>) -> bool {
+        exact_size(a.iter().circular_tuple_windows::<(_, _, _, _)>())
+    }
+
     fn equal_tuple_windows_1(a: Vec<u8>) -> bool {
         let x = a.windows(1).map(|s| (&s[0], ));
         let y = a.iter().tuple_windows::<(_,)>();
