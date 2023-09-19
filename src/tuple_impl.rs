@@ -192,6 +192,14 @@ where
     }
 }
 
+impl<I, T> ExactSizeIterator for TupleWindows<I, T>
+where
+    I: ExactSizeIterator<Item = T::Item>,
+    T: HomogeneousTuple + Clone,
+    T::Item: Clone,
+{
+}
+
 impl<I, T> FusedIterator for TupleWindows<I, T>
 where
     I: FusedIterator<Item = T::Item>,
