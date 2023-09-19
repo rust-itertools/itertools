@@ -2373,7 +2373,9 @@ pub trait Itertools: Iterator {
     /// For example the sequence *Ok(1), Ok(2), Ok(3)* will result in a
     /// computation like this:
     ///
-    /// ```ignore
+    /// ```no_run
+    /// # let start = 0;
+    /// # let f = |x, y| x + y;
     /// let mut accum = start;
     /// accum = f(accum, 1);
     /// accum = f(accum, 2);
