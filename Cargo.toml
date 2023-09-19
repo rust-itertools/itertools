@@ -16,7 +16,7 @@ exclude = ["/bors.toml"]
 
 edition = "2018"
 
-rust-version = "1.36.0"
+rust-version = "1.43.1"
 
 [lib]
 bench = false
