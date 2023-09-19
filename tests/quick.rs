@@ -1145,6 +1145,14 @@ quickcheck! {
         itertools::equal(x, y)
     }
 
+    fn tuple_windows_exact_size_1(a: Vec<u8>) -> bool {
+        exact_size(a.iter().tuple_windows::<(_,)>())
+    }
+
+    fn tuple_windows_exact_size_4(a: Vec<u8>) -> bool {
+        exact_size(a.iter().tuple_windows::<(_, _, _, _)>())
+    }
+
     fn equal_tuples_1(a: Vec<u8>) -> bool {
         let x = a.chunks(1).map(|s| (&s[0], ));
         let y = a.iter().tuples::<(_,)>();
