@@ -184,6 +184,12 @@ where
         }
         None
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        // At definition, `T::num_items() - 1` are collected
+        // so each remaining item in `iter` will lead to an item.
+        self.iter.size_hint()
+    }
 }
 
 impl<I, T> FusedIterator for TupleWindows<I, T>
