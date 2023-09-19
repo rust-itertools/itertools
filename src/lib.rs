@@ -3981,9 +3981,10 @@ where
 /// **Panics** on assertion failure with a message that shows the
 /// two iteration elements.
 ///
-/// ```ignore
+/// ```should_panic
+/// # use itertools::assert_equal;
 /// assert_equal("exceed".split('c'), "excess".split('c'));
-/// // ^PANIC: panicked at 'Failed assertion Some("eed") == Some("ess") for iteration 1',
+/// // ^PANIC: panicked at 'Failed assertion Some("eed") == Some("ess") for iteration 1'.
 /// ```
 pub fn assert_equal<I, J>(a: I, b: J)
 where
