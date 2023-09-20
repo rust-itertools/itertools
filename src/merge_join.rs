@@ -109,7 +109,6 @@ impl<L, R, T, F: FnMut(&L, &R) -> T> FuncLR<L, R> for F {
 }
 
 pub trait OrderingOrBool<L, R> {
-    type Out;
     type MergeResult;
     fn left(left: L) -> Self::MergeResult;
     fn right(right: R) -> Self::MergeResult;
@@ -121,7 +120,6 @@ pub trait OrderingOrBool<L, R> {
 }
 
 impl<L, R, F: FnMut(&L, &R) -> Ordering> OrderingOrBool<L, R> for MergeFuncLR<F, Ordering> {
-    type Out = Ordering;
     type MergeResult = EitherOrBoth<L, R>;
     fn left(left: L) -> Self::MergeResult {
         EitherOrBoth::Left(left)
@@ -149,7 +147,6 @@ impl<L, R, F: FnMut(&L, &R) -> Ordering> OrderingOrBool<L, R> for MergeFuncLR<F,
 }
 
 impl<L, R, F: FnMut(&L, &R) -> bool> OrderingOrBool<L, R> for MergeFuncLR<F, bool> {
-    type Out = bool;
     type MergeResult = Either<L, R>;
     fn left(left: L) -> Self::MergeResult {
         Either::Left(left)
@@ -171,7 +168,6 @@ impl<L, R, F: FnMut(&L, &R) -> bool> OrderingOrBool<L, R> for MergeFuncLR<F, boo
 }
 
 impl<T, F: FnMut(&T, &T) -> bool> OrderingOrBool<T, T> for F {
-    type Out = bool;
     type MergeResult = T;
     fn left(left: T) -> Self::MergeResult {
         left
@@ -193,7 +189,6 @@ impl<T, F: FnMut(&T, &T) -> bool> OrderingOrBool<T, T> for F {
 }
 
 impl<T: PartialOrd> OrderingOrBool<T, T> for MergeLte {
-    type Out = bool;
     type MergeResult = T;
     fn left(left: T) -> Self::MergeResult {
         left
@@ -235,11 +230,11 @@ where
     debug_fmt_fields!(MergeBy, left, right);
 }
 
-impl<I, J, F, T> Iterator for MergeBy<I, J, F>
+impl<I, J, F> Iterator for MergeBy<I, J, F>
 where
     I: Iterator,
     J: Iterator,
-    F: OrderingOrBool<I::Item, J::Item, Out = T>,
+    F: OrderingOrBool<I::Item, J::Item>,
 {
     type Item = F::MergeResult;
 
@@ -335,10 +330,10 @@ where
     }
 }
 
-impl<I, J, F, T> FusedIterator for MergeBy<I, J, F>
+impl<I, J, F> FusedIterator for MergeBy<I, J, F>
 where
     I: Iterator,
     J: Iterator,
-    F: OrderingOrBool<I::Item, J::Item, Out = T>,
+    F: OrderingOrBool<I::Item, J::Item>,
 {
 }
