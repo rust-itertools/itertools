@@ -61,7 +61,7 @@ where
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
-        while let Some(v) = self.iter.next() {
+        for v in self.iter.by_ref() {
             let key = (self.f)(&v);
             if self.used.insert(key, ()).is_none() {
                 return Some(v);
@@ -115,7 +115,7 @@ where
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
-        while let Some(v) = self.iter.iter.next() {
+        for v in self.iter.iter.by_ref() {
             if let Entry::Vacant(entry) = self.iter.used.entry(v) {
                 let elt = entry.key().clone();
                 entry.insert(());

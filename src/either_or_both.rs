@@ -29,19 +29,13 @@ impl<A, B> EitherOrBoth<A, B> {
     /// If `Left`, return true. Otherwise, return false.
     /// Exclusive version of [`has_left`](EitherOrBoth::has_left).
     pub fn is_left(&self) -> bool {
-        match *self {
-            Left(_) => true,
-            _ => false,
-        }
+        matches!(*self, Left(_))
     }
 
     /// If `Right`, return true. Otherwise, return false.
     /// Exclusive version of [`has_right`](EitherOrBoth::has_right).
     pub fn is_right(&self) -> bool {
-        match *self {
-            Right(_) => true,
-            _ => false,
-        }
+        matches!(*self, Right(_))
     }
 
     /// If `Both`, return true. Otherwise, return false.

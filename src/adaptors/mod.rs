@@ -936,7 +936,7 @@ where
     type Item = usize;
 
     fn next(&mut self) -> Option<Self::Item> {
-        while let Some(v) = self.iter.next() {
+        for v in self.iter.by_ref() {
             let i = self.count;
             self.count = i + 1;
             if (self.f)(v) {

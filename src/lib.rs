@@ -1010,7 +1010,7 @@ pub trait Itertools: Iterator {
         J: IntoIterator<Item = Self::Item>,
         F: FnMut(&Self::Item, &Self::Item) -> bool,
     {
-        merge_join::merge_by_new(self, other.into_iter(), is_first)
+        merge_join::merge_by_new(self, other, is_first)
     }
 
     /// Create an iterator that merges items from both this and the specified
@@ -4002,7 +4002,7 @@ where
             (None, None) => return,
             (a, b) => {
                 let equal = match (&a, &b) {
-                    (&Some(ref a), &Some(ref b)) => a == b,
+                    (Some(a), Some(b)) => a == b,
                     _ => false,
                 };
                 assert!(

@@ -38,19 +38,19 @@ fn product3() {
 fn interleave_shortest() {
     let v0: Vec<i32> = vec![0, 2, 4];
     let v1: Vec<i32> = vec![1, 3, 5, 7];
-    let it = v0.into_iter().interleave_shortest(v1.into_iter());
+    let it = v0.into_iter().interleave_shortest(v1);
     assert_eq!(it.size_hint(), (6, Some(6)));
     assert_eq!(it.collect_vec(), vec![0, 1, 2, 3, 4, 5]);
 
     let v0: Vec<i32> = vec![0, 2, 4, 6, 8];
     let v1: Vec<i32> = vec![1, 3, 5];
-    let it = v0.into_iter().interleave_shortest(v1.into_iter());
+    let it = v0.into_iter().interleave_shortest(v1);
     assert_eq!(it.size_hint(), (7, Some(7)));
     assert_eq!(it.collect_vec(), vec![0, 1, 2, 3, 4, 5, 6]);
 
     let i0 = ::std::iter::repeat(0);
     let v1: Vec<_> = vec![1, 3, 5];
-    let it = i0.interleave_shortest(v1.into_iter());
+    let it = i0.interleave_shortest(v1);
     assert_eq!(it.size_hint(), (7, Some(7)));
 
     let v0: Vec<_> = vec![0, 2, 4];
@@ -144,7 +144,7 @@ fn intersperse() {
 
     let ys = [0, 1, 2, 3];
     let mut it = ys[..0].iter().copied().intersperse(1);
-    assert!(it.next() == None);
+    assert!(it.next().is_none());
 }
 
 #[test]
@@ -415,9 +415,9 @@ fn merge_by_btree() {
     let mut bt2 = BTreeMap::new();
     bt2.insert("foo", 2);
     bt2.insert("bar", 4);
-    let results = bt1.into_iter().merge_by(bt2.into_iter(), |a, b| a.0 <= b.0);
+    let results = bt1.into_iter().merge_by(bt2, |a, b| a.0 <= b.0);
     let expected = vec![("bar", 4), ("foo", 2), ("hello", 1), ("world", 3)];
-    it::assert_equal(results, expected.into_iter());
+    it::assert_equal(results, expected);
 }
 
 #[allow(deprecated)]

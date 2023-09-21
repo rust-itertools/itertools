@@ -26,7 +26,7 @@ fn product2() {
     assert!(prod.next() == Some(('α', 1)));
     assert!(prod.next() == Some(('β', 0)));
     assert!(prod.next() == Some(('β', 1)));
-    assert!(prod.next() == None);
+    assert!(prod.next().is_none());
 }
 
 #[test]
