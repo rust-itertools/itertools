@@ -91,7 +91,7 @@ fn duplicates() {
     let ys_rev = [1, 0];
     it::assert_equal(ys_rev.iter(), xs.iter().duplicates().rev());
 
-    let xs = vec![0, 1, 2, 1, 2];
+    let xs = [0, 1, 2, 1, 2];
     let ys = vec![1, 2];
     assert_eq!(ys, xs.iter().duplicates().cloned().collect_vec());
     assert_eq!(
@@ -165,7 +165,7 @@ fn dedup() {
 
 #[test]
 fn coalesce() {
-    let data = vec![-1., -2., -3., 3., 1., 0., -1.];
+    let data = [-1., -2., -3., 3., 1., 0., -1.];
     let it = data.iter().cloned().coalesce(|x, y| {
         if (x >= 0.) == (y >= 0.) {
             Ok(x + y)
@@ -393,8 +393,8 @@ fn trait_pointers() {
 #[test]
 fn merge_by() {
     let odd: Vec<(u32, &str)> = vec![(1, "hello"), (3, "world"), (5, "!")];
-    let even = vec![(2, "foo"), (4, "bar"), (6, "baz")];
-    let expected = vec![
+    let even = [(2, "foo"), (4, "bar"), (6, "baz")];
+    let expected = [
         (1, "hello"),
         (2, "foo"),
         (3, "world"),
@@ -649,7 +649,7 @@ fn test_multipeek_reset() {
 #[test]
 fn test_multipeek_peeking_next() {
     use crate::it::PeekingNext;
-    let nums = vec![1u8, 2, 3, 4, 5, 6, 7];
+    let nums = [1u8, 2, 3, 4, 5, 6, 7];
 
     let mut mp = multipeek(nums.iter().copied());
     assert_eq!(mp.peeking_next(|&x| x != 0), Some(1));
@@ -709,7 +709,7 @@ fn test_peek_nth() {
 #[test]
 fn test_peek_nth_peeking_next() {
     use it::PeekingNext;
-    let nums = vec![1u8, 2, 3, 4, 5, 6, 7];
+    let nums = [1u8, 2, 3, 4, 5, 6, 7];
     let mut iter = peek_nth(nums.iter().copied());
 
     assert_eq!(iter.peeking_next(|&x| x != 0), Some(1));
@@ -832,12 +832,12 @@ fn group_by() {
 
 #[test]
 fn group_by_lazy_2() {
-    let data = vec![0, 1];
+    let data = [0, 1];
     let groups = data.iter().group_by(|k| *k);
     let gs = groups.into_iter().collect_vec();
     it::assert_equal(data.iter(), gs.into_iter().flat_map(|(_k, g)| g));
 
-    let data = vec![0, 1, 1, 0, 0];
+    let data = [0, 1, 1, 0, 0];
     let groups = data.iter().group_by(|k| *k);
     let mut gs = groups.into_iter().collect_vec();
     gs[1..].reverse();
@@ -852,7 +852,7 @@ fn group_by_lazy_2() {
     }
     it::assert_equal(&mut groups[0], &[1, 1]);
 
-    let data = vec![0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
+    let data = [0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
     let grouper = data.iter().group_by(|k| *k);
     let mut groups = Vec::new();
     for (i, (_, group)) in grouper.into_iter().enumerate() {
@@ -869,7 +869,7 @@ fn group_by_lazy_2() {
     it::assert_equal(&mut groups[2], &[3, 3]);
 
     // use groups as chunks
-    let data = vec![0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
+    let data = [0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
     let mut i = 0;
     let grouper = data.iter().group_by(move |_| {
         let k = i / 3;
@@ -890,7 +890,7 @@ fn group_by_lazy_2() {
 #[test]
 fn group_by_lazy_3() {
     // test consuming each group on the lap after it was produced
-    let data = vec![0, 0, 0, 1, 1, 0, 0, 1, 1, 2, 2];
+    let data = [0, 0, 0, 1, 1, 0, 0, 1, 1, 2, 2];
     let grouper = data.iter().group_by(|elt| *elt);
     let mut last = None;
     for (key, group) in &grouper {
@@ -905,7 +905,7 @@ fn group_by_lazy_3() {
 
 #[test]
 fn chunks() {
-    let data = vec![0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
+    let data = [0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
     let grouper = data.iter().chunks(3);
     for (i, chunk) in grouper.into_iter().enumerate() {
         match i {
@@ -1183,7 +1183,7 @@ fn powerset() {
 
 #[test]
 fn diff_mismatch() {
-    let a = vec![1, 2, 3, 4];
+    let a = [1, 2, 3, 4];
     let b = vec![1.0, 5.0, 3.0, 4.0];
     let b_map = b.into_iter().map(|f| f as i32);
     let diff = it::diff_with(a.iter(), b_map, |a, b| *a == b);
@@ -1197,7 +1197,7 @@ fn diff_mismatch() {
 
 #[test]
 fn diff_longer() {
-    let a = vec![1, 2, 3, 4];
+    let a = [1, 2, 3, 4];
     let b = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
     let b_map = b.into_iter().map(|f| f as i32);
     let diff = it::diff_with(a.iter(), b_map, |a, b| *a == b);
@@ -1210,7 +1210,7 @@ fn diff_longer() {
 
 #[test]
 fn diff_shorter() {
-    let a = vec![1, 2, 3, 4];
+    let a = [1, 2, 3, 4];
     let b = vec![1.0, 2.0];
     let b_map = b.into_iter().map(|f| f as i32);
     let diff = it::diff_with(a.iter(), b_map, |a, b| *a == b);

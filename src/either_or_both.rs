@@ -494,9 +494,9 @@ impl<T> EitherOrBoth<T, T> {
     }
 }
 
-impl<A, B> Into<Option<Either<A, B>>> for EitherOrBoth<A, B> {
-    fn into(self) -> Option<Either<A, B>> {
-        match self {
+impl<A, B> From<EitherOrBoth<A, B>> for Option<Either<A, B>> {
+    fn from(value: EitherOrBoth<A, B>) -> Self {
+        match value {
             EitherOrBoth::Left(l) => Some(Either::Left(l)),
             EitherOrBoth::Right(r) => Some(Either::Right(r)),
             _ => None,

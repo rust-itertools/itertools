@@ -917,7 +917,7 @@ quickcheck! {
                 }
             }
         }
-        cmb.next() == None
+        cmb.next().is_none()
     }
 }
 
