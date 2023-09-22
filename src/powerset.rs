@@ -74,6 +74,24 @@ where
         let (n, combs_count) = self.combs.n_and_count();
         combs_count + remaining_for(n, k).unwrap()
     }
+
+    fn fold<B, F>(self, mut init: B, mut f: F) -> B
+    where
+        F: FnMut(B, Self::Item) -> B,
+    {
+        let mut it = self.combs;
+        if it.k() == 0 {
+            init = it.by_ref().fold(init, &mut f);
+            it.reset(1);
+        }
+        init = it.by_ref().fold(init, &mut f);
+        // n is now known for sure because k >= 1 and all k-combinations have been generated.
+        for k in it.k() + 1..=it.n() {
+            it.reset(k);
+            init = it.by_ref().fold(init, &mut f);
+        }
+        init
+    }
 }
 
 impl<I> FusedIterator for Powerset<I>
