@@ -1,3 +1,5 @@
+#![cfg(feature = "use_alloc")]
+use alloc::{vec, vec::Vec};
 use std::cmp::Ordering;
 
 /// Implementation guts for `min_set`, `min_set_by`, and `min_set_by_key`.
