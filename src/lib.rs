@@ -70,7 +70,6 @@ use std::hash::Hash;
 use std::iter::{once, IntoIterator};
 #[cfg(feature = "use_alloc")]
 type VecIntoIter<T> = alloc::vec::IntoIter<T>;
-#[cfg(feature = "use_alloc")]
 use std::iter::FromIterator;
 
 #[macro_use]
@@ -2214,7 +2213,6 @@ pub trait Itertools: Iterator {
     ///     Ok(())
     /// }
     /// ```
-    #[cfg(feature = "use_alloc")]
     fn try_collect<T, U, E>(self) -> Result<U, E>
     where
         Self: Sized + Iterator<Item = Result<T, E>>,
