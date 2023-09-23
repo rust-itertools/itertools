@@ -177,7 +177,7 @@ mod diff;
 #[cfg(feature = "use_std")]
 mod duplicates_impl;
 mod exactly_one_err;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod extrema_set;
 mod flatten_ok;
 mod format;
@@ -3169,7 +3169,7 @@ pub trait Itertools: Iterator {
     ///
     /// The elements can be floats but no particular result is guaranteed
     /// if an element is NaN.
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn min_set(self) -> Vec<Self::Item>
     where
         Self: Sized,
@@ -3202,7 +3202,7 @@ pub trait Itertools: Iterator {
     ///
     /// The elements can be floats but no particular result is guaranteed
     /// if an element is NaN.
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn min_set_by<F>(self, mut compare: F) -> Vec<Self::Item>
     where
         Self: Sized,
@@ -3234,7 +3234,7 @@ pub trait Itertools: Iterator {
     ///
     /// The elements can be floats but no particular result is guaranteed
     /// if an element is NaN.
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn min_set_by_key<K, F>(self, key: F) -> Vec<Self::Item>
     where
         Self: Sized,
@@ -3266,7 +3266,7 @@ pub trait Itertools: Iterator {
     ///
     /// The elements can be floats but no particular result is guaranteed
     /// if an element is NaN.
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn max_set(self) -> Vec<Self::Item>
     where
         Self: Sized,
@@ -3299,7 +3299,7 @@ pub trait Itertools: Iterator {
     ///
     /// The elements can be floats but no particular result is guaranteed
     /// if an element is NaN.
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn max_set_by<F>(self, mut compare: F) -> Vec<Self::Item>
     where
         Self: Sized,
@@ -3331,7 +3331,7 @@ pub trait Itertools: Iterator {
     ///
     /// The elements can be floats but no particular result is guaranteed
     /// if an element is NaN.
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn max_set_by_key<K, F>(self, key: F) -> Vec<Self::Item>
     where
         Self: Sized,
