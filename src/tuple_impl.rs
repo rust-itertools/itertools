@@ -297,10 +297,6 @@ pub trait TupleCollect: Sized {
     fn left_shift_push(&mut self, item: Self::Item);
 }
 
-macro_rules! count_ident{
-    () => {0};
-    ($i0:ident, $($i:ident,)*) => {1 + count_ident!($($i,)*)};
-}
 macro_rules! rev_for_each_ident{
     ($m:ident, ) => {};
     ($m:ident, $i0:ident, $($i:ident,)*) => {
