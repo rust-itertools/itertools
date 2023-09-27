@@ -107,11 +107,19 @@ where
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let buf_len = T::buffer_len(&self.buf);
-        let (mut low, mut hi) = self.iter.size_hint();
-        low = add_then_div(low, buf_len, T::num_items()).unwrap_or(usize::MAX);
-        hi = hi.and_then(|elt| add_then_div(elt, buf_len, T::num_items()));
-        (low, hi)
+        // The number of elts we've drawn from the underlying iterator, but have
+        // not yet produced as a tuple.
+        let buffered = T::buffer_len(&self.buf);
+        // To that, we must add the size estimates of the underlying iterator.
+        let (mut unbuffered_lo, mut unbuffered_hi) = self.iter.size_hint();
+        // The total low estimate is the sum of the already-buffered elements,
+        // plus the low estimate of remaining unbuffered elements, divided by
+        // the tuple size.
+        let total_lo = add_then_div(unbuffered_lo, buffered, T::num_items()).unwrap_or(usize::MAX);
+        // And likewise for the total high estimate, but using the high estimate
+        // of the remaining unbuffered elements.
+        let total_hi = unbuffered_hi.and_then(|hi| add_then_div(hi, buffered, T::num_items()));
+        (total_lo, total_hi)
     }
 }
 
