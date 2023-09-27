@@ -121,6 +121,13 @@ fn add_then_div(n: usize, a: usize, d: usize) -> Option<usize> {
     (n / d).checked_add(a / d)?.checked_add((n % d + a % d) / d)
 }
 
+impl<I, T> ExactSizeIterator for Tuples<I, T>
+where
+    I: ExactSizeIterator<Item = T::Item>,
+    T: HomogeneousTuple,
+{
+}
+
 impl<I, T> Tuples<I, T>
 where
     I: Iterator<Item = T::Item>,
