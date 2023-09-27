@@ -901,8 +901,31 @@ quickcheck! {
 }
 
 quickcheck! {
-    fn size_combinations(it: Iter<i16>) -> bool {
-        correct_size_hint(it.tuple_combinations::<(_, _)>())
+    fn size_combinations(a: Iter<i16>) -> bool {
+        let it = a.clone().tuple_combinations::<(_, _)>();
+        correct_size_hint(it.clone()) && it.count() == binomial(a.count(), 2)
+    }
+
+    fn exact_size_combinations_1(a: Vec<u8>) -> bool {
+        let it = a.iter().tuple_combinations::<(_,)>();
+        exact_size_for_this(it.clone()) && it.count() == binomial(a.len(), 1)
+    }
+    fn exact_size_combinations_2(a: Vec<u8>) -> bool {
+        let it = a.iter().tuple_combinations::<(_, _)>();
+        exact_size_for_this(it.clone()) && it.count() == binomial(a.len(), 2)
+    }
+    fn exact_size_combinations_3(mut a: Vec<u8>) -> bool {
+        a.truncate(15);
+        let it = a.iter().tuple_combinations::<(_, _, _)>();
+        exact_size_for_this(it.clone()) && it.count() == binomial(a.len(), 3)
+    }
+}
+
+fn binomial(n: usize, k: usize) -> usize {
+    if k > n {
+        0
+    } else {
+        (n - k + 1..=n).product::<usize>() / (1..=k).product::<usize>()
     }
 }
 
