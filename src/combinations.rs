@@ -4,6 +4,8 @@ use std::iter::FusedIterator;
 use super::lazy_buffer::LazyBuffer;
 use alloc::vec::Vec;
 
+use crate::adaptors::checked_binomial;
+
 /// An iterator to iterate through all the `k`-length combinations in an iterator.
 ///
 /// See [`.combinations()`](crate::Itertools::combinations) for more information.
@@ -158,42 +160,6 @@ where
     I: Iterator,
     I::Item: Clone,
 {
-}
-
-// https://en.wikipedia.org/wiki/Binomial_coefficient#In_programming_languages
-pub(crate) fn checked_binomial(mut n: usize, mut k: usize) -> Option<usize> {
-    if n < k {
-        return Some(0);
-    }
-    // `factorial(n) / factorial(n - k) / factorial(k)` but trying to avoid it overflows:
-    k = (n - k).min(k); // symmetry
-    let mut c = 1;
-    for i in 1..=k {
-        c = (c / i)
-            .checked_mul(n)?
-            .checked_add((c % i).checked_mul(n)? / i)?;
-        n -= 1;
-    }
-    Some(c)
-}
-
-#[test]
-fn test_checked_binomial() {
-    // With the first row: [1, 0, 0, ...] and the first column full of 1s, we check
-    // row by row the recurrence relation of binomials (which is an equivalent definition).
-    // For n >= 1 and k >= 1 we have:
-    //   binomial(n, k) == binomial(n - 1, k - 1) + binomial(n - 1, k)
-    const LIMIT: usize = 500;
-    let mut row = vec![Some(0); LIMIT + 1];
-    row[0] = Some(1);
-    for n in 0..=LIMIT {
-        for k in 0..=LIMIT {
-            assert_eq!(row[k], checked_binomial(n, k));
-        }
-        row = std::iter::once(Some(1))
-            .chain((1..=LIMIT).map(|k| row[k - 1]?.checked_add(row[k]?)))
-            .collect();
-    }
 }
 
 /// For a given size `n`, return the count of remaining combinations or None if it would overflow.

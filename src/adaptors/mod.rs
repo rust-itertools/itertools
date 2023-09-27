@@ -14,7 +14,6 @@ pub use self::map::{map_into, map_ok, MapInto, MapOk};
 #[cfg(feature = "use_alloc")]
 pub use self::multi_product::*;
 
-use crate::combinations::checked_binomial;
 use crate::size_hint::{self, SizeHint};
 use std::fmt;
 use std::iter::{FromIterator, Fuse, FusedIterator};
@@ -766,6 +765,42 @@ impl_tuple_combination!(Tuple9Combination Tuple8Combination; a b c d e f g h);
 impl_tuple_combination!(Tuple10Combination Tuple9Combination; a b c d e f g h i);
 impl_tuple_combination!(Tuple11Combination Tuple10Combination; a b c d e f g h i j);
 impl_tuple_combination!(Tuple12Combination Tuple11Combination; a b c d e f g h i j k);
+
+// https://en.wikipedia.org/wiki/Binomial_coefficient#In_programming_languages
+pub(crate) fn checked_binomial(mut n: usize, mut k: usize) -> Option<usize> {
+    if n < k {
+        return Some(0);
+    }
+    // `factorial(n) / factorial(n - k) / factorial(k)` but trying to avoid it overflows:
+    k = (n - k).min(k); // symmetry
+    let mut c = 1;
+    for i in 1..=k {
+        c = (c / i)
+            .checked_mul(n)?
+            .checked_add((c % i).checked_mul(n)? / i)?;
+        n -= 1;
+    }
+    Some(c)
+}
+
+#[test]
+fn test_checked_binomial() {
+    // With the first row: [1, 0, 0, ...] and the first column full of 1s, we check
+    // row by row the recurrence relation of binomials (which is an equivalent definition).
+    // For n >= 1 and k >= 1 we have:
+    //   binomial(n, k) == binomial(n - 1, k - 1) + binomial(n - 1, k)
+    const LIMIT: usize = 500;
+    let mut row = vec![Some(0); LIMIT + 1];
+    row[0] = Some(1);
+    for n in 0..=LIMIT {
+        for k in 0..=LIMIT {
+            assert_eq!(row[k], checked_binomial(n, k));
+        }
+        row = std::iter::once(Some(1))
+            .chain((1..=LIMIT).map(|k| row[k - 1]?.checked_add(row[k]?)))
+            .collect();
+    }
+}
 
 /// An iterator adapter to filter values within a nested `Result::Ok`.
 ///

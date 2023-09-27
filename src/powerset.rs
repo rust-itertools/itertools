@@ -3,7 +3,8 @@ use std::fmt;
 use std::iter::FusedIterator;
 use std::usize;
 
-use super::combinations::{checked_binomial, combinations, Combinations};
+use super::combinations::{combinations, Combinations};
+use crate::adaptors::checked_binomial;
 use crate::size_hint::{self, SizeHint};
 
 /// An iterator to iterate through the powerset of the elements from an iterator.
