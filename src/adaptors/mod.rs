@@ -631,6 +631,10 @@ where
     fn size_hint(&self) -> SizeHint {
         self.iter.size_hint()
     }
+
+    fn count(self) -> usize {
+        self.iter.count()
+    }
 }
 
 impl<I, T> FusedIterator for TupleCombinations<I, T>
@@ -660,6 +664,10 @@ impl<I: Iterator> Iterator for Tuple1Combination<I> {
 
     fn size_hint(&self) -> SizeHint {
         self.iter.size_hint()
+    }
+
+    fn count(self) -> usize {
+        self.iter.count()
     }
 }
 
@@ -717,6 +725,12 @@ macro_rules! impl_tuple_combination {
                 n_min = checked_binomial(n_min, K).unwrap_or(usize::MAX);
                 n_max = n_max.and_then(|n| checked_binomial(n, K));
                 size_hint::add(self.c.size_hint(), (n_min, n_max))
+            }
+
+            fn count(self) -> usize {
+                const K: usize = 1 + count_ident!($($X,)*);
+                let n = self.iter.count();
+                checked_binomial(n, K).unwrap() + self.c.count()
             }
         }
 
