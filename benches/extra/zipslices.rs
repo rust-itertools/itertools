@@ -92,6 +92,21 @@ where
         let len = self.len - self.index;
         (len, Some(len))
     }
+
+    #[inline(always)]
+    fn fold<B, F>(mut self, acc: B, mut f: F) -> B
+    where
+        Self: Sized,
+        F: FnMut(B, Self::Item) -> B,
+    {
+        let mut accum = acc;
+        for i in self.index..self.len {
+            unsafe {
+                accum = f(accum, (self.t.get_unchecked(i), self.u.get_unchecked(i)));
+            }
+        }
+        accum
+    }
 }
 
 impl<T, U> DoubleEndedIterator for ZipSlices<T, U>

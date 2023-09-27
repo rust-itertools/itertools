@@ -169,6 +169,20 @@ fn zipdot_i32_zipslices(c: &mut Criterion) {
     });
 }
 
+fn zipdot_i32_zipslices_fold(c: &mut Criterion) {
+    let xs = vec![2; 1024];
+    let ys = vec![2; 768];
+    let xs = black_box(xs);
+    let ys = black_box(ys);
+    // output is 3072
+    c.bench_function("zipdot i32 zipslices fold", move |b| {
+        b.iter(|| {
+            let sum = ZipSlices::new(&xs, &ys).fold(0i32, |acc, (&x, &y)| acc + (x * y));
+            sum
+        })
+    });
+}
+
 fn zipdot_f32_zipslices(c: &mut Criterion) {
     let xs = vec![2f32; 1024];
     let ys = vec![2f32; 768];
@@ -812,6 +826,7 @@ criterion_group!(
     zipslices,
     zipslices_mut,
     zipdot_i32_zipslices,
+    zipdot_i32_zipslices_fold,
     zipdot_f32_zipslices,
     zip_checked_counted_loop,
     zipdot_i32_checked_counted_loop,
