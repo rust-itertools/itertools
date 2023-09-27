@@ -14,7 +14,8 @@ pub use self::map::{map_into, map_ok, MapInto, MapOk};
 #[cfg(feature = "use_alloc")]
 pub use self::multi_product::*;
 
-use crate::size_hint;
+use crate::combinations::checked_binomial;
+use crate::size_hint::{self, SizeHint};
 use std::fmt;
 use std::iter::{FromIterator, Fuse, FusedIterator};
 use std::marker::PhantomData;
@@ -626,6 +627,10 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next()
     }
+
+    fn size_hint(&self) -> SizeHint {
+        self.iter.size_hint()
+    }
 }
 
 impl<I, T> FusedIterator for TupleCombinations<I, T>
@@ -651,6 +656,10 @@ impl<I: Iterator> Iterator for Tuple1Combination<I> {
 
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next().map(|x| (x,))
+    }
+
+    fn size_hint(&self) -> SizeHint {
+        self.iter.size_hint()
     }
 }
 
@@ -700,6 +709,14 @@ macro_rules! impl_tuple_combination {
                         self.c.next().map(|($($X),*,)| (z, $($X),*))
                     })
                 }
+            }
+
+            fn size_hint(&self) -> SizeHint {
+                const K: usize = 1 + count_ident!($($X,)*);
+                let (mut n_min, mut n_max) = self.iter.size_hint();
+                n_min = checked_binomial(n_min, K).unwrap_or(usize::MAX);
+                n_max = n_max.and_then(|n| checked_binomial(n, K));
+                size_hint::add(self.c.size_hint(), (n_min, n_max))
             }
         }
 
