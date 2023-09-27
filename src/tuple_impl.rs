@@ -105,6 +105,14 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         T::collect_from_iter(&mut self.iter, &mut self.buf)
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let buf_len = T::buffer_len(&self.buf);
+        let (mut low, mut hi) = self.iter.size_hint();
+        low = add_then_div(low, buf_len, T::num_items()).unwrap_or(usize::MAX);
+        hi = hi.and_then(|elt| add_then_div(elt, buf_len, T::num_items()));
+        (low, hi)
+    }
 }
 
 /// `(n + a) / d` avoiding overflow when possible, returns `None` if it overflows.
