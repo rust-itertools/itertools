@@ -1184,6 +1184,18 @@ quickcheck! {
         assert_eq!(buffer.len(), a.len() % 4);
         exact_size(buffer)
     }
+
+    fn tuples_size_hint_inexact(a: Iter<u8>) -> bool {
+        correct_size_hint(a.clone().tuples::<(_,)>())
+            && correct_size_hint(a.clone().tuples::<(_, _)>())
+            && correct_size_hint(a.tuples::<(_, _, _, _)>())
+    }
+
+    fn tuples_size_hint_exact(a: Iter<u8, Exact>) -> bool {
+        exact_size(a.clone().tuples::<(_,)>())
+            && exact_size(a.clone().tuples::<(_, _)>())
+            && exact_size(a.tuples::<(_, _, _, _)>())
+    }
 }
 
 // with_position
