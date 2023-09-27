@@ -3,7 +3,7 @@ use std::fmt;
 use std::iter::FusedIterator;
 
 use super::lazy_buffer::LazyBuffer;
-use crate::combinations::checked_binomial;
+use crate::adaptors::checked_binomial;
 
 /// An iterator to iterate through all the `n`-length combinations in an iterator, with replacement.
 ///
