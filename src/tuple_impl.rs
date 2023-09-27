@@ -290,6 +290,11 @@ pub trait TupleCollect: Sized {
     type Item;
     type Buffer: Default + AsRef<[Option<Self::Item>]> + AsMut<[Option<Self::Item>]>;
 
+    fn buffer_len(buf: &Self::Buffer) -> usize {
+        let s = buf.as_ref();
+        s.iter().position(Option::is_none).unwrap_or(s.len())
+    }
+
     fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
     where
         I: IntoIterator<Item = Self::Item>;
