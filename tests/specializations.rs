@@ -72,6 +72,12 @@ where
 }
 
 quickcheck! {
+    fn tuple_combinations(v: Vec<u8>) -> () {
+        let mut v = v;
+        v.truncate(10);
+        test_specializations(&v.iter().tuple_combinations::<(_, _, _)>());
+    }
+
     fn intersperse(v: Vec<u8>) -> () {
         test_specializations(&v.into_iter().intersperse(0));
     }
