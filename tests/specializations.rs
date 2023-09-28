@@ -75,6 +75,12 @@ quickcheck! {
     fn intersperse(v: Vec<u8>) -> () {
         test_specializations(&v.into_iter().intersperse(0));
     }
+
+    fn powerset(a: Vec<u8>) -> () {
+        let mut a = a;
+        a.truncate(6);
+        test_specializations(&a.iter().powerset())
+    }
 }
 
 quickcheck! {
