@@ -1,7 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use itertools::free::cloned;
-use itertools::{EitherOrBoth, iproduct};
 use itertools::Itertools;
+use itertools::{iproduct, EitherOrBoth};
 
 use std::cmp;
 use std::iter::repeat;

@@ -56,7 +56,8 @@ where
     #[inline]
     fn fold<B, F>(self, mut acc: B, mut f: F) -> B
     where
-        Self: Sized, F: FnMut(B, Self::Item) -> B
+        Self: Sized,
+        F: FnMut(B, Self::Item) -> B,
     {
         let ZipLongest { mut a, mut b } = self;
 
