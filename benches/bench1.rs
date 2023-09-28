@@ -1,6 +1,6 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use itertools::free::cloned;
-use itertools::iproduct;
+use itertools::{EitherOrBoth, iproduct};
 use itertools::Itertools;
 
 use std::cmp;
@@ -386,6 +386,23 @@ fn zip_unchecked_counted_loop3(c: &mut Criterion) {
                     black_box(z);
                 }
             }
+        })
+    });
+}
+
+fn ziplongest(c: &mut Criterion) {
+    c.bench_function("ziplongest", move |b| {
+        b.iter(|| {
+            let zip = (0..768).zip_longest(0..1024);
+            let sum = zip.fold(0u32, |mut acc, val| {
+                match val {
+                    EitherOrBoth::Both(x, y) => acc += x * y,
+                    EitherOrBoth::Left(x) => acc += x,
+                    EitherOrBoth::Right(y) => acc += y,
+                }
+                acc
+            });
+            sum
         })
     });
 }
@@ -821,6 +838,7 @@ criterion_group!(
     zipdot_i32_unchecked_counted_loop,
     zipdot_f32_unchecked_counted_loop,
     zip_unchecked_counted_loop3,
+    ziplongest,
     group_by_lazy_1,
     group_by_lazy_2,
     slice_chunks,

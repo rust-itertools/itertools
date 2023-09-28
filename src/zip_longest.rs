@@ -52,6 +52,31 @@ where
     fn size_hint(&self) -> (usize, Option<usize>) {
         size_hint::max(self.a.size_hint(), self.b.size_hint())
     }
+
+    #[inline]
+    fn fold<B, F>(self, mut acc: B, mut f: F) -> B
+    where
+        Self: Sized, F: FnMut(B, Self::Item) -> B
+    {
+        let ZipLongest { mut a, mut b } = self;
+
+        loop {
+            match (a.next(), b.next()) {
+                (Some(x), Some(y)) => acc = f(acc, EitherOrBoth::Both(x, y)),
+                (Some(x), None) => {
+                    acc = f(acc, EitherOrBoth::Left(x));
+                    // b is exhausted, so we can drain a.
+                    return a.fold(acc, |acc, x| f(acc, EitherOrBoth::Left(x)));
+                }
+                (None, Some(y)) => {
+                    acc = f(acc, EitherOrBoth::Right(y));
+                    // a is exhausted, so we can drain b.
+                    return b.fold(acc, |acc, y| f(acc, EitherOrBoth::Right(y)));
+                }
+                (None, None) => return acc, // Both iterators are exhausted.
+            }
+        }
+    }
 }
 
 impl<T, U> DoubleEndedIterator for ZipLongest<T, U>
