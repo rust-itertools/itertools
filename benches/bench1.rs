@@ -391,9 +391,11 @@ fn zip_unchecked_counted_loop3(c: &mut Criterion) {
 }
 
 fn ziplongest(c: &mut Criterion) {
+    let v1 = black_box((0..768).collect_vec());
+    let v2 = black_box((0..1024).collect_vec());
     c.bench_function("ziplongest", move |b| {
         b.iter(|| {
-            let zip = (0..768).zip_longest(0..1024);
+            let zip = v1.iter().zip_longest(v2.iter());
             let sum = zip.fold(0u32, |mut acc, val| {
                 match val {
                     EitherOrBoth::Both(x, y) => acc += x * y,

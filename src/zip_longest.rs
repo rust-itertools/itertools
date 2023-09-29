@@ -54,29 +54,17 @@ where
     }
 
     #[inline]
-    fn fold<B, F>(self, mut acc: B, mut f: F) -> B
+    fn fold<B, F>(self, mut init: B, mut f: F) -> B
     where
         Self: Sized,
         F: FnMut(B, Self::Item) -> B,
     {
-        let ZipLongest { mut a, mut b } = self;
-
-        loop {
-            match (a.next(), b.next()) {
-                (Some(x), Some(y)) => acc = f(acc, EitherOrBoth::Both(x, y)),
-                (Some(x), None) => {
-                    acc = f(acc, EitherOrBoth::Left(x));
-                    // b is exhausted, so we can drain a.
-                    return a.fold(acc, |acc, x| f(acc, EitherOrBoth::Left(x)));
-                }
-                (None, Some(y)) => {
-                    acc = f(acc, EitherOrBoth::Right(y));
-                    // a is exhausted, so we can drain b.
-                    return b.fold(acc, |acc, y| f(acc, EitherOrBoth::Right(y)));
-                }
-                (None, None) => return acc, // Both iterators are exhausted.
-            }
-        }
+        let ZipLongest { a, mut b } = self;
+        init = a.fold(init, |init, a| match b.next() {
+            Some(b) => f(init, EitherOrBoth::Both(a, b)),
+            None => f(init, EitherOrBoth::Left(a)),
+        });
+        b.fold(init, |init, b| f(init, EitherOrBoth::Right(b)))
     }
 }
 
