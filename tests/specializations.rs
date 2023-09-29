@@ -89,6 +89,10 @@ quickcheck! {
         a.truncate(6);
         test_specializations(&a.iter().powerset())
     }
+
+    fn zip_longest(a: Vec<u8>, b: Vec<u8>) -> () {
+        test_specializations(&a.into_iter().zip_longest(b))
+    }
 }
 
 quickcheck! {
