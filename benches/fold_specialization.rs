@@ -1,3 +1,5 @@
+#![allow(unstable_name_collisions)]
+
 use criterion::{criterion_group, criterion_main, Criterion};
 use itertools::Itertools;
 

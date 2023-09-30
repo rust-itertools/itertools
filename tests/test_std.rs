@@ -1,3 +1,5 @@
+#![allow(unstable_name_collisions)]
+
 use crate::it::cloned;
 use crate::it::free::put_back_n;
 use crate::it::free::rciter;
