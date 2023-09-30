@@ -111,7 +111,7 @@ where
         // not yet produced as a tuple.
         let buffered = T::buffer_len(&self.buf);
         // To that, we must add the size estimates of the underlying iterator.
-        let (mut unbuffered_lo, mut unbuffered_hi) = self.iter.size_hint();
+        let (unbuffered_lo, unbuffered_hi) = self.iter.size_hint();
         // The total low estimate is the sum of the already-buffered elements,
         // plus the low estimate of remaining unbuffered elements, divided by
         // the tuple size.

@@ -4,6 +4,7 @@
 //! option. This file may not be copied, modified, or distributed
 //! except according to those terms.
 #![no_std]
+#![allow(deprecated)]
 
 use crate::it::chain;
 use crate::it::free::put_back;

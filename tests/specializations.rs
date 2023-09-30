@@ -1,3 +1,5 @@
+#![allow(unstable_name_collisions)]
+
 use itertools::Itertools;
 use quickcheck::quickcheck;
 use std::fmt::Debug;

@@ -3,6 +3,8 @@
 //!
 //! In particular we test the tedious size_hint and exact size correctness.
 
+#![allow(deprecated, unstable_name_collisions)]
+
 use itertools::free::{
     cloned, enumerate, multipeek, peek_nth, put_back, put_back_n, rciter, zip, zip_eq,
 };
