@@ -581,7 +581,7 @@ fn kmerge_tenway(c: &mut Criterion) {
 
     let mut state = 1729u16;
     fn rng(state: &mut u16) -> u16 {
-        let new = state.wrapping_mul(31421) + 6927;
+        let new = state.wrapping_mul(31421).wrapping_add(6927);
         *state = new;
         new
     }
