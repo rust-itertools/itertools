@@ -37,7 +37,7 @@ where
 /// Indicates the position of this element in the iterator results.
 ///
 /// See [`.with_position()`](crate::Itertools::with_position) for more information.
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Position {
     /// This is the first element.
     First,
