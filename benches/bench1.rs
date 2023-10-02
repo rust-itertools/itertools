@@ -1,6 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use itertools::free::cloned;
 use itertools::Itertools;
+use itertools::Position;
 use itertools::{iproduct, EitherOrBoth};
 
 use std::cmp;
@@ -819,6 +820,22 @@ fn permutations_slice(c: &mut Criterion) {
     });
 }
 
+fn with_position_fold(c: &mut Criterion) {
+    let v = black_box((0..10240).collect_vec());
+    c.bench_function("with_position fold", move |b| {
+        b.iter(|| {
+            v.iter()
+                .with_position()
+                .fold(0, |acc, (pos, &item)| match pos {
+                    Position::Middle => acc + item,
+                    Position::First => acc - 2 * item,
+                    Position::Last => acc + 2 * item,
+                    Position::Only => acc + 5 * item,
+                })
+        })
+    });
+}
+
 criterion_group!(
     benches,
     slice_iter,
@@ -866,5 +883,6 @@ criterion_group!(
     permutations_iter,
     permutations_range,
     permutations_slice,
+    with_position_fold,
 );
 criterion_main!(benches);
