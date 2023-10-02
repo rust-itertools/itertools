@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: taiki-e/install-action@cargo-no-dev-deps
-      - uses: dtolnay/rust-toolchain@1.43.1
+      - uses: dtolnay/rust-toolchain@1.80.0
       - run: cargo no-dev-deps check
 
   test:
