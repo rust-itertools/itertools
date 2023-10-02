@@ -81,6 +81,33 @@ impl<I: Iterator> Iterator for WithPosition<I> {
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.peekable.size_hint()
     }
+
+    fn fold<B, F>(mut self, mut init: B, mut f: F) -> B
+    where
+        F: FnMut(B, Self::Item) -> B,
+    {
+        if let Some(mut head) = self.peekable.next() {
+            if !self.handled_first {
+                // The current head is `First` or `Only`,
+                // it depends if there is another item or not.
+                match self.peekable.next() {
+                    Some(second) => {
+                        let first = std::mem::replace(&mut head, second);
+                        init = f(init, (Position::First, first));
+                    }
+                    None => return f(init, (Position::Only, head)),
+                }
+            }
+            // Have seen the first item, and there's something left.
+            init = self.peekable.fold(init, |acc, mut item| {
+                std::mem::swap(&mut head, &mut item);
+                f(acc, (Position::Middle, item))
+            });
+            // The "head" is now the last item.
+            init = f(init, (Position::Last, head));
+        }
+        init
+    }
 }
 
 impl<I> ExactSizeIterator for WithPosition<I> where I: ExactSizeIterator {}
