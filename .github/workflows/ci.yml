@@ -2,10 +2,7 @@ name: CI
 
 on:
   pull_request:
-  push:
-    branches:
-      - staging
-      - trying
+  merge_group:
 
 jobs:
   check:
@@ -52,12 +49,12 @@ jobs:
           components: rustfmt
       - run: cargo fmt --check
 
-  # https://github.com/rust-lang/crater/blob/9ab6f9697c901c4a44025cf0a39b73ad5b37d198/.github/workflows/bors.yml#L125-L149
-  end-success:
-    name: bors build finished
+  # Used to signal to branch protections that all other jobs have succeeded.
+  all-jobs-succeed:
+    name: All checks succeeded
     if: success()
     runs-on: ubuntu-latest
-    needs: [check, test]
+    needs: [check, msrv, test, check-format]
     steps:
       - name: Mark the job as successful
         run: exit 0
