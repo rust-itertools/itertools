@@ -74,6 +74,10 @@ where
 }
 
 quickcheck! {
+    fn with_position(v: Vec<u8>) -> () {
+        test_specializations(&v.iter().with_position());
+    }
+
     fn tuple_combinations(v: Vec<u8>) -> () {
         let mut v = v;
         v.truncate(10);
