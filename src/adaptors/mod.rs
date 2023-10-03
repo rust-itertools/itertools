@@ -650,6 +650,13 @@ where
     fn count(self) -> usize {
         self.iter.count()
     }
+
+    fn fold<B, F>(self, init: B, f: F) -> B
+    where
+        F: FnMut(B, Self::Item) -> B,
+    {
+        self.iter.fold(init, f)
+    }
 }
 
 impl<I, T> FusedIterator for TupleCombinations<I, T>
