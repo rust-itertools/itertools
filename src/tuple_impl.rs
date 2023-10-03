@@ -178,10 +178,7 @@ where
     T: HomogeneousTuple,
     T::Item: Clone,
 {
-    TupleWindows {
-        last : None,
-        iter,
-    }
+    TupleWindows { last: None, iter }
 }
 
 impl<I, T> Iterator for TupleWindows<I, T>
