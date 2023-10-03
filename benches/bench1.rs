@@ -855,6 +855,17 @@ fn with_position_fold(c: &mut Criterion) {
     });
 }
 
+fn tuple_combinations_fold(c: &mut Criterion) {
+    let v = black_box((0..64).collect_vec());
+    c.bench_function("tuple_combinations fold", move |b| {
+        b.iter(|| {
+            v.iter()
+                .tuple_combinations()
+                .fold(0, |acc, (a, b, c, d)| acc + *a * *c - *b * *d)
+        })
+    });
+}
+
 criterion_group!(
     benches,
     slice_iter,
@@ -903,6 +914,7 @@ criterion_group!(
     permutations_range,
     permutations_slice,
     with_position_fold,
+    tuple_combinations_fold,
     while_some,
 );
 criterion_main!(benches);
