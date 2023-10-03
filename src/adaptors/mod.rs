@@ -691,6 +691,13 @@ impl<I: Iterator> Iterator for Tuple1Combination<I> {
     fn count(self) -> usize {
         self.iter.count()
     }
+
+    fn fold<B, F>(self, init: B, f: F) -> B
+    where
+        F: FnMut(B, Self::Item) -> B,
+    {
+        self.iter.map(|x| (x,)).fold(init, f)
+    }
 }
 
 impl<I: Iterator> HasCombination<I> for (I::Item,) {
