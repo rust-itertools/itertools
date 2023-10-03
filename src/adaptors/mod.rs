@@ -731,7 +731,7 @@ macro_rules! impl_tuple_combination {
 
         impl<I, A> Iterator for $C<I>
             where I: Iterator<Item = A> + Clone,
-                  I::Item: Clone
+                  A: Clone,
         {
             type Item = (A, $(ignore_ident!($X, A)),*);
 
@@ -760,6 +760,26 @@ macro_rules! impl_tuple_combination {
                 const K: usize = 1 + count_ident!($($X,)*);
                 let n = self.iter.count();
                 checked_binomial(n, K).unwrap() + self.c.count()
+            }
+
+            fn fold<B, F>(self, mut init: B, mut f: F) -> B
+            where
+                F: FnMut(B, Self::Item) -> B,
+            {
+                let Self { c, item, mut iter } = self;
+                init = c
+                    .map(|($($X),*,)| {
+                        let z = item.clone().unwrap();
+                        (z, $($X),*)
+                    })
+                    .fold(init, &mut f);
+                while let Some(z) = iter.next() {
+                    let c: $P<I> = iter.clone().into();
+                    init = c
+                        .map(|($($X),*,)| (z.clone(), $($X),*))
+                        .fold(init, &mut f);
+                }
+                init
             }
         }
 
