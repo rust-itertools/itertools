@@ -5,6 +5,8 @@ use std::iter::Fuse;
 use std::iter::FusedIterator;
 use std::marker::PhantomData;
 
+use crate::size_hint;
+
 // `HomogeneousTuple` is a public facade for `TupleCollect`, allowing
 // tuple-related methods to be used by clients in generic contexts, while
 // hiding the implementation details of `TupleCollect`.
@@ -209,9 +211,13 @@ where
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        // At definition, `T::num_items() - 1` are collected
-        // so each remaining item in `iter` will lead to an item.
-        self.iter.size_hint()
+        let mut sh = self.iter.size_hint();
+        // Adjust the size hint at the beginning
+        // OR when `num_items == 1` (but it does not change the size hint).
+        if self.last.is_none() {
+            sh = size_hint::sub_scalar(sh, T::num_items() - 1);
+        }
+        sh
     }
 }
 
