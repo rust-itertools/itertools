@@ -1472,6 +1472,35 @@ quickcheck! {
         }
     }
 
+    fn correct_grouping_map_by_fold_with_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+        #[derive(Debug, Default, PartialEq)]
+        struct Accumulator {
+            acc: u64,
+        }
+
+        let modulo = if modulo == 0 { 1 } else { modulo } as u64; // Avoid `% 0`
+        let lookup = a.iter().map(|&b| b as u64) // Avoid overflows
+            .into_grouping_map_by(|i| i % modulo)
+            .fold_with(|_key| Default::default(), |Accumulator { acc }, &key, val| {
+                assert!(val % modulo == key);
+                let acc = acc + val;
+                Accumulator { acc }
+            });
+
+        let group_map_lookup = a.iter()
+            .map(|&b| b as u64)
+            .map(|i| (i % modulo, i))
+            .into_group_map()
+            .into_iter()
+            .map(|(key, vals)| (key, vals.into_iter().sum())).map(|(key, acc)| (key,Accumulator { acc }))
+            .collect::<HashMap<_,_>>();
+        assert_eq!(lookup, group_map_lookup);
+
+        for (&key, &Accumulator { acc: sum }) in lookup.iter() {
+            assert_eq!(sum, a.iter().map(|&b| b as u64).filter(|&val| val % modulo == key).sum::<u64>());
+        }
+    }
+
     fn correct_grouping_map_by_fold_modulo_key(a: Vec<u8>, modulo: u8) -> () {
         let modulo = if modulo == 0 { 1 } else { modulo } as u64; // Avoid `% 0`
         let lookup = a.iter().map(|&b| b as u64) // Avoid overflows
