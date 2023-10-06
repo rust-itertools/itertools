@@ -1373,9 +1373,6 @@ pub trait Itertools: Iterator {
     /// already been produced once during the iteration. Duplicates
     /// are detected using hash and equality.
     ///
-    /// Clones of visited elements are stored in a hash set in the
-    /// iterator.
-    ///
     /// The iterator is stable, returning the non-duplicate items in the order
     /// in which they occur in the adapted iterator. In a set of duplicate
     /// items, the first item encountered is the item retained.
@@ -1391,7 +1388,7 @@ pub trait Itertools: Iterator {
     fn unique(self) -> Unique<Self>
     where
         Self: Sized,
-        Self::Item: Clone + Eq + Hash,
+        Self::Item: Eq + Hash,
     {
         unique_impl::unique(self)
     }
