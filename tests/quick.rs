@@ -1481,7 +1481,7 @@ quickcheck! {
         let modulo = if modulo == 0 { 1 } else { modulo } as u64; // Avoid `% 0`
         let lookup = a.iter().map(|&b| b as u64) // Avoid overflows
             .into_grouping_map_by(|i| i % modulo)
-            .fold_with(|_key| Default::default(), |Accumulator { acc }, &key, val| {
+            .fold_with(|_key, _val| Default::default(), |Accumulator { acc }, &key, val| {
                 assert!(val % modulo == key);
                 let acc = acc + val;
                 Accumulator { acc }

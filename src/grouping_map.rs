@@ -138,7 +138,7 @@ where
     ///
     /// let lookup = (1..=7)
     ///     .into_grouping_map_by(|&n| n % 3)
-    ///     .fold_with(|_key| Default::default(), |Accumulator { acc }, _key, val| {
+    ///     .fold_with(|_key, _val| Default::default(), |Accumulator { acc }, _key, val| {
     ///         let acc = acc + val;
     ///         Accumulator { acc }
     ///      });
@@ -150,11 +150,11 @@ where
     /// ```
     pub fn fold_with<FI, FO, R>(self, mut init: FI, mut operation: FO) -> HashMap<K, R>
     where
-        FI: FnMut(&K) -> R,
+        FI: FnMut(&K, &V) -> R,
         FO: FnMut(R, &K, V) -> R,
     {
         self.aggregate(|acc, key, val| {
-            let acc = acc.unwrap_or_else(|| init(key));
+            let acc = acc.unwrap_or_else(|| init(key, &val));
             Some(operation(acc, key, val))
         })
     }
@@ -189,7 +189,7 @@ where
         R: Clone,
         FO: FnMut(R, &K, V) -> R,
     {
-        self.fold_with(|_: &K| init.clone(), operation)
+        self.fold_with(|_, _| init.clone(), operation)
     }
 
     /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
