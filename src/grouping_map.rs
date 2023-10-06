@@ -119,6 +119,50 @@ where
     /// of each group sequentially, passing the previously accumulated value, a reference to the key
     /// and the current element as arguments, and stores the results in a new map.
     ///
+    /// `init` is called to obtain the initial value of each accumulator.
+    ///
+    /// `operation` is a function that is invoked on each element with the following parameters:
+    ///  - the current value of the accumulator of the group;
+    ///  - a reference to the key of the group this element belongs to;
+    ///  - the element from the source being accumulated.
+    ///
+    /// Return a `HashMap` associating the key of each group with the result of folding that group's elements.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// #[derive(Debug, Default)]
+    /// struct Accumulator {
+    ///   acc: usize,
+    /// }
+    ///
+    /// let lookup = (1..=7)
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .fold_with(|_key| Default::default(), |Accumulator { acc }, _key, val| {
+    ///         let acc = acc + val;
+    ///         Accumulator { acc }
+    ///      });
+    ///
+    /// assert_eq!(lookup[&0].acc, 3 + 6);
+    /// assert_eq!(lookup[&1].acc, 1 + 4 + 7);
+    /// assert_eq!(lookup[&2].acc, 2 + 5);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    pub fn fold_with<FI, FO, R>(self, mut init: FI, mut operation: FO) -> HashMap<K, R>
+    where
+        FI: FnMut(&K) -> R,
+        FO: FnMut(R, &K, V) -> R,
+    {
+        self.aggregate(|acc, key, val| {
+            let acc = acc.unwrap_or_else(|| init(key));
+            Some(operation(acc, key, val))
+        })
+    }
+
+    /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
+    /// of each group sequentially, passing the previously accumulated value, a reference to the key
+    /// and the current element as arguments, and stores the results in a new map.
+    ///
     /// `init` is the value from which will be cloned the initial value of each accumulator.
     ///
     /// `operation` is a function that is invoked on each element with the following parameters:
@@ -140,15 +184,12 @@ where
     /// assert_eq!(lookup[&2], 2 + 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn fold<FO, R>(self, init: R, mut operation: FO) -> HashMap<K, R>
+    pub fn fold<FO, R>(self, init: R, operation: FO) -> HashMap<K, R>
     where
         R: Clone,
         FO: FnMut(R, &K, V) -> R,
     {
-        self.aggregate(|acc, key, val| {
-            let acc = acc.unwrap_or_else(|| init.clone());
-            Some(operation(acc, key, val))
-        })
+        self.fold_with(|_: &K| init.clone(), operation)
     }
 
     /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
