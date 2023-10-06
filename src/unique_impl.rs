@@ -165,14 +165,18 @@ where
 /// See [`.unique()`](crate::Itertools::unique) for more information.
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct Unique<I: Iterator> {
+pub struct Unique<I>
+where
+    I: Iterator,
+    I::Item: Eq + Hash + Clone,
+{
     iter: UniqueBy<I, I::Item, ()>,
 }
 
 impl<I> fmt::Debug for Unique<I>
 where
     I: Iterator + fmt::Debug,
-    I::Item: Hash + Eq + fmt::Debug,
+    I::Item: Hash + Eq + fmt::Debug + Clone,
 {
     debug_fmt_fields!(Unique, iter);
 }
@@ -180,7 +184,7 @@ where
 pub fn unique<I>(iter: I) -> Unique<I>
 where
     I: Iterator,
-    I::Item: Eq + Hash,
+    I::Item: Eq + Hash + Clone,
 {
     Unique {
         iter: UniqueBy {
