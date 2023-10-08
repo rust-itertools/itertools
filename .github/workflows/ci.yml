@@ -23,7 +23,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: RUSTFLAGS="--deny warnings" cargo check ${{ matrix.features }}
+        with:
+          components: ${{ matrix.rust == 'stable' && 'clippy' || '' }}
+      - run: RUSTFLAGS="--deny warnings" cargo ${{ matrix.rust == 'stable' && 'clippy' || 'check' }} ${{ matrix.features }}
 
   msrv:
     runs-on: ubuntu-latest
