@@ -50,19 +50,19 @@ where
     ///
     /// Basic usage:
     ///
-    /// ```rust
+    /// ```
     /// use itertools::peek_nth;
     ///
-    /// let xs = vec![1,2,3];
-    /// let mut iter = peek_nth(xs.iter());
+    /// let xs = vec![1, 2, 3];
+    /// let mut iter = peek_nth(xs.into_iter());
     ///
-    /// assert_eq!(iter.peek_nth(0), Some(&&1));
-    /// assert_eq!(iter.next(), Some(&1));
+    /// assert_eq!(iter.peek_nth(0), Some(&1));
+    /// assert_eq!(iter.next(), Some(1));
     ///
     /// // The iterator does not advance even if we call `peek_nth` multiple times
-    /// assert_eq!(iter.peek_nth(0), Some(&&2));
-    /// assert_eq!(iter.peek_nth(1), Some(&&3));
-    /// assert_eq!(iter.next(), Some(&2));
+    /// assert_eq!(iter.peek_nth(0), Some(&2));
+    /// assert_eq!(iter.peek_nth(1), Some(&3));
+    /// assert_eq!(iter.next(), Some(2));
     ///
     /// // Calling `peek_nth` past the end of the iterator will return `None`
     /// assert_eq!(iter.peek_nth(1), None);
