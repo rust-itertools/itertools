@@ -448,6 +448,24 @@ fn group_by_lazy_2(c: &mut Criterion) {
     });
 }
 
+fn while_some(c: &mut Criterion) {
+    c.bench_function("while_some", |b| {
+        b.iter(|| {
+            let data = black_box(
+                (0..)
+                    .fuse()
+                    .map(|i| std::char::from_digit(i, 16))
+                    .while_some(),
+            );
+            let result: String = data.fold(String::new(), |acc, ch| acc + &ch.to_string());
+            assert_eq!(
+                result.chars().collect::<Vec<_>>(),
+                "0123456789abcdef".chars().collect::<Vec<_>>()
+            );
+        });
+    });
+}
+
 fn slice_chunks(c: &mut Criterion) {
     let data = vec![0; 1024];
 
@@ -884,5 +902,6 @@ criterion_group!(
     permutations_range,
     permutations_slice,
     with_position_fold,
+    while_some,
 );
 criterion_main!(benches);
