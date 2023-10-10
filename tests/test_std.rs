@@ -739,6 +739,35 @@ fn test_peek_nth_peeking_next() {
 }
 
 #[test]
+fn test_peek_nth_next_if() {
+    let nums = vec![1u8, 2, 3, 4, 5, 6, 7];
+    let mut iter = peek_nth(nums.iter().copied());
+
+    assert_eq!(iter.next_if(|&x| x != 0), Some(1));
+    assert_eq!(iter.next(), Some(2));
+
+    assert_eq!(iter.peek_nth(0), Some(&3));
+    assert_eq!(iter.peek_nth(1), Some(&4));
+    assert_eq!(iter.next_if_eq(&3), Some(3));
+    assert_eq!(iter.peek(), Some(&4));
+
+    assert_eq!(iter.next_if(|&x| x != 4), None);
+    assert_eq!(iter.next_if_eq(&4), Some(4));
+    assert_eq!(iter.peek_nth(0), Some(&5));
+    assert_eq!(iter.peek_nth(1), Some(&6));
+
+    assert_eq!(iter.next_if(|&x| x != 5), None);
+    assert_eq!(iter.peek(), Some(&5));
+
+    assert_eq!(iter.next_if(|&x| x % 2 == 1), Some(5));
+    assert_eq!(iter.next_if_eq(&6), Some(6));
+    assert_eq!(iter.peek_nth(0), Some(&7));
+    assert_eq!(iter.peek_nth(1), None);
+    assert_eq!(iter.next(), Some(7));
+    assert_eq!(iter.peek(), None);
+}
+
+#[test]
 fn pad_using() {
     it::assert_equal((0..0).pad_using(1, |_| 1), 1..2);
 
