@@ -782,6 +782,30 @@ quickcheck! {
         assert_eq!(it.next(), None);
         assert_eq!(it.next(), None);
     }
+
+    fn peek_nth_next_if(a: Vec<u8>) -> () {
+        let mut it = peek_nth(a.clone());
+        for (idx, mut value) in a.iter().copied().enumerate() {
+            let should_be_none = it.next_if(|x| x != &value);
+            assert_eq!(should_be_none, None);
+            if value % 5 == 0 {
+                // Sometimes, peek up to 3 further.
+                let n = value as usize % 3;
+                let nth = it.peek_nth(n);
+                assert_eq!(nth, a.get(idx + n));
+            } else if value % 5 == 1 {
+                // Sometimes, peek next element mutably.
+                if let Some(v) = it.peek_mut() {
+                    *v = v.wrapping_sub(1);
+                    let should_be_none = it.next_if_eq(&value);
+                    assert_eq!(should_be_none, None);
+                    value = value.wrapping_sub(1);
+                }
+            }
+            let eq = it.next_if_eq(&value);
+            assert_eq!(eq, Some(value));
+        }
+    }
 }
 
 quickcheck! {
