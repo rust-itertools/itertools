@@ -118,8 +118,12 @@ where
 
     /// Works exactly like the `next_if` method in `std::iter::Peekable`
     pub fn next_if(&mut self, func: impl FnOnce(&I::Item) -> bool) -> Option<I::Item> {
-        match self.peek() {
-            Some(m) if func(&m) => self.next(),
+        match self.next() {
+            Some(item) if func(&item) => Some(item),
+            Some(item) => {
+                self.buf.push_front(item);
+                None
+            }
             _ => None,
         }
     }
