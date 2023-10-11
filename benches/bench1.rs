@@ -457,11 +457,12 @@ fn while_some(c: &mut Criterion) {
                     .map(|i| std::char::from_digit(i, 16))
                     .while_some(),
             );
-            let result: String = data.fold(String::new(), |acc, ch| acc + &ch.to_string());
-            assert_eq!(
-                result.chars().collect::<Vec<_>>(),
-                "0123456789abcdef".chars().collect::<Vec<_>>()
-            );
+            // let result: String = data.fold(String::new(), |acc, ch| acc + &ch.to_string());
+            let result = data.fold(String::new(), |mut acc, ch| {
+                acc.push(ch);
+                acc
+            });
+            assert_eq!(result.as_str(), "0123456789abcdef");
         });
     });
 }
