@@ -591,7 +591,10 @@ where
             Some(item) => Ok(f(acc, item)),
             None => Err(acc),
         });
-        let (Err(res) | Ok(res)) = res;
+        let res = match res {
+            Ok(val) => val,
+            Err(val) => val,
+        };
         res
     }
 }
