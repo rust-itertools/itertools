@@ -582,15 +582,17 @@ where
         (0, self.iter.size_hint().1)
     }
 
-    fn fold<B, F>(self, acc: B, f: F) -> B
+    fn fold<B, F>(mut self, acc: B, mut f: F) -> B
     where
         Self: Sized,
         F: FnMut(B, Self::Item) -> B,
     {
-        self.iter
-            .take_while(|opt| opt.is_some())
-            .map(|item| item.unwrap())
-            .fold(acc, f)
+        let res = self.iter.try_fold(acc, |acc, item| match item {
+            Some(item) => Ok(f(acc, item)),
+            None => Err(acc),
+        });
+        let (Err(res) | Ok(res)) = res;
+        res
     }
 }
 
