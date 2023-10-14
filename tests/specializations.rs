@@ -17,23 +17,20 @@ where
     }
 }
 
-macro_rules! check_specialized {
-    ($src:expr, |$it:pat| $closure:expr) => {
-        let $it = $src.clone();
-        let v1 = $closure;
-
-        let $it = Unspecialized($src.clone());
-        let v2 = $closure;
-
-        assert_eq!(v1, v2);
-    };
-}
-
 fn test_specializations<IterItem, Iter>(it: &Iter)
 where
     IterItem: Eq + Debug + Clone,
     Iter: Iterator<Item = IterItem> + Clone,
 {
+    macro_rules! check_specialized {
+        ($src:expr, |$it:pat| $closure:expr) => {
+            let $it = $src.clone();
+            let v1 = $closure;
+            let $it = Unspecialized($src.clone());
+            let v2 = $closure;
+            assert_eq!(v1, v2);
+        };
+    }
     check_specialized!(it, |i| i.count());
     check_specialized!(it, |i| i.last());
     check_specialized!(it, |i| i.collect::<Vec<_>>());
