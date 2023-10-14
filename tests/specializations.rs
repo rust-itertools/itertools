@@ -24,12 +24,17 @@ where
 {
     macro_rules! check_specialized {
         ($src:expr, |$it:pat| $closure:expr) => {
-            let $it = $src.clone();
-            let v1 = $closure;
-            let $it = Unspecialized($src.clone());
-            let v2 = $closure;
-            assert_eq!(v1, v2);
-        };
+            // Many iterators special-case the first elements, so we test specializations for iterators that have already been advanced.
+            let mut src = $src.clone();
+            for _ in 0..5 {
+                let $it = src.clone();
+                let v1 = $closure;
+                let $it = Unspecialized(src.clone());
+                let v2 = $closure;
+                assert_eq!(v1, v2);
+                src.next();
+            }
+        }
     }
     check_specialized!(it, |i| i.count());
     check_specialized!(it, |i| i.last());
