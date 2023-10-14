@@ -129,6 +129,7 @@ quickcheck! {
 }
 
 quickcheck! {
+    // TODO Replace this function by a normal call to test_specializations
     fn process_results(v: Vec<Result<u8, u8>>) -> () {
         helper(v.iter().copied());
         helper(v.iter().copied().filter(Result::is_ok));
