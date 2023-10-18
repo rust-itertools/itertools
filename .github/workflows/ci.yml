@@ -65,12 +65,21 @@ jobs:
           components: rustfmt
       - run: cargo fmt --check
 
+  semver-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: obi1kenobi/cargo-semver-checks-action@v2.1
+        with:
+          rust-toolchain: stable
+          feature-group: all-features
+
   # Used to signal to branch protections that all other jobs have succeeded.
   all-jobs-succeed:
     name: All checks succeeded
     if: success()
     runs-on: ubuntu-latest
-    needs: [check, msrv, test, check-format, doc]
+    needs: [check, msrv, test, check-format, doc, semver-checks]
     steps:
       - name: Mark the job as successful
         run: exit 0
