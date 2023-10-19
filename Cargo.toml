@@ -71,3 +71,7 @@ harness = false
 [[bench]]
 name = "powerset"
 harness = false
+
+[[bench]]
+name = "specializations"
+harness = false
