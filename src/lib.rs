@@ -2499,7 +2499,8 @@ pub trait Itertools: Iterator {
     /// └─f─f─f─f─f─f
     /// ```
     ///
-    /// If `f` is associative, prefer the normal [`Iterator::reduce`] instead.
+    /// If `f` is non-associative, prefer the normal [`Iterator::reduce`] instead to prevent
+    /// unexpected behavior unless you know what you're doing.
     ///
     /// ```
     /// use itertools::Itertools;
