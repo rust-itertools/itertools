@@ -2499,8 +2499,18 @@ pub trait Itertools: Iterator {
     /// └─f─f─f─f─f─f
     /// ```
     ///
-    /// If `f` is non-associative, prefer the normal [`Iterator::reduce`] instead to prevent
-    /// unexpected behavior unless you know what you're doing.
+    /// If `f` is associative you should also decide carefully:
+    ///
+    /// - if `f` is a trivial operation like `u32::wrapping_add`, prefer the normal
+    /// [`Iterator::reduce`] instead since it will most likely result in the generation of simpler
+    /// code because the compiler is able to optimize it
+    /// - otherwise if `f` is non-trivial like `format!`, you should use `tree_fold1` since it
+    /// reduces the number of operations from `O(n)` to `O(ln(n))`
+    ///
+    /// Here "non-trivial" means:
+    ///
+    /// - any allocating operation
+    /// - any function that is a composition of many operations
     ///
     /// ```
     /// use itertools::Itertools;
