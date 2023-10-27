@@ -1,8 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use itertools::free::cloned;
+use itertools::iproduct;
 use itertools::Itertools;
-use itertools::Position;
-use itertools::{iproduct, EitherOrBoth};
 
 use std::cmp;
 use std::iter::repeat;
@@ -391,25 +390,6 @@ fn zip_unchecked_counted_loop3(c: &mut Criterion) {
     });
 }
 
-fn ziplongest(c: &mut Criterion) {
-    let v1 = black_box((0..768).collect_vec());
-    let v2 = black_box((0..1024).collect_vec());
-    c.bench_function("ziplongest", move |b| {
-        b.iter(|| {
-            let zip = v1.iter().zip_longest(v2.iter());
-            let sum = zip.fold(0u32, |mut acc, val| {
-                match val {
-                    EitherOrBoth::Both(x, y) => acc += x * y,
-                    EitherOrBoth::Left(x) => acc += x,
-                    EitherOrBoth::Right(y) => acc += y,
-                }
-                acc
-            });
-            sum
-        })
-    });
-}
-
 fn group_by_lazy_1(c: &mut Criterion) {
     let mut data = vec![0; 1024];
     for (index, elt) in data.iter_mut().enumerate() {
@@ -445,25 +425,6 @@ fn group_by_lazy_2(c: &mut Criterion) {
                 }
             }
         })
-    });
-}
-
-fn while_some(c: &mut Criterion) {
-    c.bench_function("while_some", |b| {
-        b.iter(|| {
-            let data = black_box(
-                (0..)
-                    .fuse()
-                    .map(|i| std::char::from_digit(i, 16))
-                    .while_some(),
-            );
-            // let result: String = data.fold(String::new(), |acc, ch| acc + &ch.to_string());
-            let result = data.fold(String::new(), |mut acc, ch| {
-                acc.push(ch);
-                acc
-            });
-            assert_eq!(result.as_str(), "0123456789abcdef");
-        });
     });
 }
 
@@ -703,22 +664,6 @@ fn cartesian_product_iterator(c: &mut Criterion) {
     });
 }
 
-fn cartesian_product_fold(c: &mut Criterion) {
-    let xs = vec![0; 16];
-
-    c.bench_function("cartesian product fold", move |b| {
-        b.iter(|| {
-            let mut sum = 0;
-            iproduct!(&xs, &xs, &xs).fold((), |(), (&x, &y, &z)| {
-                sum += x;
-                sum += y;
-                sum += z;
-            });
-            sum
-        })
-    });
-}
-
 fn multi_cartesian_product_iterator(c: &mut Criterion) {
     let xs = [vec![0; 16], vec![0; 16], vec![0; 16]];
 
@@ -730,22 +675,6 @@ fn multi_cartesian_product_iterator(c: &mut Criterion) {
                 sum += x[1];
                 sum += x[2];
             }
-            sum
-        })
-    });
-}
-
-fn multi_cartesian_product_fold(c: &mut Criterion) {
-    let xs = [vec![0; 16], vec![0; 16], vec![0; 16]];
-
-    c.bench_function("multi cartesian product fold", move |b| {
-        b.iter(|| {
-            let mut sum = 0;
-            xs.iter().multi_cartesian_product().fold((), |(), x| {
-                sum += x[0];
-                sum += x[1];
-                sum += x[2];
-            });
             sum
         })
     });
@@ -839,33 +768,6 @@ fn permutations_slice(c: &mut Criterion) {
     });
 }
 
-fn with_position_fold(c: &mut Criterion) {
-    let v = black_box((0..10240).collect_vec());
-    c.bench_function("with_position fold", move |b| {
-        b.iter(|| {
-            v.iter()
-                .with_position()
-                .fold(0, |acc, (pos, &item)| match pos {
-                    Position::Middle => acc + item,
-                    Position::First => acc - 2 * item,
-                    Position::Last => acc + 2 * item,
-                    Position::Only => acc + 5 * item,
-                })
-        })
-    });
-}
-
-fn tuple_combinations_fold(c: &mut Criterion) {
-    let v = black_box((0..64).collect_vec());
-    c.bench_function("tuple_combinations fold", move |b| {
-        b.iter(|| {
-            v.iter()
-                .tuple_combinations()
-                .fold(0, |acc, (a, b, c, d)| acc + *a * *c - *b * *d)
-        })
-    });
-}
-
 criterion_group!(
     benches,
     slice_iter,
@@ -887,7 +789,6 @@ criterion_group!(
     zipdot_i32_unchecked_counted_loop,
     zipdot_f32_unchecked_counted_loop,
     zip_unchecked_counted_loop3,
-    ziplongest,
     group_by_lazy_1,
     group_by_lazy_2,
     slice_chunks,
@@ -903,9 +804,7 @@ criterion_group!(
     step_range_2,
     step_range_10,
     cartesian_product_iterator,
-    cartesian_product_fold,
     multi_cartesian_product_iterator,
-    multi_cartesian_product_fold,
     cartesian_product_nested_for,
     all_equal,
     all_equal_for,
@@ -913,8 +812,5 @@ criterion_group!(
     permutations_iter,
     permutations_range,
     permutations_slice,
-    with_position_fold,
-    tuple_combinations_fold,
-    while_some,
 );
 criterion_main!(benches);
