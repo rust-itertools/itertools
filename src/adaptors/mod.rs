@@ -736,14 +736,14 @@ macro_rules! impl_tuple_combination {
             type Item = (A, $(ignore_ident!($X, A)),*);
 
             fn next(&mut self) -> Option<Self::Item> {
-                if let Some(($($X),*,)) = self.c.next() {
+                if let Some(($($X,)*)) = self.c.next() {
                     let z = self.item.clone().unwrap();
                     Some((z, $($X),*))
                 } else {
                     self.item = self.iter.next();
                     self.item.clone().and_then(|z| {
                         self.c = self.iter.clone().into();
-                        self.c.next().map(|($($X),*,)| (z, $($X),*))
+                        self.c.next().map(|($($X,)*)| (z, $($X),*))
                     })
                 }
             }
@@ -769,13 +769,13 @@ macro_rules! impl_tuple_combination {
                 let Self { c, item, mut iter } = self;
                 if let Some(z) = item.as_ref() {
                     init = c
-                        .map(|($($X),*,)| (z.clone(), $($X),*))
+                        .map(|($($X,)*)| (z.clone(), $($X),*))
                         .fold(init, &mut f);
                 }
                 while let Some(z) = iter.next() {
                     let c: $P<I> = iter.clone().into();
                     init = c
-                        .map(|($($X),*,)| (z.clone(), $($X),*))
+                        .map(|($($X,)*)| (z.clone(), $($X),*))
                         .fold(init, &mut f);
                 }
                 init
