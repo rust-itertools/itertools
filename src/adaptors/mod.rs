@@ -749,7 +749,7 @@ macro_rules! impl_tuple_combination {
             }
 
             fn size_hint(&self) -> SizeHint {
-                const K: usize = 1 + count_ident!($($X,)*);
+                const K: usize = 1 + count_ident!($($X)*);
                 let (mut n_min, mut n_max) = self.iter.size_hint();
                 n_min = checked_binomial(n_min, K).unwrap_or(usize::MAX);
                 n_max = n_max.and_then(|n| checked_binomial(n, K));
@@ -757,7 +757,7 @@ macro_rules! impl_tuple_combination {
             }
 
             fn count(self) -> usize {
-                const K: usize = 1 + count_ident!($($X,)*);
+                const K: usize = 1 + count_ident!($($X)*);
                 let n = self.iter.count();
                 checked_binomial(n, K).unwrap() + self.c.count()
             }
