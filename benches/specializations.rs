@@ -1,4 +1,5 @@
 use criterion::black_box;
+use itertools::iproduct;
 use itertools::Itertools;
 
 /// Create multiple functions each defining a benchmark group about iterator methods.
@@ -118,6 +119,38 @@ macro_rules! bench_specializations {
 // Example: To bench only `ZipLongest::fold`, you can do
 //     cargo bench --bench specializations zip_longest/fold
 bench_specializations! {
+    cartesian_product {
+        {
+            let v = black_box(vec![0; 16]);
+        }
+        iproduct!(&v, &v, &v)
+    }
+    multi_cartesian_product {
+        {
+            let vs = black_box([0; 3].map(|_| vec![0; 16]));
+        }
+        vs.iter().multi_cartesian_product()
+    }
+    tuple_combinations {
+        {
+            let v = black_box((0..64).collect_vec());
+        }
+        v.iter().tuple_combinations::<(_, _, _, _)>()
+    }
+    while_some {
+        {}
+        (0..)
+            .map(black_box)
+            .map(|i| char::from_digit(i, 16))
+            .while_some()
+    }
+    with_position {
+        ExactSizeIterator
+        {
+            let v = black_box((0..10240).collect_vec());
+        }
+        v.iter().with_position()
+    }
     zip_longest {
         DoubleEndedIterator
         ExactSizeIterator
