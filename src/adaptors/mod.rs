@@ -767,12 +767,11 @@ macro_rules! impl_tuple_combination {
                 F: FnMut(B, Self::Item) -> B,
             {
                 let Self { c, item, mut iter } = self;
-                init = c
-                    .map(|($($X),*,)| {
-                        let z = item.clone().unwrap();
-                        (z, $($X),*)
-                    })
-                    .fold(init, &mut f);
+                if let Some(z) = item.as_ref() {
+                    init = c
+                        .map(|($($X),*,)| (z.clone(), $($X),*))
+                        .fold(init, &mut f);
+                }
                 while let Some(z) = iter.next() {
                     let c: $P<I> = iter.clone().into();
                     init = c
