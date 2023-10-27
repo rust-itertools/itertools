@@ -345,7 +345,7 @@ macro_rules! impl_tuple_collect {
         impl_tuple_collect!($($Y,)*);
         impl<A> TupleCollect for ($(ignore_ident!($Y, A),)*) {
             type Item = A;
-            type Buffer = [Option<A>; count_ident!($($Y,)*) - 1];
+            type Buffer = [Option<A>; count_ident!($($Y)*) - 1];
 
             #[allow(unused_assignments, unused_mut)]
             fn collect_from_iter<I>(iter: I, buf: &mut Self::Buffer) -> Option<Self>
@@ -388,7 +388,7 @@ macro_rules! impl_tuple_collect {
             }
 
             fn num_items() -> usize {
-                count_ident!($($Y,)*)
+                count_ident!($($Y)*)
             }
 
             fn left_shift_push(&mut self, mut item: A) {
