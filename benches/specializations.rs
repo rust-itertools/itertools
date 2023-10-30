@@ -100,6 +100,19 @@ macro_rules! bench_specializations {
                 black_box(x);
             }
         }));
+        $group.bench_function("nth_back", |bencher| bencher.iter(|| {
+            for start in 0_usize..10 {
+                for n in 0..10 {
+                    let mut it = $iterator;
+                    if let Some(s) = start.checked_sub(1) {
+                        black_box(it.nth_back(s));
+                    }
+                    while let Some(x) = it.nth_back(n) {
+                        black_box(x);
+                    }
+                }
+            }
+        }));
         $group.bench_function("rfold", |bencher| bencher.iter(|| {
             $iterator.rfold((), |(), x| {
                 black_box(x);
