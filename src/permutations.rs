@@ -87,24 +87,18 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         {
-            let &mut Permutations {
-                ref mut vals,
-                ref mut state,
-            } = self;
-            match *state {
-                PermutationState::Start { k } => {
+            let Self { vals, state } = self;
+            match state {
+                &mut PermutationState::Start { k } => {
                     *state = PermutationState::Buffered { k, min_n: k };
                 }
-                PermutationState::Buffered { k, min_n } => {
+                PermutationState::Buffered { ref k, min_n } => {
                     if vals.get_next() {
-                        *state = PermutationState::Buffered {
-                            k,
-                            min_n: min_n + 1,
-                        };
+                        *min_n += 1;
                     } else {
-                        let n = min_n;
-                        let prev_iteration_count = n - k + 1;
-                        let mut complete_state = CompleteState::Start { n, k };
+                        let n = *min_n;
+                        let prev_iteration_count = n - *k + 1;
+                        let mut complete_state = CompleteState::Start { n, k: *k };
 
                         // Advance the complete-state iterator to the correct point
                         for _ in 0..(prev_iteration_count + 1) {
@@ -114,21 +108,18 @@ where
                         *state = PermutationState::Loaded(complete_state);
                     }
                 }
-                PermutationState::Loaded(ref mut state) => {
+                PermutationState::Loaded(state) => {
                     state.advance();
                 }
                 PermutationState::End => {}
             };
         }
-        let &mut Permutations {
-            ref vals,
-            ref state,
-        } = self;
-        match *state {
+        let Self { vals, state } = &self;
+        match state {
             PermutationState::Start { .. } => panic!("unexpected iterator state"),
-            PermutationState::Buffered { k, min_n } => {
-                let latest_idx = min_n - 1;
-                let indices = (0..(k - 1)).chain(once(latest_idx));
+            PermutationState::Buffered { ref k, min_n } => {
+                let latest_idx = *min_n - 1;
+                let indices = (0..(*k - 1)).chain(once(latest_idx));
 
                 Some(indices.map(|i| vals[i].clone()).collect())
             }
@@ -197,17 +188,13 @@ where
 
 impl CompleteState {
     fn advance(&mut self) {
-        *self = match *self {
-            CompleteState::Start { n, k } => {
+        match self {
+            &mut CompleteState::Start { n, k } => {
                 let indices = (0..n).collect();
                 let cycles = ((n - k)..n).rev().collect();
-
-                CompleteState::Ongoing { cycles, indices }
+                *self = CompleteState::Ongoing { cycles, indices };
             }
-            CompleteState::Ongoing {
-                ref mut indices,
-                ref mut cycles,
-            } => {
+            CompleteState::Ongoing { indices, cycles } => {
                 let n = indices.len();
                 let k = cycles.len();
 
@@ -225,28 +212,26 @@ impl CompleteState {
                         return;
                     }
                 }
-
-                CompleteState::Start { n, k }
+                *self = CompleteState::Start { n, k };
             }
         }
     }
 
     /// Returns the count of remaining permutations, or None if it would overflow.
     fn remaining(&self) -> Option<usize> {
-        match *self {
-            CompleteState::Start { n, k } => {
+        match self {
+            &CompleteState::Start { n, k } => {
                 if n < k {
                     return Some(0);
                 }
                 (n - k + 1..=n).try_fold(1usize, |acc, i| acc.checked_mul(i))
             }
-            CompleteState::Ongoing {
-                ref indices,
-                ref cycles,
-            } => cycles.iter().enumerate().try_fold(0usize, |acc, (i, &c)| {
-                acc.checked_mul(indices.len() - i)
-                    .and_then(|count| count.checked_add(c))
-            }),
+            CompleteState::Ongoing { indices, cycles } => {
+                cycles.iter().enumerate().try_fold(0usize, |acc, (i, &c)| {
+                    acc.checked_mul(indices.len() - i)
+                        .and_then(|count| count.checked_add(c))
+                })
+            }
         }
     }
 }
