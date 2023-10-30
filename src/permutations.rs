@@ -135,54 +135,16 @@ where
     }
 
     fn count(self) -> usize {
-        fn from_complete(complete_state: CompleteState) -> usize {
-            complete_state
-                .remaining()
-                .expect("Iterator count greater than usize::MAX")
-        }
-
-        let Permutations { vals, state } = self;
-        match state {
-            PermutationState::Start { k } => {
-                let n = vals.count();
-                let complete_state = CompleteState::Start { n, k };
-
-                from_complete(complete_state)
-            }
-            PermutationState::Buffered { k, min_n } => {
-                let prev_iteration_count = min_n - k + 1;
-                let n = vals.count();
-                let complete_state = CompleteState::Start { n, k };
-
-                from_complete(complete_state) - prev_iteration_count
-            }
-            PermutationState::Loaded(state) => from_complete(state),
-            PermutationState::End => 0,
-        }
+        let Self { vals, state } = self;
+        let n = vals.count();
+        state.size_hint_for(n).1.unwrap()
     }
 
     fn size_hint(&self) -> SizeHint {
-        let at_start = |k| {
-            // At the beginning, there are `n!/(n-k)!` items to come (see `remaining`) but `n` might be unknown.
-            let (mut low, mut upp) = self.vals.size_hint();
-            low = CompleteState::Start { n: low, k }
-                .remaining()
-                .unwrap_or(usize::MAX);
-            upp = upp.and_then(|n| CompleteState::Start { n, k }.remaining());
-            (low, upp)
-        };
-        match self.state {
-            PermutationState::Start { k } => at_start(k),
-            PermutationState::Buffered { k, min_n } => {
-                // Same as `Start` minus the previously generated items.
-                size_hint::sub_scalar(at_start(k), min_n - k + 1)
-            }
-            PermutationState::Loaded(ref state) => match state.remaining() {
-                Some(count) => (count, Some(count)),
-                None => (::std::usize::MAX, None),
-            },
-            PermutationState::End => (0, Some(0)),
-        }
+        let (mut low, mut upp) = self.vals.size_hint();
+        low = self.state.size_hint_for(low).0;
+        upp = upp.and_then(|n| self.state.size_hint_for(n).1);
+        (low, upp)
     }
 }
 
@@ -222,22 +184,34 @@ impl CompleteState {
             }
         }
     }
+}
 
-    /// Returns the count of remaining permutations, or None if it would overflow.
-    fn remaining(&self) -> Option<usize> {
-        match self {
-            &CompleteState::Start { n, k } => {
-                if n < k {
-                    return Some(0);
-                }
-                (n - k + 1..=n).try_fold(1usize, |acc, i| acc.checked_mul(i))
+impl PermutationState {
+    fn size_hint_for(&self, n: usize) -> SizeHint {
+        // At the beginning, there are `n!/(n-k)!` items to come.
+        let at_start = |n, k| {
+            debug_assert!(n >= k);
+            let total = (n - k + 1..=n).try_fold(1usize, |acc, i| acc.checked_mul(i));
+            (total.unwrap_or(usize::MAX), total)
+        };
+        match *self {
+            Self::Start { k } => at_start(n, k),
+            Self::Buffered { k, min_n } => {
+                // Same as `Start` minus the previously generated items.
+                size_hint::sub_scalar(at_start(n, k), min_n - k + 1)
             }
-            CompleteState::Ongoing { indices, cycles } => {
-                cycles.iter().enumerate().try_fold(0usize, |acc, (i, &c)| {
+            Self::Loaded(CompleteState::Start { n, k }) => at_start(n, k),
+            Self::Loaded(CompleteState::Ongoing {
+                ref indices,
+                ref cycles,
+            }) => {
+                let count = cycles.iter().enumerate().try_fold(0usize, |acc, (i, &c)| {
                     acc.checked_mul(indices.len() - i)
                         .and_then(|count| count.checked_add(c))
-                })
+                });
+                (count.unwrap_or(usize::MAX), count)
             }
+            Self::End => (0, Some(0)),
         }
     }
 }
