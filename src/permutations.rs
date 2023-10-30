@@ -26,10 +26,14 @@ where
 
 #[derive(Clone, Debug)]
 enum PermutationState {
-    StartUnknownLen { k: usize },
-    OngoingUnknownLen { k: usize, min_n: usize },
-    Complete(CompleteState),
-    Empty,
+    /// No permutation generated yet.
+    Start { k: usize },
+    /// Values from the iterator are not fully loaded yet so `n` is still unknown.
+    Buffered { k: usize, min_n: usize },
+    /// All values from the iterator are known so `n` is known.
+    Loaded(CompleteState),
+    /// No permutation left to generate.
+    End,
 }
 
 #[derive(Clone, Debug)]
@@ -57,7 +61,7 @@ pub fn permutations<I: Iterator>(iter: I, k: usize) -> Permutations<I> {
 
     if k == 0 {
         // Special case, yields single empty vec; `n` is irrelevant
-        let state = PermutationState::Complete(CompleteState::Start { n: 0, k: 0 });
+        let state = PermutationState::Loaded(CompleteState::Start { n: 0, k: 0 });
 
         return Permutations { vals, state };
     }
@@ -66,9 +70,9 @@ pub fn permutations<I: Iterator>(iter: I, k: usize) -> Permutations<I> {
     let enough_vals = vals.len() == k;
 
     let state = if enough_vals {
-        PermutationState::StartUnknownLen { k }
+        PermutationState::Start { k }
     } else {
-        PermutationState::Empty
+        PermutationState::End
     };
 
     Permutations { vals, state }
@@ -88,12 +92,12 @@ where
                 ref mut state,
             } = self;
             match *state {
-                PermutationState::StartUnknownLen { k } => {
-                    *state = PermutationState::OngoingUnknownLen { k, min_n: k };
+                PermutationState::Start { k } => {
+                    *state = PermutationState::Buffered { k, min_n: k };
                 }
-                PermutationState::OngoingUnknownLen { k, min_n } => {
+                PermutationState::Buffered { k, min_n } => {
                     if vals.get_next() {
-                        *state = PermutationState::OngoingUnknownLen {
+                        *state = PermutationState::Buffered {
                             k,
                             min_n: min_n + 1,
                         };
@@ -107,13 +111,13 @@ where
                             complete_state.advance();
                         }
 
-                        *state = PermutationState::Complete(complete_state);
+                        *state = PermutationState::Loaded(complete_state);
                     }
                 }
-                PermutationState::Complete(ref mut state) => {
+                PermutationState::Loaded(ref mut state) => {
                     state.advance();
                 }
-                PermutationState::Empty => {}
+                PermutationState::End => {}
             };
         }
         let &mut Permutations {
@@ -121,23 +125,21 @@ where
             ref state,
         } = self;
         match *state {
-            PermutationState::StartUnknownLen { .. } => panic!("unexpected iterator state"),
-            PermutationState::OngoingUnknownLen { k, min_n } => {
+            PermutationState::Start { .. } => panic!("unexpected iterator state"),
+            PermutationState::Buffered { k, min_n } => {
                 let latest_idx = min_n - 1;
                 let indices = (0..(k - 1)).chain(once(latest_idx));
 
                 Some(indices.map(|i| vals[i].clone()).collect())
             }
-            PermutationState::Complete(CompleteState::Ongoing {
+            PermutationState::Loaded(CompleteState::Ongoing {
                 ref indices,
                 ref cycles,
             }) => {
                 let k = cycles.len();
                 Some(indices[0..k].iter().map(|&i| vals[i].clone()).collect())
             }
-            PermutationState::Complete(CompleteState::Start { .. }) | PermutationState::Empty => {
-                None
-            }
+            PermutationState::Loaded(CompleteState::Start { .. }) | PermutationState::End => None,
         }
     }
 
@@ -150,21 +152,21 @@ where
 
         let Permutations { vals, state } = self;
         match state {
-            PermutationState::StartUnknownLen { k } => {
+            PermutationState::Start { k } => {
                 let n = vals.count();
                 let complete_state = CompleteState::Start { n, k };
 
                 from_complete(complete_state)
             }
-            PermutationState::OngoingUnknownLen { k, min_n } => {
+            PermutationState::Buffered { k, min_n } => {
                 let prev_iteration_count = min_n - k + 1;
                 let n = vals.count();
                 let complete_state = CompleteState::Start { n, k };
 
                 from_complete(complete_state) - prev_iteration_count
             }
-            PermutationState::Complete(state) => from_complete(state),
-            PermutationState::Empty => 0,
+            PermutationState::Loaded(state) => from_complete(state),
+            PermutationState::End => 0,
         }
     }
 
@@ -179,16 +181,16 @@ where
             (low, upp)
         };
         match self.state {
-            PermutationState::StartUnknownLen { k } => at_start(k),
-            PermutationState::OngoingUnknownLen { k, min_n } => {
-                // Same as `StartUnknownLen` minus the previously generated items.
+            PermutationState::Start { k } => at_start(k),
+            PermutationState::Buffered { k, min_n } => {
+                // Same as `Start` minus the previously generated items.
                 size_hint::sub_scalar(at_start(k), min_n - k + 1)
             }
-            PermutationState::Complete(ref state) => match state.remaining() {
+            PermutationState::Loaded(ref state) => match state.remaining() {
                 Some(count) => (count, Some(count)),
                 None => (::std::usize::MAX, None),
             },
-            PermutationState::Empty => (0, Some(0)),
+            PermutationState::End => (0, Some(0)),
         }
     }
 }
