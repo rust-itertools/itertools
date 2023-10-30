@@ -186,6 +186,24 @@ where
     }
 }
 
+fn advance(indices: &mut [usize], cycles: &mut [usize]) -> bool {
+    let n = indices.len();
+    let k = cycles.len();
+    // NOTE: if `cycles` are only zeros, then we reached the last permutation.
+    for i in (0..k).rev() {
+        if cycles[i] == 0 {
+            cycles[i] = n - i - 1;
+            indices[i..].rotate_left(1);
+        } else {
+            let swap_index = n - cycles[i];
+            indices.swap(i, swap_index);
+            cycles[i] -= 1;
+            return false;
+        }
+    }
+    true
+}
+
 impl CompleteState {
     fn advance(&mut self) {
         match self {
@@ -195,24 +213,12 @@ impl CompleteState {
                 *self = CompleteState::Ongoing { cycles, indices };
             }
             CompleteState::Ongoing { indices, cycles } => {
-                let n = indices.len();
-                let k = cycles.len();
-
-                for i in (0..k).rev() {
-                    if cycles[i] == 0 {
-                        cycles[i] = n - i - 1;
-
-                        let to_push = indices.remove(i);
-                        indices.push(to_push);
-                    } else {
-                        let swap_index = n - cycles[i];
-                        indices.swap(i, swap_index);
-
-                        cycles[i] -= 1;
-                        return;
-                    }
+                if advance(indices, cycles) {
+                    *self = CompleteState::Start {
+                        n: indices.len(),
+                        k: cycles.len(),
+                    };
                 }
-                *self = CompleteState::Start { n, k };
             }
         }
     }
