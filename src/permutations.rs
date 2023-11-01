@@ -30,22 +30,18 @@ enum PermutationState {
     Start { k: usize },
     /// Values from the iterator are not fully loaded yet so `n` is still unknown.
     Buffered { k: usize, min_n: usize },
-    /// All values from the iterator are known so `n` is known.
-    Loaded(CompleteState),
-    /// No permutation left to generate.
-    End,
-}
-
-#[derive(Clone, Debug)]
-enum CompleteState {
-    Start {
+    // Temporary state that will be discarded soon!
+    LoadedStart {
         n: usize,
         k: usize,
     },
-    Ongoing {
+    /// All values from the iterator are known so `n` is known.
+    LoadedOngoing {
         indices: Vec<usize>,
         cycles: Vec<usize>,
     },
+    /// No permutation left to generate.
+    End,
 }
 
 impl<I> fmt::Debug for Permutations<I>
@@ -61,7 +57,7 @@ pub fn permutations<I: Iterator>(iter: I, k: usize) -> Permutations<I> {
 
     if k == 0 {
         // Special case, yields single empty vec; `n` is irrelevant
-        let state = PermutationState::Loaded(CompleteState::Start { n: 0, k: 0 });
+        let state = PermutationState::LoadedStart { n: 0, k: 0 };
 
         return Permutations { vals, state };
     }
@@ -98,18 +94,36 @@ where
                     } else {
                         let n = *min_n;
                         let prev_iteration_count = n - *k + 1;
-                        let mut complete_state = CompleteState::Start { n, k: *k };
-
-                        // Advance the complete-state iterator to the correct point
-                        for _ in 0..(prev_iteration_count + 1) {
-                            complete_state.advance();
+                        let mut indices: Vec<_> = (0..n).collect();
+                        let mut cycles: Vec<_> = (n - k..n).rev().collect();
+                        let mut found_something = false;
+                        // Advance the state to the correct point.
+                        for _ in 0..prev_iteration_count {
+                            if advance(&mut indices, &mut cycles) {
+                                *state = PermutationState::LoadedStart {
+                                    n: indices.len(),
+                                    k: cycles.len(),
+                                };
+                                found_something = true;
+                            }
                         }
-
-                        *state = PermutationState::Loaded(complete_state);
+                        if !found_something {
+                            *state = PermutationState::LoadedOngoing { indices, cycles };
+                        }
                     }
                 }
-                PermutationState::Loaded(state) => {
-                    state.advance();
+                &mut PermutationState::LoadedStart { n, k } => {
+                    let indices = (0..n).collect();
+                    let cycles = (n - k..n).rev().collect();
+                    *state = PermutationState::LoadedOngoing { cycles, indices };
+                }
+                PermutationState::LoadedOngoing { indices, cycles } => {
+                    if advance(indices, cycles) {
+                        *state = PermutationState::LoadedStart {
+                            n: indices.len(),
+                            k: cycles.len(),
+                        };
+                    }
                 }
                 PermutationState::End => {}
             };
@@ -123,14 +137,14 @@ where
 
                 Some(indices.map(|i| vals[i].clone()).collect())
             }
-            PermutationState::Loaded(CompleteState::Ongoing {
+            PermutationState::LoadedOngoing {
                 ref indices,
                 ref cycles,
-            }) => {
+            } => {
                 let k = cycles.len();
                 Some(indices[0..k].iter().map(|&i| vals[i].clone()).collect())
             }
-            PermutationState::Loaded(CompleteState::Start { .. }) | PermutationState::End => None,
+            PermutationState::LoadedStart { .. } | PermutationState::End => None,
         }
     }
 
@@ -166,26 +180,6 @@ fn advance(indices: &mut [usize], cycles: &mut [usize]) -> bool {
     true
 }
 
-impl CompleteState {
-    fn advance(&mut self) {
-        match self {
-            &mut CompleteState::Start { n, k } => {
-                let indices = (0..n).collect();
-                let cycles = ((n - k)..n).rev().collect();
-                *self = CompleteState::Ongoing { cycles, indices };
-            }
-            CompleteState::Ongoing { indices, cycles } => {
-                if advance(indices, cycles) {
-                    *self = CompleteState::Start {
-                        n: indices.len(),
-                        k: cycles.len(),
-                    };
-                }
-            }
-        }
-    }
-}
-
 impl PermutationState {
     fn size_hint_for(&self, n: usize) -> SizeHint {
         // At the beginning, there are `n!/(n-k)!` items to come.
@@ -200,11 +194,11 @@ impl PermutationState {
                 // Same as `Start` minus the previously generated items.
                 size_hint::sub_scalar(at_start(n, k), min_n - k + 1)
             }
-            Self::Loaded(CompleteState::Start { n, k }) => at_start(n, k),
-            Self::Loaded(CompleteState::Ongoing {
+            Self::LoadedStart { n, k } => at_start(n, k),
+            Self::LoadedOngoing {
                 ref indices,
                 ref cycles,
-            }) => {
+            } => {
                 let count = cycles.iter().enumerate().try_fold(0usize, |acc, (i, &c)| {
                     acc.checked_mul(indices.len() - i)
                         .and_then(|count| count.checked_add(c))
