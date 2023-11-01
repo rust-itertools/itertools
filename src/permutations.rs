@@ -86,16 +86,21 @@ where
         match state {
             &mut PermutationState::Start { k } => {
                 *state = PermutationState::Buffered { k, min_n: k };
+                let latest_idx = k - 1;
+                let indices = (0..(k - 1)).chain(once(latest_idx));
+                Some(indices.map(|i| vals[i].clone()).collect())
             }
             PermutationState::Buffered { ref k, min_n } => {
                 if vals.get_next() {
                     *min_n += 1;
+                    let latest_idx = *min_n - 1;
+                    let indices = (0..*k - 1).chain(once(latest_idx));
+                    Some(indices.map(|i| vals[i].clone()).collect())
                 } else {
                     let n = *min_n;
                     let prev_iteration_count = n - *k + 1;
                     let mut indices: Vec<_> = (0..n).collect();
                     let mut cycles: Vec<_> = (n - k..n).rev().collect();
-                    let mut found_something = false;
                     // Advance the state to the correct point.
                     for _ in 0..prev_iteration_count {
                         if advance(&mut indices, &mut cycles) {
@@ -103,18 +108,20 @@ where
                                 n: indices.len(),
                                 k: cycles.len(),
                             };
-                            found_something = true;
+                            return None;
                         }
                     }
-                    if !found_something {
-                        *state = PermutationState::LoadedOngoing { indices, cycles };
-                    }
+                    let item = indices[0..*k].iter().map(|&i| vals[i].clone()).collect();
+                    *state = PermutationState::LoadedOngoing { indices, cycles };
+                    Some(item)
                 }
             }
             &mut PermutationState::LoadedStart { n, k } => {
-                let indices = (0..n).collect();
+                let indices: Vec<_> = (0..n).collect();
                 let cycles = (n - k..n).rev().collect();
+                let item = indices[0..k].iter().map(|&i| vals[i].clone()).collect();
                 *state = PermutationState::LoadedOngoing { cycles, indices };
+                Some(item)
             }
             PermutationState::LoadedOngoing { indices, cycles } => {
                 if advance(indices, cycles) {
@@ -122,27 +129,12 @@ where
                         n: indices.len(),
                         k: cycles.len(),
                     };
+                    return None;
                 }
-            }
-            PermutationState::End => {}
-        };
-        let Self { vals, state } = &self;
-        match state {
-            PermutationState::Start { .. } => panic!("unexpected iterator state"),
-            PermutationState::Buffered { ref k, min_n } => {
-                let latest_idx = *min_n - 1;
-                let indices = (0..(*k - 1)).chain(once(latest_idx));
-
-                Some(indices.map(|i| vals[i].clone()).collect())
-            }
-            PermutationState::LoadedOngoing {
-                ref indices,
-                ref cycles,
-            } => {
                 let k = cycles.len();
                 Some(indices[0..k].iter().map(|&i| vals[i].clone()).collect())
             }
-            PermutationState::LoadedStart { .. } | PermutationState::End => None,
+            PermutationState::End => None,
         }
     }
 
