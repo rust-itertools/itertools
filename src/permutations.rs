@@ -1,6 +1,7 @@
 use alloc::vec::Vec;
 use std::fmt;
 use std::iter::once;
+use std::iter::FusedIterator;
 
 use super::lazy_buffer::LazyBuffer;
 use crate::size_hint::{self, SizeHint};
@@ -129,6 +130,13 @@ where
         upp = upp.and_then(|n| self.state.size_hint_for(n).1);
         (low, upp)
     }
+}
+
+impl<I> FusedIterator for Permutations<I>
+where
+    I: Iterator,
+    I::Item: Clone,
+{
 }
 
 fn advance(indices: &mut [usize], cycles: &mut [usize]) -> bool {
