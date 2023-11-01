@@ -78,16 +78,16 @@ where
             }
             &mut PermutationState::Start { k } => {
                 *state = PermutationState::Buffered { k, min_n: k };
-                let latest_idx = k - 1;
-                let indices = (0..(k - 1)).chain(once(latest_idx));
-                Some(indices.map(|i| vals[i].clone()).collect())
+                Some(vals[0..k].to_vec())
             }
             PermutationState::Buffered { ref k, min_n } => {
                 if vals.get_next() {
+                    let item = (0..*k - 1)
+                        .chain(once(*min_n))
+                        .map(|i| vals[i].clone())
+                        .collect();
                     *min_n += 1;
-                    let latest_idx = *min_n - 1;
-                    let indices = (0..*k - 1).chain(once(latest_idx));
-                    Some(indices.map(|i| vals[i].clone()).collect())
+                    Some(item)
                 } else {
                     let n = *min_n;
                     let prev_iteration_count = n - *k + 1;
