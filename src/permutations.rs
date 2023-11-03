@@ -49,18 +49,10 @@ where
 }
 
 pub fn permutations<I: Iterator>(iter: I, k: usize) -> Permutations<I> {
-    let mut vals = LazyBuffer::new(iter);
-
-    vals.prefill(k);
-    let enough_vals = vals.len() == k;
-
-    let state = if enough_vals {
-        PermutationState::Start { k }
-    } else {
-        PermutationState::End
-    };
-
-    Permutations { vals, state }
+    Permutations {
+        vals: LazyBuffer::new(iter),
+        state: PermutationState::Start { k },
+    }
 }
 
 impl<I> Iterator for Permutations<I>
@@ -78,6 +70,11 @@ where
                 Some(Vec::new())
             }
             &mut PermutationState::Start { k } => {
+                vals.prefill(k);
+                if vals.len() != k {
+                    *state = PermutationState::End;
+                    return None;
+                }
                 *state = PermutationState::Buffered { k, min_n: k };
                 Some(vals[0..k].to_vec())
             }
@@ -166,6 +163,7 @@ impl PermutationState {
             (total.unwrap_or(usize::MAX), total)
         };
         match *self {
+            Self::Start { k } if n < k => (0, Some(0)),
             Self::Start { k } => at_start(n, k),
             Self::Buffered { k, min_n } => {
                 // Same as `Start` minus the previously generated items.
