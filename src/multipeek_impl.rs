@@ -7,6 +7,7 @@ use std::iter::Fuse;
 
 /// See [`multipeek()`] for more information.
 #[derive(Clone, Debug)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct MultiPeek<I>
 where
     I: Iterator,

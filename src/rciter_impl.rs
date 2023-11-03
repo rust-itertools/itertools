@@ -4,6 +4,7 @@ use std::iter::{FusedIterator, IntoIterator};
 
 /// A wrapper for `Rc<RefCell<I>>`, that implements the `Iterator` trait.
 #[derive(Debug)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct RcIter<I> {
     /// The boxed iterator.
     pub rciter: Rc<RefCell<I>>,
