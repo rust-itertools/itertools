@@ -1044,7 +1044,7 @@ fn combinations_inexact_size_hints() {
         let len = binomial(real_n, k);
         assert_eq!(len, it.clone().count());
 
-        let mut nb_loaded = numbers.by_ref().take(k).count(); // because of `LazyBuffer::prefill(k)`
+        let mut nb_loaded = 0;
         let sh = numbers.size_hint();
         assert_eq!(binomial(sh.0 + nb_loaded, k), it.size_hint().0);
         assert_eq!(sh.1.map(|n| binomial(n + nb_loaded, k)), it.size_hint().1);
@@ -1053,8 +1053,10 @@ fn combinations_inexact_size_hints() {
             let elem = it.next();
             assert!(elem.is_some());
             assert_eq!(len - next_count, it.clone().count());
-            // It does not load anything more the very first time (it's prefilled).
-            if next_count > 1 {
+            if next_count == 1 {
+                // The very first time, the lazy buffer is prefilled.
+                nb_loaded = numbers.by_ref().take(k).count();
+            } else {
                 // Then it loads one item each time until exhausted.
                 let nb = numbers.next();
                 if nb.is_some() {
