@@ -37,12 +37,9 @@ pub fn combinations<I>(iter: I, k: usize) -> Combinations<I>
 where
     I: Iterator,
 {
-    let mut pool = LazyBuffer::new(iter);
-    pool.prefill(k);
-
     Combinations {
         indices: (0..k).collect(),
-        pool,
+        pool: LazyBuffer::new(iter),
         first: true,
     }
 }
@@ -107,6 +104,7 @@ where
     type Item = Vec<I::Item>;
     fn next(&mut self) -> Option<Self::Item> {
         if self.first {
+            self.pool.prefill(self.k());
             if self.k() > self.n() {
                 return None;
             }
