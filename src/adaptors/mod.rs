@@ -185,6 +185,7 @@ where
 /// item to the front of the iterator.
 ///
 /// Iterator element type is `I::Item`.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct PutBack<I>
 where
     I: Iterator,

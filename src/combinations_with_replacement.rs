@@ -10,6 +10,7 @@ use crate::adaptors::checked_binomial;
 /// See [`.combinations_with_replacement()`](crate::Itertools::combinations_with_replacement)
 /// for more information.
 #[derive(Clone)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct CombinationsWithReplacement<I>
 where
     I: Iterator,

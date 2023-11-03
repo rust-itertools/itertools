@@ -7,6 +7,7 @@ use crate::size_hint;
 ///
 /// Iterator element type is `I::Item`.
 #[derive(Debug, Clone)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct PutBackN<I: Iterator> {
     top: Vec<I::Item>,
     iter: I,
