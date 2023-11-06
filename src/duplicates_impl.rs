@@ -122,7 +122,7 @@ mod private {
     }
 
     /// Apply the identity function to elements before checking them for equality.
-    #[derive(Debug)]
+    #[derive(Debug, Clone)]
     pub struct ById;
     impl<V> KeyMethod<V, V> for ById {
         type Container = JustValue<V>;
@@ -133,6 +133,7 @@ mod private {
     }
 
     /// Apply a user-supplied function to elements before checking them for equality.
+    #[derive(Clone)]
     pub struct ByFn<F>(pub(crate) F);
     impl<F> fmt::Debug for ByFn<F> {
         debug_fmt_fields!(ByFn,);
