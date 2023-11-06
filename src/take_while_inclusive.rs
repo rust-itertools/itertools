@@ -8,6 +8,7 @@ use std::fmt;
 /// See [`.take_while_inclusive()`](crate::Itertools::take_while_inclusive)
 /// for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+#[derive(Clone)]
 pub struct TakeWhileInclusive<I, F> {
     iter: I,
     predicate: F,
