@@ -295,3 +295,22 @@ where
 {
     iterable.into_iter().sorted()
 }
+
+/// Sort all iterator elements into a new iterator in ascending order.
+/// This sort is unstable (i.e., may reorder equal elements).
+/// [`IntoIterator`] enabled version of [`Itertools::sorted_unstable`].
+///
+/// ```
+/// use itertools::sorted_unstable;
+/// use itertools::assert_equal;
+///
+/// assert_equal(sorted_unstable("rust".chars()), "rstu".chars());
+/// ```
+#[cfg(feature = "use_alloc")]
+pub fn sorted_unstable<I>(iterable: I) -> VecIntoIter<I::Item>
+where
+    I: IntoIterator,
+    I::Item: Ord,
+{
+    iterable.into_iter().sorted_unstable()
+}
