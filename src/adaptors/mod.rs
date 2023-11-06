@@ -935,6 +935,7 @@ where
 ///
 /// See [`.filter_map_ok()`](crate::Itertools::filter_map_ok) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+#[derive(Clone)]
 pub struct FilterMapOk<I, F> {
     iter: I,
     f: F,
