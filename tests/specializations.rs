@@ -1,7 +1,7 @@
 #![allow(unstable_name_collisions)]
 
 use itertools::Itertools;
-use quickcheck::quickcheck;
+use quickcheck::{quickcheck, TestResult};
 use std::fmt::Debug;
 
 struct Unspecialized<I>(I);
@@ -76,18 +76,143 @@ where
 }
 
 quickcheck! {
+    fn interleave(v: Vec<u8>, w: Vec<u8>) -> () {
+        test_specializations(&v.iter().interleave(w.iter()));
+    }
+
+    fn interleave_shortest(v: Vec<u8>, w: Vec<u8>) -> () {
+        test_specializations(&v.iter().interleave_shortest(w.iter()));
+    }
+
+    fn batching(v: Vec<u8>) -> () {
+        test_specializations(&v.iter().batching(Iterator::next));
+    }
+
+    fn tuple_windows(v: Vec<u8>) -> () {
+        test_specializations(&v.iter().tuple_windows::<(_,)>());
+        test_specializations(&v.iter().tuple_windows::<(_, _)>());
+        test_specializations(&v.iter().tuple_windows::<(_, _, _)>());
+    }
+
+    fn circular_tuple_windows(v: Vec<u8>) -> () {
+        test_specializations(&v.iter().circular_tuple_windows::<(_,)>());
+        test_specializations(&v.iter().circular_tuple_windows::<(_, _)>());
+        test_specializations(&v.iter().circular_tuple_windows::<(_, _, _)>());
+    }
+
+    fn tuples(v: Vec<u8>) -> () {
+        test_specializations(&v.iter().tuples::<(_,)>());
+        test_specializations(&v.iter().tuples::<(_, _)>());
+        test_specializations(&v.iter().tuples::<(_, _, _)>());
+    }
+
+    fn cartesian_product(a: Vec<u8>, b: Vec<u8>) -> TestResult {
+        if a.len() * b.len() > 100 {
+            return TestResult::discard();
+        }
+        test_specializations(&a.iter().cartesian_product(&b));
+        TestResult::passed()
+    }
+
+    fn coalesce(v: Vec<u8>) -> () {
+        test_specializations(&v.iter().coalesce(|x, y| if x == y { Ok(x) } else { Err((x, y)) }))
+    }
+
+    fn dedup(v: Vec<u8>) -> () {
+        test_specializations(&v.iter().dedup())
+    }
+
+    fn dedup_by(v: Vec<u8>) -> () {
+        test_specializations(&v.iter().dedup_by(PartialOrd::ge))
+    }
+
+    fn dedup_with_count(v: Vec<u8>) -> () {
+        test_specializations(&v.iter().dedup_with_count())
+    }
+
+    fn dedup_by_with_count(v: Vec<u8>) -> () {
+        test_specializations(&v.iter().dedup_by_with_count(PartialOrd::ge))
+    }
+
+    fn duplicates(v: Vec<u8>) -> () {
+        test_specializations(&v.iter().duplicates());
+    }
+
+    fn duplicates_by(v: Vec<u8>) -> () {
+        test_specializations(&v.iter().duplicates_by(|x| *x % 10));
+    }
+
+    fn unique(v: Vec<u8>) -> () {
+        test_specializations(&v.iter().unique());
+    }
+
+    fn unique_by(v: Vec<u8>) -> () {
+        test_specializations(&v.iter().unique_by(|x| *x % 50));
+    }
+
+    fn take_while_inclusive(v: Vec<u8>) -> () {
+        test_specializations(&v.iter().copied().take_while_inclusive(|&x| x < 100));
+    }
+
+    fn while_some(v: Vec<u8>) -> () {
+        test_specializations(&v.iter().map(|&x| if x < 100 { Some(2 * x) } else { None }).while_some());
+    }
+
+    fn pad_using(v: Vec<u8>) -> () {
+        use std::convert::TryFrom;
+        test_specializations(&v.iter().copied().pad_using(10, |i| u8::try_from(5 * i).unwrap_or(u8::MAX)));
+    }
+
     fn with_position(v: Vec<u8>) -> () {
         test_specializations(&v.iter().with_position());
+    }
+
+    fn positions(v: Vec<u8>) -> () {
+        test_specializations(&v.iter().positions(|x| x % 5 == 0));
+    }
+
+    fn update(v: Vec<u8>) -> () {
+        test_specializations(&v.iter().copied().update(|x| *x = x.wrapping_mul(7)));
     }
 
     fn tuple_combinations(v: Vec<u8>) -> () {
         let mut v = v;
         v.truncate(10);
+        test_specializations(&v.iter().tuple_combinations::<(_,)>());
+        test_specializations(&v.iter().tuple_combinations::<(_, _)>());
         test_specializations(&v.iter().tuple_combinations::<(_, _, _)>());
     }
 
     fn intersperse(v: Vec<u8>) -> () {
         test_specializations(&v.into_iter().intersperse(0));
+    }
+
+    fn intersperse_with(v: Vec<u8>) -> () {
+        test_specializations(&v.into_iter().intersperse_with(|| 0));
+    }
+
+    fn combinations(a: Vec<u8>, n: u8) -> TestResult {
+        if n > 3 || a.len() > 8 {
+            return TestResult::discard();
+        }
+        test_specializations(&a.iter().combinations(n as usize));
+        TestResult::passed()
+    }
+
+    fn combinations_with_replacement(a: Vec<u8>, n: u8) -> TestResult {
+        if n > 3 || a.len() > 7 {
+            return TestResult::discard();
+        }
+        test_specializations(&a.iter().combinations_with_replacement(n as usize));
+        TestResult::passed()
+    }
+
+    fn permutations(a: Vec<u8>, n: u8) -> TestResult {
+        if n > 3 || a.len() > 8 {
+            return TestResult::discard();
+        }
+        test_specializations(&a.iter().permutations(n as usize));
+        TestResult::passed()
     }
 
     fn powerset(a: Vec<u8>) -> () {
@@ -99,6 +224,27 @@ quickcheck! {
     fn zip_longest(a: Vec<u8>, b: Vec<u8>) -> () {
         test_specializations(&a.into_iter().zip_longest(b))
     }
+
+    fn zip_eq(a: Vec<u8>) -> () {
+        test_specializations(&a.iter().zip_eq(a.iter().rev()))
+    }
+
+    fn multizip(a: Vec<u8>) -> () {
+        let its = (a.iter(), a.iter().rev(), a.iter().take(50));
+        test_specializations(&itertools::multizip(its));
+    }
+
+    fn izip(a: Vec<u8>, b: Vec<u8>) -> () {
+        test_specializations(&itertools::izip!(b.iter(), a, b.iter().rev()));
+    }
+
+    fn iproduct(a: Vec<u8>, b: Vec<u8>, c: Vec<u8>) -> TestResult {
+        if a.len() * b.len() * c.len() > 200 {
+            return TestResult::discard();
+        }
+        test_specializations(&itertools::iproduct!(a, b.iter(), c));
+        TestResult::passed()
+    }
 }
 
 quickcheck! {
@@ -108,11 +254,85 @@ quickcheck! {
         pb.put_back(1);
         test_specializations(&pb);
     }
+
+    fn put_back_n(v: Vec<u8>, n: u8) -> () {
+        let mut it = itertools::put_back_n(v);
+        for k in 0..n {
+            it.put_back(k);
+        }
+        test_specializations(&it);
+    }
+
+    fn multipeek(v: Vec<u8>, n: u8) -> () {
+        let mut it = v.into_iter().multipeek();
+        for _ in 0..n {
+            it.peek();
+        }
+        test_specializations(&it);
+    }
+
+    fn peek_nth_with_peek(v: Vec<u8>, n: u8) -> () {
+        let mut it = itertools::peek_nth(v);
+        for _ in 0..n {
+            it.peek();
+        }
+        test_specializations(&it);
+    }
+
+    fn peek_nth_with_peek_nth(v: Vec<u8>, n: u8) -> () {
+        let mut it = itertools::peek_nth(v);
+        it.peek_nth(n as usize);
+        test_specializations(&it);
+    }
+
+    fn peek_nth_with_peek_mut(v: Vec<u8>, n: u8) -> () {
+        let mut it = itertools::peek_nth(v);
+        for _ in 0..n {
+            if let Some(x) = it.peek_mut() {
+                *x = x.wrapping_add(50);
+            }
+        }
+        test_specializations(&it);
+    }
+
+    fn peek_nth_with_peek_nth_mut(v: Vec<u8>, n: u8) -> () {
+        let mut it = itertools::peek_nth(v);
+        if let Some(x) = it.peek_nth_mut(n as usize) {
+            *x = x.wrapping_add(50);
+        }
+        test_specializations(&it);
+    }
 }
 
 quickcheck! {
-    fn merge_join_by_qc(i1: Vec<usize>, i2: Vec<usize>) -> () {
-        test_specializations(&i1.into_iter().merge_join_by(i2.into_iter(), std::cmp::Ord::cmp));
+    fn merge(a: Vec<u8>, b: Vec<u8>) -> () {
+        test_specializations(&a.into_iter().merge(b))
+    }
+
+    fn merge_by(a: Vec<u8>, b: Vec<u8>) -> () {
+        test_specializations(&a.into_iter().merge_by(b, PartialOrd::ge))
+    }
+
+    fn merge_join_by_ordering(i1: Vec<u8>, i2: Vec<u8>) -> () {
+        test_specializations(&i1.into_iter().merge_join_by(i2, Ord::cmp));
+    }
+
+    fn merge_join_by_bool(i1: Vec<u8>, i2: Vec<u8>) -> () {
+        test_specializations(&i1.into_iter().merge_join_by(i2, PartialOrd::ge));
+    }
+
+    fn kmerge(a: Vec<i8>, b: Vec<i8>, c: Vec<i8>) -> () {
+        test_specializations(&vec![a, b, c]
+            .into_iter()
+            .map(|v| v.into_iter().sorted())
+            .kmerge());
+    }
+
+    fn kmerge_by(a: Vec<i8>, b: Vec<i8>, c: Vec<i8>) -> () {
+        test_specializations(&vec![a, b, c]
+            .into_iter()
+            .map(|v| v.into_iter().sorted_by_key(|a| a.abs()))
+            .kmerge_by(|a, b| a.abs() < b.abs()));
     }
 }
 
@@ -120,11 +340,22 @@ quickcheck! {
     fn map_into(v: Vec<u8>) -> () {
         test_specializations(&v.into_iter().map_into::<u32>());
     }
-}
 
-quickcheck! {
     fn map_ok(v: Vec<Result<u8, char>>) -> () {
         test_specializations(&v.into_iter().map_ok(|u| u.checked_add(1)));
+    }
+
+    fn filter_ok(v: Vec<Result<u8, char>>) -> () {
+        test_specializations(&v.into_iter().filter_ok(|&i| i < 20));
+    }
+
+    fn filter_map_ok(v: Vec<Result<u8, char>>) -> () {
+        test_specializations(&v.into_iter().filter_map_ok(|i| if i < 20 { Some(i * 2) } else { None }));
+    }
+
+    // `Option<u8>` because `Vec<u8>` would be very slow!! And we can't give `[u8; 3]`.
+    fn flatten_ok(v: Vec<Result<Option<u8>, char>>) -> () {
+        test_specializations(&v.into_iter().flatten_ok());
     }
 }
 
