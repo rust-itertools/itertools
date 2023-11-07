@@ -365,15 +365,13 @@ where
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let has_cur = matches!(self.a_cur, Some(Some(_))) as usize;
         // Not ExactSizeIterator because size may be larger than usize
-        let (b_min, b_max) = self.b.size_hint();
-
         // Compute a * b_orig + b for both lower and upper bound
-        size_hint::add(
-            size_hint::mul(self.a.size_hint(), self.b_orig.size_hint()),
-            (b_min * has_cur, b_max.map(move |x| x * has_cur)),
-        )
+        let mut sh = size_hint::mul(self.a.size_hint(), self.b_orig.size_hint());
+        if matches!(self.a_cur, Some(Some(_))) {
+            sh = size_hint::add(sh, self.b.size_hint());
+        }
+        sh
     }
 
     fn fold<Acc, G>(self, mut accum: Acc, mut f: G) -> Acc
