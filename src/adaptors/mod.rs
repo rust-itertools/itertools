@@ -308,7 +308,7 @@ where
     I: Iterator,
 {
     a: I,
-    a_cur: Option<I::Item>,
+    a_cur: Option<Option<I::Item>>,
     b: J,
     b_orig: J,
 }
@@ -316,14 +316,14 @@ where
 /// Create a new cartesian product iterator
 ///
 /// Iterator element type is `(I::Item, J::Item)`.
-pub fn cartesian_product<I, J>(mut i: I, j: J) -> Product<I, J>
+pub fn cartesian_product<I, J>(i: I, j: J) -> Product<I, J>
 where
     I: Iterator,
     J: Clone + Iterator,
     I::Item: Clone,
 {
     Product {
-        a_cur: i.next(),
+        a_cur: None,
         a: i,
         b: j.clone(),
         b_orig: j,
@@ -339,24 +339,33 @@ where
     type Item = (I::Item, J::Item);
 
     fn next(&mut self) -> Option<Self::Item> {
-        let elt_b = match self.b.next() {
+        let Self {
+            a,
+            a_cur,
+            b,
+            b_orig,
+        } = self;
+        let elt_b = match b.next() {
             None => {
-                self.b = self.b_orig.clone();
-                match self.b.next() {
+                *b = b_orig.clone();
+                match b.next() {
                     None => return None,
                     Some(x) => {
-                        self.a_cur = self.a.next();
+                        *a_cur = Some(a.next());
                         x
                     }
                 }
             }
             Some(x) => x,
         };
-        self.a_cur.as_ref().map(|a| (a.clone(), elt_b))
+        a_cur
+            .get_or_insert_with(|| a.next())
+            .as_ref()
+            .map(|a| (a.clone(), elt_b))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let has_cur = self.a_cur.is_some() as usize;
+        let has_cur = matches!(self.a_cur, Some(Some(_))) as usize;
         // Not ExactSizeIterator because size may be larger than usize
         let (b_min, b_max) = self.b.size_hint();
 
@@ -367,21 +376,26 @@ where
         )
     }
 
-    fn fold<Acc, G>(mut self, mut accum: Acc, mut f: G) -> Acc
+    fn fold<Acc, G>(self, mut accum: Acc, mut f: G) -> Acc
     where
         G: FnMut(Acc, Self::Item) -> Acc,
     {
         // use a split loop to handle the loose a_cur as well as avoiding to
         // clone b_orig at the end.
-        if let Some(mut a) = self.a_cur.take() {
-            let mut b = self.b;
+        let Self {
+            mut a,
+            a_cur,
+            mut b,
+            b_orig,
+        } = self;
+        if let Some(mut elt_a) = a_cur.unwrap_or_else(|| a.next()) {
             loop {
-                accum = b.fold(accum, |acc, elt| f(acc, (a.clone(), elt)));
+                accum = b.fold(accum, |acc, elt| f(acc, (elt_a.clone(), elt)));
 
                 // we can only continue iterating a if we had a first element;
-                if let Some(next_a) = self.a.next() {
-                    b = self.b_orig.clone();
-                    a = next_a;
+                if let Some(next_elt_a) = a.next() {
+                    b = b_orig.clone();
+                    elt_a = next_elt_a;
                 } else {
                     break;
                 }
