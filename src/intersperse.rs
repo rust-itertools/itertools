@@ -78,15 +78,20 @@ where
     type Item = I::Item;
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        if self.peek.is_some() {
-            self.peek.take()
-        } else {
-            self.peek = self.iter.next();
-            if self.peek.is_some() {
-                Some(self.element.generate())
-            } else {
-                None
-            }
+        let Self {
+            element,
+            iter,
+            peek,
+        } = self;
+        match peek {
+            item @ Some(_) => item.take(),
+            None => match iter.next() {
+                new @ Some(_) => {
+                    *peek = new;
+                    Some(element.generate())
+                }
+                None => None,
+            },
         }
     }
 
