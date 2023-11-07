@@ -54,7 +54,7 @@ where
 {
     element: ElemF,
     iter: Fuse<I>,
-    peek: Option<I::Item>,
+    peek: Option<Option<I::Item>>,
 }
 
 /// Create a new `IntersperseWith` iterator
@@ -62,10 +62,9 @@ pub fn intersperse_with<I, ElemF>(iter: I, elt: ElemF) -> IntersperseWith<I, Ele
 where
     I: Iterator,
 {
-    let mut iter = iter.fuse();
     IntersperseWith {
-        peek: iter.next(),
-        iter,
+        peek: None,
+        iter: iter.fuse(),
         element: elt,
     }
 }
@@ -84,38 +83,48 @@ where
             peek,
         } = self;
         match peek {
-            item @ Some(_) => item.take(),
-            None => match iter.next() {
+            Some(item @ Some(_)) => item.take(),
+            Some(None) => match iter.next() {
                 new @ Some(_) => {
-                    *peek = new;
+                    *peek = Some(new);
                     Some(element.generate())
                 }
                 None => None,
             },
+            None => {
+                *peek = Some(None);
+                iter.next()
+            }
         }
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        // 2 * SH + { 1 or 0 }
-        let has_peek = self.peek.is_some() as usize;
-        let sh = self.iter.size_hint();
-        size_hint::add_scalar(size_hint::add(sh, sh), has_peek)
+        let mut sh = self.iter.size_hint();
+        sh = size_hint::add(sh, sh);
+        match self.peek {
+            Some(Some(_)) => size_hint::add_scalar(sh, 1),
+            Some(None) => sh,
+            None => size_hint::sub_scalar(sh, 1),
+        }
     }
 
-    fn fold<B, F>(mut self, init: B, mut f: F) -> B
+    fn fold<B, F>(self, init: B, mut f: F) -> B
     where
         Self: Sized,
         F: FnMut(B, Self::Item) -> B,
     {
+        let Self {
+            mut element,
+            mut iter,
+            peek,
+        } = self;
         let mut accum = init;
 
-        if let Some(x) = self.peek.take() {
+        if let Some(x) = peek.unwrap_or_else(|| iter.next()) {
             accum = f(accum, x);
         }
 
-        let element = &mut self.element;
-
-        self.iter.fold(accum, |accum, x| {
+        iter.fold(accum, |accum, x| {
             let accum = f(accum, element.generate());
             f(accum, x)
         })
