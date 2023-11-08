@@ -195,6 +195,34 @@ where
         };
         (lower, upper)
     }
+
+    fn fold<B, F>(self, mut init: B, mut f: F) -> B
+    where
+        F: FnMut(B, Self::Item) -> B,
+    {
+        let Self {
+            mut it0,
+            mut it1,
+            phase,
+        } = self;
+        if phase {
+            match it1.next() {
+                Some(y) => init = f(init, y),
+                None => return init,
+            }
+        }
+        let res = it0.try_fold(init, |mut acc, x| {
+            acc = f(acc, x);
+            match it1.next() {
+                Some(y) => Ok(f(acc, y)),
+                None => Err(acc),
+            }
+        });
+        match res {
+            Ok(val) => val,
+            Err(val) => val,
+        }
+    }
 }
 
 impl<I, J> FusedIterator for InterleaveShortest<I, J>
