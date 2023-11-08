@@ -1081,6 +1081,21 @@ where
     fn size_hint(&self) -> (usize, Option<usize>) {
         (0, self.iter.size_hint().1)
     }
+
+    fn fold<B, G>(self, init: B, mut func: G) -> B
+    where
+        G: FnMut(B, Self::Item) -> B,
+    {
+        let mut count = self.count;
+        let mut f = self.f;
+        self.iter.fold(init, |mut acc, val| {
+            if f(val) {
+                acc = func(acc, count);
+            }
+            count += 1;
+            acc
+        })
+    }
 }
 
 impl<I, F> DoubleEndedIterator for Positions<I, F>
