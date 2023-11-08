@@ -76,6 +76,30 @@ where
     fn size_hint(&self) -> (usize, Option<usize>) {
         size_hint::add(self.a.size_hint(), self.b.size_hint())
     }
+
+    fn fold<B, F>(self, mut init: B, mut f: F) -> B
+    where
+        F: FnMut(B, Self::Item) -> B,
+    {
+        let Self { mut a, mut b, flag } = self;
+        if flag {
+            match b.next() {
+                Some(y) => init = f(init, y),
+                None => return a.fold(init, f),
+            }
+        }
+        let res = a.try_fold(init, |mut acc, x| {
+            acc = f(acc, x);
+            match b.next() {
+                Some(y) => Ok(f(acc, y)),
+                None => Err(acc),
+            }
+        });
+        match res {
+            Ok(acc) => b.fold(acc, f),
+            Err(acc) => a.fold(acc, f),
+        }
+    }
 }
 
 impl<I, J> FusedIterator for Interleave<I, J>
