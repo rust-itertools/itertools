@@ -4,26 +4,30 @@ use std::iter::FusedIterator;
 use crate::size_hint;
 
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct CoalesceBy<I, F, T>
+pub struct CoalesceBy<I, F, C>
 where
     I: Iterator,
+    C: CountItem<I::Item>,
 {
     iter: I,
-    last: Option<T>,
+    last: Option<C::CItem>,
     f: F,
 }
 
-impl<I: Clone, F: Clone, T: Clone> Clone for CoalesceBy<I, F, T>
+impl<I: Clone, F: Clone, C> Clone for CoalesceBy<I, F, C>
 where
     I: Iterator,
+    C: CountItem<I::Item>,
+    C::CItem: Clone,
 {
     clone_fields!(last, iter, f);
 }
 
-impl<I, F, T> fmt::Debug for CoalesceBy<I, F, T>
+impl<I, F, C> fmt::Debug for CoalesceBy<I, F, C>
 where
     I: Iterator + fmt::Debug,
-    T: fmt::Debug,
+    C: CountItem<I::Item>,
+    C::CItem: fmt::Debug,
 {
     debug_fmt_fields!(CoalesceBy, iter);
 }
@@ -32,12 +36,13 @@ pub trait CoalescePredicate<Item, T> {
     fn coalesce_pair(&mut self, t: T, item: Item) -> Result<T, (T, T)>;
 }
 
-impl<I, F, T> Iterator for CoalesceBy<I, F, T>
+impl<I, F, C> Iterator for CoalesceBy<I, F, C>
 where
     I: Iterator,
-    F: CoalescePredicate<I::Item, T>,
+    F: CoalescePredicate<I::Item, C::CItem>,
+    C: CountItem<I::Item>,
 {
-    type Item = T;
+    type Item = C::CItem;
 
     fn next(&mut self) -> Option<Self::Item> {
         // this fuses the iterator
@@ -82,12 +87,43 @@ where
     }
 }
 
-impl<I: Iterator, F: CoalescePredicate<I::Item, T>, T> FusedIterator for CoalesceBy<I, F, T> {}
+impl<I, F, C> FusedIterator for CoalesceBy<I, F, C>
+where
+    I: Iterator,
+    F: CoalescePredicate<I::Item, C::CItem>,
+    C: CountItem<I::Item>,
+{
+}
+
+pub struct NoCount;
+
+pub struct WithCount;
+
+pub trait CountItem<T> {
+    type CItem;
+    fn new(t: T) -> Self::CItem;
+}
+
+impl<T> CountItem<T> for NoCount {
+    type CItem = T;
+    #[inline(always)]
+    fn new(t: T) -> T {
+        t
+    }
+}
+
+impl<T> CountItem<T> for WithCount {
+    type CItem = (usize, T);
+    #[inline(always)]
+    fn new(t: T) -> (usize, T) {
+        (1, t)
+    }
+}
 
 /// An iterator adaptor that may join together adjacent elements.
 ///
 /// See [`.coalesce()`](crate::Itertools::coalesce) for more information.
-pub type Coalesce<I, F> = CoalesceBy<I, F, <I as Iterator>::Item>;
+pub type Coalesce<I, F> = CoalesceBy<I, F, NoCount>;
 
 impl<F, Item, T> CoalescePredicate<Item, T> for F
 where
@@ -113,7 +149,7 @@ where
 /// An iterator adaptor that removes repeated duplicates, determining equality using a comparison function.
 ///
 /// See [`.dedup_by()`](crate::Itertools::dedup_by) or [`.dedup()`](crate::Itertools::dedup) for more information.
-pub type DedupBy<I, Pred> = CoalesceBy<I, DedupPred2CoalescePred<Pred>, <I as Iterator>::Item>;
+pub type DedupBy<I, Pred> = CoalesceBy<I, DedupPred2CoalescePred<Pred>, NoCount>;
 
 #[derive(Clone)]
 pub struct DedupPred2CoalescePred<DP>(DP);
@@ -186,7 +222,7 @@ where
 /// See [`.dedup_by_with_count()`](crate::Itertools::dedup_by_with_count) or
 /// [`.dedup_with_count()`](crate::Itertools::dedup_with_count) for more information.
 pub type DedupByWithCount<I, Pred> =
-    CoalesceBy<I, DedupPredWithCount2CoalescePred<Pred>, (usize, <I as Iterator>::Item)>;
+    CoalesceBy<I, DedupPredWithCount2CoalescePred<Pred>, WithCount>;
 
 #[derive(Clone, Debug)]
 pub struct DedupPredWithCount2CoalescePred<DP>(DP);
@@ -220,7 +256,7 @@ where
     I: Iterator,
 {
     DedupByWithCount {
-        last: iter.next().map(|v| (1, v)),
+        last: iter.next().map(WithCount::new),
         iter,
         f: DedupPredWithCount2CoalescePred(dedup_pred),
     }
