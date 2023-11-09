@@ -152,6 +152,14 @@ where
     fn size_hint(&self) -> (usize, Option<usize>) {
         size_hint::add_scalar(self.iter.size_hint(), self.buf.len())
     }
+
+    fn fold<B, F>(self, mut init: B, mut f: F) -> B
+    where
+        F: FnMut(B, Self::Item) -> B,
+    {
+        init = self.buf.into_iter().fold(init, &mut f);
+        self.iter.fold(init, f)
+    }
 }
 
 impl<I> ExactSizeIterator for PeekNth<I> where I: ExactSizeIterator {}
