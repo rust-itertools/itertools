@@ -67,6 +67,18 @@ where
         let tail = self.min.saturating_sub(self.pos);
         size_hint::max(self.iter.size_hint(), (tail, Some(tail)))
     }
+
+    fn fold<B, G>(self, mut init: B, mut f: G) -> B
+    where
+        G: FnMut(B, Self::Item) -> B,
+    {
+        let mut pos = self.pos;
+        init = self.iter.fold(init, |acc, item| {
+            pos += 1;
+            f(acc, item)
+        });
+        (pos..self.min).map(self.filler).fold(init, f)
+    }
 }
 
 impl<I, F> DoubleEndedIterator for PadUsing<I, F>
