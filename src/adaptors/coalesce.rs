@@ -10,7 +10,7 @@ where
     C: CountItem<I::Item>,
 {
     iter: I,
-    last: Option<C::CItem>,
+    last: Option<Option<C::CItem>>,
     f: F,
 }
 
@@ -45,26 +45,33 @@ where
     type Item = C::CItem;
 
     fn next(&mut self) -> Option<Self::Item> {
+        let Self { iter, last, f } = self;
         // this fuses the iterator
-        let last = self.last.take()?;
+        let init = match last {
+            Some(elt) => elt.take(),
+            None => {
+                *last = Some(None);
+                iter.next().map(C::new)
+            }
+        }?;
 
-        let self_last = &mut self.last;
-        let self_f = &mut self.f;
         Some(
-            self.iter
-                .try_fold(last, |last, next| match self_f.coalesce_pair(last, next) {
-                    Ok(joined) => Ok(joined),
-                    Err((last_, next_)) => {
-                        *self_last = Some(next_);
-                        Err(last_)
-                    }
-                })
-                .unwrap_or_else(|x| x),
+            iter.try_fold(init, |accum, next| match f.coalesce_pair(accum, next) {
+                Ok(joined) => Ok(joined),
+                Err((last_, next_)) => {
+                    *last = Some(Some(next_));
+                    Err(last_)
+                }
+            })
+            .unwrap_or_else(|x| x),
         )
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let (low, hi) = size_hint::add_scalar(self.iter.size_hint(), self.last.is_some() as usize);
+        let (low, hi) = size_hint::add_scalar(
+            self.iter.size_hint(),
+            matches!(self.last, Some(Some(_))) as usize,
+        );
         ((low > 0) as usize, hi)
     }
 
@@ -72,9 +79,13 @@ where
     where
         FnAcc: FnMut(Acc, Self::Item) -> Acc,
     {
-        if let Some(last) = self.last {
-            let mut f = self.f;
-            let (last, acc) = self.iter.fold((last, acc), |(last, acc), elt| {
+        let Self {
+            mut iter,
+            last,
+            mut f,
+        } = self;
+        if let Some(last) = last.unwrap_or_else(|| iter.next().map(C::new)) {
+            let (last, acc) = iter.fold((last, acc), |(last, acc), elt| {
                 match f.coalesce_pair(last, elt) {
                     Ok(joined) => (joined, acc),
                     Err((last_, next_)) => (next_, fn_acc(acc, last_)),
@@ -135,12 +146,12 @@ where
 }
 
 /// Create a new `Coalesce`.
-pub fn coalesce<I, F>(mut iter: I, f: F) -> Coalesce<I, F>
+pub fn coalesce<I, F>(iter: I, f: F) -> Coalesce<I, F>
 where
     I: Iterator,
 {
     Coalesce {
-        last: iter.next(),
+        last: None,
         iter,
         f,
     }
@@ -192,12 +203,12 @@ impl<T, F: FnMut(&T, &T) -> bool> DedupPredicate<T> for F {
 }
 
 /// Create a new `DedupBy`.
-pub fn dedup_by<I, Pred>(mut iter: I, dedup_pred: Pred) -> DedupBy<I, Pred>
+pub fn dedup_by<I, Pred>(iter: I, dedup_pred: Pred) -> DedupBy<I, Pred>
 where
     I: Iterator,
 {
     DedupBy {
-        last: iter.next(),
+        last: None,
         iter,
         f: DedupPred2CoalescePred(dedup_pred),
     }
@@ -251,12 +262,12 @@ where
 pub type DedupWithCount<I> = DedupByWithCount<I, DedupEq>;
 
 /// Create a new `DedupByWithCount`.
-pub fn dedup_by_with_count<I, Pred>(mut iter: I, dedup_pred: Pred) -> DedupByWithCount<I, Pred>
+pub fn dedup_by_with_count<I, Pred>(iter: I, dedup_pred: Pred) -> DedupByWithCount<I, Pred>
 where
     I: Iterator,
 {
     DedupByWithCount {
-        last: iter.next().map(WithCount::new),
+        last: None,
         iter,
         f: DedupPredWithCount2CoalescePred(dedup_pred),
     }
