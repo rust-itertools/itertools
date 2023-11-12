@@ -175,12 +175,14 @@ quickcheck! {
         test_specializations(&v.iter().copied().update(|x| *x = x.wrapping_mul(7)));
     }
 
-    fn tuple_combinations(v: Vec<u8>) -> () {
-        let mut v = v;
-        v.truncate(10);
+    fn tuple_combinations(v: Vec<u8>) -> TestResult {
+        if v.len() > 10 {
+            return TestResult::discard();
+        }
         test_specializations(&v.iter().tuple_combinations::<(_,)>());
         test_specializations(&v.iter().tuple_combinations::<(_, _)>());
         test_specializations(&v.iter().tuple_combinations::<(_, _, _)>());
+        TestResult::passed()
     }
 
     fn intersperse(v: Vec<u8>) -> () {
@@ -215,10 +217,12 @@ quickcheck! {
         TestResult::passed()
     }
 
-    fn powerset(a: Vec<u8>) -> () {
-        let mut a = a;
-        a.truncate(6);
-        test_specializations(&a.iter().powerset())
+    fn powerset(a: Vec<u8>) -> TestResult {
+        if a.len() > 6 {
+            return TestResult::discard();
+        }
+        test_specializations(&a.iter().powerset());
+        TestResult::passed()
     }
 
     fn zip_longest(a: Vec<u8>, b: Vec<u8>) -> () {
