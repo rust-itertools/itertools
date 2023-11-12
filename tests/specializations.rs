@@ -114,6 +114,15 @@ quickcheck! {
         TestResult::passed()
     }
 
+    #[ignore] // It currently fails because `MultiProduct` is not fused.
+    fn multi_cartesian_product(a: Vec<u8>, b: Vec<u8>, c: Vec<u8>) -> TestResult {
+        if a.len() * b.len() * c.len() > 100 {
+            return TestResult::discard();
+        }
+        test_specializations(&vec![a, b, c].into_iter().multi_cartesian_product());
+        TestResult::passed()
+    }
+
     fn coalesce(v: Vec<u8>) -> () {
         test_specializations(&v.iter().coalesce(|x, y| if x == y { Ok(x) } else { Err((x, y)) }))
     }
