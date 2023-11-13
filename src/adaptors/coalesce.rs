@@ -10,6 +10,9 @@ where
     C: CountItem<I::Item>,
 {
     iter: I,
+    /// `last` is `None` while no item have been taken out of `iter` (at definition).
+    /// Then `last` will be `Some(Some(item))` until `iter` is exhausted,
+    /// in which case `last` will be `Some(None)`.
     last: Option<Option<C::CItem>>,
     f: F,
 }
