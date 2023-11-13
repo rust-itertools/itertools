@@ -54,6 +54,9 @@ where
 {
     element: ElemF,
     iter: Fuse<I>,
+    /// `peek` is None while no item have been taken out of `iter` (at definition).
+    /// Then `peek` will alternatively be `Some(None)` and `Some(Some(item))`,
+    /// where `None` indicates it's time to generate from `element` (unless `iter` is empty).
     peek: Option<Option<I::Item>>,
 }
 
