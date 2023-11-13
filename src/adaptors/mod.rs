@@ -308,6 +308,9 @@ where
     I: Iterator,
 {
     a: I,
+    /// `a_cur` is `None` while no item have been taken out of `a` (at definition).
+    /// Then `a_cur` will be `Some(Some(item))` until `a` is exhausted,
+    /// in which case `a_cur` will be `Some(None)`.
     a_cur: Option<Option<I::Item>>,
     b: J,
     b_orig: J,
