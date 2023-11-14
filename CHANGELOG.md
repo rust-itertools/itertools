@@ -1,5 +1,54 @@
 # Changelog
 
+## 0.12.0
+
+### Breaking
+- Made `take_while_inclusive` consume iterator by value (#709)
+- Added `Clone` bound to `Unique` (#777)
+
+### Added
+- Added `Itertools::try_len` (#723)
+- Added free function `sort_unstable` (#796)
+- Added `GroupMap::fold_with` (#778, #785)
+- Added `PeekNth::{peek_mut, peek_nth_mut}` (#716)
+- Added `PeekNth::{next_if, next_if_eq}` (#734)
+- Added conversion into `(Option<A>,Option<B>)` to `EitherOrBoth` (#713)
+- Added conversion from `Either<A, B>` to `EitherOrBoth<A, B>` (#715)
+- Implemented `ExactSizeIterator` for `Tuples` (#761)
+- Implemented `ExactSizeIterator` for `(Circular)TupleWindows` (#752)
+- Made `EitherOrBoth<T>` a shorthand for `EitherOrBoth<T, T>` (#719)
+
+### Changed
+- Added missing `#[must_use]` annotations on iterator adaptors (#794)
+- Made `Combinations` lazy (#795)
+- Made `Intersperse(With)` lazy (#797)
+- Made `Permutations` lazy (#793)
+- Made `Product` lazy (#800)
+- Made `TupleWindows` lazy (#602)
+- Specialized `Combinations::{count, size_hint}` (#729)
+- Specialized `CombinationsWithReplacement::{count, size_hint}` (#737)
+- Specialized `Powerset::fold` (#765)
+- Specialized `Powerset::count` (#735)
+- Specialized `TupleCombinations::{count, size_hint}` (#763)
+- Specialized `TupleCombinations::fold` (#775)
+- Specialized `WhileSome::fold` (#780)
+- Specialized `WithPosition::fold` (#772)
+- Specialized `ZipLongest::fold` (#774)
+- Changed `{min, max}_set*` operations require `alloc` feature, instead of `std` (#760)
+- Improved documentation of `tree_fold1` (#787)
+- Improved documentation of `permutations` (#724)
+- Fixed typo in documentation of `multiunzip` (#770)
+
+### Notable Internal Changes
+- Improved specialization tests (#799, #786, #782)
+- Simplified implementation of `Permutations` (#739, #748, #790)
+- Combined `Merge`/`MergeBy`/`MergeJoinBy` implementations (#736)
+- Simplified `Permutations::size_hint` (#739)
+- Fix wrapping arithmetic in benchmarks (#770)
+- Enforced `rustfmt` in CI (#751)
+- Disallowed compile warnings in CI (#720)
+- Used `cargo hack` to check MSRV (#754)
+
 ## 0.11.0
 
 ### Breaking
