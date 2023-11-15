@@ -2,7 +2,11 @@ name: CI
 
 on:
   pull_request:
+    paths-ignore:
+      - "**.md"
   merge_group:
+    paths-ignore:
+      - "**.md"
 
 jobs:
   check:
