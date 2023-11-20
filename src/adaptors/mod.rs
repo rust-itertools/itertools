@@ -982,17 +982,11 @@ where
     type Item = Result<U, E>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            match self.iter.next() {
-                Some(Ok(v)) => {
-                    if let Some(v) = (self.f)(v) {
-                        return Some(Ok(v));
-                    }
-                }
-                Some(Err(e)) => return Some(Err(e)),
-                None => return None,
-            }
-        }
+        let f = &mut self.f;
+        self.iter.find_map(|res| match res {
+            Ok(t) => f(t).map(Ok),
+            Err(e) => Some(Err(e)),
+        })
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
