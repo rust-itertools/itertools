@@ -901,17 +901,11 @@ where
     type Item = Result<T, E>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            match self.iter.next() {
-                Some(Ok(v)) => {
-                    if (self.f)(&v) {
-                        return Some(Ok(v));
-                    }
-                }
-                Some(Err(e)) => return Some(Err(e)),
-                None => return None,
-            }
-        }
+        let f = &mut self.f;
+        self.iter.find(|res| match res {
+            Ok(t) => f(t),
+            _ => true,
+        })
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
