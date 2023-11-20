@@ -61,13 +61,8 @@ where
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
-        while let Some(v) = self.iter.next() {
-            let key = (self.f)(&v);
-            if self.used.insert(key, ()).is_none() {
-                return Some(v);
-            }
-        }
-        None
+        let Self { iter, used, f } = self;
+        iter.find(|v| used.insert(f(v), ()).is_none())
     }
 
     #[inline]
