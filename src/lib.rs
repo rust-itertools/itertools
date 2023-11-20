@@ -4054,18 +4054,11 @@ where
 {
     let mut split_index = 0;
     let mut iter = iter.into_iter();
-    'main: while let Some(front) = iter.next() {
+    while let Some(front) = iter.next() {
         if !pred(front) {
-            loop {
-                match iter.next_back() {
-                    Some(back) => {
-                        if pred(back) {
-                            std::mem::swap(front, back);
-                            break;
-                        }
-                    }
-                    None => break 'main,
-                }
+            match iter.rfind(|back| pred(back)) {
+                Some(back) => std::mem::swap(front, back),
+                None => break,
             }
         }
         split_index += 1;
