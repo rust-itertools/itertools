@@ -1,3 +1,5 @@
+#![allow(unstable_name_collisions)]
+
 use criterion::black_box;
 use itertools::iproduct;
 use itertools::Itertools;
@@ -24,6 +26,7 @@ macro_rules! bench_specializations {
         )*
     ) => {
         $(
+            #[allow(unused_must_use)]
             fn $name(c: &mut ::criterion::Criterion) {
                 let mut bench_group = c.benchmark_group(stringify!($name));
                 $(
@@ -132,6 +135,59 @@ macro_rules! bench_specializations {
 // Example: To bench only `ZipLongest::fold`, you can do
 //     cargo bench --bench specializations zip_longest/fold
 bench_specializations! {
+    interleave {
+        {
+            let v1 = black_box(vec![0; 1024]);
+            let v2 = black_box(vec![0; 768]);
+        }
+        v1.iter().interleave(&v2)
+    }
+    interleave_shortest {
+        {
+            let v1 = black_box(vec![0; 1024]);
+            let v2 = black_box(vec![0; 768]);
+        }
+        v1.iter().interleave_shortest(&v2)
+    }
+    batching {
+        {
+            let v = black_box(vec![0; 1024]);
+        }
+        v.iter().batching(Iterator::next)
+    }
+    tuple_windows {
+        ExactSizeIterator
+        {
+            let v = black_box(vec![0; 1024]);
+        }
+        v.iter().tuple_windows::<(_, _, _, _)>()
+    }
+    circular_tuple_windows {
+        ExactSizeIterator
+        {
+            let v = black_box(vec![0; 1024]);
+        }
+        v.iter().circular_tuple_windows::<(_, _, _, _)>()
+    }
+    tuples {
+        ExactSizeIterator
+        {
+            let v = black_box(vec![0; 1024]);
+        }
+        v.iter().tuples::<(_, _, _, _)>()
+    }
+    tuple_buffer {
+        ExactSizeIterator
+        {
+            let v = black_box(vec![0; 11]);
+            // Short but the buffer can't have 12 or more elements.
+        }
+        {
+            let mut it = v.iter().tuples::<(_, _, _, _, _, _, _, _, _, _, _, _)>();
+            it.next(); // No element but it fills the buffer.
+            it.into_buffer()
+        }
+    }
     cartesian_product {
         {
             let v = black_box(vec![0; 16]);
@@ -144,11 +200,136 @@ bench_specializations! {
         }
         vs.iter().multi_cartesian_product()
     }
+    coalesce {
+        {
+            let v = black_box(vec![0; 1024]);
+        }
+        v.iter().coalesce(|x, y| if x == y { Ok(x) } else { Err((x, y)) })
+    }
+    dedup {
+        {
+            let v = black_box((0..32).flat_map(|x| [x; 32]).collect_vec());
+        }
+        v.iter().dedup()
+    }
+    dedup_by {
+        {
+            let v = black_box((0..32).flat_map(|x| [x; 32]).collect_vec());
+        }
+        v.iter().dedup_by(PartialOrd::ge)
+    }
+    dedup_with_count {
+        {
+            let v = black_box((0..32).flat_map(|x| [x; 32]).collect_vec());
+        }
+        v.iter().dedup_with_count()
+    }
+    dedup_by_with_count {
+        {
+            let v = black_box((0..32).flat_map(|x| [x; 32]).collect_vec());
+        }
+        v.iter().dedup_by_with_count(PartialOrd::ge)
+    }
+    duplicates {
+        DoubleEndedIterator
+        {
+            let v = black_box((0..32).cycle().take(1024).collect_vec());
+        }
+        v.iter().duplicates()
+    }
+    duplicates_by {
+        DoubleEndedIterator
+        {
+            let v = black_box((0..1024).collect_vec());
+        }
+        v.iter().duplicates_by(|x| *x % 10)
+    }
+    unique {
+        DoubleEndedIterator
+        {
+            let v = black_box((0..32).cycle().take(1024).collect_vec());
+        }
+        v.iter().unique()
+    }
+    unique_by {
+        DoubleEndedIterator
+        {
+            let v = black_box((0..1024).collect_vec());
+        }
+        v.iter().unique_by(|x| *x % 50)
+    }
+    take_while_inclusive {
+        {
+            let v = black_box((0..1024).collect_vec());
+        }
+        v.iter().take_while_inclusive(|x| **x < 1000)
+    }
+    pad_using {
+        DoubleEndedIterator
+        ExactSizeIterator
+        {
+            let v = black_box((0..1024).collect_vec());
+        }
+        v.iter().copied().pad_using(2048, |i| 5 * i)
+    }
+    positions {
+        DoubleEndedIterator
+        {
+            let v = black_box((0..1024).collect_vec());
+        }
+        v.iter().positions(|x| x % 5 == 0)
+    }
+    update {
+        DoubleEndedIterator
+        ExactSizeIterator
+        {
+            let v = black_box((0_i32..1024).collect_vec());
+        }
+        v.iter().copied().update(|x| *x *= 7)
+    }
     tuple_combinations {
         {
             let v = black_box((0..64).collect_vec());
         }
         v.iter().tuple_combinations::<(_, _, _, _)>()
+    }
+    intersperse {
+        {
+            let v = black_box(vec![0; 1024]);
+            let n = black_box(0);
+        }
+        v.iter().intersperse(&n)
+    }
+    intersperse_with {
+        {
+            let v = black_box(vec![0; 1024]);
+            let n = black_box(0);
+        }
+        v.iter().intersperse_with(|| &n)
+    }
+    combinations {
+        {
+            let v = black_box(vec![0; 16]);
+        }
+        v.iter().combinations(4)
+    }
+    combinations_with_replacement {
+        {
+            let v = black_box(vec![0; 16]);
+        }
+        v.iter().combinations_with_replacement(4)
+    }
+    permutations {
+        {
+            let v = black_box(vec![0; 8]);
+        }
+        v.iter().permutations(4)
+    }
+    powerset {
+        {
+            let v = black_box(vec![0; 10]);
+        }
+        v.iter().powerset()
     }
     while_some {
         {}
@@ -172,5 +353,175 @@ bench_specializations! {
             let ys = black_box(vec![0; 768]);
         }
         xs.iter().zip_longest(ys.iter())
+    }
+    zip_eq {
+        ExactSizeIterator
+        {
+            let v = black_box(vec![0; 1024]);
+        }
+        v.iter().zip_eq(v.iter().rev())
+    }
+    multizip {
+        DoubleEndedIterator
+        ExactSizeIterator
+        {
+            let v1 = black_box(vec![0; 1024]);
+            let v2 = black_box(vec![0; 768]);
+            let v3 = black_box(vec![0; 2048]);
+        }
+        itertools::multizip((&v1, &v2, &v3))
+    }
+    izip {
+        DoubleEndedIterator
+        ExactSizeIterator
+        {
+            let v1 = black_box(vec![0; 1024]);
+            let v2 = black_box(vec![0; 768]);
+            let v3 = black_box(vec![0; 2048]);
+        }
+        itertools::izip!(&v1, &v2, &v3)
+    }
+    put_back {
+        {
+            let v = black_box(vec![0; 1024]);
+        }
+        itertools::put_back(&v).with_value(black_box(&0))
+    }
+    put_back_n {
+        {
+            let v1 = black_box(vec![0; 1024]);
+            let v2 = black_box(vec![0; 16]);
+        }
+        {
+            let mut it = itertools::put_back_n(&v1);
+            for n in &v2 {
+                it.put_back(n);
+            }
+            it
+        }
+    }
+    exactly_one_error {
+        ExactSizeIterator
+        {
+            let v = black_box(vec![0; 1024]);
+        }
+        // Use `at_most_one` would be similar.
+        v.iter().exactly_one().unwrap_err()
+    }
+    multipeek {
+        ExactSizeIterator
+        {
+            let v = black_box(vec![0; 1024]);
+            let n = black_box(16);
+        }
+        {
+            let mut it = v.iter().multipeek();
+            for _ in 0..n {
+                it.peek();
+            }
+            it
+        }
+    }
+    peek_nth {
+        ExactSizeIterator
+        {
+            let v = black_box(vec![0; 1024]);
+            let n = black_box(16);
+        }
+        {
+            let mut it = itertools::peek_nth(&v);
+            it.peek_nth(n);
+            it
+        }
+    }
+    repeat_n {
+        DoubleEndedIterator
+        ExactSizeIterator
+        {}
+        itertools::repeat_n(black_box(0), black_box(1024))
+    }
+    merge {
+        {
+            let v1 = black_box(vec![0; 1024]);
+            let v2 = black_box(vec![0; 768]);
+        }
+        v1.iter().merge(&v2)
+    }
+    merge_by {
+        {
+            let v1 = black_box(vec![0; 1024]);
+            let v2 = black_box(vec![0; 768]);
+        }
+        v1.iter().merge_by(&v2, PartialOrd::ge)
+    }
+    merge_join_by_ordering {
+        {
+            let v1 = black_box(vec![0; 1024]);
+            let v2 = black_box(vec![0; 768]);
+        }
+        v1.iter().merge_join_by(&v2, Ord::cmp)
+    }
+    merge_join_by_bool {
+        {
+            let v1 = black_box(vec![0; 1024]);
+            let v2 = black_box(vec![0; 768]);
+        }
+        v1.iter().merge_join_by(&v2, PartialOrd::ge)
+    }
+    kmerge {
+        {
+            let vs = black_box(vec![vec![0; 1024], vec![0; 256], vec![0; 768]]);
+        }
+        vs.iter().kmerge()
+    }
+    kmerge_by {
+        {
+            let vs = black_box(vec![vec![0; 1024], vec![0; 256], vec![0; 768]]);
+        }
+        vs.iter().kmerge_by(PartialOrd::ge)
+    }
+    map_into {
+        DoubleEndedIterator
+        ExactSizeIterator
+        {
+            let v = black_box(vec![0_u8; 1024]);
+        }
+        v.iter().copied().map_into::<u32>()
+    }
+    map_ok {
+        DoubleEndedIterator
+        ExactSizeIterator
+        {
+            let v = black_box((0_u32..1024)
+                .map(|x| if x % 2 == 1 { Err(x) } else { Ok(x) })
+                .collect_vec());
+        }
+        v.iter().copied().map_ok(|x| x + 1)
+    }
+    filter_ok {
+        {
+            let v = black_box((0_u32..1024)
+                .map(|x| if x % 2 == 1 { Err(x) } else { Ok(x) })
+                .collect_vec());
+        }
+        v.iter().copied().filter_ok(|x| x % 3 == 0)
+    }
+    filter_map_ok {
+        {
+            let v = black_box((0_u32..1024)
+                .map(|x| if x % 2 == 1 { Err(x) } else { Ok(x) })
+                .collect_vec());
+        }
+        v.iter().copied().filter_map_ok(|x| if x % 3 == 0 { Some(x + 1) } else { None })
+    }
+    flatten_ok {
+        DoubleEndedIterator
+        {
+            let d = black_box(vec![0; 8]);
+            let v = black_box((0..512)
+                .map(|x| if x % 2 == 0 { Ok(&d) } else { Err(x) })
+                .collect_vec());
+        }
+        v.iter().copied().flatten_ok()
     }
 }
