@@ -155,21 +155,84 @@ bench_specializations! {
         }
         v.iter().batching(Iterator::next)
     }
-    tuple_windows {
+    tuple_windows1 {
+        ExactSizeIterator
+        {
+            let v = black_box(vec![0; 1024]);
+        }
+        v.iter().tuple_windows::<(_,)>()
+    }
+    tuple_windows2 {
+        ExactSizeIterator
+        {
+            let v = black_box(vec![0; 1024]);
+        }
+        v.iter().tuple_windows::<(_, _)>()
+    }
+    tuple_windows3 {
+        ExactSizeIterator
+        {
+            let v = black_box(vec![0; 1024]);
+        }
+        v.iter().tuple_windows::<(_, _, _)>()
+    }
+    tuple_windows4 {
         ExactSizeIterator
         {
             let v = black_box(vec![0; 1024]);
         }
         v.iter().tuple_windows::<(_, _, _, _)>()
     }
-    circular_tuple_windows {
+    circular_tuple_windows1 {
+        ExactSizeIterator
+        {
+            let v = black_box(vec![0; 1024]);
+        }
+        v.iter().circular_tuple_windows::<(_,)>()
+    }
+    circular_tuple_windows2 {
+        ExactSizeIterator
+        {
+            let v = black_box(vec![0; 1024]);
+        }
+        v.iter().circular_tuple_windows::<(_, _)>()
+    }
+    circular_tuple_windows3 {
+        ExactSizeIterator
+        {
+            let v = black_box(vec![0; 1024]);
+        }
+        v.iter().circular_tuple_windows::<(_, _, _)>()
+    }
+    circular_tuple_windows4 {
         ExactSizeIterator
         {
             let v = black_box(vec![0; 1024]);
         }
         v.iter().circular_tuple_windows::<(_, _, _, _)>()
     }
-    tuples {
+    tuples1 {
+        ExactSizeIterator
+        {
+            let v = black_box(vec![0; 1024]);
+        }
+        v.iter().tuples::<(_,)>()
+    }
+    tuples2 {
+        ExactSizeIterator
+        {
+            let v = black_box(vec![0; 1024]);
+        }
+        v.iter().tuples::<(_, _)>()
+    }
+    tuples3 {
+        ExactSizeIterator
+        {
+            let v = black_box(vec![0; 1024]);
+        }
+        v.iter().tuples::<(_, _, _)>()
+    }
+    tuples4 {
         ExactSizeIterator
         {
             let v = black_box(vec![0; 1024]);
@@ -287,9 +350,27 @@ bench_specializations! {
         }
         v.iter().copied().update(|x| *x *= 7)
     }
-    tuple_combinations {
+    tuple_combinations1 {
         {
-            let v = black_box((0..64).collect_vec());
+            let v = black_box(vec![0; 1024]);
+        }
+        v.iter().tuple_combinations::<(_,)>()
+    }
+    tuple_combinations2 {
+        {
+            let v = black_box(vec![0; 64]);
+        }
+        v.iter().tuple_combinations::<(_, _)>()
+    }
+    tuple_combinations3 {
+        {
+            let v = black_box(vec![0; 64]);
+        }
+        v.iter().tuple_combinations::<(_, _, _)>()
+    }
+    tuple_combinations4 {
+        {
+            let v = black_box(vec![0; 64]);
         }
         v.iter().tuple_combinations::<(_, _, _, _)>()
     }
@@ -307,19 +388,73 @@ bench_specializations! {
         }
         v.iter().intersperse_with(|| &n)
     }
-    combinations {
+    combinations1 {
+        {
+            let v = black_box(vec![0; 1792]);
+        }
+        v.iter().combinations(1)
+    }
+    combinations2 {
+        {
+            let v = black_box(vec![0; 60]);
+        }
+        v.iter().combinations(2)
+    }
+    combinations3 {
+        {
+            let v = black_box(vec![0; 23]);
+        }
+        v.iter().combinations(3)
+    }
+    combinations4 {
         {
             let v = black_box(vec![0; 16]);
         }
         v.iter().combinations(4)
     }
-    combinations_with_replacement {
+    combinations_with_replacement1 {
+        {
+            let v = black_box(vec![0; 4096]);
+        }
+        v.iter().combinations_with_replacement(1)
+    }
+    combinations_with_replacement2 {
+        {
+            let v = black_box(vec![0; 90]);
+        }
+        v.iter().combinations_with_replacement(2)
+    }
+    combinations_with_replacement3 {
+        {
+            let v = black_box(vec![0; 28]);
+        }
+        v.iter().combinations_with_replacement(3)
+    }
+    combinations_with_replacement4 {
         {
             let v = black_box(vec![0; 16]);
         }
         v.iter().combinations_with_replacement(4)
     }
-    permutations {
+    permutations1 {
+        {
+            let v = black_box(vec![0; 1024]);
+        }
+        v.iter().permutations(1)
+    }
+    permutations2 {
+        {
+            let v = black_box(vec![0; 36]);
+        }
+        v.iter().permutations(2)
+    }
+    permutations3 {
+        {
+            let v = black_box(vec![0; 12]);
+        }
+        v.iter().permutations(3)
+    }
+    permutations4 {
         {
             let v = black_box(vec![0; 8]);
         }
