@@ -1111,6 +1111,21 @@ where
         }
         None
     }
+
+    fn rfold<B, G>(self, init: B, mut func: G) -> B
+    where
+        G: FnMut(B, Self::Item) -> B,
+    {
+        let mut count = self.count + self.iter.len();
+        let mut f = self.f;
+        self.iter.rfold(init, |mut acc, val| {
+            count -= 1;
+            if f(val) {
+                acc = func(acc, count);
+            }
+            acc
+        })
+    }
 }
 
 impl<I, F> FusedIterator for Positions<I, F>
