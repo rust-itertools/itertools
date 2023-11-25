@@ -86,6 +86,44 @@ where
     }
 }
 
+fn test_double_ended_specializations<I>(it: &I)
+where
+    I::Item: Eq + Debug + Clone,
+    I: DoubleEndedIterator + Clone,
+{
+    macro_rules! check_specialized {
+        ($src:expr, |$it:pat| $closure:expr) => {
+            // Many iterators special-case the first elements, so we test specializations for iterators that have already been advanced.
+            let mut src = $src.clone();
+            for step in 0..8 {
+                let $it = src.clone();
+                let v1 = $closure;
+                let $it = Unspecialized(src.clone());
+                let v2 = $closure;
+                assert_eq!(v1, v2);
+                if step % 2 == 0 {
+                    src.next();
+                } else {
+                    src.next_back();
+                }
+            }
+        }
+    }
+    check_specialized!(it, |i| {
+        let mut parameters_from_rfold = vec![];
+        let rfold_result = i.rfold(vec![], |mut acc, v: I::Item| {
+            parameters_from_rfold.push((acc.clone(), v.clone()));
+            acc.push(v);
+            acc
+        });
+        (parameters_from_rfold, rfold_result)
+    });
+    let size = it.clone().count();
+    for n in 0..size + 2 {
+        check_specialized!(it, |mut i| i.nth_back(n));
+    }
+}
+
 quickcheck! {
     fn interleave(v: Vec<u8>, w: Vec<u8>) -> () {
         test_specializations(&v.iter().interleave(w.iter()));
