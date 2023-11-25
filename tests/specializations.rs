@@ -28,10 +28,10 @@ where
     }
 }
 
-fn test_specializations<IterItem, Iter>(it: &Iter)
+fn test_specializations<I>(it: &I)
 where
-    IterItem: Eq + Debug + Clone,
-    Iter: Iterator<Item = IterItem> + Clone,
+    I::Item: Eq + Debug + Clone,
+    I: Iterator + Clone,
 {
     macro_rules! check_specialized {
         ($src:expr, |$it:pat| $closure:expr) => {
@@ -52,7 +52,7 @@ where
     check_specialized!(it, |i| i.collect::<Vec<_>>());
     check_specialized!(it, |i| {
         let mut parameters_from_fold = vec![];
-        let fold_result = i.fold(vec![], |mut acc, v: IterItem| {
+        let fold_result = i.fold(vec![], |mut acc, v: I::Item| {
             parameters_from_fold.push((acc.clone(), v.clone()));
             acc.push(v);
             acc
