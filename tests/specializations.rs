@@ -193,19 +193,27 @@ quickcheck! {
     }
 
     fn duplicates(v: Vec<u8>) -> () {
-        test_specializations(&v.iter().duplicates());
+        let it = v.iter().duplicates();
+        test_specializations(&it);
+        test_double_ended_specializations(&it);
     }
 
     fn duplicates_by(v: Vec<u8>) -> () {
-        test_specializations(&v.iter().duplicates_by(|x| *x % 10));
+        let it = v.iter().duplicates_by(|x| *x % 10);
+        test_specializations(&it);
+        test_double_ended_specializations(&it);
     }
 
     fn unique(v: Vec<u8>) -> () {
-        test_specializations(&v.iter().unique());
+        let it = v.iter().unique();
+        test_specializations(&it);
+        test_double_ended_specializations(&it);
     }
 
     fn unique_by(v: Vec<u8>) -> () {
-        test_specializations(&v.iter().unique_by(|x| *x % 50));
+        let it = v.iter().unique_by(|x| *x % 50);
+        test_specializations(&it);
+        test_double_ended_specializations(&it);
     }
 
     fn take_while_inclusive(v: Vec<u8>) -> () {
@@ -218,7 +226,9 @@ quickcheck! {
 
     fn pad_using(v: Vec<u8>) -> () {
         use std::convert::TryFrom;
-        test_specializations(&v.iter().copied().pad_using(10, |i| u8::try_from(5 * i).unwrap_or(u8::MAX)));
+        let it = v.iter().copied().pad_using(10, |i| u8::try_from(5 * i).unwrap_or(u8::MAX));
+        test_specializations(&it);
+        test_double_ended_specializations(&it);
     }
 
     fn with_position(v: Vec<u8>) -> () {
@@ -226,11 +236,15 @@ quickcheck! {
     }
 
     fn positions(v: Vec<u8>) -> () {
-        test_specializations(&v.iter().positions(|x| x % 5 == 0));
+        let it = v.iter().positions(|x| x % 5 == 0);
+        test_specializations(&it);
+        test_double_ended_specializations(&it);
     }
 
     fn update(v: Vec<u8>) -> () {
-        test_specializations(&v.iter().copied().update(|x| *x = x.wrapping_mul(7)));
+        let it = v.iter().copied().update(|x| *x = x.wrapping_mul(7));
+        test_specializations(&it);
+        test_double_ended_specializations(&it);
     }
 
     fn tuple_combinations(v: Vec<u8>) -> TestResult {
@@ -284,7 +298,9 @@ quickcheck! {
     }
 
     fn zip_longest(a: Vec<u8>, b: Vec<u8>) -> () {
-        test_specializations(&a.into_iter().zip_longest(b))
+        let it = a.into_iter().zip_longest(b);
+        test_specializations(&it);
+        test_double_ended_specializations(&it);
     }
 
     fn zip_eq(a: Vec<u8>) -> () {
@@ -292,8 +308,9 @@ quickcheck! {
     }
 
     fn multizip(a: Vec<u8>) -> () {
-        let its = (a.iter(), a.iter().rev(), a.iter().take(50));
-        test_specializations(&itertools::multizip(its));
+        let it = itertools::multizip((a.iter(), a.iter().rev(), a.iter().take(50)));
+        test_specializations(&it);
+        test_double_ended_specializations(&it);
     }
 
     fn izip(a: Vec<u8>, b: Vec<u8>) -> () {
@@ -306,6 +323,12 @@ quickcheck! {
         }
         test_specializations(&itertools::iproduct!(a, b.iter(), c));
         TestResult::passed()
+    }
+
+    fn repeat_n(element: i8, n: u8) -> () {
+        let it = itertools::repeat_n(element, n as usize);
+        test_specializations(&it);
+        test_double_ended_specializations(&it);
     }
 }
 
@@ -400,11 +423,15 @@ quickcheck! {
 
 quickcheck! {
     fn map_into(v: Vec<u8>) -> () {
-        test_specializations(&v.into_iter().map_into::<u32>());
+        let it = v.into_iter().map_into::<u32>();
+        test_specializations(&it);
+        test_double_ended_specializations(&it);
     }
 
     fn map_ok(v: Vec<Result<u8, char>>) -> () {
-        test_specializations(&v.into_iter().map_ok(|u| u.checked_add(1)));
+        let it = v.into_iter().map_ok(|u| u.checked_add(1));
+        test_specializations(&it);
+        test_double_ended_specializations(&it);
     }
 
     fn filter_ok(v: Vec<Result<u8, char>>) -> () {
@@ -417,7 +444,9 @@ quickcheck! {
 
     // `Option<u8>` because `Vec<u8>` would be very slow!! And we can't give `[u8; 3]`.
     fn flatten_ok(v: Vec<Result<Option<u8>, char>>) -> () {
-        test_specializations(&v.into_iter().flatten_ok());
+        let it = v.into_iter().flatten_ok();
+        test_specializations(&it);
+        test_double_ended_specializations(&it);
     }
 }
 
