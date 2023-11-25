@@ -5,6 +5,7 @@ use quickcheck::{quickcheck, TestResult};
 use std::fmt::Debug;
 
 struct Unspecialized<I>(I);
+
 impl<I> Iterator for Unspecialized<I>
 where
     I: Iterator,
@@ -14,6 +15,16 @@ where
     #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next()
+    }
+}
+
+impl<I> DoubleEndedIterator for Unspecialized<I>
+where
+    I: DoubleEndedIterator,
+{
+    #[inline(always)]
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.0.next_back()
     }
 }
 
