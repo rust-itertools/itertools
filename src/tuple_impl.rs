@@ -3,7 +3,6 @@
 use std::iter::Cycle;
 use std::iter::Fuse;
 use std::iter::FusedIterator;
-use std::marker::PhantomData;
 
 use crate::size_hint;
 
@@ -252,7 +251,6 @@ where
 {
     iter: TupleWindows<Cycle<I>, T>,
     len: usize,
-    phantom_data: PhantomData<T>,
 }
 
 pub fn circular_tuple_windows<I, T>(iter: I) -> CircularTupleWindows<I, T>
@@ -264,11 +262,7 @@ where
     let len = iter.len();
     let iter = tuple_windows(iter.cycle());
 
-    CircularTupleWindows {
-        iter,
-        len,
-        phantom_data: PhantomData {},
-    }
+    CircularTupleWindows { iter, len }
 }
 
 impl<I, T> Iterator for CircularTupleWindows<I, T>
