@@ -63,6 +63,21 @@ where
     fn size_hint(&self) -> (usize, Option<usize>) {
         size_hint::add_scalar(self.inner.size_hint(), self.additional_len())
     }
+
+    fn fold<B, F>(self, mut init: B, mut f: F) -> B
+    where
+        F: FnMut(B, Self::Item) -> B,
+    {
+        match self.first_two {
+            Some(Either::Left([first, second])) => {
+                init = f(init, first);
+                init = f(init, second);
+            }
+            Some(Either::Right(second)) => init = f(init, second),
+            None => {}
+        }
+        self.inner.fold(init, f)
+    }
 }
 
 impl<I> ExactSizeIterator for ExactlyOneError<I> where I: ExactSizeIterator {}
