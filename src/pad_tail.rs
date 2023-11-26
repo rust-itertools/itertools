@@ -97,6 +97,16 @@ where
             Some((self.filler)(self.min))
         }
     }
+
+    fn rfold<B, G>(self, mut init: B, mut f: G) -> B
+    where
+        G: FnMut(B, Self::Item) -> B,
+    {
+        init = (self.iter.len()..self.min)
+            .map(self.filler)
+            .rfold(init, &mut f);
+        self.iter.rfold(init, f)
+    }
 }
 
 impl<I, F> ExactSizeIterator for PadUsing<I, F>
