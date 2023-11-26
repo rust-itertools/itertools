@@ -68,6 +68,14 @@ where
     fn next_back(&mut self) -> Option<Self::Item> {
         self.next()
     }
+
+    #[inline]
+    fn rfold<B, F>(self, init: B, f: F) -> B
+    where
+        F: FnMut(B, Self::Item) -> B,
+    {
+        self.fold(init, f)
+    }
 }
 
 impl<A> ExactSizeIterator for RepeatN<A> where A: Clone {}
