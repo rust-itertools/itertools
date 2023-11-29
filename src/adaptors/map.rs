@@ -1,3 +1,4 @@
+use core::iter::Peekable;
 use std::iter::FromIterator;
 use std::marker::PhantomData;
 
@@ -120,5 +121,43 @@ pub fn map_into<I, R>(iter: I) -> MapInto<I, R> {
     MapSpecialCase {
         iter,
         f: MapSpecialCaseFnInto(PhantomData),
+    }
+}
+
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+pub struct PeekMap<I, F, U>
+where
+    I: Iterator,
+    F: FnMut(I::Item, Option<&I::Item>) -> U,
+{
+    iter: Peekable<I>,
+    f: F,
+}
+
+impl<I, F, U> Iterator for PeekMap<I, F, U>
+where
+    I: Iterator,
+    F: FnMut(I::Item, Option<&I::Item>) -> U,
+{
+    type Item = U;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some((self.f)(self.iter.next()?, self.iter.peek()))
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+}
+
+/// Create a new `PeekMap` iterator.
+pub fn peek_map<I, F, U>(iter: I, f: F) -> PeekMap<I, F, U>
+where
+    I: Iterator,
+    F: FnMut(I::Item, Option<&I::Item>) -> U,
+{
+    PeekMap {
+        iter: iter.peekable(),
+        f,
     }
 }

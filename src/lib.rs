@@ -84,8 +84,8 @@ pub mod structs {
     pub use crate::adaptors::MultiProduct;
     pub use crate::adaptors::{
         Batching, Coalesce, Dedup, DedupBy, DedupByWithCount, DedupWithCount, FilterMapOk,
-        FilterOk, Interleave, InterleaveShortest, MapInto, MapOk, Positions, Product, PutBack,
-        TakeWhileRef, TupleCombinations, Update, WhileSome,
+        FilterOk, Interleave, InterleaveShortest, MapInto, MapOk, PeekMap, Positions, Product,
+        PutBack, TakeWhileRef, TupleCombinations, Update, WhileSome,
     };
     #[allow(deprecated)]
     pub use crate::adaptors::{MapResults, Step};
@@ -3963,6 +3963,14 @@ pub trait Itertools: Iterator {
             (lo, Some(hi)) if lo == hi => Ok(lo),
             _ => Err(sh),
         }
+    }
+
+    fn peek_map<B, F>(self, f: F) -> PeekMap<Self, F, B>
+    where
+        Self: Sized,
+        F: FnMut(Self::Item, Option<&Self::Item>) -> B,
+    {
+        adaptors::peek_map(self, f)
     }
 }
 

@@ -10,7 +10,7 @@ mod multi_product;
 pub use self::coalesce::*;
 #[allow(deprecated)]
 pub use self::map::MapResults;
-pub use self::map::{map_into, map_ok, MapInto, MapOk};
+pub use self::map::{map_into, map_ok, peek_map, MapInto, MapOk, PeekMap};
 #[cfg(feature = "use_alloc")]
 pub use self::multi_product::*;
 
