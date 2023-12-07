@@ -2697,7 +2697,7 @@ pub trait Itertools: Iterator {
         self.collect()
     }
 
-    /// `.try_collect()` is more convenient way of writing
+    /// `.try_collect()` is a more convenient way of writing
     /// `.collect::<Result<_, _>>()`
     ///
     /// # Example
@@ -2726,6 +2726,56 @@ pub trait Itertools: Iterator {
         Result<U, E>: FromIterator<Result<T, E>>,
     {
         self.collect()
+    }
+
+    /// `.product_ok()` is a more convenient way of writing `.product::<Result<_, _>>()`
+    ///
+    /// **Panics** when a primitive integer type is returned and the computation
+    /// overflows, and debug assertions are enabled.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use std::str::FromStr;
+    ///
+    /// fn main() -> Result<(), std::num::ParseIntError> {
+    ///     let product: u64 = ["1", "2", "3"].iter().map(|x| u64::from_str(x)).product_ok()?;
+    ///     assert_eq!(product, 6);
+    ///     Ok(())
+    /// }
+    /// ```
+    fn product_ok<T, U, E>(self) -> Result<U, E>
+    where
+        Self: Sized + Iterator<Item = Result<T, E>>,
+        Result<U, E>: std::iter::Product<Result<T, E>>,
+    {
+        self.product()
+    }
+
+    /// `.sum_ok()` is a more convenient way of writing `.sum::<Result<_, _>>()`
+    ///
+    /// **Panics** when a primitive integer type is returned and the computation
+    /// overflows, and debug assertions are enabled.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use std::str::FromStr;
+    ///
+    /// fn main() -> Result<(), std::num::ParseIntError> {
+    ///     let sum: u64 = ["1", "2", "3"].iter().map(|x| u64::from_str(x)).sum_ok()?;
+    ///     assert_eq!(sum, 6);
+    ///     Ok(())
+    /// }
+    /// ```
+    fn sum_ok<T, U, E>(self) -> Result<U, E>
+    where
+        Self: Sized + Iterator<Item = Result<T, E>>,
+        Result<U, E>: std::iter::Sum<Result<T, E>>,
+    {
+        self.sum()
     }
 
     /// Assign to each reference in `self` from the `from` iterator,
