@@ -1806,7 +1806,7 @@ pub trait Itertools: Iterator {
     /// Return an iterator adaptor that yields the indices of all elements
     /// satisfying a predicate, counted from the start of the iterator.
     ///
-    /// Equivalent to `iter.enumerate().filter(|(_, v)| predicate(v)).map(|(i, _)| i)`.
+    /// Equivalent to `iter.enumerate().filter(|(_, v)| predicate(*v)).map(|(i, _)| i)`.
     ///
     /// ```
     /// use itertools::Itertools;
