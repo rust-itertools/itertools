@@ -604,6 +604,12 @@ quickcheck! {
         let b = &b[..len];
         itertools::equal(zip_eq(a, b), zip(a, b))
     }
+    fn equal_positions(a: Vec<i32>) -> bool {
+        let with_pos = a.iter().positions(|v| v % 2 == 0);
+        let without = a.iter().enumerate().filter(|(_, v)| *v % 2 == 0).map(|(i, _)| i);
+        itertools::equal(with_pos.clone(), without.clone())
+            && itertools::equal(with_pos.rev(), without.rev())
+    }
     fn size_zip_longest(a: Iter<i16, Exact>, b: Iter<i16, Exact>) -> bool {
         let filt = a.clone().dedup();
         let filt2 = b.clone().dedup();
