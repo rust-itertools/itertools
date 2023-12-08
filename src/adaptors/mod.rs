@@ -16,7 +16,7 @@ pub use self::multi_product::*;
 
 use crate::size_hint::{self, SizeHint};
 use std::fmt;
-use std::iter::{FromIterator, Fuse, FusedIterator};
+use std::iter::{Enumerate, FromIterator, Fuse, FusedIterator};
 use std::marker::PhantomData;
 
 /// An iterator adaptor that alternates elements from two iterators until both
@@ -1039,16 +1039,15 @@ where
 #[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Positions<I, F> {
-    iter: I,
+    iter: Enumerate<I>,
     f: F,
-    count: usize,
 }
 
 impl<I, F> fmt::Debug for Positions<I, F>
 where
     I: fmt::Debug,
 {
-    debug_fmt_fields!(Positions, iter, count);
+    debug_fmt_fields!(Positions, iter);
 }
 
 /// Create a new `Positions` iterator.
@@ -1057,7 +1056,8 @@ where
     I: Iterator,
     F: FnMut(I::Item) -> bool,
 {
-    Positions { iter, f, count: 0 }
+    let iter = iter.enumerate();
+    Positions { iter, f }
 }
 
 impl<I, F> Iterator for Positions<I, F>
@@ -1068,14 +1068,10 @@ where
     type Item = usize;
 
     fn next(&mut self) -> Option<Self::Item> {
-        while let Some(v) = self.iter.next() {
-            let i = self.count;
-            self.count = i + 1;
-            if (self.f)(v) {
-                return Some(i);
-            }
-        }
-        None
+        let f = &mut self.f;
+        // TODO: once MSRV >= 1.62, use `then_some`.
+        self.iter
+            .find_map(|(count, val)| if f(val) { Some(count) } else { None })
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -1086,13 +1082,11 @@ where
     where
         G: FnMut(B, Self::Item) -> B,
     {
-        let mut count = self.count;
         let mut f = self.f;
-        self.iter.fold(init, |mut acc, val| {
+        self.iter.fold(init, |mut acc, (count, val)| {
             if f(val) {
                 acc = func(acc, count);
             }
-            count += 1;
             acc
         })
     }
@@ -1104,22 +1098,20 @@ where
     F: FnMut(I::Item) -> bool,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
-        while let Some(v) = self.iter.next_back() {
-            if (self.f)(v) {
-                return Some(self.count + self.iter.len());
-            }
-        }
-        None
+        let f = &mut self.f;
+        // TODO: once MSRV >= 1.62, use `then_some`.
+        self.iter
+            .by_ref()
+            .rev()
+            .find_map(|(count, val)| if f(val) { Some(count) } else { None })
     }
 
     fn rfold<B, G>(self, init: B, mut func: G) -> B
     where
         G: FnMut(B, Self::Item) -> B,
     {
-        let mut count = self.count + self.iter.len();
         let mut f = self.f;
-        self.iter.rfold(init, |mut acc, val| {
-            count -= 1;
+        self.iter.rfold(init, |mut acc, (count, val)| {
             if f(val) {
                 acc = func(acc, count);
             }
