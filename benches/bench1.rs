@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
 use itertools::free::cloned;
 use itertools::iproduct;
 use itertools::Itertools;
@@ -648,6 +648,22 @@ fn step_range_10(c: &mut Criterion) {
     });
 }
 
+fn vec_iter_mut_partition(c: &mut Criterion) {
+    let data = std::iter::repeat(-1024i32..1024)
+        .take(256)
+        .flatten()
+        .collect_vec();
+    c.bench_function("vec iter mut partition", move |b| {
+        b.iter_batched(
+            || data.clone(),
+            |mut data| {
+                black_box(itertools::partition(black_box(&mut data), |n| *n >= 0));
+            },
+            BatchSize::LargeInput,
+        )
+    });
+}
+
 fn cartesian_product_iterator(c: &mut Criterion) {
     let xs = vec![0; 16];
 
@@ -803,6 +819,7 @@ criterion_group!(
     step_vec_10,
     step_range_2,
     step_range_10,
+    vec_iter_mut_partition,
     cartesian_product_iterator,
     multi_cartesian_product_iterator,
     cartesian_product_nested_for,
