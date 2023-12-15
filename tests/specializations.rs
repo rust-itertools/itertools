@@ -330,6 +330,17 @@ quickcheck! {
         test_specializations(&it);
         test_double_ended_specializations(&it);
     }
+
+    fn exactly_one_error(v: Vec<u8>) -> TestResult {
+        // Use `at_most_one` would be similar.
+        match v.iter().exactly_one() {
+            Ok(_) => TestResult::discard(),
+            Err(it) => {
+                test_specializations(&it);
+                TestResult::passed()
+            }
+        }
+    }
 }
 
 quickcheck! {
