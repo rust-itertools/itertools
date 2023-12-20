@@ -219,7 +219,7 @@ where
     /// Split the `PutBack` into its parts.
     #[inline]
     pub fn into_parts(self) -> (Option<I::Item>, I) {
-        let PutBack { top, iter } = self;
+        let Self { top, iter } = self;
         (top, iter)
     }
 

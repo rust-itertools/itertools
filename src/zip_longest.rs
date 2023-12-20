@@ -59,7 +59,7 @@ where
         Self: Sized,
         F: FnMut(B, Self::Item) -> B,
     {
-        let ZipLongest { a, mut b } = self;
+        let Self { a, mut b } = self;
         init = a.fold(init, |init, a| match b.next() {
             Some(b) => f(init, EitherOrBoth::Both(a, b)),
             None => f(init, EitherOrBoth::Left(a)),
