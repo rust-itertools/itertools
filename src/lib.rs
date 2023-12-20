@@ -2545,18 +2545,14 @@ pub trait Itertools: Iterator {
             // but half the useful tree_fold1 work is combining adjacent items,
             // so put that in a form that LLVM is more likely to optimize well.
 
-            let a =
-                if let Some(v) = it.next() {
-                    v
-                } else {
-                    return Err(None);
-                };
-            let b =
-                if let Some(v) = it.next() {
-                    v
-                } else {
-                    return Err(Some(a));
-                };
+            let Some(a) = it.next() else {
+                return Err(None);
+            };
+
+            let Some(b) = it.next() else {
+                return Err(Some(a));
+            };
+
             Ok(f(a, b))
         }
 
