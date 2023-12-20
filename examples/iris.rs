@@ -58,7 +58,7 @@ fn main() {
     let irises = DATA
         .lines()
         .map(str::parse)
-        .fold_ok(Vec::new(), |mut v, iris: Iris| {
+        .fold_ok(vec![], |mut v, iris: Iris| {
             v.push(iris);
             v
         });

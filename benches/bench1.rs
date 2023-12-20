@@ -590,7 +590,7 @@ fn kmerge_tenway(c: &mut Criterion) {
         *elt = rng(&mut state);
     }
 
-    let mut chunks = Vec::new();
+    let mut chunks = vec![];
     let mut rest = &mut data[..];
     while rest.len() > 0 {
         let chunk_len = 1 + rng(&mut state) % 512;

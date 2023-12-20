@@ -67,7 +67,7 @@ where
         match state {
             PermutationState::Start { k: 0 } => {
                 *state = PermutationState::End;
-                Some(Vec::new())
+                Some(vec![])
             }
             &mut PermutationState::Start { k } => {
                 vals.prefill(k);

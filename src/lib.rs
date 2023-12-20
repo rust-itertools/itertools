@@ -599,7 +599,7 @@ pub trait Itertools: Iterator {
     ///
     /// // Note: The `&` is significant here, `GroupBy` is iterable
     /// // only by reference. You can also call `.into_iter()` explicitly.
-    /// let mut data_grouped = Vec::new();
+    /// let mut data_grouped = vec![];
     /// for (key, group) in &data.into_iter().group_by(|elt| *elt >= 0) {
     ///     data_grouped.push((key, group.collect()));
     /// }
@@ -660,7 +660,7 @@ pub trait Itertools: Iterator {
     ///
     /// ```
     /// use itertools::Itertools;
-    /// let mut v = Vec::new();
+    /// let mut v = vec![];
     ///
     /// // pairwise iteration
     /// for (a, b) in (1..5).tuple_windows() {
@@ -703,7 +703,7 @@ pub trait Itertools: Iterator {
     ///
     /// ```
     /// use itertools::Itertools;
-    /// let mut v = Vec::new();
+    /// let mut v = vec![];
     /// for (a, b) in (1..5).circular_tuple_windows() {
     ///     v.push((a, b));
     /// }
@@ -735,7 +735,7 @@ pub trait Itertools: Iterator {
     ///
     /// ```
     /// use itertools::Itertools;
-    /// let mut v = Vec::new();
+    /// let mut v = vec![];
     /// for (a, b) in (1..5).tuples() {
     ///     v.push((a, b));
     /// }
@@ -1567,7 +1567,7 @@ pub trait Itertools: Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let mut v = Vec::new();
+    /// let mut v = vec![];
     /// for (a, b) in (1..5).tuple_combinations() {
     ///     v.push((a, b));
     /// }

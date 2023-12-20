@@ -160,7 +160,7 @@ fn dedup() {
 
     let xs = [0, 1, 1, 1, 2, 1, 3, 3];
     let ys = [0, 1, 2, 1, 3];
-    let mut xs_d = Vec::new();
+    let mut xs_d = vec![];
     xs.iter().dedup().fold((), |(), &elt| xs_d.push(elt));
     assert_eq!(&xs_d, &ys);
 }
@@ -214,7 +214,7 @@ fn dedup_by() {
         (1, 3),
     ];
     let ys = [(0, 0), (0, 1), (0, 2), (3, 1), (0, 3)];
-    let mut xs_d = Vec::new();
+    let mut xs_d = vec![];
     xs.iter()
         .dedup_by(|x, y| x.1 == y.1)
         .fold((), |(), &elt| xs_d.push(elt));
@@ -876,7 +876,7 @@ fn group_by_lazy_2() {
     it::assert_equal(&[0, 0, 0, 1, 1], gs.into_iter().flat_map(|(_, g)| g));
 
     let grouper = data.iter().group_by(|k| *k);
-    let mut groups = Vec::new();
+    let mut groups = vec![];
     for (k, group) in &grouper {
         if *k == 1 {
             groups.push(group);
@@ -886,7 +886,7 @@ fn group_by_lazy_2() {
 
     let data = vec![0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
     let grouper = data.iter().group_by(|k| *k);
-    let mut groups = Vec::new();
+    let mut groups = vec![];
     for (i, (_, group)) in grouper.into_iter().enumerate() {
         if i < 2 {
             groups.push(group);
@@ -952,8 +952,8 @@ fn chunks() {
 
 #[test]
 fn concat_empty() {
-    let data: Vec<Vec<()>> = Vec::new();
-    assert_eq!(data.into_iter().concat(), Vec::new())
+    let data: Vec<Vec<()>> = vec![];
+    assert_eq!(data.into_iter().concat(), vec![])
 }
 
 #[test]

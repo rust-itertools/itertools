@@ -17,7 +17,7 @@ where
     pub fn new(it: I) -> Self {
         Self {
             it: it.fuse(),
-            buffer: Vec::new(),
+            buffer: vec![],
         }
     }
 

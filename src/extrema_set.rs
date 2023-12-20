@@ -14,7 +14,7 @@ where
     Compare: FnMut(&I::Item, &I::Item, &K, &K) -> Ordering,
 {
     match it.next() {
-        None => Vec::new(),
+        None => vec![],
         Some(element) => {
             let mut current_key = key_for(&element);
             let mut result = vec![element];

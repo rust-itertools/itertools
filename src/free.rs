@@ -112,7 +112,7 @@ where
 /// ```
 /// use itertools::zip;
 ///
-/// let mut result: Vec<(i32, char)> = Vec::new();
+/// let mut result: Vec<(i32, char)> = vec![];
 ///
 /// for (a, b) in zip(&[1, 2, 3, 4, 5], &['a', 'b', 'c']) {
 ///     result.push((*a, *b));
@@ -139,7 +139,7 @@ where
 /// ```
 /// use itertools::chain;
 ///
-/// let mut result:Vec<i32> = Vec::new();
+/// let mut result:Vec<i32> = vec![];
 ///
 /// for element in chain(&[1, 2, 3], &[4]) {
 ///     result.push(*element);

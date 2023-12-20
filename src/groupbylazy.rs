@@ -163,7 +163,7 @@ where
         // Because the `Groups` iterator is always the first to request
         // each group index, client is the next index efter top_group.
         debug_assert!(self.top_group + 1 == client);
-        let mut group = Vec::new();
+        let mut group = vec![];
 
         if let Some(elt) = self.current_elt.take() {
             if self.top_group != self.dropped_group {
@@ -207,7 +207,7 @@ where
                 self.bottom_group += 1;
                 self.oldest_buffered_group += 1;
             } else {
-                self.buffer.push(Vec::new().into_iter());
+                self.buffer.push(vec![].into_iter());
             }
         }
         self.buffer.push(group.into_iter());
@@ -322,7 +322,7 @@ where
             top_group: 0,
             oldest_buffered_group: 0,
             bottom_group: 0,
-            buffer: Vec::new(),
+            buffer: vec![],
             dropped_group: !0,
         }),
         index: Cell::new(0),
@@ -463,7 +463,7 @@ where
             top_group: 0,
             oldest_buffered_group: 0,
             bottom_group: 0,
-            buffer: Vec::new(),
+            buffer: vec![],
             dropped_group: !0,
         }),
         index: Cell::new(0),

@@ -415,7 +415,7 @@ quickcheck! {
         let cr = &c.clone();
         let answer: Vec<_> = ac.flat_map(move |ea| br.clone().flat_map(move |eb| cr.clone().map(move |ec| (ea, eb, ec)))).collect();
         let mut product_iter = iproduct!(a, b, c);
-        let mut actual = Vec::new();
+        let mut actual = vec![];
 
         actual.extend((&mut product_iter).take(take_manual));
         if actual.len() == take_manual {
@@ -439,7 +439,7 @@ quickcheck! {
         let i2r = &iters.next().unwrap();
         let answer: Vec<_> = i0.flat_map(move |ei0| i1r.clone().flat_map(move |ei1| i2r.clone().map(move |ei2| vec![ei0, ei1, ei2]))).collect();
         let mut multi_product = a.clone().multi_cartesian_product();
-        let mut actual = Vec::new();
+        let mut actual = vec![];
 
         actual.extend((&mut multi_product).take(take_manual));
         if actual.len() == take_manual {
@@ -667,7 +667,7 @@ quickcheck! {
     }
 
     fn equal_combinations_2(a: Vec<u8>) -> bool {
-        let mut v = Vec::new();
+        let mut v = vec![];
         for (i, x) in enumerate(&a) {
             for y in &a[i + 1..] {
                 v.push((x, y));
@@ -1078,7 +1078,7 @@ quickcheck! {
         let mut groups1 = grouper.into_iter();
         let mut groups2 = grouper.into_iter();
         let mut elts = Vec::<&u8>::new();
-        let mut old_groups = Vec::new();
+        let mut old_groups = vec![];
 
         let tup1 = |(_, b)| b;
         for &(ord, consume_now) in &order {
@@ -1373,7 +1373,7 @@ quickcheck! {
         fn collapse_adjacent<F>(x: Vec<f64>, mut f: F) -> Vec<f64>
             where F: FnMut(f64, f64) -> f64
         {
-            let mut out = Vec::new();
+            let mut out = vec![];
             for i in (0..x.len()).step(2) {
                 if i == x.len()-1 {
                     out.push(x[i])
@@ -1815,7 +1815,7 @@ quickcheck! {
 
         let y =
           multizip((a.into_iter(), b.into_iter()))
-          .rfold(Vec::new(), |mut vec, e| { vec.push(e); vec });
+          .rfold(vec![], |mut vec, e| { vec.push(e); vec });
 
         TestResult::from_bool(itertools::equal(x, y))
     }
@@ -1828,7 +1828,7 @@ quickcheck! {
 
         let y =
           multizip((a.into_iter(), b.into_iter(), c.into_iter()))
-          .rfold(Vec::new(), |mut vec, e| { vec.push(e); vec });
+          .rfold(vec![], |mut vec, e| { vec.push(e); vec });
 
         TestResult::from_bool(itertools::equal(x, y))
     }

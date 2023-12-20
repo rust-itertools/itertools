@@ -22,7 +22,7 @@ where
     I: IntoIterator,
 {
     PutBackN {
-        top: Vec::new(),
+        top: vec![],
         iter: iterable.into_iter(),
     }
 }
