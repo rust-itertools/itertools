@@ -307,9 +307,9 @@ impl<A, B> EitherOrBoth<A, B> {
         B: Default,
     {
         match self {
-            EitherOrBoth::Left(l) => (l, B::default()),
-            EitherOrBoth::Right(r) => (A::default(), r),
-            EitherOrBoth::Both(l, r) => (l, r),
+            Left(l) => (l, B::default()),
+            Right(r) => (A::default(), r),
+            Both(l, r) => (l, r),
         }
     }
 
@@ -503,8 +503,8 @@ impl<T> EitherOrBoth<T, T> {
 impl<A, B> Into<Option<Either<A, B>>> for EitherOrBoth<A, B> {
     fn into(self) -> Option<Either<A, B>> {
         match self {
-            EitherOrBoth::Left(l) => Some(Either::Left(l)),
-            EitherOrBoth::Right(r) => Some(Either::Right(r)),
+            Left(l) => Some(Either::Left(l)),
+            Right(r) => Some(Either::Right(r)),
             _ => None,
         }
     }
@@ -513,8 +513,8 @@ impl<A, B> Into<Option<Either<A, B>>> for EitherOrBoth<A, B> {
 impl<A, B> From<Either<A, B>> for EitherOrBoth<A, B> {
     fn from(either: Either<A, B>) -> Self {
         match either {
-            Either::Left(l) => EitherOrBoth::Left(l),
-            Either::Right(l) => EitherOrBoth::Right(l),
+            Either::Left(l) => Left(l),
+            Either::Right(l) => Right(l),
         }
     }
 }

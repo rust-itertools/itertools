@@ -11,11 +11,7 @@ pub type SizeHint = (usize, Option<usize>);
 #[inline]
 pub fn add(a: SizeHint, b: SizeHint) -> SizeHint {
     let min = a.0.saturating_add(b.0);
-    let max = match (a.1, b.1) {
-        (Some(x), Some(y)) => x.checked_add(y),
-        _ => None,
-    };
-
+    let max = a.1.zip(b.1).and_then(|(x, y)| x.checked_add(y));
     (min, max)
 }
 
