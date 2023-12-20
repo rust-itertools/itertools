@@ -2545,16 +2545,18 @@ pub trait Itertools: Iterator {
             // but half the useful tree_fold1 work is combining adjacent items,
             // so put that in a form that LLVM is more likely to optimize well.
 
-            let a = if let Some(v) = it.next() {
-                v
-            } else {
-                return Err(None);
-            };
-            let b = if let Some(v) = it.next() {
-                v
-            } else {
-                return Err(Some(a));
-            };
+            let a =
+                if let Some(v) = it.next() {
+                    v
+                } else {
+                    return Err(None);
+                };
+            let b =
+                if let Some(v) = it.next() {
+                    v
+                } else {
+                    return Err(Some(a));
+                };
             Ok(f(a, b))
         }
 
@@ -2638,14 +2640,15 @@ pub trait Itertools: Iterator {
     {
         use Result::{Err as Break, Ok as Continue};
 
-        let result = self.try_fold(
-            init,
-            #[inline(always)]
-            |acc, v| match f(acc, v) {
-                FoldWhile::Continue(acc) => Continue(acc),
-                FoldWhile::Done(acc) => Break(acc),
-            },
-        );
+        let result =
+            self.try_fold(
+                init,
+                #[inline(always)]
+                |acc, v| match f(acc, v) {
+                    FoldWhile::Continue(acc) => Continue(acc),
+                    FoldWhile::Done(acc) => Break(acc),
+                },
+            );
 
         match result {
             Continue(acc) => FoldWhile::Continue(acc),
@@ -3783,10 +3786,12 @@ pub trait Itertools: Iterator {
     {
         match self.next() {
             Some(first) => match self.next() {
-                Some(second) => Err(ExactlyOneError::new(
-                    Some(Either::Left([first, second])),
-                    self,
-                )),
+                Some(second) => {
+                    Err(ExactlyOneError::new(
+                        Some(Either::Left([first, second])),
+                        self,
+                    ))
+                }
                 None => Ok(first),
             },
             None => Err(ExactlyOneError::new(None, self)),
@@ -3816,10 +3821,12 @@ pub trait Itertools: Iterator {
     {
         match self.next() {
             Some(first) => match self.next() {
-                Some(second) => Err(ExactlyOneError::new(
-                    Some(Either::Left([first, second])),
-                    self,
-                )),
+                Some(second) => {
+                    Err(ExactlyOneError::new(
+                        Some(Either::Left([first, second])),
+                        self,
+                    ))
+                }
                 None => Ok(Some(first)),
             },
             None => Ok(None),
@@ -4012,10 +4019,11 @@ where
         match (ia.next(), ib.next()) {
             (None, None) => return,
             (a, b) => {
-                let equal = match (&a, &b) {
-                    (&Some(ref a), &Some(ref b)) => a == b,
-                    _ => false,
-                };
+                let equal =
+                    match (&a, &b) {
+                        (&Some(ref a), &Some(ref b)) => a == b,
+                        _ => false,
+                    };
                 assert!(
                     equal,
                     "Failed assertion {a:?} == {b:?} for iteration {i}",

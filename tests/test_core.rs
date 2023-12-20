@@ -32,11 +32,13 @@ fn product2() {
 
 #[test]
 fn product_temporary() {
-    for (_x, _y, _z) in iproduct!(
-        [0, 1, 2].iter().cloned(),
-        [0, 1, 2].iter().cloned(),
-        [0, 1, 2].iter().cloned()
-    ) {
+    for (_x, _y, _z) in
+        iproduct!(
+            [0, 1, 2].iter().cloned(),
+            [0, 1, 2].iter().cloned(),
+            [0, 1, 2].iter().cloned()
+        )
+    {
         // ok
     }
 }

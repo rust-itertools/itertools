@@ -26,10 +26,11 @@ where
     A: Iterator,
     T: Fn(PanickingCounter) -> A,
 {
-    let counter = PanickingCounter {
-        curr: 0,
-        max: 10_000,
-    };
+    let counter =
+        PanickingCounter {
+            curr: 0,
+            max: 10_000,
+        };
     let adaptor = to_adaptor(counter);
 
     for _ in adaptor.take(5) {}

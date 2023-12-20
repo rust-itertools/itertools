@@ -152,11 +152,12 @@ where
         let (next_lower, next_upper) = next_hint;
         let (combined_lower, combined_upper) =
             size_hint::mul_scalar(size_hint::min(curr_hint, next_hint), 2);
-        let lower = if curr_lower > next_lower {
-            combined_lower + 1
-        } else {
-            combined_lower
-        };
+        let lower =
+            if curr_lower > next_lower {
+                combined_lower + 1
+            } else {
+                combined_lower
+            };
         let upper = {
             let extra_elem = match (curr_upper, next_upper) {
                 (_, None) => false,

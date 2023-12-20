@@ -246,13 +246,14 @@ fn dedup_by_with_count() {
         (0, 3),
         (1, 3),
     ];
-    let ys = [
-        (1, &(0, 0)),
-        (3, &(0, 1)),
-        (1, &(0, 2)),
-        (1, &(3, 1)),
-        (2, &(0, 3)),
-    ];
+    let ys =
+        [
+            (1, &(0, 0)),
+            (3, &(0, 1)),
+            (1, &(0, 2)),
+            (1, &(3, 1)),
+            (2, &(0, 3)),
+        ];
 
     it::assert_equal(
         ys.iter().cloned(),
@@ -1378,18 +1379,18 @@ fn while_some() {
 fn fold_while() {
     let mut iterations = 0;
     let vec = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    let sum = vec
-        .into_iter()
-        .fold_while(0, |acc, item| {
-            iterations += 1;
-            let new_sum = acc + item;
-            if new_sum <= 20 {
-                FoldWhile::Continue(new_sum)
-            } else {
-                FoldWhile::Done(acc)
-            }
-        })
-        .into_inner();
+    let sum =
+        vec.into_iter()
+            .fold_while(0, |acc, item| {
+                iterations += 1;
+                let new_sum = acc + item;
+                if new_sum <= 20 {
+                    FoldWhile::Continue(new_sum)
+                } else {
+                    FoldWhile::Done(acc)
+                }
+            })
+            .into_inner();
     assert_eq!(iterations, 6);
     assert_eq!(sum, 15);
 }

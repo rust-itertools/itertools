@@ -157,11 +157,12 @@ fn advance(indices: &mut [usize], cycles: &mut [usize]) -> bool {
 impl PermutationState {
     fn size_hint_for(&self, n: usize) -> SizeHint {
         // At the beginning, there are `n!/(n-k)!` items to come.
-        let at_start = |n, k| {
-            debug_assert!(n >= k);
-            let total = (n - k + 1..=n).try_fold(1usize, |acc, i| acc.checked_mul(i));
-            (total.unwrap_or(usize::MAX), total)
-        };
+        let at_start =
+            |n, k| {
+                debug_assert!(n >= k);
+                let total = (n - k + 1..=n).try_fold(1usize, |acc, i| acc.checked_mul(i));
+                (total.unwrap_or(usize::MAX), total)
+            };
         match *self {
             Self::Start { k } if n < k => (0, Some(0)),
             Self::Start { k } => at_start(n, k),

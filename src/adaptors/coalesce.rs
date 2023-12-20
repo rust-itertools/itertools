@@ -50,13 +50,14 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         let Self { iter, last, f } = self;
         // this fuses the iterator
-        let init = match last {
-            Some(elt) => elt.take(),
-            None => {
-                *last = Some(None);
-                iter.next().map(C::new)
-            }
-        }?;
+        let init =
+            match last {
+                Some(elt) => elt.take(),
+                None => {
+                    *last = Some(None);
+                    iter.next().map(C::new)
+                }
+            }?;
 
         Some(
             iter.try_fold(init, |accum, next| match f.coalesce_pair(accum, next) {
@@ -88,12 +89,13 @@ where
             mut f,
         } = self;
         if let Some(last) = last.unwrap_or_else(|| iter.next().map(C::new)) {
-            let (last, acc) = iter.fold((last, acc), |(last, acc), elt| {
-                match f.coalesce_pair(last, elt) {
-                    Ok(joined) => (joined, acc),
-                    Err((last_, next_)) => (next_, fn_acc(acc, last_)),
-                }
-            });
+            let (last, acc) =
+                iter.fold((last, acc), |(last, acc), elt| {
+                    match f.coalesce_pair(last, elt) {
+                        Ok(joined) => (joined, acc),
+                        Err((last_, next_)) => (next_, fn_acc(acc, last_)),
+                    }
+                });
             fn_acc(acc, last)
         } else {
             acc

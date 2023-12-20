@@ -77,18 +77,19 @@ where
             None => break,
             Some(x) => x,
         };
-        let second = match it.next() {
-            None => {
-                let first_key = key_for(&first);
-                if lt(&first, &min, &first_key, &min_key) {
-                    min = first;
-                } else if !lt(&first, &max, &first_key, &max_key) {
-                    max = first;
+        let second =
+            match it.next() {
+                None => {
+                    let first_key = key_for(&first);
+                    if lt(&first, &min, &first_key, &min_key) {
+                        min = first;
+                    } else if !lt(&first, &max, &first_key, &max_key) {
+                        max = first;
+                    }
+                    break;
                 }
-                break;
-            }
-            Some(x) => x,
-        };
+                Some(x) => x,
+            };
         let first_key = key_for(&first);
         let second_key = key_for(&second);
         if !lt(&second, &first, &second_key, &first_key) {
