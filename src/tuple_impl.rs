@@ -34,7 +34,7 @@ where
     T: HomogeneousTuple,
 {
     fn new(buf: T::Buffer) -> Self {
-        TupleBuffer { cur: 0, buf }
+        Self { cur: 0, buf }
     }
 }
 

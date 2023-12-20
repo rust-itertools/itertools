@@ -108,7 +108,7 @@ where
     HK: HintKind,
 {
     fn new(it: Range<T>, hint_kind: HK) -> Self {
-        Iter {
+        Self {
             iterator: it,
             fuse_flag: 0,
             hint_kind,

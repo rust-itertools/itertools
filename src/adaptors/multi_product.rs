@@ -139,7 +139,7 @@ where
     I::Item: Clone,
 {
     fn new(iter: I) -> Self {
-        MultiProductIter {
+        Self {
             cur: None,
             iter: iter.clone(),
             iter_orig: iter,

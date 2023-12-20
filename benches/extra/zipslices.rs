@@ -36,7 +36,7 @@ impl<'a, 'b, A, B> ZipSlices<&'a [A], &'b [B]> {
     #[inline(always)]
     pub fn new(a: &'a [A], b: &'b [B]) -> Self {
         let minl = cmp::min(a.len(), b.len());
-        ZipSlices {
+        Self {
             t: a,
             u: b,
             len: minl,

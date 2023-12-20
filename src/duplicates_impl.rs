@@ -22,7 +22,7 @@ mod private {
 
     impl<I: Iterator, Key: Eq + Hash, F> DuplicatesBy<I, Key, F> {
         pub(crate) fn new(iter: I, key_method: F) -> Self {
-            DuplicatesBy {
+            Self {
                 iter,
                 meta: Meta {
                     used: HashMap::new(),
