@@ -1591,6 +1591,11 @@ pub trait Itertools: Iterator {
     /// let it: TupleCombinations<Range<u32>, (u32, u32, u32)> = (1..5).tuple_combinations();
     /// itertools::assert_equal(it, vec![(1, 2, 3), (1, 2, 4), (1, 3, 4), (2, 3, 4)]);
     /// ```
+    ///
+    /// # Guarantees
+    ///
+    /// If the adapted iterator is deterministic,
+    /// this iterator adapter yields items in a reliable order.
     fn tuple_combinations<T>(self) -> TupleCombinations<Self, T>
     where
         Self: Sized + Clone,
@@ -1629,6 +1634,11 @@ pub trait Itertools: Iterator {
     ///     vec![2, 2],
     /// ]);
     /// ```
+    ///
+    /// # Guarantees
+    ///
+    /// If the adapted iterator is deterministic,
+    /// this iterator adapter yields items in a reliable order.
     #[cfg(feature = "use_alloc")]
     fn combinations(self, k: usize) -> Combinations<Self>
     where
