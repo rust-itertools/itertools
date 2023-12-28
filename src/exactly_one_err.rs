@@ -8,7 +8,7 @@ use either::Either;
 
 use crate::size_hint;
 
-/// Iterator returned for the error case of `IterTools::exactly_one()`
+/// Iterator returned for the error case of `Itertools::exactly_one()`
 /// This iterator yields exactly the same elements as the input iterator.
 ///
 /// During the execution of `exactly_one` the iterator must be mutated.  This wrapper
