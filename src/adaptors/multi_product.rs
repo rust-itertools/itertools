@@ -95,6 +95,32 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         let inner = self.0.as_mut()?;
-        todo!()
+        match &mut inner.cur {
+            Some(values) => {
+                for (iter, item) in inner.iters.iter_mut().zip(values.iter_mut()).rev() {
+                    if let Some(new) = iter.iter.next() {
+                        *item = new;
+                        return Some(values.clone());
+                    } else {
+                        iter.iter = iter.iter_orig.clone();
+                        // `cur` is not none so the untouched `iter_orig` can not be empty.
+                        *item = iter.iter.next().unwrap();
+                    }
+                }
+                // The iterator ends.
+                self.0 = None;
+                None
+            }
+            // Only the first time.
+            None => {
+                let next: Option<Vec<_>> = inner.iters.iter_mut().map(|i| i.iter.next()).collect();
+                if next.is_some() {
+                    inner.cur = next.clone();
+                } else {
+                    self.0 = None;
+                }
+                next
+            }
+        }
     }
 }
