@@ -2,6 +2,8 @@
 
 use alloc::vec::Vec;
 
+use crate::size_hint;
+
 #[derive(Clone)]
 /// An iterator adaptor that iterates over the cartesian product of
 /// multiple iterators of type `I`.
@@ -147,6 +149,27 @@ where
                         }
                         acc + iter.iter.count()
                     })
+                }
+            }
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        match &self.0 {
+            None => (0, Some(0)),
+            Some(MultiProductInner { iters, cur }) => {
+                if cur.is_none() {
+                    iters
+                        .iter()
+                        .map(|iter| iter.iter_orig.size_hint())
+                        .fold((1, Some(1)), size_hint::mul)
+                } else if let [first, tail @ ..] = &iters[..] {
+                    tail.iter().fold(first.iter.size_hint(), |mut sh, iter| {
+                        sh = size_hint::mul(sh, iter.iter_orig.size_hint());
+                        size_hint::add(sh, iter.iter.size_hint())
+                    })
+                } else {
+                    (0, Some(0))
                 }
             }
         }
