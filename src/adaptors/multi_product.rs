@@ -9,7 +9,7 @@ use alloc::vec::Vec;
 /// An iterator adaptor that iterates over the cartesian product of
 /// multiple iterators of type `I`.
 ///
-/// An iterator element type is `Vec<I>`.
+/// An iterator element type is `Vec<I::Item>`.
 ///
 /// See [`.multi_cartesian_product()`](crate::Itertools::multi_cartesian_product)
 /// for more information.
