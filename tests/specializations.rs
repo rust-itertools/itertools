@@ -163,7 +163,6 @@ quickcheck! {
         TestResult::passed()
     }
 
-    #[ignore] // It currently fails because `MultiProduct` is not fused.
     fn multi_cartesian_product(a: Vec<u8>, b: Vec<u8>, c: Vec<u8>) -> TestResult {
         if a.len() * b.len() * c.len() > 100 {
             return TestResult::discard();

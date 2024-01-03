@@ -1162,9 +1162,10 @@ pub trait Itertools: Iterator {
     /// the product of iterators yielding multiple types, use the
     /// [`iproduct`] macro instead.
     ///
-    ///
     /// The iterator element type is `Vec<T>`, where `T` is the iterator element
     /// of the subiterators.
+    ///
+    /// Note that the iterator is fused.
     ///
     /// ```
     /// use itertools::Itertools;
