@@ -124,3 +124,10 @@ where
         }
     }
 }
+
+impl<I> std::iter::FusedIterator for MultiProduct<I>
+where
+    I: Iterator + Clone,
+    I::Item: Clone,
+{
+}
