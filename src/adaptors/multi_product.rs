@@ -124,6 +124,34 @@ where
         }
     }
 
+    fn count(self) -> usize {
+        match self.0 {
+            None => 0,
+            Some(MultiProductInner { iters, cur }) => {
+                if cur.is_none() {
+                    iters
+                        .into_iter()
+                        .map(|iter| iter.iter_orig.count())
+                        .try_fold(1, |product, count| {
+                            if count == 0 {
+                                None
+                            } else {
+                                Some(product * count)
+                            }
+                        })
+                        .unwrap_or_default()
+                } else {
+                    iters.into_iter().fold(0, |mut acc, iter| {
+                        if acc != 0 {
+                            acc *= iter.iter_orig.count();
+                        }
+                        acc + iter.iter.count()
+                    })
+                }
+            }
+        }
+    }
+
     fn last(self) -> Option<Self::Item> {
         let MultiProductInner { iters, cur } = self.0?;
         if let Some(values) = cur {
