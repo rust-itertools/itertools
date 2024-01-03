@@ -123,6 +123,31 @@ where
             }
         }
     }
+
+    fn last(self) -> Option<Self::Item> {
+        let MultiProductInner { iters, cur } = self.0?;
+        if let Some(values) = cur {
+            let mut count = iters.len();
+            let last = iters
+                .into_iter()
+                .zip(values)
+                .map(|(i, value)| {
+                    i.iter.last().unwrap_or_else(|| {
+                        count -= 1;
+                        value
+                    })
+                })
+                .collect();
+            if count == 0 {
+                // `values` was the last item.
+                None
+            } else {
+                Some(last)
+            }
+        } else {
+            iters.into_iter().map(|i| i.iter.last()).collect()
+        }
+    }
 }
 
 impl<I> std::iter::FusedIterator for MultiProduct<I>
