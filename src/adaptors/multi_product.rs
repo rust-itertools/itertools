@@ -24,7 +24,7 @@ where
     I: Iterator + Clone + std::fmt::Debug,
     I::Item: Clone + std::fmt::Debug,
 {
-    debug_fmt_fields!(CoalesceBy, 0);
+    debug_fmt_fields!(MultiProduct, 0);
 }
 
 /// Create a new cartesian product iterator over an arbitrary number
