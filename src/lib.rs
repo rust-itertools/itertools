@@ -1181,6 +1181,16 @@ pub trait Itertools: Iterator {
     /// assert_eq!(multi_prod.next(), Some(vec![1, 3, 5]));
     /// assert_eq!(multi_prod.next(), None);
     /// ```
+    ///
+    /// If the adapted iterator is empty, the result is an iterator yielding a single empty vector.
+    /// This is known as the [nullary cartesian product](https://en.wikipedia.org/wiki/Empty_product#Nullary_Cartesian_product).
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// let mut nullary_cartesian_product = (0..0).map(|i| (i * 2)..(i * 2 + 2)).multi_cartesian_product();
+    /// assert_eq!(nullary_cartesian_product.next(), Some(vec![]));
+    /// assert_eq!(nullary_cartesian_product.next(), None);
+    /// ```
     #[cfg(feature = "use_alloc")]
     fn multi_cartesian_product(self) -> MultiProduct<<Self::Item as IntoIterator>::IntoIter>
     where
