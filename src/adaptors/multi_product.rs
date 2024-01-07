@@ -13,18 +13,24 @@ use crate::size_hint;
 /// See [`.multi_cartesian_product()`](crate::Itertools::multi_cartesian_product)
 /// for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct MultiProduct<I>(Option<MultiProductInner<I>>)
+pub struct MultiProduct<I>(
+    /// `None` once the iterator has ended.
+    Option<MultiProductInner<I>>,
+)
 where
     I: Iterator + Clone,
     I::Item: Clone;
 
 #[derive(Clone)]
+/// Internals for `MultiProduct`.
 struct MultiProductInner<I>
 where
     I: Iterator + Clone,
     I::Item: Clone,
 {
+    /// Holds the iterators.
     iters: Vec<MultiProductIter<I>>,
+    /// It is `None` at the beginning then it holds the current item of each iterator.
     cur: Option<Vec<I::Item>>,
 }
 
