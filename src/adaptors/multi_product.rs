@@ -102,10 +102,13 @@ where
     type Item = Vec<I::Item>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        // This fuses the iterator.
         let inner = self.0.as_mut()?;
         match &mut inner.cur {
             Some(values) => {
                 debug_assert!(!inner.iters.is_empty());
+                // Find (from the right) a non-finished iterator and
+                // reset the finished ones encountered.
                 for (iter, item) in inner.iters.iter_mut().zip(values.iter_mut()).rev() {
                     if let Some(new) = iter.iter.next() {
                         *item = new;
@@ -136,9 +139,12 @@ where
 
     fn count(self) -> usize {
         match self.0 {
-            None => 0,
+            None => 0, // The cartesian product has ended.
             Some(MultiProductInner { iters, cur }) => {
                 if cur.is_none() {
+                    // The iterator is fresh so the count is the product of the length of each iterator:
+                    // - If one of them is empty, stop counting.
+                    // - Less `count()` calls than the general case.
                     iters
                         .into_iter()
                         .map(|iter| iter.iter_orig.count())
@@ -151,6 +157,7 @@ where
                         })
                         .unwrap_or_default()
                 } else {
+                    // The general case.
                     iters.into_iter().fold(0, |mut acc, iter| {
                         if acc != 0 {
                             acc *= iter.iter_orig.count();
@@ -164,7 +171,7 @@ where
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         match &self.0 {
-            None => (0, Some(0)),
+            None => (0, Some(0)), // The cartesian product has ended.
             Some(MultiProductInner { iters, cur }) => {
                 if cur.is_none() {
                     iters
@@ -186,6 +193,7 @@ where
 
     fn last(self) -> Option<Self::Item> {
         let MultiProductInner { iters, cur } = self.0?;
+        // Collect the last item of each iterator of the product.
         if let Some(values) = cur {
             let mut count = iters.len();
             let last = iters
@@ -193,6 +201,7 @@ where
                 .zip(values)
                 .map(|(i, value)| {
                     i.iter.last().unwrap_or_else(|| {
+                        // The iterator is empty, use its current `value`.
                         count -= 1;
                         value
                     })
