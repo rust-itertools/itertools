@@ -105,6 +105,7 @@ where
         let inner = self.0.as_mut()?;
         match &mut inner.cur {
             Some(values) => {
+                debug_assert!(!inner.iters.is_empty());
                 for (iter, item) in inner.iters.iter_mut().zip(values.iter_mut()).rev() {
                     if let Some(new) = iter.iter.next() {
                         *item = new;
@@ -122,10 +123,11 @@ where
             // Only the first time.
             None => {
                 let next: Option<Vec<_>> = inner.iters.iter_mut().map(|i| i.iter.next()).collect();
-                if next.is_some() {
-                    inner.cur = next.clone();
-                } else {
+                if next.is_none() || inner.iters.is_empty() {
+                    // This cartesian product had at most one item to generate and now ends.
                     self.0 = None;
+                } else {
+                    inner.cur = next.clone();
                 }
                 next
             }
@@ -175,7 +177,8 @@ where
                         size_hint::add(sh, iter.iter.size_hint())
                     })
                 } else {
-                    (0, Some(0))
+                    // Since `cur` is some, this cartesian product has started so `iters` is not empty.
+                    unreachable!()
                 }
             }
         }
