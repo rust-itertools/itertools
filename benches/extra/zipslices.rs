@@ -138,6 +138,8 @@ where
 
 /// A helper trait to let `ZipSlices` accept both `&[T]` and `&mut [T]`.
 ///
+/// # Safety
+///
 /// Unsafe trait because:
 ///
 /// - Implementors must guarantee that `get_unchecked` is valid for all indices `0..len()`.

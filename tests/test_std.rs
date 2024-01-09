@@ -40,19 +40,19 @@ fn product3() {
 fn interleave_shortest() {
     let v0: Vec<i32> = vec![0, 2, 4];
     let v1: Vec<i32> = vec![1, 3, 5, 7];
-    let it = v0.into_iter().interleave_shortest(v1.into_iter());
+    let it = v0.into_iter().interleave_shortest(v1);
     assert_eq!(it.size_hint(), (6, Some(6)));
     assert_eq!(it.collect_vec(), vec![0, 1, 2, 3, 4, 5]);
 
     let v0: Vec<i32> = vec![0, 2, 4, 6, 8];
     let v1: Vec<i32> = vec![1, 3, 5];
-    let it = v0.into_iter().interleave_shortest(v1.into_iter());
+    let it = v0.into_iter().interleave_shortest(v1);
     assert_eq!(it.size_hint(), (7, Some(7)));
     assert_eq!(it.collect_vec(), vec![0, 1, 2, 3, 4, 5, 6]);
 
     let i0 = ::std::iter::repeat(0);
     let v1: Vec<_> = vec![1, 3, 5];
-    let it = i0.interleave_shortest(v1.into_iter());
+    let it = i0.interleave_shortest(v1);
     assert_eq!(it.size_hint(), (7, Some(7)));
 
     let v0: Vec<_> = vec![0, 2, 4];
@@ -93,7 +93,7 @@ fn duplicates() {
     let ys_rev = [1, 0];
     it::assert_equal(ys_rev.iter(), xs.iter().duplicates().rev());
 
-    let xs = vec![0, 1, 2, 1, 2];
+    let xs = [0, 1, 2, 1, 2];
     let ys = vec![1, 2];
     assert_eq!(ys, xs.iter().duplicates().cloned().collect_vec());
     assert_eq!(
@@ -146,7 +146,7 @@ fn intersperse() {
 
     let ys = [0, 1, 2, 3];
     let mut it = ys[..0].iter().copied().intersperse(1);
-    assert!(it.next() == None);
+    assert!(it.next().is_none());
 }
 
 #[test]
@@ -167,7 +167,7 @@ fn dedup() {
 
 #[test]
 fn coalesce() {
-    let data = vec![-1., -2., -3., 3., 1., 0., -1.];
+    let data = [-1., -2., -3., 3., 1., 0., -1.];
     let it = data.iter().cloned().coalesce(|x, y| {
         if (x >= 0.) == (y >= 0.) {
             Ok(x + y)
@@ -395,8 +395,8 @@ fn trait_pointers() {
 #[test]
 fn merge_by() {
     let odd: Vec<(u32, &str)> = vec![(1, "hello"), (3, "world"), (5, "!")];
-    let even = vec![(2, "foo"), (4, "bar"), (6, "baz")];
-    let expected = vec![
+    let even = [(2, "foo"), (4, "bar"), (6, "baz")];
+    let expected = [
         (1, "hello"),
         (2, "foo"),
         (3, "world"),
@@ -417,9 +417,9 @@ fn merge_by_btree() {
     let mut bt2 = BTreeMap::new();
     bt2.insert("foo", 2);
     bt2.insert("bar", 4);
-    let results = bt1.into_iter().merge_by(bt2.into_iter(), |a, b| a.0 <= b.0);
+    let results = bt1.into_iter().merge_by(bt2, |a, b| a.0 <= b.0);
     let expected = vec![("bar", 4), ("foo", 2), ("hello", 1), ("world", 3)];
-    it::assert_equal(results, expected.into_iter());
+    it::assert_equal(results, expected);
 }
 
 #[allow(deprecated)]
@@ -651,7 +651,7 @@ fn test_multipeek_reset() {
 #[test]
 fn test_multipeek_peeking_next() {
     use crate::it::PeekingNext;
-    let nums = vec![1u8, 2, 3, 4, 5, 6, 7];
+    let nums = [1u8, 2, 3, 4, 5, 6, 7];
 
     let mut mp = multipeek(nums.iter().copied());
     assert_eq!(mp.peeking_next(|&x| x != 0), Some(1));
@@ -711,7 +711,7 @@ fn test_peek_nth() {
 #[test]
 fn test_peek_nth_peeking_next() {
     use it::PeekingNext;
-    let nums = vec![1u8, 2, 3, 4, 5, 6, 7];
+    let nums = [1u8, 2, 3, 4, 5, 6, 7];
     let mut iter = peek_nth(nums.iter().copied());
 
     assert_eq!(iter.peeking_next(|&x| x != 0), Some(1));
@@ -740,7 +740,7 @@ fn test_peek_nth_peeking_next() {
 
 #[test]
 fn test_peek_nth_next_if() {
-    let nums = vec![1u8, 2, 3, 4, 5, 6, 7];
+    let nums = [1u8, 2, 3, 4, 5, 6, 7];
     let mut iter = peek_nth(nums.iter().copied());
 
     assert_eq!(iter.next_if(|&x| x != 0), Some(1));
@@ -863,12 +863,12 @@ fn group_by() {
 
 #[test]
 fn group_by_lazy_2() {
-    let data = vec![0, 1];
+    let data = [0, 1];
     let groups = data.iter().group_by(|k| *k);
     let gs = groups.into_iter().collect_vec();
     it::assert_equal(data.iter(), gs.into_iter().flat_map(|(_k, g)| g));
 
-    let data = vec![0, 1, 1, 0, 0];
+    let data = [0, 1, 1, 0, 0];
     let groups = data.iter().group_by(|k| *k);
     let mut gs = groups.into_iter().collect_vec();
     gs[1..].reverse();
@@ -883,7 +883,7 @@ fn group_by_lazy_2() {
     }
     it::assert_equal(&mut groups[0], &[1, 1]);
 
-    let data = vec![0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
+    let data = [0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
     let grouper = data.iter().group_by(|k| *k);
     let mut groups = Vec::new();
     for (i, (_, group)) in grouper.into_iter().enumerate() {
@@ -900,7 +900,7 @@ fn group_by_lazy_2() {
     it::assert_equal(&mut groups[2], &[3, 3]);
 
     // use groups as chunks
-    let data = vec![0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
+    let data = [0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
     let mut i = 0;
     let grouper = data.iter().group_by(move |_| {
         let k = i / 3;
@@ -921,7 +921,7 @@ fn group_by_lazy_2() {
 #[test]
 fn group_by_lazy_3() {
     // test consuming each group on the lap after it was produced
-    let data = vec![0, 0, 0, 1, 1, 0, 0, 1, 1, 2, 2];
+    let data = [0, 0, 0, 1, 1, 0, 0, 1, 1, 2, 2];
     let grouper = data.iter().group_by(|elt| *elt);
     let mut last = None;
     for (key, group) in &grouper {
@@ -936,7 +936,7 @@ fn group_by_lazy_3() {
 
 #[test]
 fn chunks() {
-    let data = vec![0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
+    let data = [0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
     let grouper = data.iter().chunks(3);
     for (i, chunk) in grouper.into_iter().enumerate() {
         match i {
@@ -1216,7 +1216,7 @@ fn powerset() {
 
 #[test]
 fn diff_mismatch() {
-    let a = vec![1, 2, 3, 4];
+    let a = [1, 2, 3, 4];
     let b = vec![1.0, 5.0, 3.0, 4.0];
     let b_map = b.into_iter().map(|f| f as i32);
     let diff = it::diff_with(a.iter(), b_map, |a, b| *a == b);
@@ -1230,7 +1230,7 @@ fn diff_mismatch() {
 
 #[test]
 fn diff_longer() {
-    let a = vec![1, 2, 3, 4];
+    let a = [1, 2, 3, 4];
     let b = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
     let b_map = b.into_iter().map(|f| f as i32);
     let diff = it::diff_with(a.iter(), b_map, |a, b| *a == b);
@@ -1243,7 +1243,7 @@ fn diff_longer() {
 
 #[test]
 fn diff_shorter() {
-    let a = vec![1, 2, 3, 4];
+    let a = [1, 2, 3, 4];
     let b = vec![1.0, 2.0];
     let b_map = b.into_iter().map(|f| f as i32);
     let diff = it::diff_with(a.iter(), b_map, |a, b| *a == b);
@@ -1265,7 +1265,7 @@ fn extrema_set() {
 
     impl PartialOrd<Val> for Val {
         fn partial_cmp(&self, other: &Val) -> Option<Ordering> {
-            self.0.partial_cmp(&other.0)
+            Some(self.cmp(other))
         }
     }
 
@@ -1314,7 +1314,7 @@ fn minmax() {
 
     impl PartialOrd<Val> for Val {
         fn partial_cmp(&self, other: &Val) -> Option<Ordering> {
-            self.0.partial_cmp(&other.0)
+            Some(self.cmp(other))
         }
     }
 
@@ -1446,6 +1446,7 @@ fn multiunzip() {
         .multiunzip();
     assert_eq!((a, b, c), (vec![0, 3, 6], vec![1, 4, 7], vec![2, 5, 8]));
     let (): () = [(), (), ()].iter().cloned().multiunzip();
+    #[allow(clippy::type_complexity)]
     let t: (
         Vec<_>,
         Vec<_>,

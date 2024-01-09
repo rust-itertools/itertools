@@ -46,7 +46,10 @@ mod specialization {
             let arr = [1; 1024];
 
             c.bench_function("internal specialized", move |b| {
-                b.iter(|| arr.iter().intersperse(&0).fold(0, |acc, x| acc + x))
+                b.iter(|| {
+                    #[allow(clippy::unnecessary_fold)]
+                    arr.iter().intersperse(&0).fold(0, |acc, x| acc + x)
+                })
             });
         }
 
@@ -54,7 +57,10 @@ mod specialization {
             let arr = [1; 1024];
 
             c.bench_function("internal unspecialized", move |b| {
-                b.iter(|| Unspecialized(arr.iter().intersperse(&0)).fold(0, |acc, x| acc + x))
+                b.iter(|| {
+                    #[allow(clippy::unnecessary_fold)]
+                    Unspecialized(arr.iter().intersperse(&0)).fold(0, |acc, x| acc + x)
+                })
             });
         }
     }
