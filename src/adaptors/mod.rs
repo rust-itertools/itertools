@@ -607,11 +607,11 @@ where
             Some(item) => Ok(f(acc, item)),
             None => Err(acc),
         });
-        let res = match res {
+
+        match res {
             Ok(val) => val,
             Err(val) => val,
-        };
-        res
+        }
     }
 }
 

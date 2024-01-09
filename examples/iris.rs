@@ -9,7 +9,7 @@ use std::iter::repeat;
 use std::num::ParseFloatError;
 use std::str::FromStr;
 
-static DATA: &'static str = include_str!("iris.data");
+static DATA: &str = include_str!("iris.data");
 
 #[derive(Clone, Debug)]
 struct Iris {
@@ -38,7 +38,7 @@ impl FromStr for Iris {
             name: "".into(),
             data: [0.; 4],
         };
-        let mut parts = s.split(",").map(str::trim);
+        let mut parts = s.split(',').map(str::trim);
 
         // using Iterator::by_ref()
         for (index, part) in parts.by_ref().take(4).enumerate() {

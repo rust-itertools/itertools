@@ -220,9 +220,9 @@ where
         self.0.iter().fold(
             (0, Some(0)),
             |acc,
-             &MultiProductIter {
-                 ref iter,
-                 ref iter_orig,
+             MultiProductIter {
+                 iter,
+                 iter_orig,
                  cur: _,
              }| {
                 let cur_size = iter.size_hint();

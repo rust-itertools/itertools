@@ -15,6 +15,7 @@ categories = ["algorithms", "rust-patterns"]
 
 edition = "2018"
 
+# When bumping, please resolve all `#[allow(clippy::*)]` that are newly resolvable.
 rust-version = "1.43.1"
 
 [lib]

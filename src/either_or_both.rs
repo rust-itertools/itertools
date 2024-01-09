@@ -29,19 +29,13 @@ impl<A, B> EitherOrBoth<A, B> {
     /// If `Left`, return true. Otherwise, return false.
     /// Exclusive version of [`has_left`](EitherOrBoth::has_left).
     pub fn is_left(&self) -> bool {
-        match *self {
-            Left(_) => true,
-            _ => false,
-        }
+        matches!(self, Left(_))
     }
 
     /// If `Right`, return true. Otherwise, return false.
     /// Exclusive version of [`has_right`](EitherOrBoth::has_right).
     pub fn is_right(&self) -> bool {
-        match *self {
-            Right(_) => true,
-            _ => false,
-        }
+        matches!(self, Right(_))
     }
 
     /// If `Both`, return true. Otherwise, return false.
@@ -500,6 +494,7 @@ impl<T> EitherOrBoth<T, T> {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl<A, B> Into<Option<Either<A, B>>> for EitherOrBoth<A, B> {
     fn into(self) -> Option<Either<A, B>> {
         match self {
