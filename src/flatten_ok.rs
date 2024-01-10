@@ -73,11 +73,8 @@ where
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let inner_hint = |inner: &Option<T::IntoIter>| {
-            inner
-                .as_ref()
-                .map_or((0, Some(0)), Iterator::size_hint)
-        };
+        let inner_hint =
+            |inner: &Option<T::IntoIter>| inner.as_ref().map_or((0, Some(0)), Iterator::size_hint);
         let inner_front = inner_hint(&self.inner_front);
         let inner_back = inner_hint(&self.inner_back);
         // The outer iterator `Ok` case could be (0, None) as we don't know its size_hint yet.
