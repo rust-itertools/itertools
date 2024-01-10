@@ -1,7 +1,7 @@
 /// `MinMaxResult` is an enum returned by `minmax`.
 ///
 /// See [`.minmax()`](crate::Itertools::minmax) for more detail.
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum MinMaxResult<T> {
     /// Empty iterator
     NoElements,
