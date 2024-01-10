@@ -540,7 +540,7 @@ where
 
 impl<T: Clone + Send, R: Clone + Rng + SeedableRng + Send> qc::Arbitrary for RandIter<T, R> {
     fn arbitrary<G: qc::Gen>(g: &mut G) -> Self {
-        RandIter {
+        Self {
             idx: 0,
             len: g.size(),
             rng: R::seed_from_u64(g.next_u64()),
@@ -1263,14 +1263,14 @@ fn extrema_set() {
     #[derive(Clone, Debug, PartialEq, Eq)]
     struct Val(u32, u32);
 
-    impl PartialOrd<Val> for Val {
-        fn partial_cmp(&self, other: &Val) -> Option<Ordering> {
+    impl PartialOrd<Self> for Val {
+        fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
             Some(self.cmp(other))
         }
     }
 
     impl Ord for Val {
-        fn cmp(&self, other: &Val) -> Ordering {
+        fn cmp(&self, other: &Self) -> Ordering {
             self.0.cmp(&other.0)
         }
     }
@@ -1312,14 +1312,14 @@ fn minmax() {
     #[derive(Clone, Debug, PartialEq, Eq)]
     struct Val(u32, u32);
 
-    impl PartialOrd<Val> for Val {
-        fn partial_cmp(&self, other: &Val) -> Option<Ordering> {
+    impl PartialOrd<Self> for Val {
+        fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
             Some(self.cmp(other))
         }
     }
 
     impl Ord for Val {
-        fn cmp(&self, other: &Val) -> Ordering {
+        fn cmp(&self, other: &Self) -> Ordering {
             self.0.cmp(&other.0)
         }
     }

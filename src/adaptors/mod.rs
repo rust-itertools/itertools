@@ -218,7 +218,7 @@ where
     /// Split the `PutBack` into its parts.
     #[inline]
     pub fn into_parts(self) -> (Option<I::Item>, I) {
-        let PutBack { top, iter } = self;
+        let Self { top, iter } = self;
         (top, iter)
     }
 
@@ -689,7 +689,7 @@ pub struct Tuple1Combination<I> {
 
 impl<I> From<I> for Tuple1Combination<I> {
     fn from(iter: I) -> Self {
-        Tuple1Combination { iter }
+        Self { iter }
     }
 }
 

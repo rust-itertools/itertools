@@ -37,9 +37,9 @@ impl<T: Clone> MinMaxResult<T> {
     /// ```
     pub fn into_option(self) -> Option<(T, T)> {
         match self {
-            MinMaxResult::NoElements => None,
-            MinMaxResult::OneElement(x) => Some((x.clone(), x)),
-            MinMaxResult::MinMax(x, y) => Some((x, y)),
+            Self::NoElements => None,
+            Self::OneElement(x) => Some((x.clone(), x)),
+            Self::MinMax(x, y) => Some((x, y)),
         }
     }
 }

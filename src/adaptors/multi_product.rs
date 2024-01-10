@@ -93,7 +93,7 @@ where
 
             if last.in_progress() {
                 true
-            } else if MultiProduct::iterate_last(rest, state) {
+            } else if Self::iterate_last(rest, state) {
                 last.reset();
                 last.iterate();
                 // If iterator is None twice consecutively, then iterator is
@@ -133,7 +133,7 @@ where
     I::Item: Clone,
 {
     fn new(iter: I) -> Self {
-        MultiProductIter {
+        Self {
             cur: None,
             iter: iter.clone(),
             iter_orig: iter,
@@ -165,7 +165,7 @@ where
     type Item = Vec<I::Item>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if MultiProduct::iterate_last(&mut self.0, MultiProductIterState::StartOfIter) {
+        if Self::iterate_last(&mut self.0, MultiProductIterState::StartOfIter) {
             Some(self.curr_iterator())
         } else {
             None

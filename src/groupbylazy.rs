@@ -29,7 +29,7 @@ struct ChunkIndex {
 impl ChunkIndex {
     #[inline(always)]
     fn new(size: usize) -> Self {
-        ChunkIndex {
+        Self {
             size,
             index: 0,
             key: 0,

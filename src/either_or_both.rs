@@ -27,13 +27,13 @@ impl<A, B> EitherOrBoth<A, B> {
     /// If `Left`, return true. Otherwise, return false.
     /// Exclusive version of [`has_left`](EitherOrBoth::has_left).
     pub fn is_left(&self) -> bool {
-        matches!(self, EitherOrBoth::Left(_))
+        matches!(self, Self::Left(_))
     }
 
     /// If `Right`, return true. Otherwise, return false.
     /// Exclusive version of [`has_right`](EitherOrBoth::has_right).
     pub fn is_right(&self) -> bool {
-        matches!(self, EitherOrBoth::Right(_))
+        matches!(self, Self::Right(_))
     }
 
     /// If `Both`, return true. Otherwise, return false.
@@ -44,16 +44,16 @@ impl<A, B> EitherOrBoth<A, B> {
     /// If `Left`, or `Both`, return `Some` with the left value. Otherwise, return `None`.
     pub fn left(self) -> Option<A> {
         match self {
-            EitherOrBoth::Left(left) | EitherOrBoth::Both(left, _) => Some(left),
-            EitherOrBoth::Right(_) => None,
+            Self::Left(left) | Self::Both(left, _) => Some(left),
+            Self::Right(_) => None,
         }
     }
 
     /// If `Right`, or `Both`, return `Some` with the right value. Otherwise, return `None`.
     pub fn right(self) -> Option<B> {
         match self {
-            EitherOrBoth::Right(right) | EitherOrBoth::Both(_, right) => Some(right),
-            EitherOrBoth::Left(_) => None,
+            Self::Right(right) | Self::Both(_, right) => Some(right),
+            Self::Left(_) => None,
         }
     }
 
@@ -85,7 +85,7 @@ impl<A, B> EitherOrBoth<A, B> {
     /// ```
     pub fn just_left(self) -> Option<A> {
         match self {
-            EitherOrBoth::Left(left) => Some(left),
+            Self::Left(left) => Some(left),
             _ => None,
         }
     }
@@ -110,7 +110,7 @@ impl<A, B> EitherOrBoth<A, B> {
     /// ```
     pub fn just_right(self) -> Option<B> {
         match self {
-            EitherOrBoth::Right(right) => Some(right),
+            Self::Right(right) => Some(right),
             _ => None,
         }
     }
@@ -118,7 +118,7 @@ impl<A, B> EitherOrBoth<A, B> {
     /// If `Both`, return `Some` containing the left and right values. Otherwise, return `None`.
     pub fn both(self) -> Option<(A, B)> {
         match self {
-            EitherOrBoth::Both(a, b) => Some((a, b)),
+            Self::Both(a, b) => Some((a, b)),
             _ => None,
         }
     }
@@ -129,8 +129,8 @@ impl<A, B> EitherOrBoth<A, B> {
         B: Into<A>,
     {
         match self {
-            EitherOrBoth::Left(a) | EitherOrBoth::Both(a, _) => a,
-            EitherOrBoth::Right(b) => b.into(),
+            Self::Left(a) | Self::Both(a, _) => a,
+            Self::Right(b) => b.into(),
         }
     }
 
@@ -140,26 +140,26 @@ impl<A, B> EitherOrBoth<A, B> {
         A: Into<B>,
     {
         match self {
-            EitherOrBoth::Right(b) | EitherOrBoth::Both(_, b) => b,
-            EitherOrBoth::Left(a) => a.into(),
+            Self::Right(b) | Self::Both(_, b) => b,
+            Self::Left(a) => a.into(),
         }
     }
 
     /// Converts from `&EitherOrBoth<A, B>` to `EitherOrBoth<&A, &B>`.
     pub fn as_ref(&self) -> EitherOrBoth<&A, &B> {
         match *self {
-            EitherOrBoth::Left(ref left) => EitherOrBoth::Left(left),
-            EitherOrBoth::Right(ref right) => EitherOrBoth::Right(right),
-            EitherOrBoth::Both(ref left, ref right) => EitherOrBoth::Both(left, right),
+            Self::Left(ref left) => EitherOrBoth::Left(left),
+            Self::Right(ref right) => EitherOrBoth::Right(right),
+            Self::Both(ref left, ref right) => EitherOrBoth::Both(left, right),
         }
     }
 
     /// Converts from `&mut EitherOrBoth<A, B>` to `EitherOrBoth<&mut A, &mut B>`.
     pub fn as_mut(&mut self) -> EitherOrBoth<&mut A, &mut B> {
         match *self {
-            EitherOrBoth::Left(ref mut left) => EitherOrBoth::Left(left),
-            EitherOrBoth::Right(ref mut right) => EitherOrBoth::Right(right),
-            EitherOrBoth::Both(ref mut left, ref mut right) => EitherOrBoth::Both(left, right),
+            Self::Left(ref mut left) => EitherOrBoth::Left(left),
+            Self::Right(ref mut right) => EitherOrBoth::Right(right),
+            Self::Both(ref mut left, ref mut right) => EitherOrBoth::Both(left, right),
         }
     }
 
@@ -170,9 +170,9 @@ impl<A, B> EitherOrBoth<A, B> {
         B: Deref,
     {
         match *self {
-            EitherOrBoth::Left(ref left) => EitherOrBoth::Left(left),
-            EitherOrBoth::Right(ref right) => EitherOrBoth::Right(right),
-            EitherOrBoth::Both(ref left, ref right) => EitherOrBoth::Both(left, right),
+            Self::Left(ref left) => EitherOrBoth::Left(left),
+            Self::Right(ref right) => EitherOrBoth::Right(right),
+            Self::Both(ref left, ref right) => EitherOrBoth::Both(left, right),
         }
     }
 
@@ -183,18 +183,18 @@ impl<A, B> EitherOrBoth<A, B> {
         B: DerefMut,
     {
         match *self {
-            EitherOrBoth::Left(ref mut left) => EitherOrBoth::Left(left),
-            EitherOrBoth::Right(ref mut right) => EitherOrBoth::Right(right),
-            EitherOrBoth::Both(ref mut left, ref mut right) => EitherOrBoth::Both(left, right),
+            Self::Left(ref mut left) => EitherOrBoth::Left(left),
+            Self::Right(ref mut right) => EitherOrBoth::Right(right),
+            Self::Both(ref mut left, ref mut right) => EitherOrBoth::Both(left, right),
         }
     }
 
     /// Convert `EitherOrBoth<A, B>` to `EitherOrBoth<B, A>`.
     pub fn flip(self) -> EitherOrBoth<B, A> {
         match self {
-            EitherOrBoth::Left(a) => EitherOrBoth::Right(a),
-            EitherOrBoth::Right(b) => EitherOrBoth::Left(b),
-            EitherOrBoth::Both(a, b) => EitherOrBoth::Both(b, a),
+            Self::Left(a) => EitherOrBoth::Right(a),
+            Self::Right(b) => EitherOrBoth::Left(b),
+            Self::Both(a, b) => EitherOrBoth::Both(b, a),
         }
     }
 
@@ -205,9 +205,9 @@ impl<A, B> EitherOrBoth<A, B> {
         F: FnOnce(A) -> M,
     {
         match self {
-            EitherOrBoth::Both(a, b) => EitherOrBoth::Both(f(a), b),
-            EitherOrBoth::Left(a) => EitherOrBoth::Left(f(a)),
-            EitherOrBoth::Right(b) => EitherOrBoth::Right(b),
+            Self::Both(a, b) => EitherOrBoth::Both(f(a), b),
+            Self::Left(a) => EitherOrBoth::Left(f(a)),
+            Self::Right(b) => EitherOrBoth::Right(b),
         }
     }
 
@@ -218,9 +218,9 @@ impl<A, B> EitherOrBoth<A, B> {
         F: FnOnce(B) -> M,
     {
         match self {
-            EitherOrBoth::Left(a) => EitherOrBoth::Left(a),
-            EitherOrBoth::Right(b) => EitherOrBoth::Right(f(b)),
-            EitherOrBoth::Both(a, b) => EitherOrBoth::Both(a, f(b)),
+            Self::Left(a) => EitherOrBoth::Left(a),
+            Self::Right(b) => EitherOrBoth::Right(f(b)),
+            Self::Both(a, b) => EitherOrBoth::Both(a, f(b)),
         }
     }
 
@@ -233,9 +233,9 @@ impl<A, B> EitherOrBoth<A, B> {
         G: FnOnce(B) -> R,
     {
         match self {
-            EitherOrBoth::Left(a) => EitherOrBoth::Left(f(a)),
-            EitherOrBoth::Right(b) => EitherOrBoth::Right(g(b)),
-            EitherOrBoth::Both(a, b) => EitherOrBoth::Both(f(a), g(b)),
+            Self::Left(a) => EitherOrBoth::Left(f(a)),
+            Self::Right(b) => EitherOrBoth::Right(g(b)),
+            Self::Both(a, b) => EitherOrBoth::Both(f(a), g(b)),
         }
     }
 
@@ -246,8 +246,8 @@ impl<A, B> EitherOrBoth<A, B> {
         F: FnOnce(A) -> EitherOrBoth<L, B>,
     {
         match self {
-            EitherOrBoth::Left(a) | EitherOrBoth::Both(a, _) => f(a),
-            EitherOrBoth::Right(b) => EitherOrBoth::Right(b),
+            Self::Left(a) | Self::Both(a, _) => f(a),
+            Self::Right(b) => EitherOrBoth::Right(b),
         }
     }
 
@@ -258,8 +258,8 @@ impl<A, B> EitherOrBoth<A, B> {
         F: FnOnce(B) -> EitherOrBoth<A, R>,
     {
         match self {
-            EitherOrBoth::Left(a) => EitherOrBoth::Left(a),
-            EitherOrBoth::Right(b) | EitherOrBoth::Both(_, b) => f(b),
+            Self::Left(a) => EitherOrBoth::Left(a),
+            Self::Right(b) | Self::Both(_, b) => f(b),
         }
     }
 
@@ -284,9 +284,9 @@ impl<A, B> EitherOrBoth<A, B> {
     /// ```
     pub fn or(self, l: A, r: B) -> (A, B) {
         match self {
-            EitherOrBoth::Left(inner_l) => (inner_l, r),
-            EitherOrBoth::Right(inner_r) => (l, inner_r),
-            EitherOrBoth::Both(inner_l, inner_r) => (inner_l, inner_r),
+            Self::Left(inner_l) => (inner_l, r),
+            Self::Right(inner_r) => (l, inner_r),
+            Self::Both(inner_l, inner_r) => (inner_l, inner_r),
         }
     }
 
@@ -299,9 +299,9 @@ impl<A, B> EitherOrBoth<A, B> {
         B: Default,
     {
         match self {
-            EitherOrBoth::Left(l) => (l, B::default()),
-            EitherOrBoth::Right(r) => (A::default(), r),
-            EitherOrBoth::Both(l, r) => (l, r),
+            Self::Left(l) => (l, B::default()),
+            Self::Right(r) => (A::default(), r),
+            Self::Both(l, r) => (l, r),
         }
     }
 
@@ -321,9 +321,9 @@ impl<A, B> EitherOrBoth<A, B> {
     /// ```
     pub fn or_else<L: FnOnce() -> A, R: FnOnce() -> B>(self, l: L, r: R) -> (A, B) {
         match self {
-            EitherOrBoth::Left(inner_l) => (inner_l, r()),
-            EitherOrBoth::Right(inner_r) => (l(), inner_r),
-            EitherOrBoth::Both(inner_l, inner_r) => (inner_l, inner_r),
+            Self::Left(inner_l) => (inner_l, r()),
+            Self::Right(inner_r) => (l(), inner_r),
+            Self::Both(inner_l, inner_r) => (inner_l, inner_r),
         }
     }
 
@@ -346,8 +346,8 @@ impl<A, B> EitherOrBoth<A, B> {
         F: FnOnce() -> A,
     {
         match self {
-            EitherOrBoth::Left(left) | EitherOrBoth::Both(left, _) => left,
-            EitherOrBoth::Right(_) => self.insert_left(f()),
+            Self::Left(left) | Self::Both(left, _) => left,
+            Self::Right(_) => self.insert_left(f()),
         }
     }
 
@@ -358,8 +358,8 @@ impl<A, B> EitherOrBoth<A, B> {
         F: FnOnce() -> B,
     {
         match self {
-            EitherOrBoth::Right(right) | EitherOrBoth::Both(_, right) => right,
-            EitherOrBoth::Left(_) => self.insert_right(f()),
+            Self::Right(right) | Self::Both(_, right) => right,
+            Self::Left(_) => self.insert_right(f()),
         }
     }
 
@@ -381,21 +381,21 @@ impl<A, B> EitherOrBoth<A, B> {
     /// ```
     pub fn insert_left(&mut self, val: A) -> &mut A {
         match self {
-            EitherOrBoth::Left(left) | EitherOrBoth::Both(left, _) => {
+            Self::Left(left) | Self::Both(left, _) => {
                 *left = val;
                 left
             }
-            EitherOrBoth::Right(right) => {
+            Self::Right(right) => {
                 // This is like a map in place operation. We move out of the reference,
                 // change the value, and then move back into the reference.
                 unsafe {
                     // SAFETY: We know this pointer is valid for reading since we got it from a reference.
                     let right = std::ptr::read(right as *mut _);
                     // SAFETY: Again, we know the pointer is valid since we got it from a reference.
-                    std::ptr::write(self as *mut _, EitherOrBoth::Both(val, right));
+                    std::ptr::write(self as *mut _, Self::Both(val, right));
                 }
 
-                if let EitherOrBoth::Both(left, _) = self {
+                if let Self::Both(left, _) = self {
                     left
                 } else {
                     // SAFETY: The above pattern will always match, since we just
@@ -423,20 +423,20 @@ impl<A, B> EitherOrBoth<A, B> {
     /// ```
     pub fn insert_right(&mut self, val: B) -> &mut B {
         match self {
-            EitherOrBoth::Right(right) | EitherOrBoth::Both(_, right) => {
+            Self::Right(right) | Self::Both(_, right) => {
                 *right = val;
                 right
             }
-            EitherOrBoth::Left(left) => {
+            Self::Left(left) => {
                 // This is like a map in place operation. We move out of the reference,
                 // change the value, and then move back into the reference.
                 unsafe {
                     // SAFETY: We know this pointer is valid for reading since we got it from a reference.
                     let left = std::ptr::read(left as *mut _);
                     // SAFETY: Again, we know the pointer is valid since we got it from a reference.
-                    std::ptr::write(self as *mut _, EitherOrBoth::Both(left, val));
+                    std::ptr::write(self as *mut _, Self::Both(left, val));
                 }
-                if let EitherOrBoth::Both(_, right) = self {
+                if let Self::Both(_, right) = self {
                     right
                 } else {
                     // SAFETY: The above pattern will always match, since we just
@@ -450,8 +450,8 @@ impl<A, B> EitherOrBoth<A, B> {
     /// Set `self` to `Both(..)`, containing the specified left and right values,
     /// and returns a mutable reference to those values.
     pub fn insert_both(&mut self, left: A, right: B) -> (&mut A, &mut B) {
-        *self = EitherOrBoth::Both(left, right);
-        if let EitherOrBoth::Both(left, right) = self {
+        *self = Self::Both(left, right);
+        if let Self::Both(left, right) = self {
             (left, right)
         } else {
             // SAFETY: The above pattern will always match, since we just
@@ -485,9 +485,9 @@ impl<T> EitherOrBoth<T, T> {
         F: FnOnce(T, T) -> T,
     {
         match self {
-            EitherOrBoth::Left(a) => a,
-            EitherOrBoth::Right(b) => b,
-            EitherOrBoth::Both(a, b) => f(a, b),
+            Self::Left(a) => a,
+            Self::Right(b) => b,
+            Self::Both(a, b) => f(a, b),
         }
     }
 }
@@ -496,9 +496,9 @@ impl<T> EitherOrBoth<T, T> {
 impl<A, B> Into<Option<Either<A, B>>> for EitherOrBoth<A, B> {
     fn into(self) -> Option<Either<A, B>> {
         match self {
-            EitherOrBoth::Left(l) => Some(Either::Left(l)),
-            EitherOrBoth::Right(r) => Some(Either::Right(r)),
-            EitherOrBoth::Both(..) => None,
+            Self::Left(l) => Some(Either::Left(l)),
+            Self::Right(r) => Some(Either::Right(r)),
+            Self::Both(..) => None,
         }
     }
 }
@@ -506,8 +506,8 @@ impl<A, B> Into<Option<Either<A, B>>> for EitherOrBoth<A, B> {
 impl<A, B> From<Either<A, B>> for EitherOrBoth<A, B> {
     fn from(either: Either<A, B>) -> Self {
         match either {
-            Either::Left(l) => EitherOrBoth::Left(l),
-            Either::Right(l) => EitherOrBoth::Right(l),
+            Either::Left(l) => Self::Left(l),
+            Either::Right(l) => Self::Right(l),
         }
     }
 }
