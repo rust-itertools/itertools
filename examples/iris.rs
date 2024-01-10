@@ -25,7 +25,7 @@ enum ParseError {
 
 impl From<ParseFloatError> for ParseError {
     fn from(err: ParseFloatError) -> Self {
-        ParseError::Numeric(err)
+        Self::Numeric(err)
     }
 }
 
@@ -34,7 +34,7 @@ impl FromStr for Iris {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut iris = Iris {
+        let mut iris = Self {
             name: "".into(),
             data: [0.; 4],
         };

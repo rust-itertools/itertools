@@ -4077,15 +4077,15 @@ impl<T> FoldWhile<T> {
     /// Return the value in the continue or done.
     pub fn into_inner(self) -> T {
         match self {
-            FoldWhile::Continue(x) | FoldWhile::Done(x) => x,
+            Self::Continue(x) | Self::Done(x) => x,
         }
     }
 
     /// Return true if `self` is `Done`, false if it is `Continue`.
     pub fn is_done(&self) -> bool {
         match *self {
-            FoldWhile::Continue(_) => false,
-            FoldWhile::Done(_) => true,
+            Self::Continue(_) => false,
+            Self::Done(_) => true,
         }
     }
 }

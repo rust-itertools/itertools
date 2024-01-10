@@ -237,7 +237,7 @@ fn count_clones() {
         fn clone(&self) -> Self {
             let n = self.n.get();
             self.n.set(n + 1);
-            Foo {
+            Self {
                 n: Cell::new(n + 1),
             }
         }

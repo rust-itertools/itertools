@@ -58,7 +58,7 @@ where
     #[inline(always)]
     pub fn from_slices(a: T, b: U) -> Self {
         let minl = cmp::min(a.len(), b.len());
-        ZipSlices {
+        Self {
             t: a,
             u: b,
             len: minl,

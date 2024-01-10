@@ -27,9 +27,9 @@ where
     I: Iterator,
 {
     /// Constructs a `HeadTail` from an `Iterator`. Returns `None` if the `Iterator` is empty.
-    fn new(mut it: I) -> Option<HeadTail<I>> {
+    fn new(mut it: I) -> Option<Self> {
         let head = it.next();
-        head.map(|h| HeadTail { head: h, tail: it })
+        head.map(|h| Self { head: h, tail: it })
     }
 
     /// Get the next element and update `head`, returning the old head in `Some`.
