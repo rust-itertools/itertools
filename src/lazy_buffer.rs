@@ -14,8 +14,8 @@ impl<I> LazyBuffer<I>
 where
     I: Iterator,
 {
-    pub fn new(it: I) -> LazyBuffer<I> {
-        LazyBuffer {
+    pub fn new(it: I) -> Self {
+        Self {
             it: it.fuse(),
             buffer: Vec::new(),
         }

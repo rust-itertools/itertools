@@ -22,7 +22,7 @@ mod private {
 
     impl<I: Iterator, Key: Eq + Hash, F> DuplicatesBy<I, Key, F> {
         pub(crate) fn new(iter: I, key_method: F) -> Self {
-            DuplicatesBy {
+            Self {
                 iter,
                 meta: Meta {
                     used: HashMap::new(),
@@ -77,7 +77,7 @@ mod private {
         type Item = I::Item;
 
         fn next(&mut self) -> Option<Self::Item> {
-            let DuplicatesBy { iter, meta } = self;
+            let Self { iter, meta } = self;
             iter.find_map(|v| meta.filter(v))
         }
 
@@ -109,7 +109,7 @@ mod private {
         F: KeyMethod<Key, I::Item>,
     {
         fn next_back(&mut self) -> Option<Self::Item> {
-            let DuplicatesBy { iter, meta } = self;
+            let Self { iter, meta } = self;
             iter.rev().find_map(|v| meta.filter(v))
         }
     }
