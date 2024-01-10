@@ -394,6 +394,293 @@ macro_rules! chain {
     };
 }
 
+#[macro_export]
+/// Use pattern unpack iterator
+///
+/// The expression after the equal sign must implement [`IntoIterator`].\
+/// The final pattern may be followed by a trailing comma.
+///
+/// Use else to handle iterator length mismatch or pattern mismatch
+///
+/// - Use `*name` pattern any elements to [`Vec`],
+///   use [`DoubleEndedIterator`] pattern end elements.
+/// - Use `*name: Type` pattern any elements collect into impl [`FromIterator`].
+/// - Use `*=iter` pattern start and end elements, do not check iter is stopped.
+///   Internally use the given variable name to store iterator for future use.
+/// - Use `**name` like `*name`, but use [`Iterator`]
+///
+/// [`FromIterator`]: std::iter::FromIterator
+/// [`Iterator`]: std::iter::Iterator
+/// [`IntoIterator`]: std::iter::IntoIterator
+/// [`DoubleEndedIterator`]: std::iter::DoubleEndedIterator
+/// [`Vec`]: std::vec::Vec
+///
+/// # Examples
+///
+/// Sized iterator
+/// ```
+/// # use itertools::{assert_equal, iunpack};
+/// assert_eq!(loop {
+///     iunpack!(a, b, c, d, e = 0..5; else panic!());
+///     break (a, b, c, d, e);
+/// }, (0, 1, 2, 3, 4));
+///
+/// assert_eq!(loop {
+///     iunpack!(a, b, c, d, e = 0..3; else(err) { break err });
+///     panic!();
+/// }, 3); // fail, not enough values
+///
+/// assert_eq!(loop {
+///     iunpack!(a, b, c, d, e = 0..7; else(err) { break err });
+///     panic!();
+/// }, 5); // fail, too many values
+/// ```
+///
+/// Any size iterator
+/// ```
+/// # use itertools::{assert_equal, iunpack};
+/// # use std::collections::HashSet;
+/// assert_eq!(loop {
+///     iunpack!(a, b, *c, d, e = 0..8; else panic!());
+///     break (a, b, c, d, e);
+/// }, (0, 1, vec![2, 3, 4, 5], 6, 7));
+///
+/// assert_eq!(loop {
+///     iunpack!(a, b, *=c, d, e = 0..8; else panic!());
+///     break (a, b, c.collect::<Vec<_>>(), d, e);
+/// }, (0, 1, vec![2, 3, 4, 5], 6, 7));
+///
+/// assert_eq!(loop {
+///     iunpack!(a, b, *c: HashSet<_>, d, e = 0..8; else panic!());
+///     break (a, b, c, d, e);
+/// }, (0, 1, HashSet::from([2, 3, 4, 5]), 6, 7));
+///
+/// // use Iterator, is not DoubleEndedIterator
+/// assert_eq!(loop {
+///     iunpack!(a, b, **c, d, e = 0..8; else panic!());
+///     break (a, b, c, d, e);
+/// }, (0, 1, vec![2, 3, 4, 5], 6, 7));
+///
+/// // no collect
+/// assert_eq!(loop {
+///     iunpack!(a, b, *, d, e = 0..8; else panic!());
+///     break (a, b, d, e);
+/// }, (0, 1, 6, 7));
+///
+/// // use Iterator, is not DoubleEndedIterator, no collect
+/// assert_eq!(loop {
+///     iunpack!(a, b, **, d, e = 0..8; else panic!());
+///     break (a, b, d, e);
+/// }, (0, 1, 6, 7));
+/// ```
+///
+/// Pattern example
+/// ```
+/// # use itertools::{assert_equal, iunpack};
+/// # use std::collections::HashSet;
+/// assert_eq!(loop {
+///     iunpack!(_a, _b, 2..=10 = 0..3; else panic!());
+///     break true
+/// }, true);
+///
+/// assert_eq!(loop {
+///     iunpack!((0 | 1 | 2), _b, _c = 0..3; else panic!());
+///     break true;
+/// }, true);
+///
+/// assert_eq!(loop {
+///     iunpack!(*, 2..=10 = 0..3; else panic!());
+///     break true
+/// }, true);
+///
+/// assert_eq!(loop {
+///     iunpack!((0 | 1 | 2), * = 0..3; else panic!());
+///     break true;
+/// }, true);
+///
+/// // fails
+/// assert_eq!(loop {
+///     iunpack!(_a, _b, 3..=10 = 0..3; else break true);
+///     panic!();
+/// }, true);
+///
+/// assert_eq!(loop {
+///     iunpack!((1 | 2), _b, _c = 0..3; else break true);
+///     panic!();
+/// }, true);
+///
+/// assert_eq!(loop {
+///     iunpack!(*, 3..=10 = 0..3; else break true);
+///     panic!();
+/// }, true);
+///
+/// assert_eq!(loop {
+///     iunpack!((1 | 2), * = 0..3; else break true);
+///     panic!();
+/// }, true);
+/// ```
+macro_rules! iunpack {
+    (@if($($t:tt)*) else $($f:tt)*) => ($($t)*);
+    (@if else $($f:tt)*) => ($($f)*);
+    (@revpat_do_iter_back($iter:ident, $errbody:expr) $(($used:pat) $(($pat:pat))*)?) => {
+        $(
+            $crate::iunpack!(@revpat_do_iter_back($iter, $errbody) $(($pat))*);
+            let ::core::option::Option::Some($used)
+            = ::core::iter::DoubleEndedIterator::next_back(&mut $iter) else {
+                $errbody
+            };
+        )?
+    };
+    // used err value
+    {
+        $($pat:pat),* $(,)?
+        = $iter:expr ;
+        else ($err:ident) $errbody:block
+    } => {
+        let mut __iter = ::core::iter::IntoIterator::into_iter($iter);
+        let mut $err = 0usize;
+        $(
+            let ::core::option::Option::Some($pat)
+            = ::core::iter::Iterator::next(&mut __iter) else {
+                $errbody
+            };
+            $err += 1;
+        )*
+        if let ::core::option::Option::Some(_)
+        = ::core::iter::Iterator::next(&mut __iter) {
+            $errbody
+        }
+    };
+    // unused err value
+    {
+        $($pat:pat),* $(,)?
+        = $iter:expr ;
+        else $errbody:expr
+    } => {
+        let mut __iter = ::core::iter::IntoIterator::into_iter($iter);
+        $(
+            let ::core::option::Option::Some($pat)
+            = ::core::iter::Iterator::next(&mut __iter) else {
+                $errbody
+            };
+        )*
+        if let ::core::option::Option::Some(_)
+        = ::core::iter::Iterator::next(&mut __iter) {
+            $errbody
+        }
+    };
+    // use DoubleEndedIterator
+    {
+        $($fpat:pat ,)* * $($mid:ident $(: $ty:ty)?)? $(, $bpat:pat)* $(,)?
+        = $iter:expr ;
+        else $errbody:expr
+    } => {
+        let mut __iter = ::core::iter::IntoIterator::into_iter($iter);
+        $(
+            let ::core::option::Option::Some($fpat)
+            = ::core::iter::Iterator::next(&mut __iter) else {
+                $errbody
+            };
+        )*
+        $crate::iunpack!(@revpat_do_iter_back(__iter, $errbody) $(($bpat))*);
+        $(
+            let $mid = <$crate::iunpack!(@if$(($ty))? else ::std::vec::Vec<_>)
+                as ::core::iter::FromIterator<_>>
+                ::from_iter(__iter);
+        )?
+    };
+    // use DoubleEndedIterator and result mid iterator
+    {
+        $($fpat:pat ,)* *=$mid:ident $(, $bpat:pat)* $(,)?
+        = $iter:expr ;
+        else $errbody:expr
+    } => {
+        let mut $mid = ::core::iter::IntoIterator::into_iter($iter);
+        $(
+            let ::core::option::Option::Some($fpat)
+            = ::core::iter::Iterator::next(&mut $mid) else {
+                $errbody
+            };
+        )*
+        $crate::iunpack!(@revpat_do_iter_back($mid, $errbody) $(($bpat))*);
+    };
+    // use Iterator unnamed
+    {
+        $($fpat:pat ,)* ** $(, $bpat:pat)+ $(,)?
+        = $iter:expr ;
+        else $errbody:expr
+    } => {
+        let mut __iter = ::core::iter::IntoIterator::into_iter($iter);
+        $(
+            let ::core::option::Option::Some($fpat)
+            = ::core::iter::Iterator::next(&mut __iter) else {
+                $errbody
+            };
+        )*
+        let mut __buf = [$(
+            match ::core::iter::Iterator::next(&mut __iter) {
+                ::core::option::Option::Some(
+                    $crate::iunpack!(@if(x) else $bpat)
+                ) => x,
+                ::core::option::Option::None => {
+                    $errbody
+                },
+            }
+        ),+];
+        let mut __i = 0;
+        while let ::core::option::Option::Some(__elem)
+        = ::core::iter::Iterator::next(&mut __iter) {
+            __buf[__i] = __elem;
+            __i += 1;
+            __i %= __buf.len();
+        }
+        __buf.rotate_left(__i);
+        #[allow(irrefutable_let_patterns)]
+        let [$($bpat),+] = __buf else { $errbody };
+    };
+    // use Iterator
+    {
+        $($fpat:pat ,)* ** $mid:ident $(: $ty:ty)? $(, $bpat:pat)+ $(,)?
+        = $iter:expr ;
+        else $errbody:expr
+    } => {
+        let mut __iter = ::core::iter::IntoIterator::into_iter($iter);
+        $(
+            let ::core::option::Option::Some($fpat)
+            = ::core::iter::Iterator::next(&mut __iter) else {
+                $errbody
+            };
+        )*
+        let mut __buf = [$(
+            match ::core::iter::Iterator::next(&mut __iter) {
+                ::core::option::Option::Some(
+                    $crate::iunpack!(@if(x) else $bpat)
+                ) => x,
+                ::core::option::Option::None => {
+                    $errbody
+                },
+            }
+        ),+];
+        let mut $mid = <$crate::iunpack!(@if$(($ty))? else ::std::vec::Vec<_>)
+            as ::core::default::Default>::default();
+        let mut __i = 0;
+        while let ::core::option::Option::Some(__elem)
+        = ::core::iter::Iterator::next(&mut __iter) {
+            ::core::iter::Extend::extend(
+                &mut $mid,
+                ::core::option::Option::Some(
+                    ::core::mem::replace(&mut __buf[__i], __elem)
+                )
+            );
+            __i += 1;
+            __i %= __buf.len();
+        }
+        __buf.rotate_left(__i);
+        #[allow(irrefutable_let_patterns)]
+        let [$($bpat),+] = __buf else { $errbody };
+    };
+}
+
 /// An [`Iterator`] blanket implementation that provides extra adaptors and
 /// methods.
 ///
