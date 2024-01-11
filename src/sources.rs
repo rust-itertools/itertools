@@ -179,6 +179,18 @@ where
 ///
 /// itertools::assert_equal(iterate(1, |&i| i * 3).take(5), vec![1, 3, 9, 27, 81]);
 /// ```
+///
+/// **Panics** if compute the next value does.
+///
+/// ```should_panic
+/// # use itertools::iterate;
+/// let mut it = iterate(25u32, |x| x - 10).take_while(|&x| x > 10);
+/// assert_eq!(it.next(), Some(25)); // `Iterate` holds 15.
+/// assert_eq!(it.next(), Some(15)); // `Iterate` holds 5.
+/// it.next(); // `5 - 10` overflows.
+/// ```
+///
+/// You can alternatively use [`core::iter::successors`].
 pub fn iterate<St, F>(initial_value: St, f: F) -> Iterate<St, F>
 where
     F: FnMut(&St) -> St,
