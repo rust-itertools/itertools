@@ -409,6 +409,8 @@ macro_rules! chain {
 ///   Internally use the given variable name to store iterator for future use.
 /// - Use `**name` like `*name`, but use [`Iterator`]
 ///
+/// There may be an internal loop, please use the label to break or continue.
+///
 /// [`FromIterator`]: std::iter::FromIterator
 /// [`Iterator`]: std::iter::Iterator
 /// [`IntoIterator`]: std::iter::IntoIterator
@@ -420,265 +422,279 @@ macro_rules! chain {
 /// Sized iterator
 /// ```
 /// # use itertools::{assert_equal, iunpack};
-/// assert_eq!(loop {
-///     iunpack!(a, b, c, d, e = 0..5; else panic!());
-///     break (a, b, c, d, e);
-/// }, (0, 1, 2, 3, 4));
+/// assert_eq!(iunpack!(a, b, c, d, e = 0..5 => {
+///     (a, b, c, d, e)
+/// } else panic!()), (0, 1, 2, 3, 4));
 ///
-/// assert_eq!(loop {
-///     iunpack!(a, b, c, d, e = 0..3; else(err) { break err });
-///     panic!();
-/// }, 3); // fail, not enough values
+/// assert_eq!(iunpack!(a, b, c, d, e = 0..3 => {
+///     panic!()
+/// } else(err) {
+///     err
+/// }), 3); // fail, not enough values
 ///
-/// assert_eq!(loop {
-///     iunpack!(a, b, c, d, e = 0..7; else(err) { break err });
-///     panic!();
-/// }, 5); // fail, too many values
+/// assert_eq!(iunpack!(a, b, c, d, e = 0..7 => {
+///     panic!()
+/// } else(err) {
+///     err
+/// }), 5); // fail, too many values
 /// ```
 ///
 /// Any size iterator
 /// ```
 /// # use itertools::{assert_equal, iunpack};
 /// # use std::collections::HashSet;
-/// assert_eq!(loop {
-///     iunpack!(a, b, *c, d, e = 0..8; else panic!());
-///     break (a, b, c, d, e);
-/// }, (0, 1, vec![2, 3, 4, 5], 6, 7));
+/// assert_eq!(iunpack!(a, b, *c, d, e = 0..8 => {
+///     (a, b, c, d, e)
+/// } else panic!()), (0, 1, vec![2, 3, 4, 5], 6, 7));
 ///
-/// assert_eq!(loop {
-///     iunpack!(a, b, *=c, d, e = 0..8; else panic!());
-///     break (a, b, c.collect::<Vec<_>>(), d, e);
-/// }, (0, 1, vec![2, 3, 4, 5], 6, 7));
+/// assert_eq!(iunpack!(a, b, *=c, d, e = 0..8 => {
+///     (a, b, c.collect::<Vec<_>>(), d, e)
+/// } else panic!()), (0, 1, vec![2, 3, 4, 5], 6, 7));
 ///
-/// assert_eq!(loop {
-///     iunpack!(a, b, *c: HashSet<_>, d, e = 0..8; else panic!());
-///     break (a, b, c, d, e);
-/// }, (0, 1, HashSet::from([2, 3, 4, 5]), 6, 7));
+/// assert_eq!(iunpack!(a, b, *c: HashSet<_>, d, e = 0..8 => {
+///     (a, b, c, d, e)
+/// } else panic!()), (0, 1, HashSet::from([2, 3, 4, 5]), 6, 7));
 ///
 /// // use Iterator, is not DoubleEndedIterator
-/// assert_eq!(loop {
-///     iunpack!(a, b, **c, d, e = 0..8; else panic!());
-///     break (a, b, c, d, e);
-/// }, (0, 1, vec![2, 3, 4, 5], 6, 7));
+/// assert_eq!(iunpack!(a, b, **c, d, e = 0..8 => {
+///     (a, b, c, d, e)
+/// } else panic!()), (0, 1, vec![2, 3, 4, 5], 6, 7));
 ///
 /// // no collect
-/// assert_eq!(loop {
-///     iunpack!(a, b, *, d, e = 0..8; else panic!());
-///     break (a, b, d, e);
-/// }, (0, 1, 6, 7));
+/// assert_eq!(iunpack!(a, b, *, d, e = 0..8 => {
+///     (a, b, d, e)
+/// } else panic!()), (0, 1, 6, 7));
 ///
 /// // use Iterator, is not DoubleEndedIterator, no collect
-/// assert_eq!(loop {
-///     iunpack!(a, b, **, d, e = 0..8; else panic!());
-///     break (a, b, d, e);
-/// }, (0, 1, 6, 7));
+/// assert_eq!(iunpack!(a, b, **, d, e = 0..8 => {
+///     (a, b, d, e)
+/// } else panic!()), (0, 1, 6, 7));
 /// ```
 ///
 /// Pattern example
 /// ```
 /// # use itertools::{assert_equal, iunpack};
 /// # use std::collections::HashSet;
-/// assert_eq!(loop {
-///     iunpack!(_a, _b, 2..=10 = 0..3; else panic!());
-///     break true
-/// }, true);
+/// assert_eq!(iunpack!(_a, _b, 2..=10 = 0..3 => { true } else panic!()), true);
 ///
-/// assert_eq!(loop {
-///     iunpack!((0 | 1 | 2), _b, _c = 0..3; else panic!());
-///     break true;
-/// }, true);
+/// assert_eq!(iunpack!((0 | 1 | 2), _b, _c = 0..3 => {
+///     true
+/// } else panic!()), true);
 ///
-/// assert_eq!(loop {
-///     iunpack!(*, 2..=10 = 0..3; else panic!());
-///     break true
-/// }, true);
+/// assert_eq!(iunpack!(*, 2..=10 = 0..3 => {
+///     true
+/// } else panic!()), true);
 ///
-/// assert_eq!(loop {
-///     iunpack!((0 | 1 | 2), * = 0..3; else panic!());
-///     break true;
-/// }, true);
+/// assert_eq!(iunpack!((0 | 1 | 2), * = 0..3 => {
+///     true
+/// } else panic!()), true);
 ///
 /// // fails
-/// assert_eq!(loop {
-///     iunpack!(_a, _b, 3..=10 = 0..3; else break true);
-///     panic!();
-/// }, true);
+/// assert_eq!(iunpack!(_a, _b, 3..=10 = 0..3 => {
+///     panic!()
+/// } else true), true);
 ///
-/// assert_eq!(loop {
-///     iunpack!((1 | 2), _b, _c = 0..3; else break true);
-///     panic!();
-/// }, true);
+/// assert_eq!(iunpack!((1 | 2), _b, _c = 0..3 => {
+///     panic!()
+/// } else true), true);
 ///
-/// assert_eq!(loop {
-///     iunpack!(*, 3..=10 = 0..3; else break true);
-///     panic!();
-/// }, true);
+/// assert_eq!(iunpack!(*, 3..=10 = 0..3 => {
+///     panic!()
+/// } else true), true);
 ///
-/// assert_eq!(loop {
-///     iunpack!((1 | 2), * = 0..3; else break true);
-///     panic!();
-/// }, true);
+/// assert_eq!(iunpack!((1 | 2), * = 0..3 => {
+///     panic!()
+/// } else true), true);
 /// ```
 macro_rules! iunpack {
     (@if($($t:tt)*) else $($f:tt)*) => ($($t)*);
     (@if else $($f:tt)*) => ($($f)*);
-    (@revpat_do_iter_back($iter:ident, $errbody:expr) $(($used:pat) $(($pat:pat))*)?) => {
-        $(
-            $crate::iunpack!(@revpat_do_iter_back($iter, $errbody) $(($pat))*);
-            let ::core::option::Option::Some($used)
-            = ::core::iter::DoubleEndedIterator::next_back(&mut $iter) else {
-                $errbody
-            };
-        )?
-    };
-    // used err value
-    {
-        $($pat:pat),* $(,)?
-        = $iter:expr ;
-        else ($err:ident) $errbody:block
+    {@revpat_do_iter_back($iter:ident, $body:block, $errbody:expr)
+        $(($used:pat) $(($pat:pat))*)?
     } => {
-        let mut __iter = ::core::iter::IntoIterator::into_iter($iter);
-        let mut $err = 0usize;
-        $(
-            let ::core::option::Option::Some($pat)
-            = ::core::iter::Iterator::next(&mut __iter) else {
-                $errbody
-            };
-            $err += 1;
-        )*
-        if let ::core::option::Option::Some(_)
-        = ::core::iter::Iterator::next(&mut __iter) {
-            $errbody
-        }
+        $crate::iunpack!(@if$((
+            $crate::iunpack!(
+                @revpat_do_iter_back($iter, {
+                    if let ::core::option::Option::Some($used)
+                    = ::core::iter::DoubleEndedIterator::next_back(&mut $iter)
+                    {
+                        $body
+                    } else {
+                        $errbody
+                    }
+                }, $errbody) $(($pat))*
+            )
+        ))? else $body)
+    };
+    {@sized_pat($iter:ident, $body:block, $errbody:block, $errval:ident)
+        $($fpat:pat $(, $pat:pat)*)?
+    } => {
+        $crate::iunpack!(@if$((
+            if let ::core::option::Option::Some($fpat)
+            = ::core::iter::Iterator::next(&mut $iter) {
+                $errval += 1;
+                $crate::iunpack!(@sized_pat(
+                    $iter,
+                    $body,
+                    $errbody,
+                    $errval
+                ) $($pat),*)
+            } else $errbody
+        ))? else $body)
+    };
+    {@sized_pat($iter:ident, $body:block, $errbody:block)
+        $($fpat:pat $(, $pat:pat)*)?
+    } => {
+        $crate::iunpack!(@if$((
+            if let ::core::option::Option::Some($fpat)
+            = ::core::iter::Iterator::next(&mut $iter) {
+                $crate::iunpack!(@sized_pat(
+                    $iter,
+                    $body,
+                    $errbody
+                ) $($pat),*)
+            } else $errbody
+        ))? else $body)
     };
     // unused err value
     {
         $($pat:pat),* $(,)?
-        = $iter:expr ;
+        = $iter:expr => $body:block
         else $errbody:expr
-    } => {
+    } => {{
         let mut __iter = ::core::iter::IntoIterator::into_iter($iter);
-        $(
-            let ::core::option::Option::Some($pat)
-            = ::core::iter::Iterator::next(&mut __iter) else {
+        $crate::iunpack!(@sized_pat(__iter, {
+            if let ::core::option::Option::Some(_)
+            = ::core::iter::Iterator::next(&mut __iter) {
                 $errbody
-            };
-        )*
-        if let ::core::option::Option::Some(_)
-        = ::core::iter::Iterator::next(&mut __iter) {
-            $errbody
-        }
-    };
+            } else {
+                $body
+            }
+        }, { $errbody }) $($pat),*)
+    }};
+    // used err value
+    {
+        $($pat:pat),* $(,)?
+        = $iter:expr => $body:block
+        else($err:ident) $errbody:block
+    } => {{
+        let mut __iter = ::core::iter::IntoIterator::into_iter($iter);
+        let mut $err = 0usize;
+        $crate::iunpack!(@sized_pat(__iter, {
+            if let ::core::option::Option::Some(_)
+            = ::core::iter::Iterator::next(&mut __iter) {
+                $errbody
+            } else {
+                $body
+            }
+        }, { $errbody }, $err) $($pat),*)
+    }};
     // use DoubleEndedIterator
     {
         $($fpat:pat ,)* * $($mid:ident $(: $ty:ty)?)? $(, $bpat:pat)* $(,)?
-        = $iter:expr ;
+        = $iter:expr => $body:block
         else $errbody:expr
-    } => {
+    } => {{
         let mut __iter = ::core::iter::IntoIterator::into_iter($iter);
-        $(
-            let ::core::option::Option::Some($fpat)
-            = ::core::iter::Iterator::next(&mut __iter) else {
-                $errbody
-            };
-        )*
-        $crate::iunpack!(@revpat_do_iter_back(__iter, $errbody) $(($bpat))*);
-        $(
-            let $mid = <$crate::iunpack!(@if$(($ty))? else ::std::vec::Vec<_>)
-                as ::core::iter::FromIterator<_>>
-                ::from_iter(__iter);
-        )?
-    };
+        $crate::iunpack!(@sized_pat(__iter, {
+            $crate::iunpack!(
+                @revpat_do_iter_back(__iter, {
+                    $(
+                    let $mid = <$crate::iunpack!(
+                        @if$(($ty))?else ::std::vec::Vec<_>)
+                        as ::core::iter::FromIterator<_>>
+                        ::from_iter(__iter);
+                    )?
+                    $body
+                }, $errbody)
+                $(($bpat))*
+            )
+        }, { $errbody }) $($fpat),*)
+    }};
     // use DoubleEndedIterator and result mid iterator
     {
         $($fpat:pat ,)* *=$mid:ident $(, $bpat:pat)* $(,)?
-        = $iter:expr ;
+        = $iter:expr => $body:block
         else $errbody:expr
-    } => {
+    } => {{
         let mut $mid = ::core::iter::IntoIterator::into_iter($iter);
-        $(
-            let ::core::option::Option::Some($fpat)
-            = ::core::iter::Iterator::next(&mut $mid) else {
-                $errbody
-            };
-        )*
-        $crate::iunpack!(@revpat_do_iter_back($mid, $errbody) $(($bpat))*);
-    };
+        $crate::iunpack!(@sized_pat($mid, {
+            $crate::iunpack!(
+                @revpat_do_iter_back($mid, {
+                    $body
+                }, $errbody)
+                $(($bpat))*
+            )
+        }, { $errbody }) $($fpat),*)
+    }};
     // use Iterator unnamed
     {
         $($fpat:pat ,)* ** $(, $bpat:pat)+ $(,)?
-        = $iter:expr ;
+        = $iter:expr => $body:block
         else $errbody:expr
-    } => {
+    } => {loop {
         let mut __iter = ::core::iter::IntoIterator::into_iter($iter);
-        $(
-            let ::core::option::Option::Some($fpat)
-            = ::core::iter::Iterator::next(&mut __iter) else {
-                $errbody
-            };
-        )*
-        let mut __buf = [$(
-            match ::core::iter::Iterator::next(&mut __iter) {
-                ::core::option::Option::Some(
-                    $crate::iunpack!(@if(x) else $bpat)
-                ) => x,
-                ::core::option::Option::None => {
-                    $errbody
-                },
+        $crate::iunpack!(@sized_pat(__iter, {
+            let mut __buf = [$(
+                match ::core::iter::Iterator::next(&mut __iter) {
+                    ::core::option::Option::Some(
+                        $crate::iunpack!(@if(x) else $bpat)
+                    ) => x,
+                    ::core::option::Option::None => break $errbody,
+                }
+            ),+];
+            let mut __i = 0;
+            while let ::core::option::Option::Some(__elem)
+            = ::core::iter::Iterator::next(&mut __iter) {
+                __buf[__i] = __elem;
+                __i += 1;
+                __i %= __buf.len();
             }
-        ),+];
-        let mut __i = 0;
-        while let ::core::option::Option::Some(__elem)
-        = ::core::iter::Iterator::next(&mut __iter) {
-            __buf[__i] = __elem;
-            __i += 1;
-            __i %= __buf.len();
-        }
-        __buf.rotate_left(__i);
-        #[allow(irrefutable_let_patterns)]
-        let [$($bpat),+] = __buf else { $errbody };
-    };
+            __buf.rotate_left(__i);
+            #[allow(irrefutable_let_patterns)]
+            break if let [$($bpat),+] = __buf {
+                $body
+            } else { $errbody }
+        }, { $errbody }) $($fpat),*)
+    }};
     // use Iterator
     {
         $($fpat:pat ,)* ** $mid:ident $(: $ty:ty)? $(, $bpat:pat)+ $(,)?
-        = $iter:expr ;
+        = $iter:expr => $body:block
         else $errbody:expr
-    } => {
+    } => {loop {
         let mut __iter = ::core::iter::IntoIterator::into_iter($iter);
-        $(
-            let ::core::option::Option::Some($fpat)
-            = ::core::iter::Iterator::next(&mut __iter) else {
-                $errbody
-            };
-        )*
-        let mut __buf = [$(
-            match ::core::iter::Iterator::next(&mut __iter) {
-                ::core::option::Option::Some(
-                    $crate::iunpack!(@if(x) else $bpat)
-                ) => x,
-                ::core::option::Option::None => {
-                    $errbody
-                },
+        $crate::iunpack!(@sized_pat(__iter, {
+            let mut __buf = [$(
+                match ::core::iter::Iterator::next(&mut __iter) {
+                    ::core::option::Option::Some(
+                        $crate::iunpack!(@if(x) else $bpat)
+                    ) => x,
+                    ::core::option::Option::None => break $errbody,
+                }
+            ),+];
+            let mut __i = 0;
+            let mut $mid = <$crate::iunpack!(@if$(($ty))?
+                else ::std::vec::Vec<_>)
+                as ::core::default::Default>::default();
+            while let ::core::option::Option::Some(__elem)
+            = ::core::iter::Iterator::next(&mut __iter) {
+                ::core::iter::Extend::extend(
+                    &mut $mid,
+                    ::core::option::Option::Some(
+                        ::core::mem::replace(&mut __buf[__i], __elem)
+                    )
+                );
+                __i += 1;
+                __i %= __buf.len();
             }
-        ),+];
-        let mut $mid = <$crate::iunpack!(@if$(($ty))? else ::std::vec::Vec<_>)
-            as ::core::default::Default>::default();
-        let mut __i = 0;
-        while let ::core::option::Option::Some(__elem)
-        = ::core::iter::Iterator::next(&mut __iter) {
-            ::core::iter::Extend::extend(
-                &mut $mid,
-                ::core::option::Option::Some(
-                    ::core::mem::replace(&mut __buf[__i], __elem)
-                )
-            );
-            __i += 1;
-            __i %= __buf.len();
-        }
-        __buf.rotate_left(__i);
-        #[allow(irrefutable_let_patterns)]
-        let [$($bpat),+] = __buf else { $errbody };
-    };
+            __buf.rotate_left(__i);
+            #[allow(irrefutable_let_patterns)]
+            break if let [$($bpat),+] = __buf {
+                $body
+            } else { $errbody }
+        }, { $errbody }) $($fpat),*)
+    }};
 }
 
 /// An [`Iterator`] blanket implementation that provides extra adaptors and
