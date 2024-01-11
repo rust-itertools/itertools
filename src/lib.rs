@@ -498,7 +498,7 @@ macro_rules! chain {
 ///     panic!()
 /// } else true), true);
 ///
-/// assert_eq!(iunpack!(*, 3..=10 = 0..3 => {
+/// assert_eq!(iunpack!(_a, **, 3..=10 = 0..3 => {
 ///     panic!()
 /// } else true), true);
 ///
@@ -634,7 +634,7 @@ macro_rules! iunpack {
         else $errbody:expr
     } => {loop {
         let mut __iter = ::core::iter::IntoIterator::into_iter($iter);
-        $crate::iunpack!(@sized_pat(__iter, {
+        break $crate::iunpack!(@sized_pat(__iter, {
             let mut __buf = [$(
                 match ::core::iter::Iterator::next(&mut __iter) {
                     ::core::option::Option::Some(
@@ -652,7 +652,7 @@ macro_rules! iunpack {
             }
             __buf.rotate_left(__i);
             #[allow(irrefutable_let_patterns)]
-            break if let [$($bpat),+] = __buf {
+            if let [$($bpat),+] = __buf {
                 $body
             } else { $errbody }
         }, { $errbody }) $($fpat),*)
@@ -664,7 +664,7 @@ macro_rules! iunpack {
         else $errbody:expr
     } => {loop {
         let mut __iter = ::core::iter::IntoIterator::into_iter($iter);
-        $crate::iunpack!(@sized_pat(__iter, {
+        break $crate::iunpack!(@sized_pat(__iter, {
             let mut __buf = [$(
                 match ::core::iter::Iterator::next(&mut __iter) {
                     ::core::option::Option::Some(
@@ -690,7 +690,7 @@ macro_rules! iunpack {
             }
             __buf.rotate_left(__i);
             #[allow(irrefutable_let_patterns)]
-            break if let [$($bpat),+] = __buf {
+            if let [$($bpat),+] = __buf {
                 $body
             } else { $errbody }
         }, { $errbody }) $($fpat),*)
