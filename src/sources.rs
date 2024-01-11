@@ -177,7 +177,7 @@ where
 /// ```
 /// use itertools::iterate;
 ///
-/// itertools::assert_equal(iterate(1, |&i| i * 3).take(5), vec![1, 3, 9, 27, 81]);
+/// itertools::assert_equal(iterate(1, |i| i % 3 + 1).take(5), vec![1, 2, 3, 1, 2]);
 /// ```
 ///
 /// **Panics** if compute the next value does.
@@ -190,7 +190,7 @@ where
 /// it.next(); // `5 - 10` overflows.
 /// ```
 ///
-/// You can alternatively use [`core::iter::successors`].
+/// You can alternatively use [`core::iter::successors`] as it better describes a finite iterator.
 pub fn iterate<St, F>(initial_value: St, f: F) -> Iterate<St, F>
 where
     F: FnMut(&St) -> St,
