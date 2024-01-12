@@ -5,6 +5,8 @@
 //! describes the difference between two non-`Clone` iterators `I` and `J` after breaking ASAP from
 //! a lock-step comparison.
 
+use std::fmt;
+
 use crate::free::put_back;
 use crate::structs::PutBack;
 
@@ -24,6 +26,27 @@ where
     Shorter(usize, PutBack<I>),
     /// The total number of elements that were in `I` along with the remaining elements of `J`.
     Longer(usize, PutBack<J>),
+}
+
+impl<I, J> fmt::Debug for Diff<I, J>
+where
+    I: Iterator,
+    J: Iterator,
+    PutBack<I>: fmt::Debug,
+    PutBack<J>: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::FirstMismatch(idx, i, j) => f
+                .debug_tuple("FirstMismatch")
+                .field(idx)
+                .field(i)
+                .field(j)
+                .finish(),
+            Self::Shorter(idx, i) => f.debug_tuple("Shorter").field(idx).field(i).finish(),
+            Self::Longer(idx, j) => f.debug_tuple("Longer").field(idx).field(j).finish(),
+        }
+    }
 }
 
 /// Compares every element yielded by both `i` and `j` with the given function in lock-step and
