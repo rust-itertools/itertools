@@ -494,10 +494,9 @@ impl<T> EitherOrBoth<T, T> {
     }
 }
 
-#[allow(clippy::from_over_into)]
-impl<A, B> Into<Option<Either<A, B>>> for EitherOrBoth<A, B> {
-    fn into(self) -> Option<Either<A, B>> {
-        match self {
+impl<A, B> From<EitherOrBoth<A, B>> for Option<Either<A, B>> {
+    fn from(value: EitherOrBoth<A, B>) -> Self {
+        match value {
             Left(l) => Some(Either::Left(l)),
             Right(r) => Some(Either::Right(r)),
             Both(..) => None,
