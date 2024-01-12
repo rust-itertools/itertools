@@ -49,6 +49,22 @@ where
     }
 }
 
+impl<I, J> Clone for Diff<I, J>
+where
+    I: Iterator,
+    J: Iterator,
+    PutBack<I>: Clone,
+    PutBack<J>: Clone,
+{
+    fn clone(&self) -> Self {
+        match self {
+            Self::FirstMismatch(idx, i, j) => Self::FirstMismatch(*idx, i.clone(), j.clone()),
+            Self::Shorter(idx, i) => Self::Shorter(*idx, i.clone()),
+            Self::Longer(idx, j) => Self::Longer(*idx, j.clone()),
+        }
+    }
+}
+
 /// Compares every element yielded by both `i` and `j` with the given function in lock-step and
 /// returns a [`Diff`] which describes how `j` differs from `i`.
 ///
