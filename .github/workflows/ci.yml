@@ -22,7 +22,7 @@ jobs:
           ]
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.75.0
         with:
           components: clippy
       - run: RUSTFLAGS="--deny warnings" cargo clippy ${{ matrix.features }}
@@ -41,7 +41,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: taiki-e/install-action@cargo-no-dev-deps
-      - uses: dtolnay/rust-toolchain@1.43.1
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.43.1
       - run: cargo no-dev-deps check
 
   test:
