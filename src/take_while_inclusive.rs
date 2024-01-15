@@ -64,6 +64,28 @@ where
             (0, self.iter.size_hint().1)
         }
     }
+
+    fn fold<B, Fold>(mut self, init: B, mut f: Fold) -> B
+    where
+        Fold: FnMut(B, Self::Item) -> B,
+    {
+        if self.done {
+            init
+        } else {
+            let predicate = &mut self.predicate;
+            self.iter
+                .try_fold(init, |mut acc, item| {
+                    let is_ok = predicate(&item);
+                    acc = f(acc, item);
+                    if is_ok {
+                        Ok(acc)
+                    } else {
+                        Err(acc)
+                    }
+                })
+                .unwrap_or_else(|err| err)
+        }
+    }
 }
 
 impl<I, F> FusedIterator for TakeWhileInclusive<I, F>
