@@ -21,16 +21,6 @@ macro_rules! impl_cons_iter(
                 self.iter.fold(accum, move |acc, (($($B,)*), x)| f(acc, ($($B,)* x, )))
             }
         }
-
-        #[allow(non_snake_case)]
-        impl<X, Iter, $($B),*> DoubleEndedIterator for ConsTuples<Iter, (($($B,)*), X)>
-            where Iter: DoubleEndedIterator<Item = (($($B,)*), X)>,
-        {
-            fn next_back(&mut self) -> Option<Self::Item> {
-                self.iter.next().map(|(($($B,)*), x)| ($($B,)* x, ))
-            }
-        }
-
     );
 );
 
