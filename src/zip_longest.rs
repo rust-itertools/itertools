@@ -54,17 +54,20 @@ where
     }
 
     #[inline]
-    fn fold<B, F>(self, mut init: B, mut f: F) -> B
+    fn fold<B, F>(self, init: B, mut f: F) -> B
     where
         Self: Sized,
         F: FnMut(B, Self::Item) -> B,
     {
-        let Self { a, mut b } = self;
-        init = a.fold(init, |init, a| match b.next() {
-            Some(b) => f(init, EitherOrBoth::Both(a, b)),
-            None => f(init, EitherOrBoth::Left(a)),
+        let Self { mut a, mut b } = self;
+        let res = a.try_fold(init, |init, a| match b.next() {
+            Some(b) => Ok(f(init, EitherOrBoth::Both(a, b))),
+            None => Err(f(init, EitherOrBoth::Left(a))),
         });
-        b.fold(init, |init, b| f(init, EitherOrBoth::Right(b)))
+        match res {
+            Ok(acc) => b.map(EitherOrBoth::Right).fold(acc, f),
+            Err(acc) => a.map(EitherOrBoth::Left).fold(acc, f),
+        }
     }
 }
 
