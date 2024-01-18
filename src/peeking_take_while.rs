@@ -1,6 +1,7 @@
 use crate::PutBack;
 #[cfg(feature = "use_alloc")]
 use crate::PutBackN;
+use crate::RepeatN;
 use std::iter::Peekable;
 
 /// An iterator that allows peeking at an element before deciding to accept it.
@@ -88,6 +89,19 @@ where
         } else {
             None
         }
+    }
+}
+
+impl<T: Clone> PeekingNext for RepeatN<T> {
+    fn peeking_next<F>(&mut self, accept: F) -> Option<Self::Item>
+    where
+        F: FnOnce(&Self::Item) -> bool,
+    {
+        let r = self.elt.as_ref()?;
+        if !accept(r) {
+            return None;
+        }
+        self.next()
     }
 }
 
