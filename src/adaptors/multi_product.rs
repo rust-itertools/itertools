@@ -1,4 +1,5 @@
 #![cfg(feature = "use_alloc")]
+use Option::{self as State, None as ProductEnded, Some as ProductInProgress};
 
 use alloc::vec::Vec;
 
@@ -13,10 +14,7 @@ use crate::size_hint;
 /// See [`.multi_cartesian_product()`](crate::Itertools::multi_cartesian_product)
 /// for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct MultiProduct<I>(
-    /// `None` once the iterator has ended.
-    Option<MultiProductInner<I>>,
-)
+pub struct MultiProduct<I>(State<MultiProductInner<I>>)
 where
     I: Iterator + Clone,
     I::Item: Clone;
@@ -67,7 +65,7 @@ where
             .collect(),
         cur: None,
     };
-    MultiProduct(Some(inner))
+    MultiProduct(ProductInProgress(inner))
 }
 
 #[derive(Clone, Debug)]
@@ -119,8 +117,7 @@ where
                         *item = iter.iter.next().unwrap();
                     }
                 }
-                // The iterator ends.
-                self.0 = None;
+                self.0 = ProductEnded;
                 None
             }
             // Only the first time.
@@ -128,7 +125,7 @@ where
                 let next: Option<Vec<_>> = inner.iters.iter_mut().map(|i| i.iter.next()).collect();
                 if next.is_none() || inner.iters.is_empty() {
                     // This cartesian product had at most one item to generate and now ends.
-                    self.0 = None;
+                    self.0 = ProductEnded;
                 } else {
                     inner.cur = next.clone();
                 }
@@ -139,8 +136,8 @@ where
 
     fn count(self) -> usize {
         match self.0 {
-            None => 0, // The cartesian product has ended.
-            Some(MultiProductInner { iters, cur }) => {
+            ProductEnded => 0,
+            ProductInProgress(MultiProductInner { iters, cur }) => {
                 if cur.is_none() {
                     // The iterator is fresh so the count is the product of the length of each iterator:
                     // - If one of them is empty, stop counting.
@@ -171,8 +168,8 @@ where
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         match &self.0 {
-            None => (0, Some(0)), // The cartesian product has ended.
-            Some(MultiProductInner { iters, cur }) => {
+            ProductEnded => (0, Some(0)),
+            ProductInProgress(MultiProductInner { iters, cur }) => {
                 if cur.is_none() {
                     iters
                         .iter()
