@@ -1,12 +1,18 @@
 on:
   push:
     branches: [master]
+    paths-ignore: 
+      - "**.md" 
   pull_request:
+    paths-ignore: 
+      - "**.md" 
 
 name: Code Coverage
 
 jobs:
   coverage:
+    # Don't run coverage on merge queue CI to avoid duplicating codecov reports
+    if: github.event_name != 'merge_group'
     name: coverage
     runs-on: ubuntu-latest
     steps:
