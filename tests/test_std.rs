@@ -8,6 +8,7 @@ use crate::it::izip;
 use crate::it::multipeek;
 use crate::it::multizip;
 use crate::it::peek_nth;
+use crate::it::repeat_n;
 use crate::it::ExactlyOneError;
 use crate::it::FoldWhile;
 use crate::it::Itertools;
@@ -672,6 +673,21 @@ fn test_multipeek_peeking_next() {
     assert_eq!(mp.peek(), None);
     assert_eq!(mp.next(), Some(7));
     assert_eq!(mp.peek(), None);
+}
+
+#[test]
+fn test_repeat_n_peeking_next() {
+    use crate::it::PeekingNext;
+    let mut rn = repeat_n(0, 5);
+    assert_eq!(rn.peeking_next(|&x| x != 0), None);
+    assert_eq!(rn.peeking_next(|&x| x <= 0), Some(0));
+    assert_eq!(rn.next(), Some(0));
+    assert_eq!(rn.peeking_next(|&x| x <= 0), Some(0));
+    assert_eq!(rn.peeking_next(|&x| x != 0), None);
+    assert_eq!(rn.peeking_next(|&x| x >= 0), Some(0));
+    assert_eq!(rn.next(), Some(0));
+    assert_eq!(rn.peeking_next(|&x| x <= 0), None);
+    assert_eq!(rn.next(), None);
 }
 
 #[test]
