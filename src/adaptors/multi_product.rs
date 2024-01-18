@@ -1,5 +1,6 @@
 #![cfg(feature = "use_alloc")]
 use Option::{self as State, None as ProductEnded, Some as ProductInProgress};
+use Option::{self as CurrentItems, None as NotYetPopulated, Some as Populated};
 
 use alloc::vec::Vec;
 
@@ -28,8 +29,8 @@ where
 {
     /// Holds the iterators.
     iters: Vec<MultiProductIter<I>>,
-    /// It is `None` at the beginning then it holds the current item of each iterator.
-    cur: Option<Vec<I::Item>>,
+    /// Not populated at the beginning then it holds the current item of each iterator.
+    cur: CurrentItems<Vec<I::Item>>,
 }
 
 impl<I> std::fmt::Debug for MultiProduct<I>
@@ -63,7 +64,7 @@ where
         iters: iters
             .map(|i| MultiProductIter::new(i.into_iter()))
             .collect(),
-        cur: None,
+        cur: NotYetPopulated,
     };
     MultiProduct(ProductInProgress(inner))
 }
@@ -103,7 +104,7 @@ where
         // This fuses the iterator.
         let inner = self.0.as_mut()?;
         match &mut inner.cur {
-            Some(values) => {
+            Populated(values) => {
                 debug_assert!(!inner.iters.is_empty());
                 // Find (from the right) a non-finished iterator and
                 // reset the finished ones encountered.
@@ -113,7 +114,7 @@ where
                         return Some(values.clone());
                     } else {
                         iter.iter = iter.iter_orig.clone();
-                        // `cur` is not none so the untouched `iter_orig` can not be empty.
+                        // `cur` is populated so the untouched `iter_orig` can not be empty.
                         *item = iter.iter.next().unwrap();
                     }
                 }
@@ -121,7 +122,7 @@ where
                 None
             }
             // Only the first time.
-            None => {
+            NotYetPopulated => {
                 let next: Option<Vec<_>> = inner.iters.iter_mut().map(|i| i.iter.next()).collect();
                 if next.is_none() || inner.iters.is_empty() {
                     // This cartesian product had at most one item to generate and now ends.
@@ -181,7 +182,7 @@ where
                         size_hint::add(sh, iter.iter.size_hint())
                     })
                 } else {
-                    // Since `cur` is some, this cartesian product has started so `iters` is not empty.
+                    // Since it is populated, this cartesian product has started so `iters` is not empty.
                     unreachable!()
                 }
             }
@@ -191,7 +192,7 @@ where
     fn last(self) -> Option<Self::Item> {
         let MultiProductInner { iters, cur } = self.0?;
         // Collect the last item of each iterator of the product.
-        if let Some(values) = cur {
+        if let Populated(values) = cur {
             let mut count = iters.len();
             let last = iters
                 .into_iter()
