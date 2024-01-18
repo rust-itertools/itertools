@@ -138,45 +138,51 @@ where
     fn count(self) -> usize {
         match self.0 {
             ProductEnded => 0,
-            ProductInProgress(MultiProductInner { iters, cur }) => {
-                if cur.is_none() {
-                    // The iterator is fresh so the count is the product of the length of each iterator:
-                    // - If one of them is empty, stop counting.
-                    // - Less `count()` calls than the general case.
-                    iters
-                        .into_iter()
-                        .map(|iter| iter.iter_orig.count())
-                        .try_fold(1, |product, count| {
-                            if count == 0 {
-                                None
-                            } else {
-                                Some(product * count)
-                            }
-                        })
-                        .unwrap_or_default()
-                } else {
-                    // The general case.
-                    iters.into_iter().fold(0, |mut acc, iter| {
-                        if acc != 0 {
-                            acc *= iter.iter_orig.count();
-                        }
-                        acc + iter.iter.count()
-                    })
+            // The iterator is fresh so the count is the product of the length of each iterator:
+            // - If one of them is empty, stop counting.
+            // - Less `count()` calls than the general case.
+            ProductInProgress(MultiProductInner {
+                iters,
+                cur: NotYetPopulated,
+            }) => iters
+                .into_iter()
+                .map(|iter| iter.iter_orig.count())
+                .try_fold(1, |product, count| {
+                    if count == 0 {
+                        None
+                    } else {
+                        Some(product * count)
+                    }
+                })
+                .unwrap_or_default(),
+            // The general case.
+            ProductInProgress(MultiProductInner {
+                iters,
+                cur: Populated(_),
+            }) => iters.into_iter().fold(0, |mut acc, iter| {
+                if acc != 0 {
+                    acc *= iter.iter_orig.count();
                 }
-            }
+                acc + iter.iter.count()
+            }),
         }
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         match &self.0 {
             ProductEnded => (0, Some(0)),
-            ProductInProgress(MultiProductInner { iters, cur }) => {
-                if cur.is_none() {
-                    iters
-                        .iter()
-                        .map(|iter| iter.iter_orig.size_hint())
-                        .fold((1, Some(1)), size_hint::mul)
-                } else if let [first, tail @ ..] = &iters[..] {
+            ProductInProgress(MultiProductInner {
+                iters,
+                cur: NotYetPopulated,
+            }) => iters
+                .iter()
+                .map(|iter| iter.iter_orig.size_hint())
+                .fold((1, Some(1)), size_hint::mul),
+            ProductInProgress(MultiProductInner {
+                iters,
+                cur: Populated(_),
+            }) => {
+                if let [first, tail @ ..] = &iters[..] {
                     tail.iter().fold(first.iter.size_hint(), |mut sh, iter| {
                         sh = size_hint::mul(sh, iter.iter_orig.size_hint());
                         size_hint::add(sh, iter.iter.size_hint())
