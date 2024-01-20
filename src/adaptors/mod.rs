@@ -28,9 +28,9 @@ use std::marker::PhantomData;
 #[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Interleave<I, J> {
-    a: Fuse<I>,
-    b: Fuse<J>,
-    flag: bool,
+    i: Fuse<I>,
+    j: Fuse<J>,
+    next_coming_from_j: bool,
 }
 
 /// Create an iterator that interleaves elements in `i` and `j`.
@@ -45,9 +45,9 @@ where
     J: IntoIterator<Item = I::Item>,
 {
     Interleave {
-        a: i.into_iter().fuse(),
-        b: j.into_iter().fuse(),
-        flag: false,
+        i: i.into_iter().fuse(),
+        j: j.into_iter().fuse(),
+        next_coming_from_j: false,
     }
 }
 
@@ -59,45 +59,49 @@ where
     type Item = I::Item;
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        self.flag = !self.flag;
-        if self.flag {
-            match self.a.next() {
-                None => self.b.next(),
+        self.next_coming_from_j = !self.next_coming_from_j;
+        if self.next_coming_from_j {
+            match self.i.next() {
+                None => self.j.next(),
                 r => r,
             }
         } else {
-            match self.b.next() {
-                None => self.a.next(),
+            match self.j.next() {
+                None => self.i.next(),
                 r => r,
             }
         }
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        size_hint::add(self.a.size_hint(), self.b.size_hint())
+        size_hint::add(self.i.size_hint(), self.j.size_hint())
     }
 
     fn fold<B, F>(self, mut init: B, mut f: F) -> B
     where
         F: FnMut(B, Self::Item) -> B,
     {
-        let Self { mut a, mut b, flag } = self;
-        if flag {
-            match b.next() {
+        let Self {
+            mut i,
+            mut j,
+            next_coming_from_j,
+        } = self;
+        if next_coming_from_j {
+            match j.next() {
                 Some(y) => init = f(init, y),
-                None => return a.fold(init, f),
+                None => return i.fold(init, f),
             }
         }
-        let res = a.try_fold(init, |mut acc, x| {
+        let res = i.try_fold(init, |mut acc, x| {
             acc = f(acc, x);
-            match b.next() {
+            match j.next() {
                 Some(y) => Ok(f(acc, y)),
                 None => Err(acc),
             }
         });
         match res {
-            Ok(acc) => b.fold(acc, f),
-            Err(acc) => a.fold(acc, f),
+            Ok(acc) => j.fold(acc, f),
+            Err(acc) => i.fold(acc, f),
         }
     }
 }
@@ -123,21 +127,21 @@ where
     I: Iterator,
     J: Iterator<Item = I::Item>,
 {
-    it0: I,
-    it1: J,
-    phase: bool, // false ==> it0, true ==> it1
+    i: I,
+    j: J,
+    next_coming_from_j: bool,
 }
 
 /// Create a new `InterleaveShortest` iterator.
-pub fn interleave_shortest<I, J>(a: I, b: J) -> InterleaveShortest<I, J>
+pub fn interleave_shortest<I, J>(i: I, j: J) -> InterleaveShortest<I, J>
 where
     I: Iterator,
     J: Iterator<Item = I::Item>,
 {
     InterleaveShortest {
-        it0: a,
-        it1: b,
-        phase: false,
+        i,
+        j,
+        next_coming_from_j: false,
     }
 }
 
@@ -150,13 +154,13 @@ where
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        let e = if self.phase {
-            self.it1.next()
+        let e = if self.next_coming_from_j {
+            self.j.next()
         } else {
-            self.it0.next()
+            self.i.next()
         };
         if e.is_some() {
-            self.phase = !self.phase;
+            self.next_coming_from_j = !self.next_coming_from_j;
         }
         e
     }
@@ -164,12 +168,12 @@ where
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (curr_hint, next_hint) = {
-            let it0_hint = self.it0.size_hint();
-            let it1_hint = self.it1.size_hint();
-            if self.phase {
-                (it1_hint, it0_hint)
+            let i_hint = self.i.size_hint();
+            let j_hint = self.j.size_hint();
+            if self.next_coming_from_j {
+                (j_hint, i_hint)
             } else {
-                (it0_hint, it1_hint)
+                (i_hint, j_hint)
             }
         };
         let (curr_lower, curr_upper) = curr_hint;
@@ -201,19 +205,19 @@ where
         F: FnMut(B, Self::Item) -> B,
     {
         let Self {
-            mut it0,
-            mut it1,
-            phase,
+            mut i,
+            mut j,
+            next_coming_from_j,
         } = self;
-        if phase {
-            match it1.next() {
+        if next_coming_from_j {
+            match j.next() {
                 Some(y) => init = f(init, y),
                 None => return init,
             }
         }
-        let res = it0.try_fold(init, |mut acc, x| {
+        let res = i.try_fold(init, |mut acc, x| {
             acc = f(acc, x);
-            match it1.next() {
+            match j.next() {
                 Some(y) => Ok(f(acc, y)),
                 None => Err(acc),
             }
