@@ -34,7 +34,7 @@ impl<I, F> fmt::Debug for TakeWhileInclusive<I, F>
 where
     I: Iterator + fmt::Debug,
 {
-    debug_fmt_fields!(TakeWhileInclusive, iter);
+    debug_fmt_fields!(TakeWhileInclusive, iter, done);
 }
 
 impl<I, F> Iterator for TakeWhileInclusive<I, F>
