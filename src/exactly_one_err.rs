@@ -102,25 +102,17 @@ where
     I::Item: Debug,
 {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        let mut dbg = f.debug_struct("ExactlyOneError");
         match &self.first_two {
             Some(Either::Left([first, second])) => {
-                write!(
-                    f,
-                    "ExactlyOneError[First: {:?}, Second: {:?}, RemainingIter: {:?}]",
-                    first, second, self.inner
-                )
+                dbg.field("first", first).field("second", second);
             }
             Some(Either::Right(second)) => {
-                write!(
-                    f,
-                    "ExactlyOneError[Second: {:?}, RemainingIter: {:?}]",
-                    second, self.inner
-                )
+                dbg.field("second", second);
             }
-            None => {
-                write!(f, "ExactlyOneError[RemainingIter: {:?}]", self.inner)
-            }
+            None => {}
         }
+        dbg.field("inner", &self.inner).finish()
     }
 }
 
