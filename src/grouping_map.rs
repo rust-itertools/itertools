@@ -3,13 +3,18 @@
 use crate::MinMaxResult;
 use std::cmp::Ordering;
 use std::collections::HashMap;
+use std::fmt;
 use std::hash::Hash;
 use std::iter::Iterator;
 use std::ops::{Add, Mul};
 
 /// A wrapper to allow for an easy [`into_grouping_map_by`](crate::Itertools::into_grouping_map_by)
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct MapForGrouping<I, F>(I, F);
+
+impl<I: fmt::Debug, F> fmt::Debug for MapForGrouping<I, F> {
+    debug_fmt_fields!(MapForGrouping, 0);
+}
 
 impl<I, F> MapForGrouping<I, F> {
     pub(crate) fn new(iter: I, key_mapper: F) -> Self {
