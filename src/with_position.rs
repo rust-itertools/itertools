@@ -1,3 +1,4 @@
+use std::fmt;
 use std::iter::{Fuse, FusedIterator, Peekable};
 
 /// An iterator adaptor that wraps each element in an [`Position`].
@@ -12,6 +13,14 @@ where
 {
     handled_first: bool,
     peekable: Peekable<Fuse<I>>,
+}
+
+impl<I> fmt::Debug for WithPosition<I>
+where
+    I: Iterator,
+    Peekable<Fuse<I>>: fmt::Debug,
+{
+    debug_fmt_fields!(WithPosition, handled_first, peekable);
 }
 
 impl<I> Clone for WithPosition<I>
