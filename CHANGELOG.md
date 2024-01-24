@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.12.1
+
+### Added
+- Documented iteration order guarantee for `Itertools::[tuple_]combinations` (#822)
+- Documented possible panic in `iterate` (#842)
+- Implemented `Clone` and `Debug` for `Diff` (#845)
+- Implemented `Debug` for `WithPosition` (#859)
+- Implemented `Eq` for `MinMaxResult` (#838)
+- Implemented `From<EitherOrBoth<A, B>>` for `Option<Either<A, B>>` (#843)
+- Implemented `PeekingNext` for `RepeatN` (#855)
+
+### Changed
+- Made `CoalesceBy` lazy (#801)
+- Optimized `Filter[Map]Ok::next`, `Itertools::partition`, `Unique[By]::next[_back]` (#818)
+- Optimized `Itertools::find_position` (#837)
+- Optimized `Positions::next[_back]` (#816)
+- Optimized `ZipLongest::fold` (#854)
+- Relaxed `Debug` bounds for `GroupingMapBy` (#860)
+- Specialized `ExactlyOneError::fold` (#826)
+- Specialized `Interleave[Shortest]::fold` (#849)
+- Specialized `MultiPeek::fold` (#820)
+- Specialized `PadUsing::[r]fold` (#825)
+- Specialized `PeekNth::fold` (#824)
+- Specialized `Positions::[r]fold` (#813)
+- Specialized `PutBackN::fold` (#823)
+- Specialized `RepeatN::[r]fold` (#821)
+- Specialized `TakeWhileInclusive::fold` (#851)
+- Specialized `ZipLongest::rfold` (#848)
+
+### Notable Internal Changes
+- Added test coverage in CI (#847, #856)
+- Added semver check in CI (#784)
+- Enforced `clippy` in CI (#740)
+- Enforced `rustdoc` in CI (#840)
+- Improved specialization tests (#807)
+- More specialization benchmarks (#806)
+
 ## 0.12.0
 
 ### Breaking
