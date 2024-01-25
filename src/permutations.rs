@@ -1,3 +1,4 @@
+use alloc::boxed::Box;
 use alloc::vec::Vec;
 use std::fmt;
 use std::iter::once;
@@ -33,8 +34,8 @@ enum PermutationState {
     Buffered { k: usize, min_n: usize },
     /// All values from the iterator are known so `n` is known.
     Loaded {
-        indices: Vec<usize>,
-        cycles: Vec<usize>,
+        indices: Box<[usize]>,
+        cycles: Box<[usize]>,
     },
     /// No permutation left to generate.
     End,
@@ -89,8 +90,8 @@ where
                 } else {
                     let n = *min_n;
                     let prev_iteration_count = n - *k + 1;
-                    let mut indices: Vec<_> = (0..n).collect();
-                    let mut cycles: Vec<_> = (n - k..n).rev().collect();
+                    let mut indices: Box<[_]> = (0..n).collect();
+                    let mut cycles: Box<[_]> = (n - k..n).rev().collect();
                     // Advance the state to the correct point.
                     for _ in 0..prev_iteration_count {
                         if advance(&mut indices, &mut cycles) {
