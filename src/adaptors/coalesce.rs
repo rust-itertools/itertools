@@ -33,7 +33,7 @@ where
     C: CountItem<I::Item>,
     C::CItem: fmt::Debug,
 {
-    debug_fmt_fields!(CoalesceBy, iter);
+    debug_fmt_fields!(CoalesceBy, iter, last);
 }
 
 pub trait CoalescePredicate<Item, T> {
