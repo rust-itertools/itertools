@@ -294,7 +294,7 @@ where
 /// value. It should be stored in a local variable or temporary and
 /// iterated.
 ///
-/// See [`.group_by()`](crate::Itertools::group_by) for more information.
+/// See [`.chunk_by()`](crate::Itertools::chunk_by) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct GroupBy<K, I, F>
 where
@@ -368,7 +368,7 @@ where
 /// Iterator element type is `(K, Group)`:
 /// the group's key `K` and the group's iterator.
 ///
-/// See [`.group_by()`](crate::Itertools::group_by) for more information.
+/// See [`.chunk_by()`](crate::Itertools::chunk_by) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Groups<'a, K, I, F>
 where

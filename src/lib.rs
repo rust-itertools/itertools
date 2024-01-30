@@ -37,7 +37,7 @@
 //! - `use_std`
 //!   - Enabled by default.
 //!   - Disable to compile itertools using `#![no_std]`. This disables
-//!     any items that depend on collections (like `group_by`, `unique`,
+//!     any items that depend on collections (like `chunk_by`, `unique`,
 //!     `kmerge`, `join` and many more).
 //!
 //! ## Rust Version
@@ -600,11 +600,23 @@ pub trait Itertools: Iterator {
     /// // Note: The `&` is significant here, `GroupBy` is iterable
     /// // only by reference. You can also call `.into_iter()` explicitly.
     /// let mut data_grouped = Vec::new();
-    /// for (key, group) in &data.into_iter().group_by(|elt| *elt >= 0) {
+    /// for (key, group) in &data.into_iter().chunk_by(|elt| *elt >= 0) {
     ///     data_grouped.push((key, group.collect()));
     /// }
     /// assert_eq!(data_grouped, vec![(true, vec![1, 3]), (false, vec![-2, -2]), (true, vec![1, 0, 1, 2])]);
     /// ```
+    #[cfg(feature = "use_alloc")]
+    fn chunk_by<K, F>(self, key: F) -> GroupBy<K, Self, F>
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item) -> K,
+        K: PartialEq,
+    {
+        groupbylazy::new(self, key)
+    }
+
+    /// See [`.chunk_by()`](Itertools::chunk_by).
+    #[deprecated(note = "Use .chunk_by() instead", since = "0.13.0")]
     #[cfg(feature = "use_alloc")]
     fn group_by<K, F>(self, key: F) -> GroupBy<K, Self, F>
     where
@@ -612,7 +624,7 @@ pub trait Itertools: Iterator {
         F: FnMut(&Self::Item) -> K,
         K: PartialEq,
     {
-        groupbylazy::new(self, key)
+        self.chunk_by(key)
     }
 
     /// Return an *iterable* that can chunk the iterator.
