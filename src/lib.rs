@@ -99,8 +99,11 @@ pub mod structs {
     pub use crate::exactly_one_err::ExactlyOneError;
     pub use crate::flatten_ok::FlattenOk;
     pub use crate::format::{Format, FormatWith};
+    #[allow(deprecated)]
     #[cfg(feature = "use_alloc")]
-    pub use crate::groupbylazy::{Chunk, Chunks, Group, GroupBy, Groups, IntoChunks};
+    pub use crate::groupbylazy::GroupBy;
+    #[cfg(feature = "use_alloc")]
+    pub use crate::groupbylazy::{Chunk, ChunkBy, Chunks, Group, Groups, IntoChunks};
     #[cfg(feature = "use_std")]
     pub use crate::grouping_map::{GroupingMap, GroupingMapBy};
     pub use crate::intersperse::{Intersperse, IntersperseWith};
@@ -575,10 +578,10 @@ pub trait Itertools: Iterator {
     /// Consecutive elements that map to the same key (“runs”), are assigned
     /// to the same group.
     ///
-    /// `GroupBy` is the storage for the lazy grouping operation.
+    /// `ChunkBy` is the storage for the lazy grouping operation.
     ///
     /// If the groups are consumed in order, or if each group's iterator is
-    /// dropped without keeping it around, then `GroupBy` uses no
+    /// dropped without keeping it around, then `ChunkBy` uses no
     /// allocations.  It needs allocations only if several group iterators
     /// are alive at the same time.
     ///
@@ -597,7 +600,7 @@ pub trait Itertools: Iterator {
     /// let data = vec![1, 3, -2, -2, 1, 0, 1, 2];
     /// // chunks:     |---->|------>|--------->|
     ///
-    /// // Note: The `&` is significant here, `GroupBy` is iterable
+    /// // Note: The `&` is significant here, `ChunkBy` is iterable
     /// // only by reference. You can also call `.into_iter()` explicitly.
     /// let mut data_grouped = Vec::new();
     /// for (key, chunk) in &data.into_iter().chunk_by(|elt| *elt >= 0) {
@@ -606,7 +609,7 @@ pub trait Itertools: Iterator {
     /// assert_eq!(data_grouped, vec![(true, vec![1, 3]), (false, vec![-2, -2]), (true, vec![1, 0, 1, 2])]);
     /// ```
     #[cfg(feature = "use_alloc")]
-    fn chunk_by<K, F>(self, key: F) -> GroupBy<K, Self, F>
+    fn chunk_by<K, F>(self, key: F) -> ChunkBy<K, Self, F>
     where
         Self: Sized,
         F: FnMut(&Self::Item) -> K,
@@ -618,7 +621,7 @@ pub trait Itertools: Iterator {
     /// See [`.chunk_by()`](Itertools::chunk_by).
     #[deprecated(note = "Use .chunk_by() instead", since = "0.13.0")]
     #[cfg(feature = "use_alloc")]
-    fn group_by<K, F>(self, key: F) -> GroupBy<K, Self, F>
+    fn group_by<K, F>(self, key: F) -> ChunkBy<K, Self, F>
     where
         Self: Sized,
         F: FnMut(&Self::Item) -> K,
@@ -633,7 +636,7 @@ pub trait Itertools: Iterator {
     /// determined by `size`. The last chunk will be shorter if there aren't
     /// enough elements.
     ///
-    /// `IntoChunks` is based on `GroupBy`: it is iterable (implements
+    /// `IntoChunks` is based on `ChunkBy`: it is iterable (implements
     /// `IntoIterator`, **not** `Iterator`), and it only buffers if several
     /// chunk iterators are alive at the same time.
     ///
