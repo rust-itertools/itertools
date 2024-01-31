@@ -892,9 +892,9 @@ fn chunk_by_lazy_2() {
 
     let grouper = data.iter().chunk_by(|k| *k);
     let mut chunks = Vec::new();
-    for (k, group) in &grouper {
+    for (k, chunk) in &grouper {
         if *k == 1 {
-            chunks.push(group);
+            chunks.push(chunk);
         }
     }
     it::assert_equal(&mut chunks[0], &[1, 1]);
@@ -902,13 +902,13 @@ fn chunk_by_lazy_2() {
     let data = [0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
     let grouper = data.iter().chunk_by(|k| *k);
     let mut chunks = Vec::new();
-    for (i, (_, group)) in grouper.into_iter().enumerate() {
+    for (i, (_, chunk)) in grouper.into_iter().enumerate() {
         if i < 2 {
-            chunks.push(group);
+            chunks.push(chunk);
         } else if i < 4 {
-            for _ in group {}
+            for _ in chunk {}
         } else {
-            chunks.push(group);
+            chunks.push(chunk);
         }
     }
     it::assert_equal(&mut chunks[0], &[0, 0, 0]);
@@ -922,12 +922,12 @@ fn chunk_by_lazy_2() {
         i += 1;
         k
     });
-    for (i, group) in &grouper {
+    for (i, chunk) in &grouper {
         match i {
-            0 => it::assert_equal(group, &[0, 0, 0]),
-            1 => it::assert_equal(group, &[1, 1, 0]),
-            2 => it::assert_equal(group, &[0, 2, 2]),
-            3 => it::assert_equal(group, &[3, 3]),
+            0 => it::assert_equal(chunk, &[0, 0, 0]),
+            1 => it::assert_equal(chunk, &[1, 1, 0]),
+            2 => it::assert_equal(chunk, &[0, 2, 2]),
+            3 => it::assert_equal(chunk, &[3, 3]),
             _ => unreachable!(),
         }
     }
@@ -935,17 +935,17 @@ fn chunk_by_lazy_2() {
 
 #[test]
 fn chunk_by_lazy_3() {
-    // test consuming each group on the lap after it was produced
+    // test consuming each chunk on the lap after it was produced
     let data = [0, 0, 0, 1, 1, 0, 0, 1, 1, 2, 2];
     let grouper = data.iter().chunk_by(|elt| *elt);
     let mut last = None;
-    for (key, group) in &grouper {
+    for (key, chunk) in &grouper {
         if let Some(gr) = last.take() {
             for elt in gr {
                 assert!(elt != key && i32::abs(elt - key) == 1);
             }
         }
-        last = Some(group);
+        last = Some(chunk);
     }
 }
 
