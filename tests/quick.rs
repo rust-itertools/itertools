@@ -1055,15 +1055,15 @@ quickcheck! {
 quickcheck! {
     fn fuzz_chunk_by_lazy_1(it: Iter<u8>) -> bool {
         let jt = it.clone();
-        let groups = it.chunk_by(|k| *k);
-        itertools::equal(jt, groups.into_iter().flat_map(|(_, x)| x))
+        let chunks = it.chunk_by(|k| *k);
+        itertools::equal(jt, chunks.into_iter().flat_map(|(_, x)| x))
     }
 }
 
 quickcheck! {
     fn fuzz_chunk_by_lazy_2(data: Vec<u8>) -> bool {
-        let groups = data.iter().chunk_by(|k| *k / 10);
-        let res = itertools::equal(data.iter(), groups.into_iter().flat_map(|(_, x)| x));
+        let chunks = data.iter().chunk_by(|k| *k / 10);
+        let res = itertools::equal(data.iter(), chunks.into_iter().flat_map(|(_, x)| x));
         res
     }
 }
@@ -1071,8 +1071,8 @@ quickcheck! {
 quickcheck! {
     fn fuzz_chunk_by_lazy_3(data: Vec<u8>) -> bool {
         let grouper = data.iter().chunk_by(|k| *k / 10);
-        let groups = grouper.into_iter().collect_vec();
-        let res = itertools::equal(data.iter(), groups.into_iter().flat_map(|(_, x)| x));
+        let chunks = grouper.into_iter().collect_vec();
+        let res = itertools::equal(data.iter(), chunks.into_iter().flat_map(|(_, x)| x));
         res
     }
 }
@@ -1080,31 +1080,31 @@ quickcheck! {
 quickcheck! {
     fn fuzz_chunk_by_lazy_duo(data: Vec<u8>, order: Vec<(bool, bool)>) -> bool {
         let grouper = data.iter().chunk_by(|k| *k / 3);
-        let mut groups1 = grouper.into_iter();
-        let mut groups2 = grouper.into_iter();
+        let mut chunks1 = grouper.into_iter();
+        let mut chunks2 = grouper.into_iter();
         let mut elts = Vec::<&u8>::new();
-        let mut old_groups = Vec::new();
+        let mut old_chunks = Vec::new();
 
         let tup1 = |(_, b)| b;
         for &(ord, consume_now) in &order {
-            let iter = &mut [&mut groups1, &mut groups2][ord as usize];
+            let iter = &mut [&mut chunks1, &mut chunks2][ord as usize];
             match iter.next() {
                 Some((_, gr)) => if consume_now {
-                    for og in old_groups.drain(..) {
+                    for og in old_chunks.drain(..) {
                         elts.extend(og);
                     }
                     elts.extend(gr);
                 } else {
-                    old_groups.push(gr);
+                    old_chunks.push(gr);
                 },
                 None => break,
             }
         }
-        for og in old_groups.drain(..) {
+        for og in old_chunks.drain(..) {
             elts.extend(og);
         }
-        for gr in groups1.map(&tup1) { elts.extend(gr); }
-        for gr in groups2.map(&tup1) { elts.extend(gr); }
+        for gr in chunks1.map(&tup1) { elts.extend(gr); }
+        for gr in chunks2.map(&tup1) { elts.extend(gr); }
         itertools::assert_equal(&data, elts);
         true
     }
