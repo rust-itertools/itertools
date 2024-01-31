@@ -817,8 +817,8 @@ fn chunk_by() {
 
     // try all possible orderings
     for indices in permutohedron::Heap::new(&mut [0, 1, 2, 3]) {
-        let groups = "AaaBbbccCcDDDD".chars().chunk_by(&toupper);
-        let mut subs = groups.into_iter().collect_vec();
+        let chunks = "AaaBbbccCcDDDD".chars().chunk_by(&toupper);
+        let mut subs = chunks.into_iter().collect_vec();
 
         for &idx in &indices[..] {
             let (key, text) = match idx {
@@ -833,8 +833,8 @@ fn chunk_by() {
         }
     }
 
-    let groups = "AAABBBCCCCDDDD".chars().chunk_by(|&x| x);
-    let mut subs = groups.into_iter().map(|(_, g)| g).collect_vec();
+    let chunks = "AAABBBCCCCDDDD".chars().chunk_by(|&x| x);
+    let mut subs = chunks.into_iter().map(|(_, g)| g).collect_vec();
 
     let sd = subs.pop().unwrap();
     let sc = subs.pop().unwrap();
@@ -880,42 +880,41 @@ fn chunk_by() {
 #[test]
 fn chunk_by_lazy_2() {
     let data = [0, 1];
-    let groups = data.iter().chunk_by(|k| *k);
-    let gs = groups.into_iter().collect_vec();
+    let chunks = data.iter().chunk_by(|k| *k);
+    let gs = chunks.into_iter().collect_vec();
     it::assert_equal(data.iter(), gs.into_iter().flat_map(|(_k, g)| g));
 
     let data = [0, 1, 1, 0, 0];
-    let groups = data.iter().chunk_by(|k| *k);
-    let mut gs = groups.into_iter().collect_vec();
+    let chunks = data.iter().chunk_by(|k| *k);
+    let mut gs = chunks.into_iter().collect_vec();
     gs[1..].reverse();
     it::assert_equal(&[0, 0, 0, 1, 1], gs.into_iter().flat_map(|(_, g)| g));
 
     let grouper = data.iter().chunk_by(|k| *k);
-    let mut groups = Vec::new();
+    let mut chunks = Vec::new();
     for (k, group) in &grouper {
         if *k == 1 {
-            groups.push(group);
+            chunks.push(group);
         }
     }
-    it::assert_equal(&mut groups[0], &[1, 1]);
+    it::assert_equal(&mut chunks[0], &[1, 1]);
 
     let data = [0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
     let grouper = data.iter().chunk_by(|k| *k);
-    let mut groups = Vec::new();
+    let mut chunks = Vec::new();
     for (i, (_, group)) in grouper.into_iter().enumerate() {
         if i < 2 {
-            groups.push(group);
+            chunks.push(group);
         } else if i < 4 {
             for _ in group {}
         } else {
-            groups.push(group);
+            chunks.push(group);
         }
     }
-    it::assert_equal(&mut groups[0], &[0, 0, 0]);
-    it::assert_equal(&mut groups[1], &[1, 1]);
-    it::assert_equal(&mut groups[2], &[3, 3]);
+    it::assert_equal(&mut chunks[0], &[0, 0, 0]);
+    it::assert_equal(&mut chunks[1], &[1, 1]);
+    it::assert_equal(&mut chunks[2], &[3, 3]);
 
-    // use groups as chunks
     let data = [0, 0, 0, 1, 1, 0, 0, 2, 2, 3, 3];
     let mut i = 0;
     let grouper = data.iter().chunk_by(move |_| {
