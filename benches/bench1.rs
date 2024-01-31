@@ -390,7 +390,7 @@ fn zip_unchecked_counted_loop3(c: &mut Criterion) {
     });
 }
 
-fn group_by_lazy_1(c: &mut Criterion) {
+fn chunk_by_lazy_1(c: &mut Criterion) {
     let mut data = vec![0; 1024];
     for (index, elt) in data.iter_mut().enumerate() {
         *elt = index / 10;
@@ -398,10 +398,10 @@ fn group_by_lazy_1(c: &mut Criterion) {
 
     let data = black_box(data);
 
-    c.bench_function("group by lazy 1", move |b| {
+    c.bench_function("chunk by lazy 1", move |b| {
         b.iter(|| {
-            for (_key, group) in &data.iter().group_by(|elt| **elt) {
-                for elt in group {
+            for (_key, chunk) in &data.iter().chunk_by(|elt| **elt) {
+                for elt in chunk {
                     black_box(elt);
                 }
             }
@@ -409,7 +409,7 @@ fn group_by_lazy_1(c: &mut Criterion) {
     });
 }
 
-fn group_by_lazy_2(c: &mut Criterion) {
+fn chunk_by_lazy_2(c: &mut Criterion) {
     let mut data = vec![0; 1024];
     for (index, elt) in data.iter_mut().enumerate() {
         *elt = index / 2;
@@ -417,10 +417,10 @@ fn group_by_lazy_2(c: &mut Criterion) {
 
     let data = black_box(data);
 
-    c.bench_function("group by lazy 2", move |b| {
+    c.bench_function("chunk by lazy 2", move |b| {
         b.iter(|| {
-            for (_key, group) in &data.iter().group_by(|elt| **elt) {
-                for elt in group {
+            for (_key, chunk) in &data.iter().chunk_by(|elt| **elt) {
+                for elt in chunk {
                     black_box(elt);
                 }
             }
@@ -436,8 +436,8 @@ fn slice_chunks(c: &mut Criterion) {
 
     c.bench_function("slice chunks", move |b| {
         b.iter(|| {
-            for group in data.chunks(sz) {
-                for elt in group {
+            for chunk in data.chunks(sz) {
+                for elt in chunk {
                     black_box(elt);
                 }
             }
@@ -453,8 +453,8 @@ fn chunks_lazy_1(c: &mut Criterion) {
 
     c.bench_function("chunks lazy 1", move |b| {
         b.iter(|| {
-            for group in &data.iter().chunks(sz) {
-                for elt in group {
+            for chunk in &data.iter().chunks(sz) {
+                for elt in chunk {
                     black_box(elt);
                 }
             }
@@ -813,8 +813,8 @@ criterion_group!(
     zipdot_i32_unchecked_counted_loop,
     zipdot_f32_unchecked_counted_loop,
     zip_unchecked_counted_loop3,
-    group_by_lazy_1,
-    group_by_lazy_2,
+    chunk_by_lazy_1,
+    chunk_by_lazy_2,
     slice_chunks,
     chunks_lazy_1,
     equal,
