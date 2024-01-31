@@ -77,15 +77,15 @@ fn main() {
     let mut plot_symbols = "+ox".chars().cycle();
     let mut symbolmap = HashMap::new();
 
-    // using Itertools::group_by
-    for (species, species_group) in &irises.iter().group_by(|iris| &iris.name) {
+    // using Itertools::chunk_by
+    for (species, species_chunk) in &irises.iter().chunk_by(|iris| &iris.name) {
         // assign a plot symbol
         symbolmap
             .entry(species)
             .or_insert_with(|| plot_symbols.next().unwrap());
         println!("{} (symbol={})", species, symbolmap[species]);
 
-        for iris in species_group {
+        for iris in species_chunk {
             // using Itertools::format for lazy formatting
             println!("{:>3.1}", iris.data.iter().format(", "));
         }
