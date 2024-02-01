@@ -252,13 +252,13 @@ macro_rules! iproduct {
     (@flatten $I:expr, $J:expr, $($K:expr,)*) => (
         $crate::iproduct!(@flatten $crate::cons_tuples($crate::iproduct!($I, $J)), $($K,)*)
     );
-    ($I:expr) => (
+    ($I:expr $(,)?) => (
         $crate::__std_iter::IntoIterator::into_iter($I)
     );
-    ($I:expr, $J:expr) => (
+    ($I:expr, $J:expr $(,)?) => (
         $crate::Itertools::cartesian_product($crate::iproduct!($I), $crate::iproduct!($J))
     );
-    ($I:expr, $J:expr, $($K:expr),+) => (
+    ($I:expr, $J:expr, $($K:expr),+ $(,)?) => (
         $crate::iproduct!(@flatten $crate::iproduct!($I, $J), $($K,)+)
     );
 }
