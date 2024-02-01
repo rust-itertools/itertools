@@ -249,6 +249,9 @@ macro_rules! iproduct {
     (@flatten $I:expr, $J:expr, $($K:expr,)*) => (
         $crate::iproduct!(@flatten $crate::cons_tuples($crate::iproduct!($I, $J)), $($K,)*)
     );
+    () => (
+        $crate::__std_iter::once(())
+    );
     ($I:expr $(,)?) => (
         $crate::__std_iter::IntoIterator::into_iter($I).map(|elt| (elt,))
     );
