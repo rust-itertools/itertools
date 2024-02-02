@@ -19,6 +19,23 @@ use core::iter;
 use itertools as it;
 
 #[test]
+fn product0() {
+    let mut prod = iproduct!();
+    assert_eq!(prod.next(), Some(()));
+    assert!(prod.next().is_none());
+}
+
+#[test]
+fn iproduct1() {
+    let s = "αβ";
+
+    let mut prod = iproduct!(s.chars());
+    assert_eq!(prod.next(), Some(('α',)));
+    assert_eq!(prod.next(), Some(('β',)));
+    assert!(prod.next().is_none());
+}
+
+#[test]
 fn product2() {
     let s = "αβ";
 
