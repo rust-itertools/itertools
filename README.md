@@ -11,7 +11,7 @@ How to use with Cargo:
 
 ```toml
 [dependencies]
-itertools = "0.12.1"
+itertools = "0.13.0"
 ```
 
 How to use in your crate:
