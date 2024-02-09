@@ -22,6 +22,7 @@ impl<I, F> MapForGrouping<I, F> {
     }
 }
 
+#[allow(clippy::missing_trait_methods)]
 impl<K, V, I, F> Iterator for MapForGrouping<I, F>
 where
     I: Iterator<Item = V>,
@@ -31,6 +32,14 @@ where
     type Item = (K, V);
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next().map(|val| ((self.1)(&val), val))
+    }
+
+    fn fold<B, G>(self, init: B, f: G) -> B
+    where
+        G: FnMut(B, Self::Item) -> B,
+    {
+        let mut key_mapper = self.1;
+        self.0.map(|val| (key_mapper(&val), val)).fold(init, f)
     }
 }
 
