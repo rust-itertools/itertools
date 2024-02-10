@@ -1,10 +1,13 @@
 version: 2
 updates:
-- package-ecosystem: github-actions
-  directory: "/"
-  schedule:
-    interval: daily
-- package-ecosystem: cargo
-  directory: "/"
-  schedule:
-    interval: daily
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: daily
+  - package-ecosystem: cargo
+    directory: "/"
+    schedule:
+      interval: daily
+    ignore:
+      - update-types:
+          ["version-update:semver-patch", "version-update:semver-minor"]
