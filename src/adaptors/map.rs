@@ -4,8 +4,8 @@ use std::marker::PhantomData;
 #[derive(Clone, Debug)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct MapSpecialCase<I, F> {
-    iter: I,
-    f: F,
+    pub(crate) iter: I,
+    pub(crate) f: F,
 }
 
 pub trait MapSpecialCaseFn<T> {
