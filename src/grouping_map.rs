@@ -13,7 +13,12 @@ use std::ops::{Add, Mul};
 /// A wrapper to allow for an easy [`into_grouping_map_by`](crate::Itertools::into_grouping_map_by)
 pub type MapForGrouping<I, F> = MapSpecialCase<I, GroupingMapFn<F>>;
 
+#[derive(Clone)]
 pub struct GroupingMapFn<F>(F);
+
+impl<F> std::fmt::Debug for GroupingMapFn<F> {
+    debug_fmt_fields!(GroupingMapFn,);
+}
 
 impl<V, K, F: FnMut(&V) -> K> MapSpecialCaseFn<V> for GroupingMapFn<F> {
     type Out = (K, V);
