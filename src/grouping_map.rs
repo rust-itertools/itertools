@@ -1,45 +1,33 @@
 #![cfg(feature = "use_std")]
 
-use crate::MinMaxResult;
+use crate::{
+    adaptors::map::{MapSpecialCase, MapSpecialCaseFn},
+    MinMaxResult,
+};
 use std::cmp::Ordering;
 use std::collections::HashMap;
-use std::fmt;
 use std::hash::Hash;
 use std::iter::Iterator;
 use std::ops::{Add, Mul};
 
 /// A wrapper to allow for an easy [`into_grouping_map_by`](crate::Itertools::into_grouping_map_by)
-#[derive(Clone)]
-pub struct MapForGrouping<I, F>(I, F);
+pub type MapForGrouping<I, F> = MapSpecialCase<I, GroupingMapFn<F>>;
 
-impl<I: fmt::Debug, F> fmt::Debug for MapForGrouping<I, F> {
-    debug_fmt_fields!(MapForGrouping, 0);
+pub struct GroupingMapFn<F>(F);
+
+impl<V, K, F: FnMut(&V) -> K> MapSpecialCaseFn<V> for GroupingMapFn<F> {
+    type Out = (K, V);
+    fn call(&mut self, v: V) -> Self::Out {
+        ((self.0)(&v), v)
+    }
 }
 
-impl<I, F> MapForGrouping<I, F> {
+impl<K, I: Iterator, F: FnMut(&I::Item) -> K> MapForGrouping<I, F> {
     pub(crate) fn new(iter: I, key_mapper: F) -> Self {
-        Self(iter, key_mapper)
-    }
-}
-
-#[allow(clippy::missing_trait_methods)]
-impl<K, V, I, F> Iterator for MapForGrouping<I, F>
-where
-    I: Iterator<Item = V>,
-    K: Hash + Eq,
-    F: FnMut(&V) -> K,
-{
-    type Item = (K, V);
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|val| ((self.1)(&val), val))
-    }
-
-    fn fold<B, G>(self, init: B, f: G) -> B
-    where
-        G: FnMut(B, Self::Item) -> B,
-    {
-        let mut key_mapper = self.1;
-        self.0.map(|val| (key_mapper(&val), val)).fold(init, f)
+        MapSpecialCase {
+            iter,
+            f: GroupingMapFn(key_mapper),
+        }
     }
 }
 

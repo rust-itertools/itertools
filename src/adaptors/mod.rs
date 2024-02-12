@@ -5,7 +5,7 @@
 //! except according to those terms.
 
 mod coalesce;
-mod map;
+pub(crate) mod map;
 mod multi_product;
 pub use self::coalesce::*;
 #[allow(deprecated)]
