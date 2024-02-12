@@ -27,12 +27,13 @@ impl<V, K, F: FnMut(&V) -> K> MapSpecialCaseFn<V> for GroupingMapFn<F> {
     }
 }
 
-impl<K, I: Iterator, F: FnMut(&I::Item) -> K> MapForGrouping<I, F> {
-    pub(crate) fn new(iter: I, key_mapper: F) -> Self {
-        MapSpecialCase {
-            iter,
-            f: GroupingMapFn(key_mapper),
-        }
+pub(crate) fn new_map_for_grouping<K, I: Iterator, F: FnMut(&I::Item) -> K>(
+    iter: I,
+    key_mapper: F,
+) -> MapForGrouping<I, F> {
+    MapSpecialCase {
+        iter,
+        f: GroupingMapFn(key_mapper),
     }
 }
 

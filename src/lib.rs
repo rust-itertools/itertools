@@ -3194,7 +3194,7 @@ pub trait Itertools: Iterator {
         K: Hash + Eq,
         F: FnMut(&V) -> K,
     {
-        grouping_map::new(grouping_map::MapForGrouping::new(self, key_mapper))
+        grouping_map::new(grouping_map::new_map_for_grouping(self, key_mapper))
     }
 
     /// Return all minimum elements of an iterator.
