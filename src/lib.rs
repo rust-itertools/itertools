@@ -80,8 +80,6 @@ pub use std::iter as __std_iter;
 
 /// The concrete iterator types.
 pub mod structs {
-    #[allow(deprecated)]
-    pub use crate::adaptors::MapResults;
     #[cfg(feature = "use_alloc")]
     pub use crate::adaptors::MultiProduct;
     pub use crate::adaptors::{
@@ -827,16 +825,6 @@ pub trait Itertools: Iterator {
         Self::Item: Into<R>,
     {
         adaptors::map_into(self)
-    }
-
-    /// See [`.map_ok()`](Itertools::map_ok).
-    #[deprecated(note = "Use .map_ok() instead", since = "0.10.0")]
-    fn map_results<F, T, U, E>(self, f: F) -> MapOk<Self, F>
-    where
-        Self: Iterator<Item = Result<T, E>> + Sized,
-        F: FnMut(T) -> U,
-    {
-        self.map_ok(f)
     }
 
     /// Return an iterator adaptor that applies the provided closure
