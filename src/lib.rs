@@ -80,6 +80,8 @@ pub use std::iter as __std_iter;
 
 /// The concrete iterator types.
 pub mod structs {
+    #[allow(deprecated)]
+    pub use crate::adaptors::MapResults;
     #[cfg(feature = "use_alloc")]
     pub use crate::adaptors::MultiProduct;
     pub use crate::adaptors::{
@@ -87,8 +89,6 @@ pub mod structs {
         FilterOk, Interleave, InterleaveShortest, MapInto, MapOk, Positions, Product, PutBack,
         TakeWhileRef, TupleCombinations, Update, WhileSome,
     };
-    #[allow(deprecated)]
-    pub use crate::adaptors::{MapResults, Step};
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations::Combinations;
     #[cfg(feature = "use_alloc")]
@@ -812,31 +812,6 @@ pub trait Itertools: Iterator {
         Self::Item: Clone,
     {
         tee::new(self)
-    }
-
-    /// Return an iterator adaptor that steps `n` elements in the base iterator
-    /// for each iteration.
-    ///
-    /// The iterator steps by yielding the next element from the base iterator,
-    /// then skipping forward `n - 1` elements.
-    ///
-    /// Iterator element type is `Self::Item`.
-    ///
-    /// **Panics** if the step is 0.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// let it = (0..8).step(3);
-    /// itertools::assert_equal(it, vec![0, 3, 6]);
-    /// ```
-    #[deprecated(note = "Use std .step_by() instead", since = "0.8.0")]
-    #[allow(deprecated)]
-    fn step(self, n: usize) -> Step<Self>
-    where
-        Self: Sized,
-    {
-        adaptors::step(self, n)
     }
 
     /// Convert each item of the iterator using the [`Into`] trait.

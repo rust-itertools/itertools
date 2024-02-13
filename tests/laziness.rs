@@ -104,10 +104,6 @@ must_use_tests! {
     tee {
         let _ = Panicking.tee();
     }
-    #[allow(deprecated)]
-    step {
-        let _ = Panicking.step(2);
-    }
     map_into {
         let _ = Panicking.map_into::<u16>();
     }

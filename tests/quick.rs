@@ -456,45 +456,6 @@ quickcheck! {
         itertools::assert_equal(empty, std::iter::once(Vec::new()))
     }
 
-    #[allow(deprecated)]
-    fn size_step(a: Iter<i16, Exact>, s: usize) -> bool {
-        let mut s = s;
-        if s == 0 {
-            s += 1; // never zero
-        }
-        let filt = a.clone().dedup();
-        correct_size_hint(filt.step(s)) &&
-            exact_size(a.step(s))
-    }
-
-    #[allow(deprecated)]
-    fn equal_step(a: Iter<i16>, s: usize) -> bool {
-        let mut s = s;
-        if s == 0 {
-            s += 1; // never zero
-        }
-        let mut i = 0;
-        itertools::equal(a.clone().step(s), a.filter(|_| {
-            let keep = i % s == 0;
-            i += 1;
-            keep
-        }))
-    }
-
-    #[allow(deprecated)]
-    fn equal_step_vec(a: Vec<i16>, s: usize) -> bool {
-        let mut s = s;
-        if s == 0 {
-            s += 1; // never zero
-        }
-        let mut i = 0;
-        itertools::equal(a.iter().step(s), a.iter().filter(|_| {
-            let keep = i % s == 0;
-            i += 1;
-            keep
-        }))
-    }
-
     fn size_multipeek(a: Iter<u16, Exact>, s: u8) -> bool {
         let mut it = multipeek(a);
         // peek a few times
@@ -1373,13 +1334,12 @@ quickcheck! {
 }
 
 quickcheck! {
-    #[allow(deprecated)]
     fn tree_fold1_f64(mut a: Vec<f64>) -> TestResult {
         fn collapse_adjacent<F>(x: Vec<f64>, mut f: F) -> Vec<f64>
             where F: FnMut(f64, f64) -> f64
         {
             let mut out = Vec::new();
-            for i in (0..x.len()).step(2) {
+            for i in (0..x.len()).step_by(2) {
                 if i == x.len()-1 {
                     out.push(x[i])
                 } else {

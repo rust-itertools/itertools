@@ -423,18 +423,16 @@ fn merge_by_btree() {
     it::assert_equal(results, expected);
 }
 
-#[allow(deprecated)]
 #[test]
 fn kmerge() {
-    let its = (0..4).map(|s| (s..10).step(4));
+    let its = (0..4).map(|s| (s..10).step_by(4));
 
     it::assert_equal(its.kmerge(), 0..10);
 }
 
-#[allow(deprecated)]
 #[test]
 fn kmerge_2() {
-    let its = vec![3, 2, 1, 0].into_iter().map(|s| (s..10).step(4));
+    let its = vec![3, 2, 1, 0].into_iter().map(|s| (s..10).step_by(4));
 
     it::assert_equal(its.kmerge(), 0..10);
 }
