@@ -214,18 +214,9 @@ fn test_put_back() {
     it::assert_equal(pb, xs.iter().cloned());
 }
 
-#[allow(deprecated)]
-#[test]
-fn step() {
-    it::assert_equal((0..10).step(1), 0..10);
-    it::assert_equal((0..10).step(2), (0..10).filter(|x: &i32| *x % 2 == 0));
-    it::assert_equal((0..10).step(10), 0..1);
-}
-
-#[allow(deprecated)]
 #[test]
 fn merge() {
-    it::assert_equal((0..10).step(2).merge((1..10).step(2)), 0..10);
+    it::assert_equal((0..10).step_by(2).merge((1..10).step_by(2)), 0..10);
 }
 
 #[test]

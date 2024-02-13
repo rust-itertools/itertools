@@ -507,69 +507,6 @@ where
     }
 }
 
-/// An iterator adaptor that steps a number elements in the base iterator
-/// for each iteration.
-///
-/// The iterator steps by yielding the next element from the base iterator,
-/// then skipping forward *n-1* elements.
-///
-/// See [`.step()`](crate::Itertools::step) for more information.
-#[deprecated(note = "Use std .step_by() instead", since = "0.8.0")]
-#[allow(deprecated)]
-#[derive(Clone, Debug)]
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct Step<I> {
-    iter: Fuse<I>,
-    skip: usize,
-}
-
-/// Create a `Step` iterator.
-///
-/// **Panics** if the step is 0.
-#[allow(deprecated)]
-pub fn step<I>(iter: I, step: usize) -> Step<I>
-where
-    I: Iterator,
-{
-    assert!(step != 0);
-    Step {
-        iter: iter.fuse(),
-        skip: step - 1,
-    }
-}
-
-#[allow(deprecated)]
-impl<I> Iterator for Step<I>
-where
-    I: Iterator,
-{
-    type Item = I::Item;
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        let elt = self.iter.next();
-        if self.skip > 0 {
-            self.iter.nth(self.skip - 1);
-        }
-        elt
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let (low, high) = self.iter.size_hint();
-        let div = |x: usize| {
-            if x == 0 {
-                0
-            } else {
-                1 + (x - 1) / (self.skip + 1)
-            }
-        };
-        (div(low), high.map(div))
-    }
-}
-
-// known size
-#[allow(deprecated)]
-impl<I> ExactSizeIterator for Step<I> where I: ExactSizeIterator {}
-
 /// An iterator adaptor that borrows from a `Clone`-able iterator
 /// to only pick off elements while the predicate returns `true`.
 ///
