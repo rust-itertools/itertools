@@ -2322,16 +2322,6 @@ pub trait Itertools: Iterator {
         format::new_format(self, sep, format)
     }
 
-    /// See [`.fold_ok()`](Itertools::fold_ok).
-    #[deprecated(note = "Use .fold_ok() instead", since = "0.10.0")]
-    fn fold_results<A, E, B, F>(&mut self, start: B, f: F) -> Result<B, E>
-    where
-        Self: Iterator<Item = Result<A, E>>,
-        F: FnMut(B, A) -> B,
-    {
-        self.fold_ok(start, f)
-    }
-
     /// Fold `Result` values from an iterator.
     ///
     /// Only `Ok` values are folded. If no error is encountered, the folded
