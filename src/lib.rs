@@ -2623,7 +2623,7 @@ pub trait Itertools: Iterator {
             Ok(x)
         }
 
-        match inner(usize::max_value(), &mut self, &mut f) {
+        match inner(usize::MAX, &mut self, &mut f) {
             Err(x) => x,
             _ => unreachable!(),
         }
