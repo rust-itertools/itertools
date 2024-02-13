@@ -2149,32 +2149,6 @@ pub trait Itertools: Iterator {
         self
     }
 
-    /// Run the closure `f` eagerly on each element of the iterator.
-    ///
-    /// Consumes the iterator until its end.
-    ///
-    /// ```
-    /// use std::sync::mpsc::channel;
-    /// use itertools::Itertools;
-    ///
-    /// let (tx, rx) = channel();
-    ///
-    /// // use .foreach() to apply a function to each value -- sending it
-    /// (0..5).map(|x| x * 2 + 1).foreach(|x| { tx.send(x).unwrap(); } );
-    ///
-    /// drop(tx);
-    ///
-    /// itertools::assert_equal(rx.iter(), vec![1, 3, 5, 7, 9]);
-    /// ```
-    #[deprecated(note = "Use .for_each() instead", since = "0.8.0")]
-    fn foreach<F>(self, f: F)
-    where
-        F: FnMut(Self::Item),
-        Self: Sized,
-    {
-        self.for_each(f);
-    }
-
     /// Combine all an iterator's elements into one element by using [`Extend`].
     ///
     /// This combinator will extend the first item with each of the rest of the

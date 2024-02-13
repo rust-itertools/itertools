@@ -360,7 +360,6 @@ fn test_rciter() {
     assert_eq!(z.next(), Some((0, 1)));
 }
 
-#[allow(deprecated)]
 #[test]
 fn trait_pointers() {
     struct ByRef<'r, I: ?Sized>(&'r mut I);
@@ -379,7 +378,6 @@ fn trait_pointers() {
     assert_eq!(it.next(), Some(0));
 
     {
-        /* make sure foreach works on non-Sized */
         let jt: &mut dyn Iterator<Item = i32> = &mut *it;
         assert_eq!(jt.next(), Some(1));
 
@@ -389,7 +387,7 @@ fn trait_pointers() {
         }
 
         assert_eq!(jt.find_position(|x| *x == 4), Some((1, 4)));
-        jt.foreach(|_| ());
+        jt.for_each(|_| ());
     }
 }
 
