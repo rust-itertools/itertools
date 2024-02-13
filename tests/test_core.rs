@@ -172,15 +172,6 @@ fn test_intersperse_with() {
     it::assert_equal(it, ys.iter());
 }
 
-#[allow(deprecated)]
-#[test]
-fn foreach() {
-    let xs = [1i32, 2, 3];
-    let mut sum = 0;
-    xs.iter().foreach(|elt| sum += *elt);
-    assert!(sum == 6);
-}
-
 #[test]
 fn dropping() {
     let xs = [1, 2, 3];
