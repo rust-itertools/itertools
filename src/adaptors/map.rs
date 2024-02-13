@@ -67,10 +67,6 @@ where
 /// See [`.map_ok()`](crate::Itertools::map_ok) for more information.
 pub type MapOk<I, F> = MapSpecialCase<I, MapSpecialCaseFnOk<F>>;
 
-/// See [`MapOk`].
-#[deprecated(note = "Use MapOk instead", since = "0.10.0")]
-pub type MapResults<I, F> = MapOk<I, F>;
-
 impl<F, T, U, E> MapSpecialCaseFn<Result<T, E>> for MapSpecialCaseFnOk<F>
 where
     F: FnMut(T) -> U,
