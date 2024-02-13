@@ -67,8 +67,8 @@ impl qc::Arbitrary for Inexact {
         let ue_value = usize::arbitrary(g);
         let oe_value = usize::arbitrary(g);
         // Compensate for quickcheck using extreme values too rarely
-        let ue_choices = &[0, ue_value, usize::max_value()];
-        let oe_choices = &[0, oe_value, usize::max_value()];
+        let ue_choices = &[0, ue_value, usize::MAX];
+        let oe_choices = &[0, oe_value, usize::MAX];
         Self {
             underestimate: *ue_choices.choose(g).unwrap(),
             overestimate: *oe_choices.choose(g).unwrap(),
