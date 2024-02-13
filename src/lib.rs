@@ -127,7 +127,7 @@ pub mod structs {
     pub use crate::rciter_impl::RcIter;
     pub use crate::repeatn::RepeatN;
     #[allow(deprecated)]
-    pub use crate::sources::{Iterate, RepeatCall, Unfold};
+    pub use crate::sources::{Iterate, Unfold};
     pub use crate::take_while_inclusive::TakeWhileInclusive;
     #[cfg(feature = "use_alloc")]
     pub use crate::tee::Tee;
@@ -156,7 +156,7 @@ pub use crate::peeking_take_while::PeekingNext;
 pub use crate::process_results_impl::process_results;
 pub use crate::repeatn::repeat_n;
 #[allow(deprecated)]
-pub use crate::sources::{iterate, repeat_call, unfold};
+pub use crate::sources::{iterate, unfold};
 #[allow(deprecated)]
 pub use crate::structs::*;
 pub use crate::unziptuple::{multiunzip, MultiUnzip};
