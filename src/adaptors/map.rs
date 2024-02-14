@@ -108,8 +108,18 @@ impl<T: Into<U>, U> MapSpecialCaseFn<T> for MapSpecialCaseFnInto<U> {
     }
 }
 
-#[derive(Clone, Debug)]
 pub struct MapSpecialCaseFnInto<U>(PhantomData<U>);
+
+impl<U> std::fmt::Debug for MapSpecialCaseFnInto<U> {
+    debug_fmt_fields!(MapSpecialCaseFnInto, 0);
+}
+
+impl<U> Clone for MapSpecialCaseFnInto<U> {
+    #[inline]
+    fn clone(&self) -> Self {
+        Self(PhantomData)
+    }
+}
 
 /// Create a new [`MapInto`] iterator.
 pub fn map_into<I, R>(iter: I) -> MapInto<I, R> {
