@@ -10,7 +10,7 @@ readme = "README.md"
 
 description = "Extra iterator adaptors, iterator methods, free functions, and macros."
 
-keywords = ["iterator", "data-structure", "zip", "product", "group-by"]
+keywords = ["iterator", "data-structure", "zip", "product"]
 categories = ["algorithms", "rust-patterns"]
 
 edition = "2018"
