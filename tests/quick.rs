@@ -882,7 +882,7 @@ quickcheck! {
     fn size_put_back(a: Vec<u8>, x: Option<u8>) -> bool {
         let mut it = put_back(a.into_iter());
         if let Some(t) = x {
-            it.put_back(t)
+            it.put_back(t);
         }
         correct_size_hint(it)
     }

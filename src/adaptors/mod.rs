@@ -280,10 +280,10 @@ where
 
     /// Put back a single value to the front of the iterator.
     ///
-    /// If a value is already in the put back slot, it is overwritten.
+    /// If a value is already in the put back slot, it is returned.
     #[inline]
-    pub fn put_back(&mut self, x: I::Item) {
-        self.top = Some(x);
+    pub fn put_back(&mut self, x: I::Item) -> Option<I::Item> {
+        self.top.replace(x)
     }
 }
 
