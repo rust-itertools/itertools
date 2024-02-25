@@ -16,7 +16,7 @@ pub struct Zip<T> {
 /// The iterator element type is a tuple like like `(A, B, ..., E)` where `A` to `E` are the
 /// element types of the subiterator.
 ///
-/// **Note:** The result of this macro is a value of a named type (`Zip<(I, J,
+/// **Note:** The result of this function is a value of a named type (`Zip<(I, J,
 /// ..)>` of each component iterator `I, J, ...`) if each component iterator is
 /// nameable.
 ///
