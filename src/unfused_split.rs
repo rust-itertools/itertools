@@ -6,7 +6,6 @@ struct UnfusedInner<I>
 where
     I: Iterator,
 {
-    // key: F,
     iter: I,
     current_index: usize,
     current_elt: Option<I::Item>,

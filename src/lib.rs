@@ -638,6 +638,37 @@ pub trait Itertools: Iterator {
         self.chunk_by(key)
     }
 
+    /// Given an "unfused iterator"--that is an iterator contains elements after
+    /// `next()` returns `None`--`split_unfused()` will provide each
+    /// `None`-terminated sequence as a iterator. Can be dropped and consumed
+    /// out of order like `group_by()`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // This iterator returns None every third element until it reaches seven.
+    /// struct Frayed(u8);
+    /// impl Iterator for Frayed {
+    ///     type Item = u8;
+    ///     fn next(&mut self) -> Option<u8> {
+    ///         self.0 += 1;
+    ///         if self.0 % 3 == 0 || self.0 > 7 {
+    ///             None
+    ///         } else {
+    ///             Some(self.0)
+    ///         }
+    ///     }
+    /// }
+    /// let split = Frayed(0).split_unfused();
+    /// let mut iters = split.into_iter();
+    /// let first = iters.next().unwrap();
+    /// let second = iters.next().unwrap();
+    /// let third = iters.next().unwrap();
+    /// assert!(iters.next().is_none());
+    /// assert_eq!(first.collect::<Vec<_>>(), [1, 2]);
+    /// assert_eq!(second.collect::<Vec<_>>(), [4, 5]);
+    /// assert_eq!(third.collect::<Vec<_>>(), [7]);
+    /// ```
     #[cfg(feature = "use_alloc")]
     fn split_unfused(self) -> SplitUnfused<Self>
     where

@@ -1583,7 +1583,6 @@ fn split_unfused_out_of_order() {
     }
     let split = Frayed(0).split_unfused();
     let mut iters = split.into_iter();
-
     let first = iters.next().unwrap();
     let second = iters.next().unwrap();
     let third = iters.next().unwrap();
