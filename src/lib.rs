@@ -638,10 +638,12 @@ pub trait Itertools: Iterator {
         self.chunk_by(key)
     }
 
-    /// Given an "unfused iterator"--that is an iterator contains elements after
-    /// `next()` returns `None`--`split_unfused()` will provide each
-    /// `None`-terminated sequence as a iterator. Can be dropped and consumed
-    /// out of order like `group_by()`.
+    /// Given an "unfused iterator"---that is an iterator contains elements
+    /// after `next()` returns `None`---the `split_unfused()` function will
+    /// provide each `None`-terminated sequence as its own iterator. Iterators
+    /// can be dropped and consumed out of order just like
+    /// [`.group_by()`](crate::Itertools::group_by). If consumed in order,
+    /// no memory is allocated.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -652,11 +654,7 @@ pub trait Itertools: Iterator {
     ///     type Item = u8;
     ///     fn next(&mut self) -> Option<u8> {
     ///         self.0 += 1;
-    ///         if self.0 % 3 == 0 || self.0 > 7 {
-    ///             None
-    ///         } else {
-    ///             Some(self.0)
-    ///         }
+    ///         (self.0 % 3 != 0 && self.0 <= 7).then_some(self.0)
     ///     }
     /// }
     /// let split = Frayed(0).split_unfused();
