@@ -1522,6 +1522,17 @@ fn split_unfused() {
 }
 
 #[test]
+fn split_unfused_on_fused() {
+    // split_unfused() on a fused iterator will only have one iterator
+    // and is a kind of identity operator.
+    let split = Frayed(0).fuse().split_unfused();
+    let mut iters = split.into_iter();
+    let first = iters.next().unwrap();
+    assert_eq!(first.collect::<Vec<_>>(), [1, 2]);
+    assert!(iters.next().is_none());
+}
+
+#[test]
 fn split_unfused_drop_second() {
     let v: Vec<_> = Frayed(0).collect();
     assert_eq!(v, [1,2]);

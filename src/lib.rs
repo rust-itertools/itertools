@@ -638,12 +638,17 @@ pub trait Itertools: Iterator {
         self.chunk_by(key)
     }
 
+    /// Split an unfused iterator into a group of iterators.
+    ///
     /// Given an "unfused iterator"---that is an iterator contains elements
     /// after `next()` returns `None`---the `split_unfused()` function will
     /// provide each `None`-terminated sequence as its own iterator. Iterators
     /// can be dropped and consumed out of order just like
     /// [`.group_by()`](crate::Itertools::group_by). If consumed in order,
     /// no memory is allocated.
+    ///
+    /// When the "unfused iterator" returns `None` twice consecutively, it is
+    /// considered exhausted.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -668,14 +673,6 @@ pub trait Itertools: Iterator {
     /// assert_eq!(third.collect::<Vec<_>>(), [7]);
     /// assert_eq!(second.collect::<Vec<_>>(), [4, 5]);
     /// assert_eq!(first.collect::<Vec<_>>(), [1, 2]);
-    ///
-    /// // split_unfused() on a fused iterator will only have one iterator
-    /// // and is a kind of identity operator.
-    /// let split = Frayed(0).fuse().split_unfused();
-    /// let mut iters = split.into_iter();
-    /// let first = iters.next().unwrap();
-    /// assert_eq!(first.collect::<Vec<_>>(), [1, 2]);
-    /// assert!(iters.next().is_none());
     /// ```
     #[cfg(feature = "use_alloc")]
     fn split_unfused(self) -> SplitUnfused<Self>
