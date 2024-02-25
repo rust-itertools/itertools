@@ -1492,3 +1492,111 @@ fn multiunzip() {
         )
     );
 }
+
+#[test]
+fn split_unfused() {
+    struct Frayed(u8);
+    impl Iterator for Frayed {
+        type Item = u8;
+        fn next(&mut self) -> Option<u8> {
+            self.0 += 1;
+            if self.0 > 10 {
+                None
+            } else if self.0 % 3 == 0 {
+                None
+            } else {
+                Some(self.0)
+            }
+        }
+    }
+    let v: Vec<_> = Frayed(0).collect();
+    assert_eq!(v, [1,2]);
+    let split = Frayed(0).split_unfused();
+    let mut iters = split.into_iter();
+    let iter = iters.next().unwrap();
+    let v: Vec<_> = iter.collect();
+    assert_eq!(v, [1,2]);
+
+    let iter = iters.next().unwrap();
+    let v: Vec<_> = iter.collect();
+    assert_eq!(v, [4,5]);
+    let iter = iters.next().unwrap();
+    let v: Vec<_> = iter.collect();
+    assert_eq!(v, [7,8]);
+    let iter = iters.next().unwrap();
+    let v: Vec<_> = iter.collect();
+    assert_eq!(v, [10]);
+    assert!(iters.next().is_none());
+}
+
+#[test]
+fn split_unfused_drop_second() {
+    struct Frayed(u8);
+    impl Iterator for Frayed {
+        type Item = u8;
+        fn next(&mut self) -> Option<u8> {
+            self.0 += 1;
+            if self.0 > 10 {
+                None
+            } else if self.0 % 3 == 0 {
+                None
+            } else {
+                Some(self.0)
+            }
+        }
+    }
+    let v: Vec<_> = Frayed(0).collect();
+    assert_eq!(v, [1,2]);
+    let split = Frayed(0).split_unfused();
+    let mut iters = split.into_iter();
+    let iter = iters.next().unwrap();
+    let v: Vec<_> = iter.collect();
+    assert_eq!(v, [1,2]);
+
+    let _ = iters.next();//.unwrap();
+    // let v: Vec<_> = iter.collect();
+    // assert_eq!(v, [4,5]);
+    let iter = iters.next().unwrap();
+    let v: Vec<_> = iter.collect();
+    assert_eq!(v, [7,8]);
+    let iter = iters.next().unwrap();
+    let v: Vec<_> = iter.collect();
+    assert_eq!(v, [10]);
+    assert!(iters.next().is_none());
+}
+
+#[test]
+fn split_unfused_out_of_order() {
+    struct Frayed(u8);
+    impl Iterator for Frayed {
+        type Item = u8;
+        fn next(&mut self) -> Option<u8> {
+            self.0 += 1;
+            if self.0 > 10 {
+                None
+            } else if self.0 % 3 == 0 {
+                None
+            } else {
+                Some(self.0)
+            }
+        }
+    }
+    let split = Frayed(0).split_unfused();
+    let mut iters = split.into_iter();
+
+    let first = iters.next().unwrap();
+    let second = iters.next().unwrap();
+    let third = iters.next().unwrap();
+    let fourth = iters.next().unwrap();
+    assert!(iters.next().is_none());
+    assert!(iters.next().is_none());
+
+    let v: Vec<_> = fourth.collect();
+    assert_eq!(v, [10]);
+    let v: Vec<_> = third.collect();
+    assert_eq!(v, [7,8]);
+    let v: Vec<_> = second.collect();
+    assert_eq!(v, [4,5]);
+    let v: Vec<_> = first.collect();
+    assert_eq!(v, [1,2]);
+}

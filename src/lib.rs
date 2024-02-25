@@ -73,7 +73,6 @@ use std::iter::FromIterator;
 
 #[macro_use]
 mod impl_macros;
-mod unfused_split;
 
 // for compatibility with no std and macros
 #[doc(hidden)]
@@ -103,6 +102,8 @@ pub mod structs {
     pub use crate::groupbylazy::GroupBy;
     #[cfg(feature = "use_alloc")]
     pub use crate::groupbylazy::{Chunk, ChunkBy, Chunks, Group, Groups, IntoChunks};
+    #[cfg(feature = "use_alloc")]
+    pub use crate::unfused_split::{SplitUnfused};
     #[cfg(feature = "use_std")]
     pub use crate::grouping_map::{GroupingMap, GroupingMapBy};
     pub use crate::intersperse::{Intersperse, IntersperseWith};
@@ -186,6 +187,8 @@ mod format;
 mod group_map;
 #[cfg(feature = "use_alloc")]
 mod groupbylazy;
+#[cfg(feature = "use_alloc")]
+mod unfused_split;
 #[cfg(feature = "use_std")]
 mod grouping_map;
 mod intersperse;
@@ -640,7 +643,7 @@ pub trait Itertools: Iterator {
     where
         Self: Sized,
     {
-        split_unfused::new(self)
+        unfused_split::new(self)
     }
 
     /// Return an *iterable* that can chunk the iterator.

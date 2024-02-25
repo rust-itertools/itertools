@@ -12,6 +12,7 @@ where
     current_elt: Option<I::Item>,
     /// flag set if iterator is exhausted
     done: bool,
+    last_was_none: bool,
     /// Index of group we are currently buffering or visiting
     top_group: usize,
     /// Least index for which we still have elements buffered
@@ -97,10 +98,16 @@ where
         debug_assert!(!self.done);
         match self.iter.next() {
             None => {
-                //self.done = true;
+                if self.last_was_none {
+                    self.done = true;
+                }
+                self.last_was_none = true;
                 None
             }
-            otherwise => otherwise,
+            otherwise => {
+                self.last_was_none = false;
+                otherwise
+            }
         }
     }
 
@@ -119,10 +126,9 @@ where
                 group.push(elt);
             }
         }
-        let mut first_elt = None; // first element of the next group
 
         loop {
-            match self.iter.next() {
+            match self.next_element() {
                 Some(elt) => {
                     if self.top_group != self.dropped_group {
                         group.push(elt);
@@ -134,7 +140,7 @@ where
                 }
             }
         }
-        first_elt = self.iter.next();
+        let first_elt = self.next_element();
 
         if self.top_group != self.dropped_group {
             self.push_next_group(group);
@@ -167,7 +173,7 @@ where
         if let elt @ Some(..) = self.current_elt.take() {
             return elt;
         }
-        let elt = self.iter.next();
+        let elt = self.next_element();
         if elt.is_none() {
             self.top_group += 1;
         }
@@ -250,6 +256,7 @@ where
             current_index: 0,
             current_elt: None,
             done: false,
+            last_was_none: false,
             top_group: 0,
             oldest_buffered_group: 0,
             bottom_group: 0,
