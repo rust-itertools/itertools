@@ -103,7 +103,7 @@ pub mod structs {
     #[cfg(feature = "use_alloc")]
     pub use crate::groupbylazy::{Chunk, ChunkBy, Chunks, Group, Groups, IntoChunks};
     #[cfg(feature = "use_alloc")]
-    pub use crate::unfused_split::{SplitUnfused};
+    pub use crate::split_unfused::{SplitUnfused};
     #[cfg(feature = "use_std")]
     pub use crate::grouping_map::{GroupingMap, GroupingMapBy};
     pub use crate::intersperse::{Intersperse, IntersperseWith};
@@ -188,7 +188,7 @@ mod group_map;
 #[cfg(feature = "use_alloc")]
 mod groupbylazy;
 #[cfg(feature = "use_alloc")]
-mod unfused_split;
+mod split_unfused;
 #[cfg(feature = "use_std")]
 mod grouping_map;
 mod intersperse;
@@ -665,16 +665,26 @@ pub trait Itertools: Iterator {
     /// let second = iters.next().unwrap();
     /// let third = iters.next().unwrap();
     /// assert!(iters.next().is_none());
-    /// assert_eq!(first.collect::<Vec<_>>(), [1, 2]);
-    /// assert_eq!(second.collect::<Vec<_>>(), [4, 5]);
+    /// // Iterators can be consumed out of order (but they will then allocate
+    /// // memory).
     /// assert_eq!(third.collect::<Vec<_>>(), [7]);
+    /// assert_eq!(second.collect::<Vec<_>>(), [4, 5]);
+    /// assert_eq!(first.collect::<Vec<_>>(), [1, 2]);
+    ///
+    /// // split_unfused() on a fused iterator will only have one iterator
+    /// // and is a kind of identity operator.
+    /// let split = Frayed(0).fuse().split_unfused();
+    /// let mut iters = split.into_iter();
+    /// let first = iters.next().unwrap();
+    /// assert_eq!(first.collect::<Vec<_>>(), [1, 2]);
+    /// assert!(iters.next().is_none());
     /// ```
     #[cfg(feature = "use_alloc")]
     fn split_unfused(self) -> SplitUnfused<Self>
     where
         Self: Sized,
     {
-        unfused_split::new(self)
+        split_unfused::new(self)
     }
 
     /// Return an *iterable* that can chunk the iterator.
