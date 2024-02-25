@@ -73,6 +73,7 @@ use std::iter::FromIterator;
 
 #[macro_use]
 mod impl_macros;
+mod unfused_split;
 
 // for compatibility with no std and macros
 #[doc(hidden)]
@@ -632,6 +633,14 @@ pub trait Itertools: Iterator {
         K: PartialEq,
     {
         self.chunk_by(key)
+    }
+
+    #[cfg(feature = "use_alloc")]
+    fn split_unfused(self) -> SplitUnfused<Self>
+    where
+        Self: Sized,
+    {
+        split_unfused::new(self)
     }
 
     /// Return an *iterable* that can chunk the iterator.
