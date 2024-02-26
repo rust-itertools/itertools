@@ -13,6 +13,8 @@ pub use self::map::{map_into, map_ok, MapInto, MapOk};
 pub use self::multi_product::*;
 
 use crate::size_hint::{self, SizeHint};
+use crate::FoldWhile::{Continue, Done};
+use crate::Itertools;
 use std::fmt;
 use std::iter::{Enumerate, FromIterator, Fuse, FusedIterator};
 use std::marker::PhantomData;
@@ -554,6 +556,30 @@ where
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         (0, self.iter.size_hint().1)
+    }
+
+    fn fold<B, G>(mut self, init: B, mut g: G) -> B
+    where
+        G: FnMut(B, I::Item) -> B,
+    {
+        let acc = init;
+        let original_iter = self.iter.clone();
+
+        let result = self.iter.clone().fold_while(acc, |acc, x| {
+            if (self.f)(&x) {
+                Continue(g(acc, x))
+            } else {
+                Done(acc)
+            }
+        });
+
+        match result {
+            Done(acc) => {
+                *self.iter = original_iter;
+                acc
+            }
+            Continue(acc) => acc,
+        }
     }
 }
 

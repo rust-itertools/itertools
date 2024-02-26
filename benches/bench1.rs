@@ -792,6 +792,21 @@ fn permutations_slice(c: &mut Criterion) {
     });
 }
 
+fn take_while_ref(c: &mut Criterion) {
+    c.bench_function("take_while_ref", |b| {
+        b.iter(|| {
+            let mut data = black_box("0123456789abcdef".chars());
+            let result =
+                data.take_while_ref(|c| c.is_numeric())
+                    .fold(String::new(), |mut acc, ch| {
+                        acc.push(ch);
+                        acc
+                    });
+            assert_eq!(result.as_str(), "0123456789");
+        });
+    });
+}
+
 criterion_group!(
     benches,
     slice_iter,
@@ -837,5 +852,6 @@ criterion_group!(
     permutations_iter,
     permutations_range,
     permutations_slice,
+    take_while_ref
 );
 criterion_main!(benches);
