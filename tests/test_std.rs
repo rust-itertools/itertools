@@ -508,34 +508,24 @@ qc::quickcheck! {
         let num_elements = min(k, m as _);
 
         // Compute the top and bottom k in various combinations
+        let sorted_smallest = sorted[..num_elements].iter().cloned();
         let smallest = v.iter().cloned().k_smallest(k);
         let smallest_by = v.iter().cloned().k_smallest_by(k, Ord::cmp);
         let smallest_by_key = v.iter().cloned().k_smallest_by_key(k, |&x| x);
 
+        let sorted_largest = sorted[sorted.len() - num_elements..].iter().rev().cloned();
         let largest = v.iter().cloned().k_largest(k);
         let largest_by = v.iter().cloned().k_largest_by(k, Ord::cmp);
         let largest_by_key = v.iter().cloned().k_largest_by_key(k, |&x| x);
 
         // Check the variations produce the same answers and that they're right
-        for (a,b,c,d) in izip!(
-            sorted[..num_elements].iter().cloned(),
-            smallest,
-            smallest_by,
-            smallest_by_key) {
-            assert_eq!(a,b);
-            assert_eq!(a,c);
-            assert_eq!(a,d);
-        }
+        it::assert_equal(smallest, sorted_smallest.clone());
+        it::assert_equal(smallest_by, sorted_smallest.clone());
+        it::assert_equal(smallest_by_key, sorted_smallest);
 
-        for (a,b,c,d) in izip!(
-            sorted[sorted.len()-num_elements..].iter().rev().cloned(),
-            largest,
-            largest_by,
-            largest_by_key) {
-            assert_eq!(a,b);
-            assert_eq!(a,c);
-            assert_eq!(a,d);
-        }
+        it::assert_equal(largest, sorted_largest.clone());
+        it::assert_equal(largest_by, sorted_largest.clone());
+        it::assert_equal(largest_by_key, sorted_largest);
     }
 }
 
