@@ -3006,7 +3006,7 @@ pub trait Itertools: Iterator {
     fn k_smallest_by<F>(self, k: usize, cmp: F) -> VecIntoIter<Self::Item>
     where
         Self: Sized,
-        F: Fn(&Self::Item, &Self::Item) -> Ordering,
+        F: FnMut(&Self::Item, &Self::Item) -> Ordering,
     {
         k_smallest::k_smallest_general(self, k, cmp).into_iter()
     }
@@ -3038,7 +3038,7 @@ pub trait Itertools: Iterator {
     fn k_smallest_by_key<F, K>(self, k: usize, key: F) -> VecIntoIter<Self::Item>
     where
         Self: Sized,
-        F: Fn(&Self::Item) -> K,
+        F: FnMut(&Self::Item) -> K,
         K: Ord,
     {
         self.k_smallest_by(k, k_smallest::key_to_cmp(key))
@@ -3096,10 +3096,10 @@ pub trait Itertools: Iterator {
     /// itertools::assert_equal(five_largest, vec![13, 6, 12, 5, 11]);
     /// ```
     #[cfg(feature = "use_alloc")]
-    fn k_largest_by<F>(self, k: usize, cmp: F) -> VecIntoIter<Self::Item>
+    fn k_largest_by<F>(self, k: usize, mut cmp: F) -> VecIntoIter<Self::Item>
     where
         Self: Sized,
-        F: Fn(&Self::Item, &Self::Item) -> Ordering,
+        F: FnMut(&Self::Item, &Self::Item) -> Ordering,
     {
         self.k_smallest_by(k, move |a, b| cmp(b, a))
     }
@@ -3128,7 +3128,7 @@ pub trait Itertools: Iterator {
     fn k_largest_by_key<F, K>(self, k: usize, key: F) -> VecIntoIter<Self::Item>
     where
         Self: Sized,
-        F: Fn(&Self::Item) -> K,
+        F: FnMut(&Self::Item) -> K,
         K: Ord,
     {
         self.k_largest_by(k, k_smallest::key_to_cmp(key))
