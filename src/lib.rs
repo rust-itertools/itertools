@@ -3257,7 +3257,7 @@ pub trait Itertools: Iterator {
     where
         Self: Iterator<Item = V> + Sized,
         K: Hash + Eq,
-        F: Fn(&V) -> K,
+        F: FnMut(&V) -> K,
     {
         group_map::into_group_map_by(self, f)
     }
