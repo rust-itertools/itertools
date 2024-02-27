@@ -2981,9 +2981,27 @@ pub trait Itertools: Iterator {
 
     /// Sort the k smallest elements into a new iterator using the provided comparison.
     ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
     /// This corresponds to `self.sorted_by(cmp).take(k)` in the same way that
-    /// [Itertools::k_smallest] corresponds to `self.sorted().take(k)`, in both semantics and complexity.
+    /// [`k_smallest`](Itertools::k_smallest) corresponds to `self.sorted().take(k)`,
+    /// in both semantics and complexity.
+    ///
     /// Particularly, a custom heap implementation ensures the comparison is not cloned.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_smallest = numbers
+    ///     .into_iter()
+    ///     .k_smallest_by(5, |a, b| (a % 7).cmp(&(b % 7)).then(a.cmp(b)));
+    ///
+    /// itertools::assert_equal(five_smallest, vec![0, 7, 14, 1, 8]);
+    /// ```
     #[cfg(feature = "use_alloc")]
     fn k_smallest_by<F>(self, k: usize, cmp: F) -> VecIntoIter<Self::Item>
     where
@@ -2993,10 +3011,29 @@ pub trait Itertools: Iterator {
         k_smallest::k_smallest_general(self, k, cmp).into_iter()
     }
 
-    /// Return the elements producing the k smallest outputs of the provided function
+    /// Return the elements producing the k smallest outputs of the provided function.
     ///
-    /// This corresponds to `self.sorted_by_key(cmp).take(k)` in the same way that
-    /// [Itertools::k_smallest] corresponds to `self.sorted().take(k)`, in both semantics and time complexity.
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// This corresponds to `self.sorted_by_key(key).take(k)` in the same way that
+    /// [`k_smallest`](Itertools::k_smallest) corresponds to `self.sorted().take(k)`,
+    /// in both semantics and complexity.
+    ///
+    /// Particularly, a custom heap implementation ensures the comparison is not cloned.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_smallest = numbers
+    ///     .into_iter()
+    ///     .k_smallest_by_key(5, |n| (n % 7, *n));
+    ///
+    /// itertools::assert_equal(five_smallest, vec![0, 7, 14, 1, 8]);
+    /// ```
     #[cfg(feature = "use_alloc")]
     fn k_smallest_by_key<F, K>(self, k: usize, key: F) -> VecIntoIter<Self::Item>
     where
@@ -3008,9 +3045,15 @@ pub trait Itertools: Iterator {
     }
 
     /// Sort the k largest elements into a new iterator, in descending order.
-    /// Semantically equivalent to `k_smallest` with a reversed `Ord`
-    /// However, this is implemented by way of a custom binary heap
-    /// which does not have the same performance characteristics for very large `Self::Item`
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// It is semantically equivalent to [`k_smallest`](Itertools::k_smallest)
+    /// with a reversed `Ord`.
+    /// However, this is implemented with a custom binary heap which does not
+    /// have the same performance characteristics for very large `Self::Item`.
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -3021,7 +3064,7 @@ pub trait Itertools: Iterator {
     ///     .into_iter()
     ///     .k_largest(5);
     ///
-    /// itertools::assert_equal(five_largest, vec![14,13,12,11,10]);
+    /// itertools::assert_equal(five_largest, vec![14, 13, 12, 11, 10]);
     /// ```
     #[cfg(feature = "use_alloc")]
     fn k_largest(self, k: usize) -> VecIntoIter<Self::Item>
@@ -3033,7 +3076,25 @@ pub trait Itertools: Iterator {
     }
 
     /// Sort the k largest elements into a new iterator using the provided comparison.
-    /// Functionally equivalent to `k_smallest_by` with a reversed `Ord`
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// Functionally equivalent to [`k_smallest_by`](Itertools::k_smallest_by)
+    /// with a reversed `Ord`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_largest = numbers
+    ///     .into_iter()
+    ///     .k_largest_by(5, |a, b| (a % 7).cmp(&(b % 7)).then(a.cmp(b)));
+    ///
+    /// itertools::assert_equal(five_largest, vec![13, 6, 12, 5, 11]);
+    /// ```
     #[cfg(feature = "use_alloc")]
     fn k_largest_by<F>(self, k: usize, cmp: F) -> VecIntoIter<Self::Item>
     where
@@ -3043,7 +3104,26 @@ pub trait Itertools: Iterator {
         self.k_smallest_by(k, move |a, b| cmp(b, a))
     }
 
-    /// Return the elements producing the k largest outputs of the provided function
+    /// Return the elements producing the k largest outputs of the provided function.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// Functionally equivalent to [`k_smallest_by_key`](Itertools::k_smallest_by_key)
+    /// with a reversed `Ord`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_largest = numbers
+    ///     .into_iter()
+    ///     .k_largest_by_key(5, |n| (n % 7, *n));
+    ///
+    /// itertools::assert_equal(five_largest, vec![13, 6, 12, 5, 11]);
+    /// ```
     #[cfg(feature = "use_alloc")]
     fn k_largest_by_key<F, K>(self, k: usize, key: F) -> VecIntoIter<Self::Item>
     where
