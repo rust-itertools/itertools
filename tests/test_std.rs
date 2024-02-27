@@ -575,6 +575,17 @@ where
     it::assert_equal(i.k_smallest(k), j.sorted().take(k))
 }
 
+// Similar to `k_smallest_sort` but for our custom heap implementation.
+fn k_smallest_by_sort<I>(i: I, k: u16)
+where
+    I: Iterator + Clone,
+    I::Item: Ord + Debug,
+{
+    let j = i.clone();
+    let k = k as usize;
+    it::assert_equal(i.k_smallest_by(k, Ord::cmp), j.sorted().take(k))
+}
+
 macro_rules! generic_test {
     ($f:ident, $($t:ty),+) => {
         $(paste::item! {
@@ -588,6 +599,7 @@ macro_rules! generic_test {
 }
 
 generic_test!(k_smallest_sort, u8, u16, u32, u64, i8, i16, i32, i64);
+generic_test!(k_smallest_by_sort, u8, u16, u32, u64, i8, i16, i32, i64);
 
 #[test]
 fn sorted_by_key() {
