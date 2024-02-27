@@ -87,9 +87,9 @@ where
 }
 
 #[inline]
-pub(crate) fn key_to_cmp<T, K, F>(key: F) -> impl Fn(&T, &T) -> Ordering
+pub(crate) fn key_to_cmp<T, K, F>(mut key: F) -> impl FnMut(&T, &T) -> Ordering
 where
-    F: Fn(&T) -> K,
+    F: FnMut(&T) -> K,
     K: Ord,
 {
     move |a, b| key(a).cmp(&key(b))
