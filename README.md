@@ -4,9 +4,6 @@ Extra iterator adaptors, functions and macros.
 
 Please read the [API documentation here](https://docs.rs/itertools/).
 
-[![build_status](https://github.com/rust-itertools/itertools/actions/workflows/ci.yml/badge.svg)](https://github.com/rust-itertools/itertools/actions)
-[![crates.io](https://img.shields.io/crates/v/itertools.svg)](https://crates.io/crates/itertools)
-
 How to use with Cargo:
 
 ```toml
