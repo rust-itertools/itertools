@@ -2218,15 +2218,10 @@ pub trait Itertools: Iterator {
         Self: Iterator<Item = &'a mut A>,
         J: IntoIterator<Item = A>,
     {
-        let mut count = 0;
-        for elt in from {
-            match self.next() {
-                None => break,
-                Some(ptr) => *ptr = elt,
-            }
-            count += 1;
-        }
-        count
+        from.into_iter()
+            .zip(self)
+            .map(|(new, old)| *old = new)
+            .count()
     }
 
     /// Combine all iterator elements into one String, separated by `sep`.
