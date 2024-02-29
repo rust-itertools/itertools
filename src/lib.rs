@@ -37,7 +37,11 @@
 //! - `use_std`
 //!   - Enabled by default.
 //!   - Disable to compile itertools using `#![no_std]`. This disables
-//!     any items that depend on collections (like `chunk_by`, `unique`,
+//!     any item that depend on allocations (see the `use_alloc` feature)
+//!     and hash maps (like `unique`, `counts`, `into_grouping_map` and more).
+//! - `use_alloc`
+//!   - Enabled by default.
+//!   - Enables any item that depend on allocations (like `chunk_by`,
 //!     `kmerge`, `join` and many more).
 //!
 //! ## Rust Version
@@ -2218,15 +2222,10 @@ pub trait Itertools: Iterator {
         Self: Iterator<Item = &'a mut A>,
         J: IntoIterator<Item = A>,
     {
-        let mut count = 0;
-        for elt in from {
-            match self.next() {
-                None => break,
-                Some(ptr) => *ptr = elt,
-            }
-            count += 1;
-        }
-        count
+        from.into_iter()
+            .zip(self)
+            .map(|(new, old)| *old = new)
+            .count()
     }
 
     /// Combine all iterator elements into one String, separated by `sep`.
