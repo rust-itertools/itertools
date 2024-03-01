@@ -1,6 +1,7 @@
 use core::iter::{Skip, Take};
 use core::ops::{Range, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive};
 
+#[cfg(doc)]
 use crate::Itertools;
 
 mod private_iter_index {
@@ -16,17 +17,16 @@ mod private_iter_index {
     impl Sealed for ops::RangeFull {}
 }
 
-/// Used by the ``range`` function to know which iterator
+/// Used by [`get`] and [`Itertools::get`] to know which iterator
 /// to turn different ranges into.
 pub trait IteratorIndex<I>: private_iter_index::Sealed
 where
     I: Iterator,
 {
-    /// The type that [`get`] or [`Itertools::get`]
-    /// returns when called with this type of index.
+    /// The type returned for this type of index.
     type Output: Iterator<Item = I::Item>;
 
-    /// Returns an iterator(or value) in the specified range.
+    /// Returns an adapted iterator for the current index.
     ///
     /// Prefer calling [`get`] or [`Itertools::get`] instead
     /// of calling this directly.
@@ -102,8 +102,7 @@ where
     }
 }
 
-/// Returns an element of the iterator or an iterator
-/// over a subsection of the iterator.
+/// Returns an iterator over a subsection of the iterator.
 ///
 /// See [`Itertools::get`] for more information.
 pub fn get<I, R>(iter: I, index: R) -> R::Output
