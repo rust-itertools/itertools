@@ -513,6 +513,9 @@ pub trait Itertools: Iterator {
     /// It's a generalisation of [`take`], [`skip`] and [`nth`], and uses these
     /// under the hood.
     ///
+    /// # Unspecified Behavior
+    /// The result of indexing with an exhausted [`core::ops::RangeInclusive`] is unspecified.
+    ///
     /// # Examples
     ///
     /// ```
@@ -536,9 +539,6 @@ pub trait Itertools: Iterator {
     ///
     /// range = vec.iter().get(..).copied().collect();
     /// assert_eq!(range, vec);
-    ///
-    /// range = vec.iter().get(3).copied().collect();
-    /// assert_eq!(&range, &[1]);
     /// ```
     ///
     /// [`take`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.take
