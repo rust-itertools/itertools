@@ -507,13 +507,14 @@ pub trait Itertools: Iterator {
         intersperse::intersperse_with(self, element)
     }
 
-    /// Returns an element at a specific location, or returns an iterator
-    /// over a subsection of the iterator.
+    /// Returns an iterator over a subsection of the iterator.
     ///
     /// Works similarly to [`slice::get`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
     ///
-    /// It's a generalisation of [`take`], [`skip`] and [`nth`], and uses these
-    /// under the hood.
+    /// It's a generalisation of [`Iterator::take`] and [`Iterator::skip`],
+    /// and uses these under the hood.
+    /// Therefore, the resulting iterator is [`DoubleEndedIterator`]
+    /// and/or [`ExactSizeIterator`] if the adapted iterator is.
     ///
     /// # Unspecified Behavior
     /// The result of indexing with an exhausted [`core::ops::RangeInclusive`] is unspecified.
@@ -526,7 +527,7 @@ pub trait Itertools: Iterator {
     /// let vec = vec![3, 1, 4, 1, 5];
     ///
     /// let mut range: Vec<_> =
-    ///        vec.iter().get(1..=3).copied().collect();
+    ///         vec.iter().get(1..=3).copied().collect();
     /// assert_eq!(&range, &[1, 4, 1]);
     ///
     /// // It works with other types of ranges, too
@@ -539,17 +540,16 @@ pub trait Itertools: Iterator {
     /// range = vec.iter().get(2..).copied().collect();
     /// assert_eq!(&range, &[4, 1, 5]);
     ///
+    /// range = vec.iter().get(..=2).copied().collect();
+    /// assert_eq!(&range, &[3, 1, 4]);
+    ///
     /// range = vec.iter().get(..).copied().collect();
     /// assert_eq!(range, vec);
     /// ```
-    ///
-    /// [`take`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.take
-    /// [`skip`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.skip
-    /// [`nth`]: https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.nth
     fn get<R>(self, index: R) -> R::Output
     where
         Self: Sized,
-        R: iter_index::IteratorIndex<Self>,
+        R: traits::IteratorIndex<Self>,
     {
         iter_index::get(self, index)
     }
