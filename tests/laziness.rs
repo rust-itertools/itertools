@@ -63,6 +63,14 @@ must_use_tests! {
     intersperse_with {
         let _ = Panicking.intersperse_with(|| 0);
     }
+    get {
+        let _ = Panicking.get(1..4);
+        let _ = Panicking.get(1..=4);
+        let _ = Panicking.get(1..);
+        let _ = Panicking.get(..4);
+        let _ = Panicking.get(..=4);
+        let _ = Panicking.get(..);
+    }
     zip_longest {
         let _ = Panicking.zip_longest(Panicking);
     }
