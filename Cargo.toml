@@ -11,7 +11,7 @@ readme = "README.md"
 description = "Extra iterator adaptors, iterator methods, free functions, and macros."
 
 keywords = ["iterator", "data-structure", "zip", "product"]
-categories = ["algorithms", "rust-patterns"]
+categories = ["algorithms", "rust-patterns", "no-std", "no-std::no-alloc"]
 
 edition = "2018"
 
