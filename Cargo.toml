@@ -57,7 +57,7 @@ name = "combinations_with_replacement"
 harness = false
 
 [[bench]]
-name = "tree_fold1"
+name = "tree_reduce"
 harness = false
 
 [[bench]]
