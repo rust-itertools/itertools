@@ -52,7 +52,6 @@ where
     type Output = Take<Skip<I>>;
 
     fn index(self, iter: I) -> Self::Output {
-        debug_assert!(!self.is_empty(), "The given `RangeInclusive` is exhausted. The result of indexing with an exhausted `RangeInclusive` is unspecified.");
         iter.skip(*self.start())
             .take((1 + *self.end()).saturating_sub(*self.start()))
     }
