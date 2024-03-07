@@ -2466,7 +2466,7 @@ pub trait Itertools: Iterator {
     /// - if `f` is a trivial operation like `u32::wrapping_add`, prefer the normal
     /// [`Iterator::reduce`] instead since it will most likely result in the generation of simpler
     /// code because the compiler is able to optimize it
-    /// - otherwise if `f` is non-trivial like `format!`, you should use `tree_fold1` since it
+    /// - otherwise if `f` is non-trivial like `format!`, you should use `tree_reduce` since it
     /// reduces the number of operations from `O(n)` to `O(ln(n))`
     ///
     /// Here "non-trivial" means:
@@ -2479,20 +2479,20 @@ pub trait Itertools: Iterator {
     ///
     /// // The same tree as above
     /// let num_strings = (1..8).map(|x| x.to_string());
-    /// assert_eq!(num_strings.tree_fold1(|x, y| format!("f({}, {})", x, y)),
+    /// assert_eq!(num_strings.tree_reduce(|x, y| format!("f({}, {})", x, y)),
     ///     Some(String::from("f(f(f(1, 2), f(3, 4)), f(f(5, 6), 7))")));
     ///
     /// // Like fold1, an empty iterator produces None
-    /// assert_eq!((0..0).tree_fold1(|x, y| x * y), None);
+    /// assert_eq!((0..0).tree_reduce(|x, y| x * y), None);
     ///
-    /// // tree_fold1 matches fold1 for associative operations...
-    /// assert_eq!((0..10).tree_fold1(|x, y| x + y),
+    /// // tree_reduce matches fold1 for associative operations...
+    /// assert_eq!((0..10).tree_reduce(|x, y| x + y),
     ///     (0..10).fold1(|x, y| x + y));
     /// // ...but not for non-associative ones
-    /// assert_ne!((0..10).tree_fold1(|x, y| x - y),
+    /// assert_ne!((0..10).tree_reduce(|x, y| x - y),
     ///     (0..10).fold1(|x, y| x - y));
     /// ```
-    fn tree_fold1<F>(mut self, mut f: F) -> Option<Self::Item>
+    fn tree_reduce<F>(mut self, mut f: F) -> Option<Self::Item>
     where
         F: FnMut(Self::Item, Self::Item) -> Self::Item,
         Self: Sized,
@@ -2505,7 +2505,7 @@ pub trait Itertools: Iterator {
             FF: FnMut(T, T) -> T,
         {
             // This function could be replaced with `it.next().ok_or(None)`,
-            // but half the useful tree_fold1 work is combining adjacent items,
+            // but half the useful tree_reduce work is combining adjacent items,
             // so put that in a form that LLVM is more likely to optimize well.
 
             let a = if let Some(v) = it.next() {
@@ -2553,6 +2553,16 @@ pub trait Itertools: Iterator {
             Err(x) => x,
             _ => unreachable!(),
         }
+    }
+
+    /// See [`.tree_reduce()`](Itertools::tree_reduce).
+    #[deprecated(note = "Use .tree_reduce() instead", since = "0.13.0")]
+    fn tree_fold1<F>(self, f: F) -> Option<Self::Item>
+    where
+        F: FnMut(Self::Item, Self::Item) -> Self::Item,
+        Self: Sized,
+    {
+        self.tree_reduce(f)
     }
 
     /// An iterator method that applies a function, producing a single, final value.

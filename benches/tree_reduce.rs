@@ -6,7 +6,7 @@ use itertools::{cloned, Itertools};
 trait IterEx: Iterator {
     // Another efficient implementation against which to compare,
     // but needs `std` so is less desirable.
-    fn tree_fold1_vec<F>(self, mut f: F) -> Option<Self::Item>
+    fn tree_reduce_vec<F>(self, mut f: F) -> Option<Self::Item>
     where
         F: FnMut(Self::Item, Self::Item) -> Self::Item,
         Self: Sized,
@@ -91,14 +91,14 @@ def_benchs! {
 
 def_benchs! {
     10_000,
-    tree_fold1,
-    tree_fold1_stack_10k,
+    tree_reduce,
+    tree_reduce_stack_10k,
 }
 
 def_benchs! {
     10_000,
-    tree_fold1_vec,
-    tree_fold1_vec_10k,
+    tree_reduce_vec,
+    tree_reduce_vec_10k,
 }
 
 def_benchs! {
@@ -109,14 +109,14 @@ def_benchs! {
 
 def_benchs! {
     100,
-    tree_fold1,
-    tree_fold1_stack_100,
+    tree_reduce,
+    tree_reduce_stack_100,
 }
 
 def_benchs! {
     100,
-    tree_fold1_vec,
-    tree_fold1_vec_100,
+    tree_reduce_vec,
+    tree_reduce_vec_100,
 }
 
 def_benchs! {
@@ -127,24 +127,24 @@ def_benchs! {
 
 def_benchs! {
     8,
-    tree_fold1,
-    tree_fold1_stack_08,
+    tree_reduce,
+    tree_reduce_stack_08,
 }
 
 def_benchs! {
     8,
-    tree_fold1_vec,
-    tree_fold1_vec_08,
+    tree_reduce_vec,
+    tree_reduce_vec_08,
 }
 
 criterion_main!(
     fold1_10k,
-    tree_fold1_stack_10k,
-    tree_fold1_vec_10k,
+    tree_reduce_stack_10k,
+    tree_reduce_vec_10k,
     fold1_100,
-    tree_fold1_stack_100,
-    tree_fold1_vec_100,
+    tree_reduce_stack_100,
+    tree_reduce_vec_100,
     fold1_08,
-    tree_fold1_stack_08,
-    tree_fold1_vec_08,
+    tree_reduce_stack_08,
+    tree_reduce_vec_08,
 );
