@@ -278,9 +278,9 @@ fn part() {
 }
 
 #[test]
-fn tree_fold1() {
+fn tree_reduce() {
     for i in 0..100 {
-        assert_eq!((0..i).tree_fold1(|x, y| x + y), (0..i).fold1(|x, y| x + y));
+        assert_eq!((0..i).tree_reduce(|x, y| x + y), (0..i).fold1(|x, y| x + y));
     }
 }
 

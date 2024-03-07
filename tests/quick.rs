@@ -1334,7 +1334,7 @@ quickcheck! {
 }
 
 quickcheck! {
-    fn tree_fold1_f64(mut a: Vec<f64>) -> TestResult {
+    fn tree_reduce_f64(mut a: Vec<f64>) -> TestResult {
         fn collapse_adjacent<F>(x: Vec<f64>, mut f: F) -> Vec<f64>
             where F: FnMut(f64, f64) -> f64
         {
@@ -1353,7 +1353,7 @@ quickcheck! {
             return TestResult::discard();
         }
 
-        let actual = a.iter().cloned().tree_fold1(f64::atan2);
+        let actual = a.iter().cloned().tree_reduce(f64::atan2);
 
         while a.len() > 1 {
             a = collapse_adjacent(a, f64::atan2);

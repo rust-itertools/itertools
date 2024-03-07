@@ -1434,7 +1434,7 @@ fn fold_while() {
 }
 
 #[test]
-fn tree_fold1() {
+fn tree_reduce() {
     let x = [
         "",
         "0",
@@ -1461,7 +1461,7 @@ fn tree_fold1() {
             Some(s.to_string())
         };
         let num_strings = (0..i).map(|x| x.to_string());
-        let actual = num_strings.tree_fold1(|a, b| format!("{} {} x", a, b));
+        let actual = num_strings.tree_reduce(|a, b| format!("{} {} x", a, b));
         assert_eq!(actual, expected);
     }
 }
