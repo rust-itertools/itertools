@@ -1,5 +1,6 @@
 #[cfg(doc)]
 use crate::Itertools;
+use core::ptr::NonNull;
 
 /// An iterator that produces only the `T` values as long as the
 /// inner iterator produces `Ok(T)`.
@@ -8,12 +9,12 @@ use crate::Itertools;
 /// for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 #[derive(Debug)]
-pub struct ProcessResults<'a, I, E: 'a> {
-    error: &'a mut Result<(), E>,
+pub struct ProcessResults<I, E> {
+    error: NonNull<Result<(), E>>,
     iter: I,
 }
 
-impl<'a, I, T, E> Iterator for ProcessResults<'a, I, E>
+impl<I, T, E> Iterator for ProcessResults<I, E>
 where
     I: Iterator<Item = Result<T, E>>,
 {
@@ -23,7 +24,10 @@ where
         match self.iter.next() {
             Some(Ok(x)) => Some(x),
             Some(Err(e)) => {
-                *self.error = Err(e);
+                //SAFETY: the pointer is always valid while iterating over items
+                unsafe {
+                    *self.error.as_mut() = Err(e);
+                }
                 None
             }
             None => None,
@@ -39,7 +43,9 @@ where
         Self: Sized,
         F: FnMut(B, Self::Item) -> B,
     {
-        let error = self.error;
+        //SAFETY: the pointer is always valid while iterating over items
+        let error = unsafe { self.error.as_mut() };
+
         self.iter
             .try_fold(init, |acc, opt| match opt {
                 Ok(x) => Ok(f(acc, x)),
@@ -62,12 +68,12 @@ where
     F: FnOnce(ProcessResults<I::IntoIter, E>) -> R,
 {
     let iter = iterable.into_iter();
-    let mut error = Ok(());
+    let mut err = Ok(());
 
-    let result = processor(ProcessResults {
-        error: &mut error,
-        iter,
-    });
+    //SAFETY: the pointer to err will always be valid thoughout the fns lifetime
+    let error = unsafe { NonNull::new_unchecked(&mut err) };
 
-    error.map(|_| result)
+    let result = processor(ProcessResults { error, iter });
+
+    err.map(|_| result)
 }
