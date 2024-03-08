@@ -1949,4 +1949,9 @@ quickcheck! {
             result_set.is_empty()
         }
     }
+
+    fn tail(v: Vec<i32>, n: u8) -> bool {
+        let n = n as usize;
+        itertools::equal(v.iter().tail(n), &v[v.len().saturating_sub(n)..])
+    }
 }

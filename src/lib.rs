@@ -3144,6 +3144,57 @@ pub trait Itertools: Iterator {
         self.k_largest_by(k, k_smallest::key_to_cmp(key))
     }
 
+    /// Consumes the iterator and return an iterator of the last `n` elements.
+    ///
+    /// The iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// ```
+    /// use itertools::{assert_equal, Itertools};
+    ///
+    /// let v = vec![5, 9, 8, 4, 2, 12, 0];
+    /// assert_equal(v.iter().tail(3), &[2, 12, 0]);
+    /// assert_equal(v.iter().tail(10), &v);
+    ///
+    /// assert_equal(v.iter().tail(1), v.iter().last());
+    ///
+    /// assert_equal((0..100).tail(10), 90..100);
+    /// ```
+    ///
+    /// For double ended iterators without side-effects, you might prefer
+    /// `.rev().take(n).rev()` to have a similar result (lazy and non-allocating)
+    /// without consuming the entire iterator.
+    #[cfg(feature = "use_alloc")]
+    fn tail(self, n: usize) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+    {
+        match n {
+            0 => {
+                self.last();
+                Vec::new()
+            }
+            1 => self.last().into_iter().collect(),
+            _ => {
+                let mut iter = self.fuse();
+                let mut data: Vec<_> = iter.by_ref().take(n).collect();
+                // Update `data` cyclically.
+                let idx = iter.fold(0, |i, val| {
+                    data[i] = val;
+                    if i + 1 == n {
+                        0
+                    } else {
+                        i + 1
+                    }
+                });
+                // Respect the insertion order.
+                data.rotate_left(idx);
+                data
+            }
+        }
+        .into_iter()
+    }
+
     /// Collect all iterator elements into one of two
     /// partitions. Unlike [`Iterator::partition`], each partition may
     /// have a distinct type.
