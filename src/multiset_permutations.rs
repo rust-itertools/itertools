@@ -96,6 +96,61 @@ mod tests {
     }
 
     #[test]
+    fn test3() {
+        use rand::Rng;
+        use std::time::Instant;
+
+        let n = 12;
+        let mut rng = rand::thread_rng();
+        let vec: Vec<i32> = (0..n).map(|_| rng.gen_range(0, 10)).collect();
+
+        println!("{:?}", vec);
+
+        let now = Instant::now();
+        let mut permutations1 = vec
+            .clone()
+            .into_iter()
+            .permutations(n)
+            .unique()
+            .collect_vec();
+        println!("permutations: {:.2?}", now.elapsed());
+
+        let now = Instant::now();
+        let mut permutations2 = vec.into_iter().multiset_permutations().collect_vec();
+        println!("multiset_permutations: {:.2?}", now.elapsed());
+
+        permutations1.sort();
+        permutations2.sort();
+        // println!("{:?}", permutations1);
+
+        // println!("{:?}", permutations2);
+
+        assert_eq!(permutations1, permutations2);
+    }
+
+    #[test]
+    fn test4() {
+        let mut iter = vec![0, 0, 1].into_iter().multiset_permutations();
+        assert_eq!(iter.next(), Some(vec![1, 0, 0]));
+        assert_eq!(iter.next(), Some(vec![0, 1, 0]));
+        assert_eq!(iter.next(), Some(vec![0, 0, 1]));
+        assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn test5() {
+        let mut iter = vec![1, 1].into_iter().multiset_permutations();
+        assert_eq!(iter.next(), Some(vec![1, 1]));
+        assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn test6() {
+        let iter = "MISSISSIPPI".chars().multiset_permutations();
+        assert_eq!(iter.count(), 34650); // 34650 = 11! / (1! * 2! * 4! * 4!)
+    }
+
+    #[test]
     fn test7() {
         let mut iter: crate::MultisetPermutations<i32> = vec![].into_iter().multiset_permutations();
         assert_eq!(iter.next(), Some(vec![]));
