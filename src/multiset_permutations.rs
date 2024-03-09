@@ -3,17 +3,9 @@ use std::iter::FromIterator;
 /// TODO!
 #[derive(Debug, Clone)]
 pub struct MultisetPermutations<I> {
-    buffer: Vec<Node<I>>,
+    buffer: Vec<I>,
     start: bool,
-    head: usize,
-    next: usize,
-    next_next: usize,
-}
-
-#[derive(Debug, Clone)]
-struct Node<I> {
-    value: I,
-    next: Option<usize>,
+    index: usize,
 }
 
 pub fn multiset_permutations<I: Iterator>(iter: I) -> MultisetPermutations<I::Item>
@@ -25,22 +17,9 @@ where
     buffer.sort_unstable_by(|a, b| b.cmp(a));
     let length = buffer.len();
     MultisetPermutations {
-        buffer: buffer
-            .into_iter()
-            .enumerate()
-            .map(|(curr, v)| Node {
-                value: v,
-                next: if curr + 1 < length {
-                    Some(curr + 1)
-                } else {
-                    None
-                },
-            })
-            .collect(),
+        buffer: buffer,
         start: true,
-        head: 0,
-        next: length.saturating_sub(2),
-        next_next: length.saturating_sub(1),
+        index: length.saturating_sub(2),
     }
 }
 
@@ -51,56 +30,46 @@ where
     type Item = Vec<I>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        // Start iteration with buffer itself
         if self.start {
             self.start = false;
-            return Some(self.get_permutation())
+            return Some(self.buffer.clone());
         }
 
-        // Special cases
-        if self.buffer.len() <= 1 {
+        // Exhausted iteration
+        let has_two_next = self.index + 2 < self.buffer.len();
+        if !has_two_next
+            && (self.buffer.len() <= self.index + 1
+                || self.buffer[0] <= self.buffer[self.index + 1])
+        {
             return None;
         }
 
-        // Finish condition
-        let is_last = self.buffer[self.next_next].next.is_none();
-        if is_last && self.buffer[self.head].value <= self.buffer[self.next_next].value {
-            return None;
-        }
+        // Determine shift index
+        let shift_index = if has_two_next && self.buffer[self.index + 2] <= self.buffer[self.index]
+        {
+            self.index + 2
+        } else {
+            self.index + 1
+        };
 
         // Prefix shift
-        let shift = if !is_last
-            && self.buffer[self.buffer[self.next_next].next.unwrap()].value
-                <= self.buffer[self.next].value
-        {
-            self.next_next
+        let shift_elem = self.buffer[shift_index];
+        let mut swap_index = shift_index;
+        while swap_index > 0 {
+            self.buffer[swap_index] = self.buffer[swap_index - 1];
+            swap_index -= 1;
+        }
+        self.buffer[0] = shift_elem;
+
+        // Update index
+        if self.buffer[0] < self.buffer[1] {
+            self.index = 0;
         } else {
-            self.next
-        };
-        let shift_next = self.buffer[shift].next.unwrap();
-        self.buffer[shift].next = self.buffer[shift_next].next;
-        self.buffer[shift_next].next = Some(self.head);
-
-        // Update pointers
-        if self.buffer[shift_next].value < self.buffer[self.head].value {
-            self.next = shift_next;
+            self.index += 1;
         }
-        self.next_next = self.buffer[self.next].next.unwrap();
-        self.head = shift_next;
 
-        Some(self.get_permutation())
-    }
-}
-
-impl<I: Copy> MultisetPermutations<I> {
-    fn get_permutation(&self) -> Vec<I> {
-        let mut permutation = Vec::with_capacity(self.buffer.len());
-        let mut curr = Some(self.head);
-        while curr.is_some() {
-            let Node {value, next } = self.buffer[curr.unwrap()];
-            permutation.push(value);
-            curr = next;
-        }
-        permutation
+        Some(self.buffer.clone())
     }
 }
 
