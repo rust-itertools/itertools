@@ -1,11 +1,13 @@
-#![cfg(feature = "use_std")]
+#![cfg(feature = "use_alloc")]
 
 use crate::{
     adaptors::map::{MapSpecialCase, MapSpecialCaseFn},
     MinMaxResult,
 };
 use std::cmp::Ordering;
+#[cfg(feature = "use_std")]
 use std::collections::HashMap;
+#[cfg(feature = "use_std")]
 use std::hash::Hash;
 use std::iter::Iterator;
 use std::ops::{Add, Mul};
@@ -41,7 +43,7 @@ pub(crate) fn new_map_for_grouping<K, I: Iterator, F: FnMut(&I::Item) -> K>(
 pub fn new<I, K, V>(iter: I) -> GroupingMap<I>
 where
     I: Iterator<Item = (K, V)>,
-    K: Hash + Eq,
+    K: Eq,
 {
     GroupingMap { iter }
 }
@@ -62,6 +64,7 @@ pub struct GroupingMap<I> {
     iter: I,
 }
 
+#[cfg(feature = "use_std")]
 impl<I, K, V> GroupingMap<I>
 where
     I: Iterator<Item = (K, V)>,
