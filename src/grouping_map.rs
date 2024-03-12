@@ -2,6 +2,7 @@
 
 use crate::{
     adaptors::map::{MapSpecialCase, MapSpecialCaseFn},
+    generic_containers::Map,
     MinMaxResult,
 };
 use std::cmp::Ordering;
@@ -110,20 +111,11 @@ where
     /// assert_eq!(lookup[&3], 7);
     /// assert_eq!(lookup.len(), 3);      // The final keys are only 0, 1 and 2
     /// ```
-    pub fn aggregate<FO, R>(self, mut operation: FO) -> HashMap<K, R>
+    pub fn aggregate<FO, R>(self, operation: FO) -> HashMap<K, R>
     where
         FO: FnMut(Option<R>, &K, V) -> Option<R>,
     {
-        let mut destination_map = HashMap::new();
-
-        self.iter.for_each(|(key, val)| {
-            let acc = destination_map.remove(&key);
-            if let Some(op_res) = operation(acc, &key, val) {
-                destination_map.insert(key, op_res);
-            }
-        });
-
-        destination_map
+        self.aggregate_in(operation, HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
@@ -613,5 +605,27 @@ where
         V: Mul<V, Output = V>,
     {
         self.reduce(|acc, _, val| acc * val)
+    }
+}
+
+impl<I, K, V> GroupingMap<I>
+where
+    I: Iterator<Item = (K, V)>,
+    K: Eq,
+{
+    /// Apply [`aggregate`](Self::aggregate) with a provided map.
+    pub fn aggregate_in<FO, R, M>(self, mut operation: FO, mut map: M) -> M
+    where
+        FO: FnMut(Option<R>, &K, V) -> Option<R>,
+        M: Map<Key = K, Value = R>,
+    {
+        self.iter.for_each(|(key, val)| {
+            let acc = map.remove(&key);
+            if let Some(op_res) = operation(acc, &key, val) {
+                map.insert(key, op_res);
+            }
+        });
+
+        map
     }
 }
