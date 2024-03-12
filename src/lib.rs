@@ -188,6 +188,8 @@ mod extrema_set;
 mod flatten_ok;
 mod format;
 #[cfg(feature = "use_alloc")]
+mod generic_containers;
+#[cfg(feature = "use_alloc")]
 mod group_map;
 #[cfg(feature = "use_alloc")]
 mod groupbylazy;
