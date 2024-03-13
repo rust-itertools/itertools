@@ -560,7 +560,7 @@ where
     where
         V: Mul<V, Output = V>,
     {
-        self.reduce(|acc, _, val| acc * val)
+        self.product_in(HashMap::new())
     }
 }
 
@@ -768,5 +768,14 @@ where
         M: Map<Key = K, Value = V>,
     {
         self.reduce_in(|acc, _, val| acc + val, map)
+    }
+
+    /// Apply [`product`](Self::product) with a provided map.
+    pub fn product_in<M>(self, map: M) -> M
+    where
+        V: Mul<V, Output = V>,
+        M: Map<Key = K, Value = V>,
+    {
+        self.reduce_in(|acc, _, val| acc * val, map)
     }
 }
