@@ -219,16 +219,11 @@ where
     /// assert_eq!(lookup[&2], 2 + 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn reduce<FO>(self, mut operation: FO) -> HashMap<K, V>
+    pub fn reduce<FO>(self, operation: FO) -> HashMap<K, V>
     where
         FO: FnMut(V, &K, V) -> V,
     {
-        self.aggregate(|acc, key, val| {
-            Some(match acc {
-                Some(acc) => operation(acc, key, val),
-                None => val,
-            })
-        })
+        self.reduce_in(operation, HashMap::new())
     }
 
     /// See [`.reduce()`](GroupingMap::reduce).
@@ -650,5 +645,22 @@ where
         M: Map<Key = K, Value = R>,
     {
         self.fold_with_in(|_, _| init.clone(), operation, map)
+    }
+
+    /// Apply [`reduce`](Self::reduce) with a provided map.
+    pub fn reduce_in<FO, M>(self, mut operation: FO, map: M) -> M
+    where
+        FO: FnMut(V, &K, V) -> V,
+        M: Map<Key = K, Value = V>,
+    {
+        self.aggregate_in(
+            |acc, key, val| {
+                Some(match acc {
+                    Some(acc) => operation(acc, key, val),
+                    None => val,
+                })
+            },
+            map,
+        )
     }
 }
