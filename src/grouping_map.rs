@@ -534,7 +534,7 @@ where
     where
         V: Add<V, Output = V>,
     {
-        self.reduce(|acc, _, val| acc + val)
+        self.sum_in(HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and multiply them.
@@ -759,5 +759,14 @@ where
         M: Map<Key = K, Value = MinMaxResult<V>>,
     {
         self.minmax_by_in(|key, v1, v2| f(key, v1).cmp(&f(key, v2)), map)
+    }
+
+    /// Apply [`sum`](Self::sum) with a provided map.
+    pub fn sum_in<M>(self, map: M) -> M
+    where
+        V: Add<V, Output = V>,
+        M: Map<Key = K, Value = V>,
+    {
+        self.reduce_in(|acc, _, val| acc + val, map)
     }
 }
