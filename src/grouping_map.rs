@@ -360,7 +360,7 @@ where
     where
         V: Ord,
     {
-        self.min_by(|_, v1, v2| V::cmp(v1, v2))
+        self.min_in(HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and finds the minimum of each group
@@ -382,14 +382,11 @@ where
     /// assert_eq!(lookup[&2], 8);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn min_by<F>(self, mut compare: F) -> HashMap<K, V>
+    pub fn min_by<F>(self, compare: F) -> HashMap<K, V>
     where
         F: FnMut(&K, &V, &V) -> Ordering,
     {
-        self.reduce(|acc, key, val| match compare(key, &acc, &val) {
-            Ordering::Less | Ordering::Equal => acc,
-            Ordering::Greater => val,
-        })
+        self.min_by_in(compare, HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and finds the element of each group
@@ -411,12 +408,12 @@ where
     /// assert_eq!(lookup[&2], 8);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn min_by_key<F, CK>(self, mut f: F) -> HashMap<K, V>
+    pub fn min_by_key<F, CK>(self, f: F) -> HashMap<K, V>
     where
         F: FnMut(&K, &V) -> CK,
         CK: Ord,
     {
-        self.min_by(|key, v1, v2| f(key, v1).cmp(&f(key, v2)))
+        self.min_by_key_in(f, HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of
@@ -697,5 +694,39 @@ where
         M: Map<Key = K, Value = V>,
     {
         self.max_by_in(|key, v1, v2| f(key, v1).cmp(&f(key, v2)), map)
+    }
+
+    /// Apply [`min`](Self::min) with a provided map.
+    pub fn min_in<M>(self, map: M) -> M
+    where
+        V: Ord,
+        M: Map<Key = K, Value = V>,
+    {
+        self.min_by_in(|_, v1, v2| V::cmp(v1, v2), map)
+    }
+
+    /// Apply [`min_by`](Self::min_by) with a provided map.
+    pub fn min_by_in<F, M>(self, mut compare: F, map: M) -> M
+    where
+        F: FnMut(&K, &V, &V) -> Ordering,
+        M: Map<Key = K, Value = V>,
+    {
+        self.reduce_in(
+            |acc, key, val| match compare(key, &acc, &val) {
+                Ordering::Less | Ordering::Equal => acc,
+                Ordering::Greater => val,
+            },
+            map,
+        )
+    }
+
+    /// Apply [`min_by_key`](Self::min_by_key) with a provided map.
+    pub fn min_by_key_in<F, CK, M>(self, mut f: F, map: M) -> M
+    where
+        F: FnMut(&K, &V) -> CK,
+        CK: Ord,
+        M: Map<Key = K, Value = V>,
+    {
+        self.min_by_in(|key, v1, v2| f(key, v1).cmp(&f(key, v2)), map)
     }
 }
