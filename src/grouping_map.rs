@@ -257,16 +257,7 @@ where
     where
         C: Default + Extend<V>,
     {
-        let mut destination_map = HashMap::new();
-
-        self.iter.for_each(|(key, val)| {
-            destination_map
-                .entry(key)
-                .or_insert_with(C::default)
-                .extend(Some(val));
-        });
-
-        destination_map
+        self.collect_in(HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and finds the maximum of each group.
@@ -662,5 +653,18 @@ where
             },
             map,
         )
+    }
+
+    /// Apply [`collect`](Self::collect) with a provided map.
+    pub fn collect_in<C, M>(self, mut map: M) -> M
+    where
+        C: Default + Extend<V>,
+        M: Map<Key = K, Value = C>,
+    {
+        self.iter.for_each(|(key, val)| {
+            map.entry_or_default(key).extend(Some(val));
+        });
+
+        map
     }
 }
