@@ -189,7 +189,7 @@ where
         R: Clone,
         FO: FnMut(R, &K, V) -> R,
     {
-        self.fold_with(|_, _| init.clone(), operation)
+        self.fold_in(init, operation, HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
@@ -640,5 +640,15 @@ where
             },
             map,
         )
+    }
+
+    /// Apply [`fold`](Self::fold) with a provided map.
+    pub fn fold_in<FO, R, M>(self, init: R, operation: FO, map: M) -> M
+    where
+        R: Clone,
+        FO: FnMut(R, &K, V) -> R,
+        M: Map<Key = K, Value = R>,
+    {
+        self.fold_with_in(|_, _| init.clone(), operation, map)
     }
 }
