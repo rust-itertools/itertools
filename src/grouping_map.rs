@@ -151,15 +151,12 @@ where
     /// assert_eq!(lookup[&2].acc, 2 + 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn fold_with<FI, FO, R>(self, mut init: FI, mut operation: FO) -> HashMap<K, R>
+    pub fn fold_with<FI, FO, R>(self, init: FI, operation: FO) -> HashMap<K, R>
     where
         FI: FnMut(&K, &V) -> R,
         FO: FnMut(R, &K, V) -> R,
     {
-        self.aggregate(|acc, key, val| {
-            let acc = acc.unwrap_or_else(|| init(key, &val));
-            Some(operation(acc, key, val))
-        })
+        self.fold_with_in(init, operation, HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
@@ -627,5 +624,21 @@ where
         });
 
         map
+    }
+
+    /// Apply [`fold_with`](Self::fold_with) with a provided map.
+    pub fn fold_with_in<FI, FO, R, M>(self, mut init: FI, mut operation: FO, map: M) -> M
+    where
+        FI: FnMut(&K, &V) -> R,
+        FO: FnMut(R, &K, V) -> R,
+        M: Map<Key = K, Value = R>,
+    {
+        self.aggregate_in(
+            |acc, key, val| {
+                let acc = acc.unwrap_or_else(|| init(key, &val));
+                Some(operation(acc, key, val))
+            },
+            map,
+        )
     }
 }
