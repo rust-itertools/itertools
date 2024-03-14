@@ -1495,16 +1495,16 @@ quickcheck! {
         }
     }
 
-    fn correct_grouping_map_by_fold_first_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+    fn correct_grouping_map_by_reduce_modulo_key(a: Vec<u8>, modulo: u8) -> () {
         let modulo = if modulo == 0 { 1 } else { modulo } as u64; // Avoid `% 0`
         let lookup = a.iter().map(|&b| b as u64) // Avoid overflows
             .into_grouping_map_by(|i| i % modulo)
-            .fold_first(|acc, &key, val| {
+            .reduce(|acc, &key, val| {
                 assert!(val % modulo == key);
                 acc + val
             });
 
-        // TODO: Swap `fold1` with stdlib's `fold_first` when it's stabilized
+        // TODO: Swap `fold1` with stdlib's `reduce` when it's stabilized
         let group_map_lookup = a.iter()
             .map(|&b| b as u64)
             .map(|i| (i % modulo, i))
