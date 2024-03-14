@@ -2949,7 +2949,7 @@ pub trait Itertools: Iterator {
     /// itertools::assert_equal(five_smallest, 0..5);
     /// ```
     #[cfg(feature = "use_alloc")]
-    fn k_smallest(mut self, k: usize) -> VecIntoIter<Self::Item>
+    fn k_smallest(self, k: usize) -> VecIntoIter<Self::Item>
     where
         Self: Sized,
         Self::Item: Ord,
@@ -2963,9 +2963,10 @@ pub trait Itertools: Iterator {
             return Vec::new().into_iter();
         }
 
-        let mut heap = self.by_ref().take(k).collect::<BinaryHeap<_>>();
+        let mut iter = self.fuse();
+        let mut heap: BinaryHeap<_> = iter.by_ref().take(k).collect();
 
-        self.for_each(|i| {
+        iter.for_each(|i| {
             debug_assert_eq!(heap.len(), k);
             // Equivalent to heap.push(min(i, heap.pop())) but more efficient.
             // This should be done with a single `.peek_mut().unwrap()` but
