@@ -2,7 +2,7 @@ use alloc::vec::Vec;
 use core::cmp::Ordering;
 
 /// Consumes a given iterator, returning the minimum elements in **ascending** order.
-pub(crate) fn k_smallest_general<I, F>(mut iter: I, k: usize, mut comparator: F) -> Vec<I::Item>
+pub(crate) fn k_smallest_general<I, F>(iter: I, k: usize, mut comparator: F) -> Vec<I::Item>
 where
     I: Iterator,
     F: FnMut(&I::Item, &I::Item) -> Ordering,
@@ -44,6 +44,7 @@ where
     if k == 0 {
         return Vec::new();
     }
+    let mut iter = iter.fuse();
     let mut storage: Vec<I::Item> = iter.by_ref().take(k).collect();
 
     let mut is_less_than = move |a: &_, b: &_| comparator(a, b) == Ordering::Less;
@@ -55,19 +56,15 @@ where
         sift_down(&mut storage, &mut is_less_than, i);
     }
 
-    if k == storage.len() {
-        // If we fill the storage, there may still be iterator elements left so feed them into the heap.
-        // Also avoids unexpected behaviour with restartable iterators.
-        iter.for_each(|val| {
-            if is_less_than(&val, &storage[0]) {
-                // Treating this as an push-and-pop saves having to write a sift-up implementation.
-                // https://en.wikipedia.org/wiki/Binary_heap#Insert_then_extract
-                storage[0] = val;
-                // We retain the smallest items we've seen so far, but ordered largest first so we can drop the largest efficiently.
-                sift_down(&mut storage, &mut is_less_than, 0);
-            }
-        });
-    }
+    iter.for_each(|val| {
+        if is_less_than(&val, &storage[0]) {
+            // Treating this as an push-and-pop saves having to write a sift-up implementation.
+            // https://en.wikipedia.org/wiki/Binary_heap#Insert_then_extract
+            storage[0] = val;
+            // We retain the smallest items we've seen so far, but ordered largest first so we can drop the largest efficiently.
+            sift_down(&mut storage, &mut is_less_than, 0);
+        }
+    });
 
     // Ultimately the items need to be in least-first, strict order, but the heap is currently largest-first.
     // To achieve this, repeatedly,
