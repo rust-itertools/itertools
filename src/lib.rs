@@ -55,7 +55,7 @@ extern crate core as std;
 extern crate alloc;
 
 #[cfg(feature = "use_alloc")]
-use alloc::{string::String, vec::Vec};
+use alloc::{collections::VecDeque, string::String, vec::Vec};
 
 pub use either::Either;
 
@@ -71,6 +71,8 @@ use std::fmt::Write;
 #[cfg(feature = "use_std")]
 use std::hash::Hash;
 use std::iter::{once, IntoIterator};
+#[cfg(feature = "use_alloc")]
+type VecDequeIntoIter<T> = alloc::collections::vec_deque::IntoIter<T>;
 #[cfg(feature = "use_alloc")]
 type VecIntoIter<T> = alloc::vec::IntoIter<T>;
 use std::iter::FromIterator;
@@ -3146,8 +3148,10 @@ pub trait Itertools: Iterator {
 
     /// Consumes the iterator and return an iterator of the last `n` elements.
     ///
-    /// The iterator, if directly collected to a `Vec`, is converted
+    /// The iterator, if directly collected to a `VecDeque`, is converted
     /// without any extra copying or allocation cost.
+    /// If directly collected to a `Vec`, it may need some data movement
+    /// but no re-allocation.
     ///
     /// ```
     /// use itertools::{assert_equal, Itertools};
@@ -3167,20 +3171,22 @@ pub trait Itertools: Iterator {
     /// `.rev().take(n).rev()` to have a similar result (lazy and non-allocating)
     /// without consuming the entire iterator.
     #[cfg(feature = "use_alloc")]
-    fn tail(self, n: usize) -> VecIntoIter<Self::Item>
+    fn tail(self, n: usize) -> VecDequeIntoIter<Self::Item>
     where
         Self: Sized,
     {
         match n {
             0 => {
                 self.last();
-                Vec::new()
+                VecDeque::new()
             }
             1 => self.last().into_iter().collect(),
             _ => {
                 // Skip the starting part of the iterator if possible.
                 let (low, _) = self.size_hint();
                 let mut iter = self.fuse().skip(low.saturating_sub(n));
+                // TODO: If VecDeque has a more efficient method than
+                // `.pop_front();.push_back(val)` in the future then maybe revisit this.
                 let mut data: Vec<_> = iter.by_ref().take(n).collect();
                 // Update `data` cyclically.
                 let idx = iter.fold(0, |i, val| {
@@ -3191,7 +3197,8 @@ pub trait Itertools: Iterator {
                         i + 1
                     }
                 });
-                // Respect the insertion order.
+                // Respect the insertion order, efficiently.
+                let mut data = VecDeque::from(data);
                 data.rotate_left(idx);
                 data
             }
