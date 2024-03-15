@@ -4,6 +4,7 @@
 #![cfg(feature = "use_alloc")]
 
 use alloc::collections::BTreeMap;
+use alloc::vec::Vec;
 #[cfg(feature = "use_std")]
 use core::hash::{BuildHasher, Hash};
 #[cfg(feature = "use_std")]
@@ -58,5 +59,36 @@ where
         V: Default,
     {
         self.entry(key).or_default()
+    }
+}
+
+impl<K, V> Map for Vec<(K, V)>
+where
+    K: Eq,
+{
+    type Key = K;
+    type Value = V;
+    fn insert(&mut self, key: K, value: V) -> Option<V> {
+        match self.iter_mut().find(|(k, _)| k == &key) {
+            Some((_, v)) => Some(core::mem::replace(v, value)),
+            None => {
+                self.push((key, value));
+                None
+            }
+        }
+    }
+    fn remove(&mut self, key: &K) -> Option<V> {
+        let index = self.iter().position(|(k, _)| k == key)?;
+        Some(self.swap_remove(index).1)
+    }
+    fn entry_or_default(&mut self, key: K) -> &mut V
+    where
+        V: Default,
+    {
+        let index = self.iter().position(|(k, _)| k == &key).unwrap_or_else(|| {
+            self.push((key, V::default()));
+            self.len() - 1
+        });
+        &mut self[index].1
     }
 }
