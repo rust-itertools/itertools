@@ -3159,6 +3159,8 @@ pub trait Itertools: Iterator {
     /// assert_equal(v.iter().tail(1), v.iter().last());
     ///
     /// assert_equal((0..100).tail(10), 90..100);
+    ///
+    /// assert_equal((0..100).filter(|x| x % 3 == 0).tail(10), (72..100).step_by(3));
     /// ```
     ///
     /// For double ended iterators without side-effects, you might prefer
@@ -3176,7 +3178,9 @@ pub trait Itertools: Iterator {
             }
             1 => self.last().into_iter().collect(),
             _ => {
-                let mut iter = self.fuse();
+                // Skip the starting part of the iterator if possible.
+                let (low, _) = self.size_hint();
+                let mut iter = self.fuse().skip(low.saturating_sub(n));
                 let mut data: Vec<_> = iter.by_ref().take(n).collect();
                 // Update `data` cyclically.
                 let idx = iter.fold(0, |i, val| {

@@ -1952,6 +1952,8 @@ quickcheck! {
 
     fn tail(v: Vec<i32>, n: u8) -> bool {
         let n = n as usize;
-        itertools::equal(v.iter().tail(n), &v[v.len().saturating_sub(n)..])
+        let result = &v[v.len().saturating_sub(n)..];
+        itertools::equal(v.iter().tail(n), result)
+            && itertools::equal(v.iter().filter(|_| true).tail(n), result)
     }
 }
