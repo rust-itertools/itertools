@@ -3190,6 +3190,7 @@ pub trait Itertools: Iterator {
                 let mut data: Vec<_> = iter.by_ref().take(n).collect();
                 // Update `data` cyclically.
                 let idx = iter.fold(0, |i, val| {
+                    debug_assert_eq!(data.len(), n);
                     data[i] = val;
                     if i + 1 == n {
                         0

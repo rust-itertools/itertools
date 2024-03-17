@@ -57,6 +57,7 @@ where
     }
 
     iter.for_each(|val| {
+        debug_assert_eq!(storage.len(), k);
         if is_less_than(&val, &storage[0]) {
             // Treating this as an push-and-pop saves having to write a sift-up implementation.
             // https://en.wikipedia.org/wiki/Binary_heap#Insert_then_extract
