@@ -113,6 +113,8 @@ pub mod structs {
     pub use crate::groupbylazy::{Chunk, ChunkBy, Chunks, Group, Groups, IntoChunks};
     #[cfg(feature = "use_alloc")]
     pub use crate::grouping_map::{GroupingGenericMap, GroupingGenericMapBy};
+    #[cfg(feature = "use_std")]
+    pub use crate::grouping_map::{GroupingMap, GroupingMapBy};
     pub use crate::intersperse::{Intersperse, IntersperseWith};
     #[cfg(feature = "use_alloc")]
     pub use crate::kmerge_impl::{KMerge, KMergeBy};
@@ -3338,6 +3340,42 @@ pub trait Itertools: Iterator {
         F: FnMut(&V) -> K,
     {
         group_map::into_group_map_by(self, f)
+    }
+
+    /// Constructs a `GroupingMap` to be used later with one of the efficient
+    /// group-and-fold operations it allows to perform.
+    ///
+    /// The input iterator must yield item in the form of `(K, V)` where the
+    /// value of type `K` will be used as key to identify the groups and the
+    /// value of type `V` as value for the folding operation.
+    ///
+    /// See [`GroupingGenericMap`] for more informations
+    /// on what operations are available.
+    #[cfg(feature = "use_std")]
+    fn into_grouping_map<K, V, R>(self) -> GroupingMap<Self, R>
+    where
+        Self: Iterator<Item = (K, V)> + Sized,
+        K: Hash + Eq,
+    {
+        self.into_grouping_map_in(HashMap::new())
+    }
+
+    /// Constructs a `GroupingMap` to be used later with one of the efficient
+    /// group-and-fold operations it allows to perform.
+    ///
+    /// The values from this iterator will be used as values for the folding operation
+    /// while the keys will be obtained from the values by calling `key_mapper`.
+    ///
+    /// See [`GroupingGenericMap`] for more informations
+    /// on what operations are available.
+    #[cfg(feature = "use_std")]
+    fn into_grouping_map_by<K, V, F, R>(self, key_mapper: F) -> GroupingMapBy<Self, F, R>
+    where
+        Self: Iterator<Item = V> + Sized,
+        K: Hash + Eq,
+        F: FnMut(&V) -> K,
+    {
+        self.into_grouping_map_by_in(key_mapper, HashMap::new())
     }
 
     /// Constructs a `GroupingGenericMap` to be used later with one of the efficient

@@ -9,6 +9,35 @@ use std::cmp::Ordering;
 use std::iter::Iterator;
 use std::ops::{Add, Mul};
 
+#[cfg(feature = "use_std")]
+pub use with_hashmap::{GroupingMap, GroupingMapBy};
+
+#[cfg(feature = "use_std")]
+mod with_hashmap {
+    use super::*;
+    use std::collections::HashMap;
+
+    // This is used to infer `K` when `I::Item = (K, V)` since we can't write `I::Item.0`.
+    pub trait KeyValue {
+        type Key;
+    }
+
+    impl<K, V> KeyValue for (K, V) {
+        type Key = K;
+    }
+
+    /// `GroupingMap` is an intermediate struct for efficient group-and-fold operations.
+    ///
+    /// See [`GroupingGenericMap`] for more informations.
+    pub type GroupingMap<I, R> =
+        GroupingGenericMap<I, HashMap<<<I as Iterator>::Item as KeyValue>::Key, R>>;
+
+    /// `GroupingMapBy` is an intermediate struct for efficient group-and-fold operations.
+    ///
+    /// See [`GroupingGenericMap`] for more informations.
+    pub type GroupingMapBy<I, F, R> = GroupingMap<MapForGrouping<I, F>, R>;
+}
+
 /// A wrapper to allow for an easy [`into_grouping_map_by`](crate::Itertools::into_grouping_map_by)
 pub type MapForGrouping<I, F> = MapSpecialCase<I, GroupingMapFn<F>>;
 
