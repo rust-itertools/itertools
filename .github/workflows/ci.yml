@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: obi1kenobi/cargo-semver-checks-action@v2.3
+      - uses: obi1kenobi/cargo-semver-checks-action@v2.4
         with:
           rust-toolchain: stable
           feature-group: all-features
