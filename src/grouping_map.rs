@@ -570,6 +570,28 @@ where
     K: Eq,
 {
     /// Apply [`aggregate`](Self::aggregate) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![2, 8, 5, 7, 9, 0, 4, 10];
+    /// let lookup = data.into_iter()
+    ///     .into_grouping_map_by(|&n| n % 4)
+    ///     .aggregate_in(|acc, _key, val| {
+    ///         if val == 0 || val == 10 {
+    ///             None
+    ///         } else {
+    ///             Some(acc.unwrap_or(0) + val)
+    ///         }
+    ///     }, BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 4);        // 0 resets the accumulator so only 4 is summed
+    /// assert_eq!(lookup[&1], 5 + 9);
+    /// assert_eq!(lookup.get(&2), None); // 10 resets the accumulator and nothing is summed afterward
+    /// assert_eq!(lookup[&3], 7);
+    /// assert_eq!(lookup.len(), 3);      // The final keys are only 0, 1 and 2
+    /// ```
     pub fn aggregate_in<FO, R, M>(self, mut operation: FO, mut map: M) -> M
     where
         FO: FnMut(Option<R>, &K, V) -> Option<R>,
@@ -586,6 +608,28 @@ where
     }
 
     /// Apply [`fold_with`](Self::fold_with) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// #[derive(Debug, Default)]
+    /// struct Accumulator {
+    ///   acc: usize,
+    /// }
+    ///
+    /// let lookup = (1..=7)
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .fold_with_in(|_key, _val| Default::default(), |Accumulator { acc }, _key, val| {
+    ///         let acc = acc + val;
+    ///         Accumulator { acc }
+    ///      }, BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0].acc, 3 + 6);
+    /// assert_eq!(lookup[&1].acc, 1 + 4 + 7);
+    /// assert_eq!(lookup[&2].acc, 2 + 5);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn fold_with_in<FI, FO, R, M>(self, mut init: FI, mut operation: FO, map: M) -> M
     where
         FI: FnMut(&K, &V) -> R,
@@ -602,6 +646,20 @@ where
     }
 
     /// Apply [`fold`](Self::fold) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = (1..=7)
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .fold_in(0, |acc, _key, val| acc + val, BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 3 + 6);
+    /// assert_eq!(lookup[&1], 1 + 4 + 7);
+    /// assert_eq!(lookup[&2], 2 + 5);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn fold_in<FO, R, M>(self, init: R, operation: FO, map: M) -> M
     where
         R: Clone,
@@ -612,6 +670,20 @@ where
     }
 
     /// Apply [`reduce`](Self::reduce) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = (1..=7)
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .reduce_in(|acc, _key, val| acc + val, BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 3 + 6);
+    /// assert_eq!(lookup[&1], 1 + 4 + 7);
+    /// assert_eq!(lookup[&2], 2 + 5);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn reduce_in<FO, M>(self, mut operation: FO, map: M) -> M
     where
         FO: FnMut(V, &K, V) -> V,
@@ -629,6 +701,20 @@ where
     }
 
     /// Apply [`collect`](Self::collect) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::{BTreeMap, BTreeSet};
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = vec![0, 1, 2, 3, 4, 5, 6, 2, 3, 6].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .collect_in::<BTreeSet<_>, _>(BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], vec![0, 3, 6].into_iter().collect::<BTreeSet<_>>());
+    /// assert_eq!(lookup[&1], vec![1, 4].into_iter().collect::<BTreeSet<_>>());
+    /// assert_eq!(lookup[&2], vec![2, 5].into_iter().collect::<BTreeSet<_>>());
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn collect_in<C, M>(self, mut map: M) -> M
     where
         C: Default + Extend<V>,
@@ -642,6 +728,20 @@ where
     }
 
     /// Apply [`max`](Self::max) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .max_in(BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 12);
+    /// assert_eq!(lookup[&1], 7);
+    /// assert_eq!(lookup[&2], 8);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn max_in<M>(self, map: M) -> M
     where
         V: Ord,
@@ -651,6 +751,20 @@ where
     }
 
     /// Apply [`max_by`](Self::max_by) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .max_by_in(|_key, x, y| y.cmp(x), BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 3);
+    /// assert_eq!(lookup[&1], 1);
+    /// assert_eq!(lookup[&2], 5);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn max_by_in<F, M>(self, mut compare: F, map: M) -> M
     where
         F: FnMut(&K, &V, &V) -> Ordering,
@@ -666,6 +780,20 @@ where
     }
 
     /// Apply [`max_by_key`](Self::max_by_key) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .max_by_key_in(|_key, &val| val % 4, BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 3);
+    /// assert_eq!(lookup[&1], 7);
+    /// assert_eq!(lookup[&2], 5);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn max_by_key_in<F, CK, M>(self, mut f: F, map: M) -> M
     where
         F: FnMut(&K, &V) -> CK,
@@ -676,6 +804,20 @@ where
     }
 
     /// Apply [`min`](Self::min) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .min_in(BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 3);
+    /// assert_eq!(lookup[&1], 1);
+    /// assert_eq!(lookup[&2], 5);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn min_in<M>(self, map: M) -> M
     where
         V: Ord,
@@ -685,6 +827,20 @@ where
     }
 
     /// Apply [`min_by`](Self::min_by) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .min_by_in(|_key, x, y| y.cmp(x), BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 12);
+    /// assert_eq!(lookup[&1], 7);
+    /// assert_eq!(lookup[&2], 8);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn min_by_in<F, M>(self, mut compare: F, map: M) -> M
     where
         F: FnMut(&K, &V, &V) -> Ordering,
@@ -700,6 +856,20 @@ where
     }
 
     /// Apply [`min_by_key`](Self::min_by_key) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .min_by_key_in(|_key, &val| val % 4, BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 12);
+    /// assert_eq!(lookup[&1], 4);
+    /// assert_eq!(lookup[&2], 8);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn min_by_key_in<F, CK, M>(self, mut f: F, map: M) -> M
     where
         F: FnMut(&K, &V) -> CK,
@@ -710,6 +880,21 @@ where
     }
 
     /// Apply [`minmax`](Self::minmax) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{OneElement, MinMax};
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .minmax_in(BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], MinMax(3, 12));
+    /// assert_eq!(lookup[&1], MinMax(1, 7));
+    /// assert_eq!(lookup[&2], OneElement(5));
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn minmax_in<M>(self, map: M) -> M
     where
         V: Ord,
@@ -719,6 +904,21 @@ where
     }
 
     /// Apply [`minmax_by`](Self::minmax_by) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{OneElement, MinMax};
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .minmax_by_in(|_key, x, y| y.cmp(x), BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], MinMax(12, 3));
+    /// assert_eq!(lookup[&1], MinMax(7, 1));
+    /// assert_eq!(lookup[&2], OneElement(5));
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn minmax_by_in<F, M>(self, mut compare: F, map: M) -> M
     where
         F: FnMut(&K, &V, &V) -> Ordering,
@@ -752,6 +952,21 @@ where
     }
 
     /// Apply [`minmax_by_key`](Self::minmax_by_key) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{OneElement, MinMax};
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .minmax_by_key_in(|_key, &val| val % 4, BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], MinMax(12, 3));
+    /// assert_eq!(lookup[&1], MinMax(4, 7));
+    /// assert_eq!(lookup[&2], OneElement(5));
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn minmax_by_key_in<F, CK, M>(self, mut f: F, map: M) -> M
     where
         F: FnMut(&K, &V) -> CK,
@@ -762,6 +977,20 @@ where
     }
 
     /// Apply [`sum`](Self::sum) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .sum_in(BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 3 + 9 + 12);
+    /// assert_eq!(lookup[&1], 1 + 4 + 7);
+    /// assert_eq!(lookup[&2], 5 + 8);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn sum_in<M>(self, map: M) -> M
     where
         V: Add<V, Output = V>,
@@ -771,6 +1000,20 @@ where
     }
 
     /// Apply [`product`](Self::product) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .product_in(BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 3 * 9 * 12);
+    /// assert_eq!(lookup[&1], 1 * 4 * 7);
+    /// assert_eq!(lookup[&2], 5 * 8);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
     pub fn product_in<M>(self, map: M) -> M
     where
         V: Mul<V, Output = V>,
