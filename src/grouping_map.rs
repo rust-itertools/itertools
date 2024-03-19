@@ -1,11 +1,14 @@
-#![cfg(feature = "use_std")]
+#![cfg(feature = "use_alloc")]
 
 use crate::{
     adaptors::map::{MapSpecialCase, MapSpecialCaseFn},
+    generic_containers::Map,
     MinMaxResult,
 };
 use std::cmp::Ordering;
+#[cfg(feature = "use_std")]
 use std::collections::HashMap;
+#[cfg(feature = "use_std")]
 use std::hash::Hash;
 use std::iter::Iterator;
 use std::ops::{Add, Mul};
@@ -41,7 +44,7 @@ pub(crate) fn new_map_for_grouping<K, I: Iterator, F: FnMut(&I::Item) -> K>(
 pub fn new<I, K, V>(iter: I) -> GroupingMap<I>
 where
     I: Iterator<Item = (K, V)>,
-    K: Hash + Eq,
+    K: Eq,
 {
     GroupingMap { iter }
 }
@@ -55,6 +58,12 @@ pub type GroupingMapBy<I, F> = GroupingMap<MapForGrouping<I, F>>;
 /// It groups elements by their key and at the same time fold each group
 /// using some aggregating operation.
 ///
+/// Each method have a `_in`-suffixed version where you can provide a map other than
+/// `HashMap::new()` such as:
+/// - `BTreeMap::new()` when the values are `Ord` and not necessarily `Hash + Eq`.
+/// - `HashMap::default()` to use a different hasher.
+/// - `HashMap::with_capacity(100)` to pre-allocate.
+///
 /// No method on this struct performs temporary allocations.
 #[derive(Clone, Debug)]
 #[must_use = "GroupingMap is lazy and do nothing unless consumed"]
@@ -62,6 +71,7 @@ pub struct GroupingMap<I> {
     iter: I,
 }
 
+#[cfg(feature = "use_std")]
 impl<I, K, V> GroupingMap<I>
 where
     I: Iterator<Item = (K, V)>,
@@ -107,20 +117,11 @@ where
     /// assert_eq!(lookup[&3], 7);
     /// assert_eq!(lookup.len(), 3);      // The final keys are only 0, 1 and 2
     /// ```
-    pub fn aggregate<FO, R>(self, mut operation: FO) -> HashMap<K, R>
+    pub fn aggregate<FO, R>(self, operation: FO) -> HashMap<K, R>
     where
         FO: FnMut(Option<R>, &K, V) -> Option<R>,
     {
-        let mut destination_map = HashMap::new();
-
-        self.iter.for_each(|(key, val)| {
-            let acc = destination_map.remove(&key);
-            if let Some(op_res) = operation(acc, &key, val) {
-                destination_map.insert(key, op_res);
-            }
-        });
-
-        destination_map
+        self.aggregate_in(operation, HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
@@ -156,15 +157,12 @@ where
     /// assert_eq!(lookup[&2].acc, 2 + 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn fold_with<FI, FO, R>(self, mut init: FI, mut operation: FO) -> HashMap<K, R>
+    pub fn fold_with<FI, FO, R>(self, init: FI, operation: FO) -> HashMap<K, R>
     where
         FI: FnMut(&K, &V) -> R,
         FO: FnMut(R, &K, V) -> R,
     {
-        self.aggregate(|acc, key, val| {
-            let acc = acc.unwrap_or_else(|| init(key, &val));
-            Some(operation(acc, key, val))
-        })
+        self.fold_with_in(init, operation, HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
@@ -197,7 +195,7 @@ where
         R: Clone,
         FO: FnMut(R, &K, V) -> R,
     {
-        self.fold_with(|_, _| init.clone(), operation)
+        self.fold_in(init, operation, HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
@@ -227,16 +225,11 @@ where
     /// assert_eq!(lookup[&2], 2 + 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn reduce<FO>(self, mut operation: FO) -> HashMap<K, V>
+    pub fn reduce<FO>(self, operation: FO) -> HashMap<K, V>
     where
         FO: FnMut(V, &K, V) -> V,
     {
-        self.aggregate(|acc, key, val| {
-            Some(match acc {
-                Some(acc) => operation(acc, key, val),
-                None => val,
-            })
-        })
+        self.reduce_in(operation, HashMap::new())
     }
 
     /// See [`.reduce()`](GroupingMap::reduce).
@@ -270,16 +263,7 @@ where
     where
         C: Default + Extend<V>,
     {
-        let mut destination_map = HashMap::new();
-
-        self.iter.for_each(|(key, val)| {
-            destination_map
-                .entry(key)
-                .or_insert_with(C::default)
-                .extend(Some(val));
-        });
-
-        destination_map
+        self.collect_in(HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and finds the maximum of each group.
@@ -304,7 +288,7 @@ where
     where
         V: Ord,
     {
-        self.max_by(|_, v1, v2| V::cmp(v1, v2))
+        self.max_in(HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and finds the maximum of each group
@@ -326,14 +310,11 @@ where
     /// assert_eq!(lookup[&2], 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn max_by<F>(self, mut compare: F) -> HashMap<K, V>
+    pub fn max_by<F>(self, compare: F) -> HashMap<K, V>
     where
         F: FnMut(&K, &V, &V) -> Ordering,
     {
-        self.reduce(|acc, key, val| match compare(key, &acc, &val) {
-            Ordering::Less | Ordering::Equal => val,
-            Ordering::Greater => acc,
-        })
+        self.max_by_in(compare, HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and finds the element of each group
@@ -355,12 +336,12 @@ where
     /// assert_eq!(lookup[&2], 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn max_by_key<F, CK>(self, mut f: F) -> HashMap<K, V>
+    pub fn max_by_key<F, CK>(self, f: F) -> HashMap<K, V>
     where
         F: FnMut(&K, &V) -> CK,
         CK: Ord,
     {
-        self.max_by(|key, v1, v2| f(key, v1).cmp(&f(key, v2)))
+        self.max_by_key_in(f, HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and finds the minimum of each group.
@@ -385,7 +366,7 @@ where
     where
         V: Ord,
     {
-        self.min_by(|_, v1, v2| V::cmp(v1, v2))
+        self.min_in(HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and finds the minimum of each group
@@ -407,14 +388,11 @@ where
     /// assert_eq!(lookup[&2], 8);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn min_by<F>(self, mut compare: F) -> HashMap<K, V>
+    pub fn min_by<F>(self, compare: F) -> HashMap<K, V>
     where
         F: FnMut(&K, &V, &V) -> Ordering,
     {
-        self.reduce(|acc, key, val| match compare(key, &acc, &val) {
-            Ordering::Less | Ordering::Equal => acc,
-            Ordering::Greater => val,
-        })
+        self.min_by_in(compare, HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and finds the element of each group
@@ -436,12 +414,12 @@ where
     /// assert_eq!(lookup[&2], 8);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn min_by_key<F, CK>(self, mut f: F) -> HashMap<K, V>
+    pub fn min_by_key<F, CK>(self, f: F) -> HashMap<K, V>
     where
         F: FnMut(&K, &V) -> CK,
         CK: Ord,
     {
-        self.min_by(|key, v1, v2| f(key, v1).cmp(&f(key, v2)))
+        self.min_by_key_in(f, HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of
@@ -475,7 +453,7 @@ where
     where
         V: Ord,
     {
-        self.minmax_by(|_, v1, v2| V::cmp(v1, v2))
+        self.minmax_in(HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of
@@ -501,32 +479,11 @@ where
     /// assert_eq!(lookup[&2], OneElement(5));
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn minmax_by<F>(self, mut compare: F) -> HashMap<K, MinMaxResult<V>>
+    pub fn minmax_by<F>(self, compare: F) -> HashMap<K, MinMaxResult<V>>
     where
         F: FnMut(&K, &V, &V) -> Ordering,
     {
-        self.aggregate(|acc, key, val| {
-            Some(match acc {
-                Some(MinMaxResult::OneElement(e)) => {
-                    if compare(key, &val, &e) == Ordering::Less {
-                        MinMaxResult::MinMax(val, e)
-                    } else {
-                        MinMaxResult::MinMax(e, val)
-                    }
-                }
-                Some(MinMaxResult::MinMax(min, max)) => {
-                    if compare(key, &val, &min) == Ordering::Less {
-                        MinMaxResult::MinMax(val, max)
-                    } else if compare(key, &val, &max) != Ordering::Less {
-                        MinMaxResult::MinMax(min, val)
-                    } else {
-                        MinMaxResult::MinMax(min, max)
-                    }
-                }
-                None => MinMaxResult::OneElement(val),
-                Some(MinMaxResult::NoElements) => unreachable!(),
-            })
-        })
+        self.minmax_by_in(compare, HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and find the elements of each group
@@ -552,12 +509,12 @@ where
     /// assert_eq!(lookup[&2], OneElement(5));
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn minmax_by_key<F, CK>(self, mut f: F) -> HashMap<K, MinMaxResult<V>>
+    pub fn minmax_by_key<F, CK>(self, f: F) -> HashMap<K, MinMaxResult<V>>
     where
         F: FnMut(&K, &V) -> CK,
         CK: Ord,
     {
-        self.minmax_by(|key, v1, v2| f(key, v1).cmp(&f(key, v2)))
+        self.minmax_by_key_in(f, HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and sums them.
@@ -583,7 +540,7 @@ where
     where
         V: Add<V, Output = V>,
     {
-        self.reduce(|acc, _, val| acc + val)
+        self.sum_in(HashMap::new())
     }
 
     /// Groups elements from the `GroupingMap` source by key and multiply them.
@@ -609,6 +566,465 @@ where
     where
         V: Mul<V, Output = V>,
     {
-        self.reduce(|acc, _, val| acc * val)
+        self.product_in(HashMap::new())
+    }
+}
+
+impl<I, K, V> GroupingMap<I>
+where
+    I: Iterator<Item = (K, V)>,
+    K: Eq,
+{
+    /// Apply [`aggregate`](Self::aggregate) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![2, 8, 5, 7, 9, 0, 4, 10];
+    /// let lookup = data.into_iter()
+    ///     .into_grouping_map_by(|&n| n % 4)
+    ///     .aggregate_in(|acc, _key, val| {
+    ///         if val == 0 || val == 10 {
+    ///             None
+    ///         } else {
+    ///             Some(acc.unwrap_or(0) + val)
+    ///         }
+    ///     }, BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 4);        // 0 resets the accumulator so only 4 is summed
+    /// assert_eq!(lookup[&1], 5 + 9);
+    /// assert_eq!(lookup.get(&2), None); // 10 resets the accumulator and nothing is summed afterward
+    /// assert_eq!(lookup[&3], 7);
+    /// assert_eq!(lookup.len(), 3);      // The final keys are only 0, 1 and 2
+    /// ```
+    pub fn aggregate_in<FO, R, M>(self, mut operation: FO, mut map: M) -> M
+    where
+        FO: FnMut(Option<R>, &K, V) -> Option<R>,
+        M: Map<Key = K, Value = R>,
+    {
+        self.iter.for_each(|(key, val)| {
+            let acc = map.remove(&key);
+            if let Some(op_res) = operation(acc, &key, val) {
+                map.insert(key, op_res);
+            }
+        });
+
+        map
+    }
+
+    /// Apply [`fold_with`](Self::fold_with) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// #[derive(Debug, Default)]
+    /// struct Accumulator {
+    ///   acc: usize,
+    /// }
+    ///
+    /// let lookup = (1..=7)
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .fold_with_in(|_key, _val| Default::default(), |Accumulator { acc }, _key, val| {
+    ///         let acc = acc + val;
+    ///         Accumulator { acc }
+    ///      }, BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0].acc, 3 + 6);
+    /// assert_eq!(lookup[&1].acc, 1 + 4 + 7);
+    /// assert_eq!(lookup[&2].acc, 2 + 5);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    pub fn fold_with_in<FI, FO, R, M>(self, mut init: FI, mut operation: FO, map: M) -> M
+    where
+        FI: FnMut(&K, &V) -> R,
+        FO: FnMut(R, &K, V) -> R,
+        M: Map<Key = K, Value = R>,
+    {
+        self.aggregate_in(
+            |acc, key, val| {
+                let acc = acc.unwrap_or_else(|| init(key, &val));
+                Some(operation(acc, key, val))
+            },
+            map,
+        )
+    }
+
+    /// Apply [`fold`](Self::fold) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = (1..=7)
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .fold_in(0, |acc, _key, val| acc + val, BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 3 + 6);
+    /// assert_eq!(lookup[&1], 1 + 4 + 7);
+    /// assert_eq!(lookup[&2], 2 + 5);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    pub fn fold_in<FO, R, M>(self, init: R, operation: FO, map: M) -> M
+    where
+        R: Clone,
+        FO: FnMut(R, &K, V) -> R,
+        M: Map<Key = K, Value = R>,
+    {
+        self.fold_with_in(|_, _| init.clone(), operation, map)
+    }
+
+    /// Apply [`reduce`](Self::reduce) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = (1..=7)
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .reduce_in(|acc, _key, val| acc + val, BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 3 + 6);
+    /// assert_eq!(lookup[&1], 1 + 4 + 7);
+    /// assert_eq!(lookup[&2], 2 + 5);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    pub fn reduce_in<FO, M>(self, mut operation: FO, map: M) -> M
+    where
+        FO: FnMut(V, &K, V) -> V,
+        M: Map<Key = K, Value = V>,
+    {
+        self.aggregate_in(
+            |acc, key, val| {
+                Some(match acc {
+                    Some(acc) => operation(acc, key, val),
+                    None => val,
+                })
+            },
+            map,
+        )
+    }
+
+    /// Apply [`collect`](Self::collect) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::{BTreeMap, BTreeSet};
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = vec![0, 1, 2, 3, 4, 5, 6, 2, 3, 6].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .collect_in::<BTreeSet<_>, _>(BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], vec![0, 3, 6].into_iter().collect::<BTreeSet<_>>());
+    /// assert_eq!(lookup[&1], vec![1, 4].into_iter().collect::<BTreeSet<_>>());
+    /// assert_eq!(lookup[&2], vec![2, 5].into_iter().collect::<BTreeSet<_>>());
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    pub fn collect_in<C, M>(self, mut map: M) -> M
+    where
+        C: Default + Extend<V>,
+        M: Map<Key = K, Value = C>,
+    {
+        self.iter.for_each(|(key, val)| {
+            map.entry_or_default(key).extend(Some(val));
+        });
+
+        map
+    }
+
+    /// Apply [`max`](Self::max) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .max_in(BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 12);
+    /// assert_eq!(lookup[&1], 7);
+    /// assert_eq!(lookup[&2], 8);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    pub fn max_in<M>(self, map: M) -> M
+    where
+        V: Ord,
+        M: Map<Key = K, Value = V>,
+    {
+        self.max_by_in(|_, v1, v2| V::cmp(v1, v2), map)
+    }
+
+    /// Apply [`max_by`](Self::max_by) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .max_by_in(|_key, x, y| y.cmp(x), BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 3);
+    /// assert_eq!(lookup[&1], 1);
+    /// assert_eq!(lookup[&2], 5);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    pub fn max_by_in<F, M>(self, mut compare: F, map: M) -> M
+    where
+        F: FnMut(&K, &V, &V) -> Ordering,
+        M: Map<Key = K, Value = V>,
+    {
+        self.reduce_in(
+            |acc, key, val| match compare(key, &acc, &val) {
+                Ordering::Less | Ordering::Equal => val,
+                Ordering::Greater => acc,
+            },
+            map,
+        )
+    }
+
+    /// Apply [`max_by_key`](Self::max_by_key) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .max_by_key_in(|_key, &val| val % 4, BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 3);
+    /// assert_eq!(lookup[&1], 7);
+    /// assert_eq!(lookup[&2], 5);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    pub fn max_by_key_in<F, CK, M>(self, mut f: F, map: M) -> M
+    where
+        F: FnMut(&K, &V) -> CK,
+        CK: Ord,
+        M: Map<Key = K, Value = V>,
+    {
+        self.max_by_in(|key, v1, v2| f(key, v1).cmp(&f(key, v2)), map)
+    }
+
+    /// Apply [`min`](Self::min) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .min_in(BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 3);
+    /// assert_eq!(lookup[&1], 1);
+    /// assert_eq!(lookup[&2], 5);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    pub fn min_in<M>(self, map: M) -> M
+    where
+        V: Ord,
+        M: Map<Key = K, Value = V>,
+    {
+        self.min_by_in(|_, v1, v2| V::cmp(v1, v2), map)
+    }
+
+    /// Apply [`min_by`](Self::min_by) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .min_by_in(|_key, x, y| y.cmp(x), BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 12);
+    /// assert_eq!(lookup[&1], 7);
+    /// assert_eq!(lookup[&2], 8);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    pub fn min_by_in<F, M>(self, mut compare: F, map: M) -> M
+    where
+        F: FnMut(&K, &V, &V) -> Ordering,
+        M: Map<Key = K, Value = V>,
+    {
+        self.reduce_in(
+            |acc, key, val| match compare(key, &acc, &val) {
+                Ordering::Less | Ordering::Equal => acc,
+                Ordering::Greater => val,
+            },
+            map,
+        )
+    }
+
+    /// Apply [`min_by_key`](Self::min_by_key) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .min_by_key_in(|_key, &val| val % 4, BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 12);
+    /// assert_eq!(lookup[&1], 4);
+    /// assert_eq!(lookup[&2], 8);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    pub fn min_by_key_in<F, CK, M>(self, mut f: F, map: M) -> M
+    where
+        F: FnMut(&K, &V) -> CK,
+        CK: Ord,
+        M: Map<Key = K, Value = V>,
+    {
+        self.min_by_in(|key, v1, v2| f(key, v1).cmp(&f(key, v2)), map)
+    }
+
+    /// Apply [`minmax`](Self::minmax) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{OneElement, MinMax};
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .minmax_in(BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], MinMax(3, 12));
+    /// assert_eq!(lookup[&1], MinMax(1, 7));
+    /// assert_eq!(lookup[&2], OneElement(5));
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    pub fn minmax_in<M>(self, map: M) -> M
+    where
+        V: Ord,
+        M: Map<Key = K, Value = MinMaxResult<V>>,
+    {
+        self.minmax_by_in(|_, v1, v2| V::cmp(v1, v2), map)
+    }
+
+    /// Apply [`minmax_by`](Self::minmax_by) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{OneElement, MinMax};
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .minmax_by_in(|_key, x, y| y.cmp(x), BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], MinMax(12, 3));
+    /// assert_eq!(lookup[&1], MinMax(7, 1));
+    /// assert_eq!(lookup[&2], OneElement(5));
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    pub fn minmax_by_in<F, M>(self, mut compare: F, map: M) -> M
+    where
+        F: FnMut(&K, &V, &V) -> Ordering,
+        M: Map<Key = K, Value = MinMaxResult<V>>,
+    {
+        self.aggregate_in(
+            |acc, key, val| {
+                Some(match acc {
+                    Some(MinMaxResult::OneElement(e)) => {
+                        if compare(key, &val, &e) == Ordering::Less {
+                            MinMaxResult::MinMax(val, e)
+                        } else {
+                            MinMaxResult::MinMax(e, val)
+                        }
+                    }
+                    Some(MinMaxResult::MinMax(min, max)) => {
+                        if compare(key, &val, &min) == Ordering::Less {
+                            MinMaxResult::MinMax(val, max)
+                        } else if compare(key, &val, &max) != Ordering::Less {
+                            MinMaxResult::MinMax(min, val)
+                        } else {
+                            MinMaxResult::MinMax(min, max)
+                        }
+                    }
+                    None => MinMaxResult::OneElement(val),
+                    Some(MinMaxResult::NoElements) => unreachable!(),
+                })
+            },
+            map,
+        )
+    }
+
+    /// Apply [`minmax_by_key`](Self::minmax_by_key) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{OneElement, MinMax};
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .minmax_by_key_in(|_key, &val| val % 4, BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], MinMax(12, 3));
+    /// assert_eq!(lookup[&1], MinMax(4, 7));
+    /// assert_eq!(lookup[&2], OneElement(5));
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    pub fn minmax_by_key_in<F, CK, M>(self, mut f: F, map: M) -> M
+    where
+        F: FnMut(&K, &V) -> CK,
+        CK: Ord,
+        M: Map<Key = K, Value = MinMaxResult<V>>,
+    {
+        self.minmax_by_in(|key, v1, v2| f(key, v1).cmp(&f(key, v2)), map)
+    }
+
+    /// Apply [`sum`](Self::sum) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .sum_in(BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 3 + 9 + 12);
+    /// assert_eq!(lookup[&1], 1 + 4 + 7);
+    /// assert_eq!(lookup[&2], 5 + 8);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    pub fn sum_in<M>(self, map: M) -> M
+    where
+        V: Add<V, Output = V>,
+        M: Map<Key = K, Value = V>,
+    {
+        self.reduce_in(|acc, _, val| acc + val, map)
+    }
+
+    /// Apply [`product`](Self::product) with a provided map.
+    ///
+    /// ```
+    /// use std::collections::BTreeMap;
+    /// use itertools::Itertools;
+    ///
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&n| n % 3)
+    ///     .product_in(BTreeMap::new());
+    ///
+    /// assert_eq!(lookup[&0], 3 * 9 * 12);
+    /// assert_eq!(lookup[&1], 1 * 4 * 7);
+    /// assert_eq!(lookup[&2], 5 * 8);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    pub fn product_in<M>(self, map: M) -> M
+    where
+        V: Mul<V, Output = V>,
+        M: Map<Key = K, Value = V>,
+    {
+        self.reduce_in(|acc, _, val| acc * val, map)
     }
 }
