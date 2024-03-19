@@ -58,6 +58,12 @@ pub type GroupingMapBy<I, F> = GroupingMap<MapForGrouping<I, F>>;
 /// It groups elements by their key and at the same time fold each group
 /// using some aggregating operation.
 ///
+/// Each method have a `_in`-suffixed version where you can provide a map other than
+/// `HashMap::new()` such as:
+/// - `BTreeMap::new()` when the values are `Ord` and not necessarily `Hash + Eq`.
+/// - `HashMap::default()` to use a different hasher.
+/// - `HashMap::with_capacity(100)` to pre-allocate.
+///
 /// No method on this struct performs temporary allocations.
 #[derive(Clone, Debug)]
 #[must_use = "GroupingMap is lazy and do nothing unless consumed"]
