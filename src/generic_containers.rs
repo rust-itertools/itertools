@@ -15,6 +15,15 @@ pub trait Map {
     type Value;
     fn insert(&mut self, key: Self::Key, value: Self::Value) -> Option<Self::Value>;
     fn remove(&mut self, key: &Self::Key) -> Option<Self::Value>;
+    fn aggregate<T, F>(&mut self, key: Self::Key, t: T, mut operation: F)
+    where
+        F: FnMut(Option<Self::Value>, &Self::Key, T) -> Option<Self::Value>,
+    {
+        let opt_value = self.remove(&key);
+        if let Some(value) = operation(opt_value, &key, t) {
+            self.insert(key, value);
+        }
+    }
     fn entry_or_default(&mut self, key: Self::Key) -> &mut Self::Value
     where
         Self::Value: Default;
@@ -80,6 +89,16 @@ where
     fn remove(&mut self, key: &K) -> Option<V> {
         let index = self.iter().position(|(k, _)| k == key)?;
         Some(self.swap_remove(index).1)
+    }
+    fn aggregate<T, F>(&mut self, key: K, t: T, mut operation: F)
+    where
+        F: FnMut(Option<V>, &K, T) -> Option<V>,
+    {
+        let opt_value = Map::remove(self, &key);
+        if let Some(value) = operation(opt_value, &key, t) {
+            // The key was removed so a single push is enough to insert it back.
+            self.push((key, value));
+        }
     }
     fn entry_or_default(&mut self, key: K) -> &mut V
     where

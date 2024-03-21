@@ -144,12 +144,8 @@ where
     {
         let mut destination_map = self.map;
 
-        self.iter.for_each(|(key, val)| {
-            let acc = destination_map.remove(&key);
-            if let Some(op_res) = operation(acc, &key, val) {
-                destination_map.insert(key, op_res);
-            }
-        });
+        self.iter
+            .for_each(|(key, val)| destination_map.aggregate(key, val, &mut operation));
 
         destination_map
     }
