@@ -146,6 +146,7 @@ pub mod structs {
 
 /// Traits helpful for using certain `Itertools` methods in generic contexts.
 pub mod traits {
+    pub use crate::iter_index::IteratorIndex;
     pub use crate::tuple_impl::HomogeneousTuple;
 }
 
@@ -153,6 +154,7 @@ pub use crate::concat_impl::concat;
 pub use crate::cons_tuples_impl::cons_tuples;
 pub use crate::diff::diff_with;
 pub use crate::diff::Diff;
+pub use crate::iter_index::get;
 #[cfg(feature = "use_alloc")]
 pub use crate::kmerge_impl::kmerge_by;
 pub use crate::minmax::MinMaxResult;
@@ -194,6 +196,7 @@ mod groupbylazy;
 #[cfg(feature = "use_std")]
 mod grouping_map;
 mod intersperse;
+mod iter_index;
 #[cfg(feature = "use_alloc")]
 mod k_smallest;
 #[cfg(feature = "use_alloc")]
@@ -502,6 +505,53 @@ pub trait Itertools: Iterator {
         F: FnMut() -> Self::Item,
     {
         intersperse::intersperse_with(self, element)
+    }
+
+    /// Returns an iterator over a subsection of the iterator.
+    ///
+    /// Works similarly to [`slice::get`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
+    ///
+    /// It's a generalisation of [`Iterator::take`] and [`Iterator::skip`],
+    /// and uses these under the hood.
+    /// Therefore, the resulting iterator is [`DoubleEndedIterator`]
+    /// and/or [`ExactSizeIterator`] if the adapted iterator is.
+    ///
+    /// # Unspecified Behavior
+    /// The result of indexing with an exhausted [`core::ops::RangeInclusive`] is unspecified.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let vec = vec![3, 1, 4, 1, 5];
+    ///
+    /// let mut range: Vec<_> =
+    ///         vec.iter().get(1..=3).copied().collect();
+    /// assert_eq!(&range, &[1, 4, 1]);
+    ///
+    /// // It works with other types of ranges, too
+    /// range = vec.iter().get(..2).copied().collect();
+    /// assert_eq!(&range, &[3, 1]);
+    ///
+    /// range = vec.iter().get(0..1).copied().collect();
+    /// assert_eq!(&range, &[3]);
+    ///
+    /// range = vec.iter().get(2..).copied().collect();
+    /// assert_eq!(&range, &[4, 1, 5]);
+    ///
+    /// range = vec.iter().get(..=2).copied().collect();
+    /// assert_eq!(&range, &[3, 1, 4]);
+    ///
+    /// range = vec.iter().get(..).copied().collect();
+    /// assert_eq!(range, vec);
+    /// ```
+    fn get<R>(self, index: R) -> R::Output
+    where
+        Self: Sized,
+        R: traits::IteratorIndex<Self>,
+    {
+        iter_index::get(self, index)
     }
 
     /// Create an iterator which iterates over both this and the specified
