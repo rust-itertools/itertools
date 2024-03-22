@@ -1321,7 +1321,7 @@ fn extrema_set() {
     assert_eq!(Some(1u32).iter().min_set(), vec![&1]);
     assert_eq!(Some(1u32).iter().max_set(), vec![&1]);
 
-    let data = vec![Val(0, 1), Val(2, 0), Val(0, 2), Val(1, 0), Val(2, 1)];
+    let data = [Val(0, 1), Val(2, 0), Val(0, 2), Val(1, 0), Val(2, 1)];
 
     let min_set = data.iter().min_set();
     assert_eq!(min_set, vec![&Val(0, 1), &Val(0, 2)]);
@@ -1371,7 +1371,7 @@ fn minmax() {
 
     assert_eq!(Some(1u32).iter().minmax(), MinMaxResult::OneElement(&1));
 
-    let data = vec![Val(0, 1), Val(2, 0), Val(0, 2), Val(1, 0), Val(2, 1)];
+    let data = [Val(0, 1), Val(2, 0), Val(0, 2), Val(1, 0), Val(2, 1)];
 
     let minmax = data.iter().minmax();
     assert_eq!(minmax, MinMaxResult::MinMax(&Val(0, 1), &Val(2, 1)));
