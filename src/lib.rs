@@ -2975,6 +2975,9 @@ pub trait Itertools: Iterator {
             self.last();
             return Vec::new().into_iter();
         }
+        if k == 1 {
+            return self.min().into_iter().collect_vec().into_iter();
+        }
 
         let mut iter = self.fuse();
         let mut heap: BinaryHeap<_> = iter.by_ref().take(k).collect();
