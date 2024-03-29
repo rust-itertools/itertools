@@ -2972,6 +2972,7 @@ pub trait Itertools: Iterator {
         use alloc::collections::BinaryHeap;
 
         if k == 0 {
+            self.last();
             return Vec::new().into_iter();
         }
 
