@@ -42,6 +42,7 @@ where
     }
 
     if k == 0 {
+        iter.last();
         return Vec::new();
     }
     let mut iter = iter.fuse();
