@@ -45,6 +45,9 @@ where
         iter.last();
         return Vec::new();
     }
+    if k == 1 {
+        return iter.min_by(comparator).into_iter().collect();
+    }
     let mut iter = iter.fuse();
     let mut storage: Vec<I::Item> = iter.by_ref().take(k).collect();
 
