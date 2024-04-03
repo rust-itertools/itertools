@@ -466,7 +466,7 @@ quickcheck! {
         helper(v.iter().copied());
         helper(v.iter().copied().filter(Result::is_ok));
 
-        fn helper(it: impl Iterator<Item = Result<u8, u8>> + Clone) {
+        fn helper(it: impl Iterator<Item = Result<u8, u8>> + DoubleEndedIterator + Clone) {
             macro_rules! check_results_specialized {
                 ($src:expr, |$it:pat| $closure:expr) => {
                     assert_eq!(
@@ -482,6 +482,7 @@ quickcheck! {
             check_results_specialized!(it, |i| i.count());
             check_results_specialized!(it, |i| i.last());
             check_results_specialized!(it, |i| i.collect::<Vec<_>>());
+            check_results_specialized!(it, |i| i.rev().collect::<Vec<_>>());
             check_results_specialized!(it, |i| {
                 let mut parameters_from_fold = vec![];
                 let fold_result = i.fold(vec![], |mut acc, v| {
@@ -490,6 +491,15 @@ quickcheck! {
                     acc
                 });
                 (parameters_from_fold, fold_result)
+            });
+            check_results_specialized!(it, |i| {
+                let mut parameters_from_rfold = vec![];
+                let rfold_result = i.rfold(vec![], |mut acc, v| {
+                    parameters_from_rfold.push((acc.clone(), v));
+                    acc.push(v);
+                    acc
+                });
+                (parameters_from_rfold, rfold_result)
             });
             check_results_specialized!(it, |mut i| {
                 let mut parameters_from_all = vec![];
@@ -503,6 +513,9 @@ quickcheck! {
             let size = it.clone().count();
             for n in 0..size + 2 {
                 check_results_specialized!(it, |mut i| i.nth(n));
+            }
+            for n in 0..size + 2 {
+                check_results_specialized!(it, |mut i| i.nth_back(n));
             }
         }
     }
