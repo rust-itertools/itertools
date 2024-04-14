@@ -14,7 +14,6 @@ pub struct Combinations<I: Iterator> {
     indices: Vec<usize>,
     pool: LazyBuffer<I>,
     first: bool,
-    done: bool,
 }
 
 impl<I> Clone for Combinations<I>
@@ -22,7 +21,7 @@ where
     I: Clone + Iterator,
     I::Item: Clone,
 {
-    clone_fields!(indices, pool, first, done);
+    clone_fields!(indices, pool, first);
 }
 
 impl<I> fmt::Debug for Combinations<I>
@@ -30,7 +29,7 @@ where
     I: Iterator + fmt::Debug,
     I::Item: fmt::Debug,
 {
-    debug_fmt_fields!(Combinations, indices, pool, first, done);
+    debug_fmt_fields!(Combinations, indices, pool, first);
 }
 
 /// Create a new `Combinations` from a clonable iterator.
@@ -42,7 +41,6 @@ where
         indices: (0..k).collect(),
         pool: LazyBuffer::new(iter),
         first: true,
-        done: false,
     }
 }
 
@@ -72,7 +70,6 @@ impl<I: Iterator> Combinations<I> {
     /// elements.
     pub(crate) fn reset(&mut self, k: usize) {
         self.first = true;
-        self.done = false;
 
         if k < self.indices.len() {
             self.indices.truncate(k);
@@ -93,30 +90,32 @@ impl<I: Iterator> Combinations<I> {
             indices,
             pool,
             first,
-            done: _,
         } = self;
         let n = pool.count();
         (n, remaining_for(n, first, &indices).unwrap())
     }
 
     /// Initialises the iterator by filling a buffer with elements from the
-    /// iterator.
-    fn init(&mut self) {
+    /// iterator, return a boolean indicating whether or not we've run out of
+    /// combinations.
+    fn init(&mut self) -> bool {
         self.pool.prefill(self.k());
-        if self.k() > self.n() {
-            self.done = true;
-        } else {
+        let done = self.k() > self.n();
+        if !done {
             self.first = false;
         }
+
+        done
     }
 
     /// Increments indices representing the combination to advance to the next
     /// (in lexicographic order by increasing sequence) combination. For example
     /// if we have n=3 & k=2 then [0, 1] -> [0, 2] -> [0, 3] -> [1, 2] -> ...
-    fn increment_indices(&mut self) {
+    ///
+    /// Returns a boolean indicating whether or not we've run out of combinations.
+    fn increment_indices(&mut self) -> bool {
         if self.indices.is_empty() {
-            self.done = true;
-            return;
+            return true; // Done
         }
 
         // Scan from the end, looking for an index to increment
@@ -132,8 +131,7 @@ impl<I: Iterator> Combinations<I> {
                 i -= 1;
             } else {
                 // Reached the last combination
-                self.done = true;
-                return;
+                return true;
             }
         }
 
@@ -142,6 +140,9 @@ impl<I: Iterator> Combinations<I> {
         for j in i + 1..self.indices.len() {
             self.indices[j] = self.indices[j - 1] + 1;
         }
+
+        // If we've made it this far, we haven't run out of combos
+        false
     }
 }
 
@@ -152,13 +153,13 @@ where
 {
     type Item = Vec<I::Item>;
     fn next(&mut self) -> Option<Self::Item> {
-        if self.first {
+        let done = if self.first {
             self.init()
         } else {
             self.increment_indices()
-        }
+        };
 
-        if self.done {
+        if done {
             return None;
         }
 
@@ -166,16 +167,23 @@ where
     }
 
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        // Delegate initialisation work to next()
-        let first = self.next();
-
         if n == 0 {
-            return first;
+            return self.next();
+        }
+
+        let mut done = if self.first {
+            self.init()
+        } else {
+            self.increment_indices()
+        };
+
+        if done {
+            return None;
         }
 
         for _ in 0..(n - 1) {
-            self.increment_indices();
-            if self.done {
+            done = self.increment_indices();
+            if done {
                 return None;
             }
         }
