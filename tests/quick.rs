@@ -571,6 +571,14 @@ quickcheck! {
         let b = &b[..len];
         itertools::equal(zip_eq(a, b), zip(a, b))
     }
+
+    #[should_panic]
+    fn zip_eq_panics(a: Vec<u8>, b: Vec<u8>) -> TestResult {
+        if a.len() == b.len() { return TestResult::discard(); }
+        zip_eq(a.iter(), b.iter()).for_each(|_| {});
+        TestResult::passed() // won't come here
+    }
+
     fn equal_positions(a: Vec<i32>) -> bool {
         let with_pos = a.iter().positions(|v| v % 2 == 0);
         let without = a.iter().enumerate().filter(|(_, v)| *v % 2 == 0).map(|(i, _)| i);

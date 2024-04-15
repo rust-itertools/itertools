@@ -1,4 +1,3 @@
-use itertools::free::zip_eq;
 use itertools::multizip;
 use itertools::EitherOrBoth::{Both, Left, Right};
 use itertools::Itertools;
@@ -54,22 +53,4 @@ fn test_double_ended_zip() {
     assert_eq!(it.next_back(), Some((2, 2)));
     assert_eq!(it.next_back(), Some((1, 1)));
     assert_eq!(it.next_back(), None);
-}
-
-#[should_panic]
-#[test]
-fn zip_eq_panic1() {
-    let a = [1, 2];
-    let b = [1, 2, 3];
-
-    zip_eq(&a, &b).count();
-}
-
-#[should_panic]
-#[test]
-fn zip_eq_panic2() {
-    let a: [i32; 0] = [];
-    let b = [1, 2, 3];
-
-    zip_eq(&a, &b).count();
 }
