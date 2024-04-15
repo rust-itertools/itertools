@@ -96,8 +96,7 @@ impl<I: Iterator> Combinations<I> {
     }
 
     /// Initialises the iterator by filling a buffer with elements from the
-    /// iterator, return a boolean indicating whether or not we've run out of
-    /// combinations.
+    /// iterator. Returns true if there are no combinations, false otherwise.
     fn init(&mut self) -> bool {
         self.pool.prefill(self.k());
         let done = self.k() > self.n();
@@ -110,9 +109,9 @@ impl<I: Iterator> Combinations<I> {
 
     /// Increments indices representing the combination to advance to the next
     /// (in lexicographic order by increasing sequence) combination. For example
-    /// if we have n=3 & k=2 then [0, 1] -> [0, 2] -> [0, 3] -> [1, 2] -> ...
+    /// if we have n=4 & k=2 then `[0, 1] -> [0, 2] -> [0, 3] -> [1, 2] -> ...`
     ///
-    /// Returns a boolean indicating whether or not we've run out of combinations.
+    /// Returns true if we've run out of combinations, false otherwise.
     fn increment_indices(&mut self) -> bool {
         if self.indices.is_empty() {
             return true; // Done
@@ -171,7 +170,7 @@ where
             return self.next();
         }
 
-        let mut done = if self.first {
+        let done = if self.first {
             self.init()
         } else {
             self.increment_indices()
@@ -181,14 +180,13 @@ where
             return None;
         }
 
-        for _ in 0..(n - 1) {
-            done = self.increment_indices();
-            if done {
+        for _ in 0..n {
+            if self.increment_indices() {
                 return None;
             }
         }
 
-        self.next()
+        Some(self.indices.iter().map(|i| self.pool[*i].clone()).collect())
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
