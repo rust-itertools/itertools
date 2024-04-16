@@ -1,8 +1,11 @@
 #![allow(unstable_name_collisions)]
 
 use criterion::black_box;
+use criterion::BenchmarkId;
 use itertools::iproduct;
 use itertools::Itertools;
+
+const NTH_INPUTS: &[usize] = &[0, 1, 2, 4, 8];
 
 /// Create multiple functions each defining a benchmark group about iterator methods.
 ///
@@ -73,19 +76,19 @@ macro_rules! bench_specializations {
         $group.bench_function("last", |bencher| bencher.iter(|| {
             $iterator.last()
         }));
-        $group.bench_function("nth", |bencher| bencher.iter(|| {
-            for start in 0_usize..10 {
-                for n in 0..10 {
+        for n in NTH_INPUTS {
+            $group.bench_with_input(BenchmarkId::new("nth", n), n, |bencher, n| bencher.iter(|| {
+                for start in 0_usize..10 {
                     let mut it = $iterator;
                     if let Some(s) = start.checked_sub(1) {
                         black_box(it.nth(s));
                     }
-                    while let Some(x) = it.nth(n) {
+                    while let Some(x) = it.nth(*n) {
                         black_box(x);
                     }
                 }
-            }
-        }));
+            }));
+        }
         $group.bench_function("collect", |bencher| bencher.iter(|| {
             $iterator.collect::<Vec<_>>()
         }));
@@ -103,19 +106,19 @@ macro_rules! bench_specializations {
                 black_box(x);
             }
         }));
-        $group.bench_function("nth_back", |bencher| bencher.iter(|| {
-            for start in 0_usize..10 {
-                for n in 0..10 {
+        for n in NTH_INPUTS {
+            $group.bench_with_input(BenchmarkId::new("nth_back", n), n, |bencher, n| bencher.iter(|| {
+                for start in 0_usize..10 {
                     let mut it = $iterator;
                     if let Some(s) = start.checked_sub(1) {
                         black_box(it.nth_back(s));
                     }
-                    while let Some(x) = it.nth_back(n) {
+                    while let Some(x) = it.nth_back(*n) {
                         black_box(x);
                     }
                 }
-            }
-        }));
+            }));
+        }
         $group.bench_function("rfold", |bencher| bencher.iter(|| {
             $iterator.rfold((), |(), x| {
                 black_box(x);
