@@ -12,7 +12,7 @@ const NTH_INPUTS: &[usize] = &[0, 1, 2, 4, 8];
 /// Each created group has functions with the following ids:
 ///
 /// - `next`, `size_hint`, `count`, `last`, `nth`, `collect`, `fold`
-/// - and when marked as `DoubleEndedIterator`: `next_back`, `rfold`
+/// - and when marked as `DoubleEndedIterator`: `next_back`, `nth_back`, `rfold`
 /// - and when marked as `ExactSizeIterator`: `len`
 ///
 /// Note that this macro can be called only once.
@@ -135,8 +135,11 @@ macro_rules! bench_specializations {
     };
 }
 
-// Example: To bench only `ZipLongest::fold`, you can do
+// Usage examples:
+// - For `ZipLongest::fold` only:
 //     cargo bench --bench specializations zip_longest/fold
+// - For `.combinations(k).nth(8)`:
+//     cargo bench --bench specializations combinations./nth/8
 bench_specializations! {
     interleave {
         {
