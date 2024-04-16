@@ -2,7 +2,6 @@
 
 use criterion::black_box;
 use criterion::BenchmarkId;
-use itertools::iproduct;
 use itertools::Itertools;
 
 const NTH_INPUTS: &[usize] = &[0, 1, 2, 4, 8];
@@ -261,7 +260,7 @@ bench_specializations! {
         {
             let v = black_box(vec![0; 16]);
         }
-        iproduct!(&v, &v, &v)
+        itertools::iproduct!(&v, &v, &v)
     }
     multi_cartesian_product {
         {
