@@ -162,14 +162,10 @@ where
             return None;
         }
 
-        Some(self.indices.iter().map(|i| self.pool[*i].clone()).collect())
+        Some(self.pool.get_at(&self.indices))
     }
 
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        if n == 0 {
-            return self.next();
-        }
-
         let done = if self.first {
             self.init()
         } else {
@@ -186,7 +182,7 @@ where
             }
         }
 
-        Some(self.indices.iter().map(|i| self.pool[*i].clone()).collect())
+        Some(self.pool.get_at(&self.indices))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
