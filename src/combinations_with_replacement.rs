@@ -30,17 +30,6 @@ where
     debug_fmt_fields!(CombinationsWithReplacement, indices, pool, first);
 }
 
-impl<I> CombinationsWithReplacement<I>
-where
-    I: Iterator,
-    I::Item: Clone,
-{
-    /// Map the current mask over the pool to get an output combination
-    fn current(&self) -> Vec<I::Item> {
-        self.indices.iter().map(|i| self.pool[*i].clone()).collect()
-    }
-}
-
 /// Create a new `CombinationsWithReplacement` from a clonable iterator.
 pub fn combinations_with_replacement<I>(iter: I, k: usize) -> CombinationsWithReplacement<I>
 where
@@ -72,7 +61,7 @@ where
             // Otherwise, yield the initial state
             } else {
                 self.first = false;
-                Some(self.current())
+                Some(self.pool.get_at(&self.indices))
             };
         }
 
@@ -97,7 +86,7 @@ where
                 for indices_index in increment_from..self.indices.len() {
                     self.indices[indices_index] = increment_value;
                 }
-                Some(self.current())
+                Some(self.pool.get_at(&self.indices))
             }
             // Otherwise, we're done
             None => None,
