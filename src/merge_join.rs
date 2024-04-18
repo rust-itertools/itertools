@@ -256,6 +256,54 @@ where
         }
     }
 
+    fn fold<B, G>(mut self, init: B, mut f: G) -> B
+    where
+        Self: Sized,
+        G: FnMut(B, Self::Item) -> B,
+    {
+        let mut acc = init;
+        let mut left = self.left.next();
+        let mut right = self.right.next();
+
+        loop {
+            match (left, right) {
+                (Some(l), Some(r)) => match self.cmp_fn.merge(l, r) {
+                    (None, Some(r), x) => {
+                        acc = f(acc, x);
+                        left = self.left.next();
+                        right = Some(r);
+                    }
+                    (Some(l), None, x) => {
+                        acc = f(acc, x);
+                        left = Some(l);
+                        right = self.right.next();
+                    }
+                    (None, None, x) => {
+                        acc = f(acc, x);
+                        left = self.left.next();
+                        right = self.right.next();
+                    }
+                    (Some(_), Some(_), _) => unreachable!(),
+                },
+                (Some(l), None) => {
+                    self.left.put_back(l);
+                    acc = self.left.fold(acc, |acc, x| f(acc, F::left(x)));
+                    break;
+                }
+                (None, Some(r)) => {
+                    self.right.put_back(r);
+                    acc = self.right.fold(acc, |acc, x| f(acc, F::right(x)));
+                    break;
+                }
+                (None, None) => {
+                    break;
+                }
+            }
+        }
+
+        acc
+    }
+
     fn size_hint(&self) -> SizeHint {
         F::size_hint(self.left.size_hint(), self.right.size_hint())
     }
