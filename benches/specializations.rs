@@ -582,29 +582,29 @@ bench_specializations! {
     }
     merge {
         {
-            let v1 = black_box(vec![0; 1024]);
-            let v2 = black_box(vec![0; 768]);
+            let v1 = black_box((0..1024).collect_vec());
+            let v2 = black_box((0..768).collect_vec());
         }
         v1.iter().merge(&v2)
     }
     merge_by {
         {
-            let v1 = black_box(vec![0; 1024]);
-            let v2 = black_box(vec![0; 768]);
+            let v1 = black_box((0..1024).collect_vec());
+            let v2 = black_box((0..768).collect_vec());
         }
         v1.iter().merge_by(&v2, PartialOrd::ge)
     }
     merge_join_by_ordering {
         {
-            let v1 = black_box(vec![0; 1024]);
-            let v2 = black_box(vec![0; 768]);
+            let v1 = black_box((0..1024).collect_vec());
+            let v2 = black_box((0..768).collect_vec());
         }
         v1.iter().merge_join_by(&v2, Ord::cmp)
     }
     merge_join_by_bool {
         {
-            let v1 = black_box(vec![0; 1024]);
-            let v2 = black_box(vec![0; 768]);
+            let v1 = black_box((0..1024).collect_vec());
+            let v2 = black_box((0..768).collect_vec());
         }
         v1.iter().merge_join_by(&v2, PartialOrd::ge)
     }
