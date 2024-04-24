@@ -308,52 +308,6 @@ where
         F::size_hint(self.left.size_hint(), self.right.size_hint())
     }
 
-    fn count(mut self) -> usize {
-        let mut count = 0;
-        loop {
-            match (self.left.next(), self.right.next()) {
-                (None, None) => break count,
-                (Some(_left), None) => break count + 1 + self.left.into_parts().1.count(),
-                (None, Some(_right)) => break count + 1 + self.right.into_parts().1.count(),
-                (Some(left), Some(right)) => {
-                    count += 1;
-                    let (left, right, _) = self.cmp_fn.merge(left, right);
-                    if let Some(left) = left {
-                        self.left.put_back(left);
-                    }
-                    if let Some(right) = right {
-                        self.right.put_back(right);
-                    }
-                }
-            }
-        }
-    }
-
-    fn last(mut self) -> Option<Self::Item> {
-        let mut previous_element = None;
-        loop {
-            match (self.left.next(), self.right.next()) {
-                (None, None) => break previous_element,
-                (Some(left), None) => {
-                    break Some(F::left(self.left.into_parts().1.last().unwrap_or(left)))
-                }
-                (None, Some(right)) => {
-                    break Some(F::right(self.right.into_parts().1.last().unwrap_or(right)))
-                }
-                (Some(left), Some(right)) => {
-                    let (left, right, elem) = self.cmp_fn.merge(left, right);
-                    if let Some(left) = left {
-                        self.left.put_back(left);
-                    }
-                    if let Some(right) = right {
-                        self.right.put_back(right);
-                    }
-                    previous_element = Some(elem);
-                }
-            }
-        }
-    }
-
     fn nth(&mut self, mut n: usize) -> Option<Self::Item> {
         loop {
             if n == 0 {
