@@ -94,22 +94,15 @@ where
     type Item = Vec<I::Item>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        // If this is the first iteration, return early
         if self.first {
             // In empty edge cases, stop iterating immediately
-            return if !(self.indices.is_empty() || self.pool.get_next()) {
-                None
-            // Otherwise, yield the initial state
-            } else {
-                self.first = false;
-                Some(self.pool.get_at(&self.indices))
-            };
-        }
-
-        if self.increment_indices() {
+            if !(self.indices.is_empty() || self.pool.get_next()) {
+                return None;
+            }
+            self.first = false;
+        } else if self.increment_indices() {
             return None;
         }
-
         Some(self.pool.get_at(&self.indices))
     }
 
