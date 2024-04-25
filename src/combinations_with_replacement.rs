@@ -46,6 +46,46 @@ where
     }
 }
 
+impl<I> CombinationsWithReplacement<I>
+where
+    I: Iterator,
+    I::Item: Clone,
+{
+    /// Increments indices representing the combination to advance to the next
+    /// (in lexicographic order by increasing sequence) combination.
+    ///
+    /// Returns true if we've run out of combinations, false otherwise.
+    fn increment_indices(&mut self) -> bool {
+        // Check if we need to consume more from the iterator
+        // This will run while we increment our first index digit
+        self.pool.get_next();
+
+        // Work out where we need to update our indices
+        let mut increment = None;
+        for (i, indices_int) in self.indices.iter().enumerate().rev() {
+            if *indices_int < self.pool.len() - 1 {
+                increment = Some((i, indices_int + 1));
+                break;
+            }
+        }
+        match increment {
+            // If we can update the indices further
+            Some((increment_from, increment_value)) => {
+                // We need to update the rightmost non-max value
+                // and all those to the right
+                for i in &mut self.indices[increment_from..] {
+                    *i = increment_value;
+                }
+                // TODO: once MSRV >= 1.50, use `fill` instead:
+                // self.indices[increment_from..].fill(increment_value);
+                false
+            }
+            // Otherwise, we're done
+            None => true,
+        }
+    }
+}
+
 impl<I> Iterator for CombinationsWithReplacement<I>
 where
     I: Iterator,
