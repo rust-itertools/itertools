@@ -92,6 +92,7 @@ where
     I::Item: Clone,
 {
     type Item = Vec<I::Item>;
+
     fn next(&mut self) -> Option<Self::Item> {
         // If this is the first iteration, return early
         if self.first {
@@ -105,32 +106,11 @@ where
             };
         }
 
-        // Check if we need to consume more from the iterator
-        // This will run while we increment our first index digit
-        self.pool.get_next();
-
-        // Work out where we need to update our indices
-        let mut increment: Option<(usize, usize)> = None;
-        for (i, indices_int) in self.indices.iter().enumerate().rev() {
-            if *indices_int < self.pool.len() - 1 {
-                increment = Some((i, indices_int + 1));
-                break;
-            }
+        if self.increment_indices() {
+            return None;
         }
 
-        match increment {
-            // If we can update the indices further
-            Some((increment_from, increment_value)) => {
-                // We need to update the rightmost non-max value
-                // and all those to the right
-                for indices_index in increment_from..self.indices.len() {
-                    self.indices[indices_index] = increment_value;
-                }
-                Some(self.pool.get_at(&self.indices))
-            }
-            // Otherwise, we're done
-            None => None,
-        }
+        Some(self.pool.get_at(&self.indices))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
