@@ -106,6 +106,24 @@ where
         Some(self.pool.get_at(&self.indices))
     }
 
+    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+        if self.first {
+            // In empty edge cases, stop iterating immediately
+            if !(self.indices.is_empty() || self.pool.get_next()) {
+                return None;
+            }
+            self.first = false;
+        } else if self.increment_indices() {
+            return None;
+        }
+        for _ in 0..n {
+            if self.increment_indices() {
+                return None;
+            }
+        }
+        Some(self.pool.get_at(&self.indices))
+    }
+
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (mut low, mut upp) = self.pool.size_hint();
         low = remaining_for(low, self.first, &self.indices).unwrap_or(usize::MAX);
