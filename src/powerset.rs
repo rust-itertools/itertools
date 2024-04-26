@@ -42,6 +42,18 @@ where
     }
 }
 
+impl<I: Iterator> Powerset<I> {
+    /// Returns true if `k` has been incremented, false otherwise.
+    fn increment_k(&mut self) -> bool {
+        if self.combs.k() < self.combs.n() || self.combs.k() == 0 {
+            self.combs.reset(self.combs.k() + 1);
+            true
+        } else {
+            false
+        }
+    }
+}
+
 impl<I> Iterator for Powerset<I>
 where
     I: Iterator,
@@ -52,8 +64,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(elt) = self.combs.next() {
             Some(elt)
-        } else if self.combs.k() < self.combs.n() || self.combs.k() == 0 {
-            self.combs.reset(self.combs.k() + 1);
+        } else if self.increment_k() {
             self.combs.next()
         } else {
             None
