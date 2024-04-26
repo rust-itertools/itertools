@@ -143,6 +143,27 @@ impl<I: Iterator> Combinations<I> {
         // If we've made it this far, we haven't run out of combos
         false
     }
+
+    /// Returns the n-th item or the number of successful steps.
+    pub(crate) fn try_nth(&mut self, n: usize) -> Result<<Self as Iterator>::Item, usize>
+    where
+        I::Item: Clone,
+    {
+        let done = if self.first {
+            self.init()
+        } else {
+            self.increment_indices()
+        };
+        if done {
+            return Err(0);
+        }
+        for i in 0..n {
+            if self.increment_indices() {
+                return Err(i + 1);
+            }
+        }
+        Ok(self.pool.get_at(&self.indices))
+    }
 }
 
 impl<I> Iterator for Combinations<I>
@@ -166,23 +187,7 @@ where
     }
 
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        let done = if self.first {
-            self.init()
-        } else {
-            self.increment_indices()
-        };
-
-        if done {
-            return None;
-        }
-
-        for _ in 0..n {
-            if self.increment_indices() {
-                return None;
-            }
-        }
-
-        Some(self.pool.get_at(&self.indices))
+        self.try_nth(n).ok()
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
