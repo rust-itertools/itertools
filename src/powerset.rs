@@ -71,6 +71,20 @@ where
         }
     }
 
+    fn nth(&mut self, mut n: usize) -> Option<Self::Item> {
+        loop {
+            match self.combs.try_nth(n) {
+                Ok(item) => return Some(item),
+                Err(steps) => {
+                    if !self.increment_k() {
+                        return None;
+                    }
+                    n -= steps;
+                }
+            }
+        }
+    }
+
     fn size_hint(&self) -> SizeHint {
         let k = self.combs.k();
         // Total bounds for source iterator.
