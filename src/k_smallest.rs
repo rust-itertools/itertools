@@ -114,6 +114,7 @@ where
             return;
         }
 
+        assert_ne!(buf.len(), buf.capacity());
         buf.push(val);
 
         if buf.len() == 2 * k {
