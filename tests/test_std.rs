@@ -528,6 +528,42 @@ qc::quickcheck! {
         it::assert_equal(largest_by, sorted_largest.clone());
         it::assert_equal(largest_by_key, sorted_largest);
     }
+
+    fn k_smallest_relaxed_range(n: i64, m: u16, k: u16) -> () {
+        // u16 is used to constrain k and m to 0..2¹⁶,
+        //  otherwise the test could use too much memory.
+        let (k, m) = (k as usize, m as u64);
+
+        let mut v: Vec<_> = (n..n.saturating_add(m as _)).collect();
+        // Generate a random permutation of n..n+m
+        v.shuffle(&mut thread_rng());
+
+        // Construct the right answers for the top and bottom elements
+        let mut sorted = v.clone();
+        sorted.sort();
+        // how many elements are we checking
+        let num_elements = min(k, m as _);
+
+        // Compute the top and bottom k in various combinations
+        let sorted_smallest = sorted[..num_elements].iter().cloned();
+        let smallest = v.iter().cloned().k_smallest_relaxed(k);
+        let smallest_by = v.iter().cloned().k_smallest_relaxed_by(k, Ord::cmp);
+        let smallest_by_key = v.iter().cloned().k_smallest_relaxed_by_key(k, |&x| x);
+
+        let sorted_largest = sorted[sorted.len() - num_elements..].iter().rev().cloned();
+        let largest = v.iter().cloned().k_largest_relaxed(k);
+        let largest_by = v.iter().cloned().k_largest_relaxed_by(k, Ord::cmp);
+        let largest_by_key = v.iter().cloned().k_largest_relaxed_by_key(k, |&x| x);
+
+        // Check the variations produce the same answers and that they're right
+        it::assert_equal(smallest, sorted_smallest.clone());
+        it::assert_equal(smallest_by, sorted_smallest.clone());
+        it::assert_equal(smallest_by_key, sorted_smallest);
+
+        it::assert_equal(largest, sorted_largest.clone());
+        it::assert_equal(largest_by, sorted_largest.clone());
+        it::assert_equal(largest_by_key, sorted_largest);
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -572,8 +608,11 @@ where
     I::Item: Ord + Debug,
 {
     let j = i.clone();
+    let i1 = i.clone();
+    let j1 = i.clone();
     let k = k as usize;
-    it::assert_equal(i.k_smallest(k), j.sorted().take(k))
+    it::assert_equal(i.k_smallest(k), j.sorted().take(k));
+    it::assert_equal(i1.k_smallest_relaxed(k), j1.sorted().take(k));
 }
 
 // Similar to `k_smallest_sort` but for our custom heap implementation.
@@ -583,8 +622,11 @@ where
     I::Item: Ord + Debug,
 {
     let j = i.clone();
+    let i1 = i.clone();
+    let j1 = i.clone();
     let k = k as usize;
-    it::assert_equal(i.k_smallest_by(k, Ord::cmp), j.sorted().take(k))
+    it::assert_equal(i.k_smallest_by(k, Ord::cmp), j.sorted().take(k));
+    it::assert_equal(i1.k_smallest_relaxed_by(k, Ord::cmp), j1.sorted().take(k));
 }
 
 macro_rules! generic_test {
