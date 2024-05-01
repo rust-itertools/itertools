@@ -153,6 +153,29 @@ where
             }
         }
     }
+
+    fn rfold<B, F>(self, init: B, mut f: F) -> B
+    where
+        Self: Sized,
+        F: FnMut(B, Self::Item) -> B,
+    {
+        // Back
+        let mut acc = match self.inner_back {
+            Some(x) => x.rfold(init, |a, o| f(a, Ok(o))),
+            None => init,
+        };
+
+        acc = self.iter.rfold(acc, |acc, x| match x {
+            Ok(it) => it.into_iter().rfold(acc, |a, o| f(a, Ok(o))),
+            Err(e) => f(acc, Err(e)),
+        });
+
+        // Front
+        match self.inner_front {
+            Some(x) => x.rfold(acc, |a, o| f(a, Ok(o))),
+            None => acc,
+        }
+    }
 }
 
 impl<I, T, E> Clone for FlattenOk<I, T, E>
