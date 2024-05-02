@@ -466,7 +466,7 @@ quickcheck! {
         helper(v.iter().copied());
         helper(v.iter().copied().filter(Result::is_ok));
 
-        fn helper(it: impl Iterator<Item = Result<u8, u8>> + DoubleEndedIterator + Clone) {
+        fn helper(it: impl DoubleEndedIterator<Item = Result<u8, u8>> + Clone) {
             macro_rules! check_results_specialized {
                 ($src:expr, |$it:pat| $closure:expr) => {
                     assert_eq!(
