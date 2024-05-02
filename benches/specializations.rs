@@ -1,4 +1,4 @@
-#![allow(unstable_name_collisions)]
+#![allow(unstable_name_collisions, clippy::incompatible_msrv)]
 
 use criterion::black_box;
 use criterion::BenchmarkId;
