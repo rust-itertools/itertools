@@ -515,8 +515,9 @@ pub trait Itertools: Iterator {
     ///
     /// It's a generalisation of [`Iterator::take`] and [`Iterator::skip`],
     /// and uses these under the hood.
-    /// Therefore, the resulting iterator is [`DoubleEndedIterator`]
-    /// and/or [`ExactSizeIterator`] if the adapted iterator is.
+    /// Therefore, the resulting iterator is:
+    /// - [`ExactSizeIterator`] if the adapted iterator is [`ExactSizeIterator`].
+    /// - [`DoubleEndedIterator`] if the adapted iterator is [`DoubleEndedIterator`] and [`ExactSizeIterator`].
     ///
     /// # Unspecified Behavior
     /// The result of indexing with an exhausted [`core::ops::RangeInclusive`] is unspecified.
