@@ -37,11 +37,10 @@ impl<I> IteratorIndex<I> for Range<usize>
 where
     I: Iterator,
 {
-    type Output = Take<Skip<I>>;
+    type Output = Skip<Take<I>>;
 
     fn index(self, iter: I) -> Self::Output {
-        iter.skip(self.start)
-            .take(self.end.saturating_sub(self.start))
+        iter.take(self.end).skip(self.start)
     }
 }
 
