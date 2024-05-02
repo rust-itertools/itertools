@@ -511,7 +511,7 @@ pub trait Itertools: Iterator {
     ///
     /// Works similarly to [`slice::get`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
     ///
-    /// **Panics** if the range includes `usize::MAX`.
+    /// **Panics** for ranges `..=usize::MAX` and `0..=usize::MAX`.
     ///
     /// It's a generalisation of [`Iterator::take`] and [`Iterator::skip`],
     /// and uses these under the hood.

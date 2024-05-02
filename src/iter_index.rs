@@ -48,11 +48,17 @@ impl<I> IteratorIndex<I> for RangeInclusive<usize>
 where
     I: Iterator,
 {
-    type Output = Skip<Take<I>>;
+    type Output = Take<Skip<I>>;
 
     fn index(self, iter: I) -> Self::Output {
-        assert_ne!(*self.end(), usize::MAX);
-        iter.take(self.end() + 1).skip(*self.start())
+        // end - start + 1 without overflowing if possible
+        let length = if *self.end() == usize::MAX {
+            assert_ne!(*self.start(), 0);
+            self.end() - self.start() + 1
+        } else {
+            (self.end() + 1).saturating_sub(*self.start())
+        };
+        iter.skip(*self.start()).take(length)
     }
 }
 

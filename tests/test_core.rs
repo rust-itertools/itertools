@@ -41,6 +41,19 @@ fn get_dei_esi_then_dei_esi<I: DoubleEndedIterator + ExactSizeIterator + Clone>(
 }
 
 #[test]
+fn get_1_max() {
+    let mut it = (0..5).get(1..=usize::MAX);
+    assert_eq!(it.next(), Some(1));
+    assert_eq!(it.next_back(), Some(4));
+}
+
+#[test]
+#[should_panic]
+fn get_full_range_inclusive() {
+    let _it = (0..5).get(0..=usize::MAX);
+}
+
+#[test]
 fn product0() {
     let mut prod = iproduct!();
     assert_eq!(prod.next(), Some(()));
