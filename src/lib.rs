@@ -154,7 +154,6 @@ pub use crate::concat_impl::concat;
 pub use crate::cons_tuples_impl::cons_tuples;
 pub use crate::diff::diff_with;
 pub use crate::diff::Diff;
-pub use crate::iter_index::get;
 #[cfg(feature = "use_alloc")]
 pub use crate::kmerge_impl::kmerge_by;
 pub use crate::minmax::MinMaxResult;
