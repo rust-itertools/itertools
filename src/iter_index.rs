@@ -17,7 +17,7 @@ mod private_iter_index {
     impl Sealed for ops::RangeFull {}
 }
 
-/// Used by [`get`] and [`Itertools::get`] to know which iterator
+/// Used by [`Itertools::get`] to know which iterator
 /// to turn different ranges into.
 pub trait IteratorIndex<I>: private_iter_index::Sealed
 where
@@ -28,7 +28,7 @@ where
 
     /// Returns an adapted iterator for the current index.
     ///
-    /// Prefer calling [`get`] or [`Itertools::get`] instead
+    /// Prefer calling [`Itertools::get`] instead
     /// of calling this directly.
     fn index(self, from: I) -> Self::Output;
 }
@@ -107,9 +107,6 @@ where
     }
 }
 
-/// Returns an iterator over a subsection of the iterator.
-///
-/// See [`Itertools::get`] for more information.
 pub fn get<I, R>(iter: I, index: R) -> R::Output
 where
     I: IntoIterator,
