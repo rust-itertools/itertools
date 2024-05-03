@@ -71,6 +71,16 @@ where
     }
 }
 
+impl<'a, I, F> fmt::Debug for FormatWith<'a, I, F>
+where
+    I: Iterator,
+    F: FnMut(I::Item, &mut dyn FnMut(&dyn fmt::Display) -> fmt::Result) -> fmt::Result,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
+    }
+}
+
 impl<'a, I> Format<'a, I>
 where
     I: Iterator,
