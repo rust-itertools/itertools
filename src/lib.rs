@@ -1,4 +1,4 @@
-#![warn(missing_docs)]
+#![warn(missing_docs, clippy::default_numeric_fallback)]
 #![crate_name = "itertools"]
 #![cfg_attr(not(feature = "use_std"), no_std)]
 
@@ -4277,7 +4277,7 @@ where
 {
     let mut ia = a.into_iter();
     let mut ib = b.into_iter();
-    let mut i = 0;
+    let mut i: usize = 0;
     loop {
         match (ia.next(), ib.next()) {
             (None, None) => return,
