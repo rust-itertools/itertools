@@ -157,7 +157,7 @@ where
     i.into_iter().chain(j)
 }
 
-/// Create an iterator that clones each element from &T to T
+/// Create an iterator that clones each element from `&T` to `T`.
 ///
 /// [`IntoIterator`] enabled version of [`Iterator::cloned`].
 ///
@@ -259,7 +259,7 @@ where
     iterable.into_iter().min()
 }
 
-/// Combine all iterator elements into one String, separated by `sep`.
+/// Combine all iterator elements into one `String`, separated by `sep`.
 ///
 /// [`IntoIterator`] enabled version of [`Itertools::join`].
 ///
@@ -298,6 +298,7 @@ where
 
 /// Sort all iterator elements into a new iterator in ascending order.
 /// This sort is unstable (i.e., may reorder equal elements).
+///
 /// [`IntoIterator`] enabled version of [`Itertools::sorted_unstable`].
 ///
 /// ```

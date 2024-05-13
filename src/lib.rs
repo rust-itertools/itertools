@@ -1609,7 +1609,7 @@ pub trait Itertools: Iterator {
     /// Return an iterator adaptor that iterates over the `k`-length combinations of
     /// the elements from an iterator.
     ///
-    /// Iterator element type is `Vec<Self::Item>`. The iterator produces a new Vec per iteration,
+    /// Iterator element type is `Vec<Self::Item>`. The iterator produces a new `Vec` per iteration,
     /// and clones the iterator elements.
     ///
     /// ```
@@ -1652,7 +1652,7 @@ pub trait Itertools: Iterator {
     /// Return an iterator that iterates over the `k`-length combinations of
     /// the elements from an iterator, with replacement.
     ///
-    /// Iterator element type is `Vec<Self::Item>`. The iterator produces a new Vec per iteration,
+    /// Iterator element type is `Vec<Self::Item>`. The iterator produces a new `Vec` per iteration,
     /// and clones the iterator elements.
     ///
     /// ```
@@ -1681,7 +1681,7 @@ pub trait Itertools: Iterator {
     /// elements from an iterator.
     ///
     /// Iterator element type is `Vec<Self::Item>` with length `k`. The iterator
-    /// produces a new Vec per iteration, and clones the iterator elements.
+    /// produces a new `Vec` per iteration, and clones the iterator elements.
     ///
     /// If `k` is greater than the length of the input iterator, the resultant
     /// iterator adaptor will be empty.
@@ -2096,7 +2096,7 @@ pub trait Itertools: Iterator {
     /// Consume the first `n` elements from the iterator eagerly,
     /// and return the same iterator again.
     ///
-    /// It works similarly to *.skip(* `n` *)* except it is eager and
+    /// It works similarly to `.skip(n)` except it is eager and
     /// preserves the iterator type.
     ///
     /// ```
@@ -2230,7 +2230,7 @@ pub trait Itertools: Iterator {
             .count()
     }
 
-    /// Combine all iterator elements into one String, separated by `sep`.
+    /// Combine all iterator elements into one `String`, separated by `sep`.
     ///
     /// Use the `Display` implementation of each element.
     ///
@@ -4008,7 +4008,7 @@ pub trait Itertools: Iterator {
         }
     }
 
-    /// If the iterator yields no elements, Ok(None) will be returned. If the iterator yields
+    /// If the iterator yields no elements, `Ok(None)` will be returned. If the iterator yields
     /// exactly one element, that element will be returned, otherwise an error will be returned
     /// containing an iterator that has the same output as the input iterator.
     ///

@@ -33,7 +33,7 @@ pub struct Interleave<I, J> {
 
 /// Create an iterator that interleaves elements in `i` and `j`.
 ///
-/// [`IntoIterator`] enabled version of `[Itertools::interleave]`.
+/// [`IntoIterator`] enabled version of [`Itertools::interleave`](crate::Itertools::interleave).
 pub fn interleave<I, J>(
     i: I,
     j: J,
@@ -471,7 +471,7 @@ where
 /// A “meta iterator adaptor”. Its closure receives a reference to the iterator
 /// and may pick off as many elements as it likes, to produce the next iterator element.
 ///
-/// Iterator element type is *X*, if the return type of `F` is *Option\<X\>*.
+/// Iterator element type is `X` if the return type of `F` is `Option<X>`.
 ///
 /// See [`.batching()`](crate::Itertools::batching) for more information.
 #[derive(Clone)]

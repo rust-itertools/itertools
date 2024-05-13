@@ -28,7 +28,8 @@ where
 }
 
 impl<I: Iterator> PutBackN<I> {
-    /// Puts x in front of the iterator.
+    /// Puts `x` in front of the iterator.
+    ///
     /// The values are yielded in order of the most recently put back
     /// values first.
     ///
