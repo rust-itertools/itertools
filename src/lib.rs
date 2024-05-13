@@ -4206,7 +4206,7 @@ where
 /// semantics as [`equal(a, b)`](equal).
 ///
 /// **Panics** on assertion failure with a message that shows the
-/// two iteration elements.
+/// two different elements and the iteration index.
 ///
 /// ```should_panic
 /// # use itertools::assert_equal;
