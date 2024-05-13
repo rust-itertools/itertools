@@ -1,6 +1,7 @@
 use super::size_hint;
 
 /// An iterator which iterates two other iterators simultaneously
+/// and panic if they have different lengths.
 ///
 /// See [`.zip_eq()`](crate::Itertools::zip_eq) for more information.
 #[derive(Clone, Debug)]
