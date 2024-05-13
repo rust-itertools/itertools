@@ -7,7 +7,7 @@ pub struct Zip<T> {
     t: T,
 }
 
-/// An iterator that generalizes *.zip()* and allows running multiple iterators in lockstep.
+/// An iterator that generalizes `.zip()` and allows running multiple iterators in lockstep.
 ///
 /// The iterator `Zip<(I, J, ..., M)>` is formed from a tuple of iterators (or values that
 /// implement [`IntoIterator`]) and yields elements
@@ -20,7 +20,7 @@ pub struct Zip<T> {
 /// ..)>` of each component iterator `I, J, ...`) if each component iterator is
 /// nameable.
 ///
-/// Prefer [`izip!()`] over `multizip` for the performance benefits of using the
+/// Prefer [`izip!()`](crate::izip) over `multizip` for the performance benefits of using the
 /// standard library `.zip()`. Prefer `multizip` if a nameable type is needed.
 ///
 /// ```
@@ -36,7 +36,6 @@ pub struct Zip<T> {
 ///
 /// assert_eq!(results, [0 + 3, 10 + 7, 29, 36]);
 /// ```
-/// [`izip!()`]: crate::izip
 pub fn multizip<T, U>(t: U) -> Zip<T>
 where
     Zip<T>: From<U> + Iterator,

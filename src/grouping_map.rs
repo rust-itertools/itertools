@@ -450,7 +450,7 @@ where
     /// If several elements are equally maximum, the last element is picked.
     /// If several elements are equally minimum, the first element is picked.
     ///
-    /// See [.minmax()](crate::Itertools::minmax) for the non-grouping version.
+    /// See [`Itertools::minmax`](crate::Itertools::minmax) for the non-grouping version.
     ///
     /// Differences from the non grouping version:
     /// - It never produces a `MinMaxResult::NoElements`
