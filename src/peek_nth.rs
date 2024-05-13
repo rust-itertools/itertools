@@ -35,12 +35,12 @@ impl<I> PeekNth<I>
 where
     I: Iterator,
 {
-    /// Works exactly like the `peek` method in `std::iter::Peekable`
+    /// Works exactly like the `peek` method in [`std::iter::Peekable`].
     pub fn peek(&mut self) -> Option<&I::Item> {
         self.peek_nth(0)
     }
 
-    /// Works exactly like the `peek_mut` method in `std::iter::Peekable`
+    /// Works exactly like the `peek_mut` method in [`std::iter::Peekable`].
     pub fn peek_mut(&mut self) -> Option<&mut I::Item> {
         self.peek_nth_mut(0)
     }
@@ -117,7 +117,7 @@ where
         self.buf.get_mut(n)
     }
 
-    /// Works exactly like the `next_if` method in `std::iter::Peekable`
+    /// Works exactly like the `next_if` method in [`std::iter::Peekable`].
     pub fn next_if(&mut self, func: impl FnOnce(&I::Item) -> bool) -> Option<I::Item> {
         match self.next() {
             Some(item) if func(&item) => Some(item),
@@ -129,7 +129,7 @@ where
         }
     }
 
-    /// Works exactly like the `next_if_eq` method in `std::iter::Peekable`
+    /// Works exactly like the `next_if_eq` method in [`std::iter::Peekable`].
     pub fn next_if_eq<T>(&mut self, expected: &T) -> Option<I::Item>
     where
         T: ?Sized,
