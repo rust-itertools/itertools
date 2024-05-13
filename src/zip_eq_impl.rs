@@ -11,9 +11,7 @@ pub struct ZipEq<I, J> {
     b: J,
 }
 
-/// Iterate `i` and `j` in lock step.
-///
-/// **Panics** if the iterators are not of the same length.
+/// Zips two iterators but **panics** if they are not of the same length.
 ///
 /// [`IntoIterator`] enabled version of [`Itertools::zip_eq`](crate::Itertools::zip_eq).
 ///
