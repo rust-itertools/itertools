@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.13.0
+
+### Breaking
+- Removed implementation of `DoubleEndedIterator` for `ConsTuples` (#853)
+- Made `MultiProduct` fused and fixed on an empty iterator (#835, #834)
+- Changed `iproduct!` to return tuples for maxi one iterator too (#870)
+- Changed `PutBack::put_back` to return the old value (#880)
+- Removed deprecated `repeat_call, Itertools::{foreach, step, map_results, fold_results}` (#878)
+- Removed `TakeWhileInclusive::new` (#912)
+
+### Added
+- Added `Itertools::{smallest_by, smallest_by_key, largest, largest_by, largest_by_key}` (#654, #885)
+- Added `Itertools::tail` (#899)
+- Implemented `DoubleEndedIterator` for `ProcessResults` (#910)
+- Implemented `Debug` for `FormatWith` (#931)
+- Added `Itertools::get` (#891)
+
+### Changed
+- Deprecated `Itertools::group_by` (renamed `chunk_by`) (#866, #879)
+- Deprecated `unfold` (use `std::iter::from_fn` instead) (#871)
+- Optimized `GroupingMapBy` (#873, #876)
+- Relaxed `Fn` bounds to `FnMut` in `diff_with, Itertools::into_group_map_by` (#886)
+- Relaxed `Debug/Clone` bounds for `MapInto` (#889)
+- Documented the `use_alloc` feature (#887)
+- Optimized `Itertools::set_from` (#888)
+- Removed badges in `README.md` (#890)
+- Added "no-std" categories in `Cargo.toml` (#894)
+- Fixed `Itertools::k_smallest` on short unfused iterators (#900)
+- Deprecated `Itertools::tree_fold1` (renamed `tree_reduce`) (#895)
+- Deprecated `GroupingMap::fold_first` (renamed `reduce`) (#902)
+- Fixed `Itertools::k_smallest(0)` to consume the iterator, optimized `Itertools::k_smallest(1)` (#909)
+- Specialized `Combinations::nth` (#914)
+- Specialized `MergeBy::fold` (#920)
+- Specialized `CombinationsWithReplacement::nth` (#923)
+- Specialized `FlattenOk::{fold, rfold}` (#927)
+- Specialized `Powerset::nth` (#924)
+- Documentation fixes (#882, #936)
+- Fixed `assert_equal` for iterators longer than `i32::MAX` (#932)
+- Updated the `must_use` message of non-lazy `KMergeBy` and `TupleCombinations` (#939)
+
+### Notable Internal Changes
+- Tested iterator laziness (#792)
+- Created `CONTRIBUTING.md` (#767)
+
 ## 0.12.1
 
 ### Added
