@@ -143,11 +143,11 @@ must_use_tests! {
         let _ = Panicking.merge_join_by(Panicking, |_, _| true);
         let _ = Panicking.merge_join_by(Panicking, Ord::cmp);
     }
-    #[ignore]
+    #[should_panic]
     kmerge {
         let _ = Panicking.map(|_| Panicking).kmerge();
     }
-    #[ignore]
+    #[should_panic]
     kmerge_by {
         let _ = Panicking.map(|_| Panicking).kmerge_by(|_, _| true);
     }
