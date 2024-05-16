@@ -196,10 +196,15 @@ must_use_tests! {
     while_some {
         let _ = Panicking.map(Some).while_some();
     }
-    #[ignore]
-    tuple_combinations {
+    tuple_combinations1 {
         let _ = Panicking.tuple_combinations::<(_,)>();
+    }
+    #[should_panic]
+    tuple_combinations2 {
         let _ = Panicking.tuple_combinations::<(_, _)>();
+    }
+    #[should_panic]
+    tuple_combinations3 {
         let _ = Panicking.tuple_combinations::<(_, _, _)>();
     }
     combinations {
