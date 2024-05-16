@@ -612,7 +612,7 @@ where
 /// See [`.tuple_combinations()`](crate::Itertools::tuple_combinations) for more
 /// information.
 #[derive(Clone, Debug)]
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+#[must_use = "this iterator adaptor is not lazy but does nearly nothing unless consumed"]
 pub struct TupleCombinations<I, T>
 where
     I: Iterator,
