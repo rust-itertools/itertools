@@ -204,6 +204,7 @@ mod kmerge_impl;
 mod lazy_buffer;
 mod merge_join;
 mod minmax;
+mod multipeek_general;
 #[cfg(feature = "use_alloc")]
 mod multipeek_impl;
 mod pad_tail;
