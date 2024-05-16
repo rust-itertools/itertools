@@ -153,7 +153,7 @@ where
 ///
 /// See [`.kmerge_by()`](crate::Itertools::kmerge_by) for more
 /// information.
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+#[must_use = "this iterator adaptor is not lazy but does nearly nothing unless consumed"]
 pub struct KMergeBy<I, F>
 where
     I: Iterator,
