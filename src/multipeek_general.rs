@@ -51,19 +51,59 @@ where
 
 pub trait PeekIndex {
     fn reset_index(&mut self);
+    fn increment_index(&mut self);
+    fn index(&self) -> usize;
 }
 
 impl PeekIndex for () {
     fn reset_index(&mut self) {}
+    fn increment_index(&mut self) {}
+    fn index(&self) -> usize {
+        0
+    }
 }
 
 impl PeekIndex for usize {
     fn reset_index(&mut self) {
         *self = 0;
     }
+    fn increment_index(&mut self) {
+        *self += 1
+    }
+    fn index(&self) -> usize {
+        *self
+    }
 }
 
 impl<I: Iterator, Idx: PeekIndex> MultiPeekGeneral<I, Idx> {
+    /// Works similarly to `.next()`, but does not advance the iterator itself.
+    ///
+    /// - For `MultiPeekGeneral`, calling `.peek()` will increment the internal index,
+    ///   so the next call to `.peek()` will advance to the next element in the buffer.
+    ///   The actual underlying iterator is not consumed, allowing multiple peeks
+    ///   without advancing the iterator itself.
+    /// - For `peek_nth`, since there is no internal index used, calling `.peek()`
+    ///   multiple times will not advance the internal state or the iterator, providing
+    ///   a consistent view of the same element.
+    pub fn peek(&mut self) -> Option<&I::Item> {
+        // self.index.increment_index();
+        // self.peek_nth(0)
+        let ret = if self.index.index() < self.buf.len() {
+            Some(&self.buf[self.index.index()])
+        } else {
+            match self.iter.next() {
+                Some(x) => {
+                    self.buf.push_back(x);
+                    Some(&self.buf[self.index.index()])
+                }
+                None => return None,
+            }
+        };
+
+        self.index.increment_index();
+        ret
+    }
+
     /// Works exactly like the `peek_mut` method in [`std::iter::Peekable`].
     pub fn peek_mut(&mut self) -> Option<&mut I::Item> {
         self.peek_nth_mut(0)
@@ -183,34 +223,6 @@ impl<I: Iterator> MultiPeek<I> {
     /// Reset the peeking “cursor”
     pub fn reset_peek(&mut self) {
         self.index = 0
-    }
-
-    /// Works exactly like `.next()` with the only difference that it doesn't
-    /// advance itself. `.peek()` can be called multiple times, to peek
-    /// further ahead.
-    /// When `.next()` is called, reset the peeking “cursor”.
-    pub fn peek(&mut self) -> Option<&I::Item> {
-        let ret = if self.index < self.buf.len() {
-            Some(&self.buf[self.index])
-        } else {
-            match self.iter.next() {
-                Some(x) => {
-                    self.buf.push_back(x);
-                    Some(&self.buf[self.index])
-                }
-                None => return None,
-            }
-        };
-
-        self.index += 1;
-        ret
-    }
-}
-
-impl<I: Iterator> PeekNth<I> {
-    /// Works exactly like the `peek` method in [`std::iter::Peekable`].
-    pub fn peek(&mut self) -> Option<&I::Item> {
-        self.peek_nth(0)
     }
 }
 
