@@ -69,9 +69,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
       - uses: obi1kenobi/cargo-semver-checks-action@v2.4
         with:
-          rust-toolchain: stable
+          rust-toolchain: manual
           feature-group: all-features
 
   # Used to signal to branch protections that all other jobs have succeeded.

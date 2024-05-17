@@ -23,7 +23,7 @@ pub type PeekNth<I> = MultiPeekGeneral<I, ()>;
 /// An iterator adaptor that allows the user to peek at multiple `.next()`
 /// values without advancing the base iterator.
 ///
-/// [`IntoIterator`] enabled version of [`Itertools::multipeek`].
+/// [`IntoIterator`] enabled version of [`crate::Itertools::multipeek`].
 pub fn multipeek<I>(iterable: I) -> MultiPeek<I::IntoIter>
 where
     I: IntoIterator,
