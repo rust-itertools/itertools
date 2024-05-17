@@ -1,17 +1,13 @@
-#![allow(private_interfaces)]
-#![allow(private_bounds)]
-
 use crate::{size_hint, PeekingNext};
 use alloc::collections::VecDeque;
 use std::iter::Fuse;
 
-/// See [`multipeek()`] for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 #[derive(Debug, Clone)]
 pub struct MultiPeekGeneral<I: Iterator, Idx> {
-    pub iter: Fuse<I>,
-    pub buf: VecDeque<I::Item>,
-    pub index: Idx,
+    iter: Fuse<I>,
+    buf: VecDeque<I::Item>,
+    index: Idx,
 }
 
 /// See [`multipeek()`] for more information.
@@ -23,7 +19,7 @@ pub type PeekNth<I> = MultiPeekGeneral<I, ()>;
 /// An iterator adaptor that allows the user to peek at multiple `.next()`
 /// values without advancing the base iterator.
 ///
-/// [`IntoIterator`] enabled version of [`crate::Itertools::multipeek`].
+/// [`IntoIterator`] enabled version of [`Itertools::multipeek`](crate::Itertools::multipeek).
 pub fn multipeek<I>(iterable: I) -> MultiPeek<I::IntoIter>
 where
     I: IntoIterator,
@@ -241,9 +237,10 @@ impl<I: Iterator, Idx: PeekIndex> Iterator for MultiPeekGeneral<I, Idx> {
 
 impl<I: ExactSizeIterator, Idx: PeekIndex> ExactSizeIterator for MultiPeekGeneral<I, Idx> {}
 
-impl<I: Iterator, Idx: PeekIndex> PeekingNext for MultiPeekGeneral<I, Idx>
+impl<I, Idx> PeekingNext for MultiPeekGeneral<I, Idx>
 where
     I: Iterator,
+    Idx: PeekIndex,
 {
     fn peeking_next<F>(&mut self, accept: F) -> Option<Self::Item>
     where

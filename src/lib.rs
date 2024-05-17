@@ -115,9 +115,7 @@ pub mod structs {
     pub use crate::kmerge_impl::{KMerge, KMergeBy};
     pub use crate::merge_join::{Merge, MergeBy, MergeJoinBy};
     #[cfg(feature = "use_alloc")]
-    pub use crate::multipeek_general::MultiPeek;
-    #[cfg(feature = "use_alloc")]
-    pub use crate::multipeek_general::PeekNth;
+    pub use crate::multipeek_general::{MultiPeek, PeekNth};
     pub use crate::pad_tail::PadUsing;
     pub use crate::peeking_take_while::PeekingTakeWhile;
     #[cfg(feature = "use_alloc")]
