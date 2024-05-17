@@ -1,4 +1,5 @@
 #![allow(private_interfaces)]
+#![allow(private_bounds)]
 
 use crate::{size_hint, PeekingNext};
 use alloc::collections::VecDeque;
@@ -7,13 +8,16 @@ use std::iter::Fuse;
 /// See [`multipeek()`] for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 #[derive(Debug, Clone)]
-struct MultiPeekGeneral<I: Iterator, Idx> {
+pub struct MultiPeekGeneral<I: Iterator, Idx> {
     pub iter: Fuse<I>,
     pub buf: VecDeque<I::Item>,
     pub index: Idx,
 }
 
+/// See [`multipeek()`] for more information.
 pub type MultiPeek<I> = MultiPeekGeneral<I, usize>;
+
+/// See [`peek_nth()`] for more information.
 pub type PeekNth<I> = MultiPeekGeneral<I, ()>;
 
 /// An iterator adaptor that allows the user to peek at multiple `.next()`
@@ -49,7 +53,7 @@ where
     }
 }
 
-trait PeekIndex {
+pub trait PeekIndex {
     fn reset_index(&mut self);
 }
 
