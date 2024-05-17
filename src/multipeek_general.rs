@@ -86,8 +86,6 @@ impl<I: Iterator, Idx: PeekIndex> MultiPeekGeneral<I, Idx> {
     ///   multiple times will not advance the internal state or the iterator, providing
     ///   a consistent view of the same element.
     pub fn peek(&mut self) -> Option<&I::Item> {
-        // self.index.increment_index();
-        // self.peek_nth(0)
         let ret = if self.index.index() < self.buf.len() {
             Some(&self.buf[self.index.index()])
         } else {
@@ -258,7 +256,17 @@ where
     where
         F: FnOnce(&Self::Item) -> bool,
     {
-        self.peek_mut().filter(|item| accept(item))?;
+        if self.buf.is_empty() {
+            if let Some(r) = self.peek() {
+                if !accept(r) {
+                    return None;
+                }
+            }
+        } else if let Some(r) = self.buf.front() {
+            if !accept(r) {
+                return None;
+            }
+        }
         self.next()
     }
 }
