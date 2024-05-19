@@ -51,13 +51,13 @@ where
 
 pub trait PeekIndex {
     fn reset_index(&mut self);
-    fn increment_index(&mut self);
+    fn add(&mut self, n: usize);
     fn index(&self) -> usize;
 }
 
 impl PeekIndex for () {
     fn reset_index(&mut self) {}
-    fn increment_index(&mut self) {}
+    fn add(&mut self, _n: usize) {}
     fn index(&self) -> usize {
         0
     }
@@ -67,8 +67,8 @@ impl PeekIndex for usize {
     fn reset_index(&mut self) {
         *self = 0;
     }
-    fn increment_index(&mut self) {
-        *self += 1
+    fn add(&mut self, n: usize) {
+        *self += n
     }
     fn index(&self) -> usize {
         *self
@@ -97,8 +97,7 @@ impl<I: Iterator, Idx: PeekIndex> MultiPeekGeneral<I, Idx> {
                 None => return None,
             }
         };
-
-        self.index.increment_index();
+        self.index.add(1);
         ret
     }
 
@@ -135,7 +134,13 @@ impl<I: Iterator, Idx: PeekIndex> MultiPeekGeneral<I, Idx> {
 
         self.buf.extend(self.iter.by_ref().take(unbuffered_items));
 
-        self.buf.get(n)
+        let ret = self.buf.get(n);
+
+        if ret.is_some() {
+            self.index.add(n + 1);
+        }
+
+        ret
     }
 
     /// Returns a mutable reference to the `nth` value without advancing the iterator.
@@ -172,6 +177,8 @@ impl<I: Iterator, Idx: PeekIndex> MultiPeekGeneral<I, Idx> {
     /// assert_eq!(iter.peek_nth_mut(1), None);
     /// ```
     pub fn peek_nth_mut(&mut self, n: usize) -> Option<&mut I::Item> {
+        self.index.add(n);
+
         let unbuffered_items = (n + 1).saturating_sub(self.buf.len());
 
         self.buf.extend(self.iter.by_ref().take(unbuffered_items));
