@@ -60,6 +60,7 @@ extern crate alloc;
 #[cfg(feature = "use_alloc")]
 use alloc::{collections::VecDeque, string::String, vec::Vec};
 
+use cartesian_power::CartesianPower;
 pub use either::Either;
 
 use core::borrow::Borrow;
@@ -177,6 +178,8 @@ pub use crate::either_or_both::EitherOrBoth;
 pub mod free;
 #[doc(inline)]
 pub use crate::free::*;
+#[cfg(feature = "use_alloc")]
+mod cartesian_power;
 #[cfg(feature = "use_alloc")]
 mod combinations;
 #[cfg(feature = "use_alloc")]
@@ -1790,6 +1793,23 @@ pub trait Itertools: Iterator {
         Self::Item: Clone,
     {
         combinations_with_replacement::combinations_with_replacement(self, k)
+    }
+
+    /// Returns an iterator yielding the successive elements
+    /// of the cartesian power of the set described by the original iterator.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// TODO: illustrative example.
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn cartesian_power(self, pow: usize) -> CartesianPower<Self>
+    where
+        Self: Sized,
+        Self::Item: Clone,
+    {
+        cartesian_power::cartesian_power(self, pow)
     }
 
     /// Return an iterator adaptor that iterates over all k-permutations of the
