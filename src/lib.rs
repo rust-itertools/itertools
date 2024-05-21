@@ -393,16 +393,16 @@ macro_rules! izip {
 /// ```
 macro_rules! chain {
     () => {
-        core::iter::empty()
+        $crate::__std_iter::empty()
     };
     ($first:expr $(, $rest:expr )* $(,)?) => {
         {
-            let iter = core::iter::IntoIterator::into_iter($first);
+            let iter = $crate::__std_iter::IntoIterator::into_iter($first);
             $(
                 let iter =
-                    core::iter::Iterator::chain(
+                    $crate::__std_iter::Iterator::chain(
                         iter,
-                        core::iter::IntoIterator::into_iter($rest));
+                        $crate::__std_iter::IntoIterator::into_iter($rest));
             )*
             iter
         }
