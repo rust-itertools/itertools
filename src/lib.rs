@@ -262,7 +262,10 @@ macro_rules! iproduct {
         $crate::__std_iter::once(())
     );
     ($I:expr $(,)?) => (
-        $crate::__std_iter::IntoIterator::into_iter($I).map(|elt| (elt,))
+        $crate::__std_iter::Iterator::map(
+            $crate::__std_iter::IntoIterator::into_iter($I),
+            |elt| (elt,)
+        )
     );
     ($I:expr, $J:expr $(,)?) => (
         $crate::Itertools::cartesian_product(
@@ -330,19 +333,24 @@ macro_rules! izip {
 
     // binary
     ($first:expr, $second:expr $(,)*) => {
-        $crate::izip!($first)
-            .zip($second)
+        $crate::__std_iter::Iterator::zip(
+            $crate::__std_iter::IntoIterator::into_iter($first),
+            $second,
+        )
     };
 
     // n-ary where n > 2
     ( $first:expr $( , $rest:expr )* $(,)* ) => {
-        $crate::izip!($first)
+        {
+            let iter = $crate::__std_iter::IntoIterator::into_iter($first);
             $(
-                .zip($rest)
+                let iter = $crate::__std_iter::Iterator::zip(iter, $rest);
             )*
-            .map(
+            $crate::__std_iter::Iterator::map(
+                iter,
                 $crate::izip!(@closure a => (a) $( , $rest )*)
             )
+        }
     };
 }
 
