@@ -773,16 +773,28 @@ macro_rules! impl_tuple_combination {
             where
                 F: FnMut(B, Self::Item) -> B,
             {
+                // We outline this closure to prevent it from unnecessarily
+                // capturing the type parameters `I`, `B`, and `F`. Not doing
+                // so ended up causing exponentially big types during MIR
+                // inlining when building itertools with optimizations enabled.
+                //
+                // This change causes a small improvement to compile times in
+                // release mode.
+                type CurrTuple<A> = (A, $(ignore_ident!($X, A)),*);
+                type PrevTuple<A> = ($(ignore_ident!($X, A),)*);
+                fn map_fn<A: Clone>(z: &A) -> impl FnMut(PrevTuple<A>) -> CurrTuple<A> + '_ {
+                    move |($($X,)*)| (z.clone(), $($X),*)
+                }
                 let Self { c, item, mut iter } = self;
                 if let Some(z) = item.as_ref() {
                     init = c
-                        .map(|($($X,)*)| (z.clone(), $($X),*))
+                        .map(map_fn::<A>(z))
                         .fold(init, &mut f);
                 }
                 while let Some(z) = iter.next() {
                     let c: $P<I> = iter.clone().into();
                     init = c
-                        .map(|($($X,)*)| (z.clone(), $($X),*))
+                        .map(map_fn::<A>(&z))
                         .fold(init, &mut f);
                 }
                 init
