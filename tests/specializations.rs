@@ -451,7 +451,9 @@ quickcheck! {
     }
 
     fn filter_map_ok(v: Vec<Result<u8, char>>) -> () {
-        test_specializations(&v.into_iter().filter_map_ok(|i| if i < 20 { Some(i * 2) } else { None }));
+        let it = v.into_iter().filter_map_ok(|i| if i < 20 { Some(i * 2) } else { None });
+        test_specializations(&it);
+        test_double_ended_specializations(&it);
     }
 
     // `SmallIter2<u8>` because `Vec<u8>` is too slow and we get bad coverage from a singleton like Option<u8>
