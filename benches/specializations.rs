@@ -639,6 +639,7 @@ bench_specializations! {
         v.iter().copied().map_ok(|x| x + 1)
     }
     filter_ok {
+        DoubleEndedIterator
         {
             let v = black_box((0_u32..1024)
                 .map(|x| if x % 2 == 1 { Err(x) } else { Ok(x) })
