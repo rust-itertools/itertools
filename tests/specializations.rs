@@ -447,7 +447,9 @@ quickcheck! {
     }
 
     fn filter_ok(v: Vec<Result<u8, char>>) -> () {
-        test_specializations(&v.into_iter().filter_ok(|&i| i < 20));
+        let it = v.into_iter().filter_ok(|&i| i < 20);
+        test_specializations(&it);
+        test_double_ended_specializations(&it);
     }
 
     fn filter_map_ok(v: Vec<Result<u8, char>>) -> () {
