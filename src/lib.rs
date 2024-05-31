@@ -174,6 +174,8 @@ pub use crate::either_or_both::EitherOrBoth;
 pub mod free;
 #[doc(inline)]
 pub use crate::free::*;
+use crate::permutations_const::PermutationsConst;
+
 #[cfg(feature = "use_alloc")]
 mod combinations;
 #[cfg(feature = "use_alloc")]
@@ -233,6 +235,7 @@ mod with_position;
 mod zip_eq_impl;
 mod zip_longest;
 mod ziptuple;
+mod permutations_const;
 
 #[macro_export]
 /// Create an iterator over the “cartesian product” of iterators.
@@ -1784,6 +1787,15 @@ pub trait Itertools: Iterator {
         Self::Item: Clone,
     {
         permutations::permutations(self, k)
+    }
+
+    #[cfg(feature = "use_alloc")]
+    fn permutations_const<const K: usize>(self) -> PermutationsConst<Self, K>
+        where
+            Self: Sized,
+            Self::Item: Clone,
+    {
+        permutations_const::permutations_const(self)
     }
 
     /// Return an iterator that iterates through the powerset of the elements from an
