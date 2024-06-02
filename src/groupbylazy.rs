@@ -397,7 +397,7 @@ where
     /// references in the underlying iterators instead of reference counts,
     /// resulting in one less allocation. You may however hit lifetime
     /// errors if you require full ownership.
-    pub fn borrowed_iter<'a>(&'a self) -> <&'a Self as IntoIterator>::IntoIter {
+    pub fn borrowed_iter(&self) -> <&Self as IntoIterator>::IntoIter {
         self.into_iter()
     }
 }
@@ -589,7 +589,7 @@ where
     /// references in the underlying iterators instead of reference counts,
     /// resulting in one less allocation. You may however hit lifetime
     /// errors if you require full ownership.
-    pub fn borrowed_iter<'a>(&'a self) -> <&'a Self as IntoIterator>::IntoIter {
+    pub fn borrowed_iter(&self) -> <&Self as IntoIterator>::IntoIter {
         self.into_iter()
     }
 }
