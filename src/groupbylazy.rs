@@ -117,7 +117,8 @@ where
         if elt.is_none() && client == self.oldest_buffered_group {
             // FIXME: VecDeque is unfortunately not zero allocation when empty,
             // so we do this job manually.
-            // `bottom_group..oldest_buffered_group` is unused, and if it's large enough, erase it.
+            // `bottom_group..oldest_buffered_group` is unused, and if it's large enough,
+            // erase it.
             self.oldest_buffered_group += 1;
             // skip forward further empty queues too
             while self
@@ -202,7 +203,8 @@ where
     }
 
     fn push_next_group(&mut self, group: Vec<I::Item>) {
-        // When we add a new buffered group, fill up slots between oldest_buffered_group and top_group
+        // When we add a new buffered group, fill up slots between oldest_buffered_group
+        // and top_group
         while self.top_group - self.bottom_group > self.buffer.len() {
             if self.buffer.is_empty() {
                 self.bottom_group += 1;
