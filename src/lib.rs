@@ -209,6 +209,7 @@ mod merge_join;
 mod minmax;
 #[cfg(feature = "use_alloc")]
 mod multipeek_impl;
+mod next_array;
 mod pad_tail;
 #[cfg(feature = "use_alloc")]
 mod peek_nth;
@@ -1968,6 +1969,50 @@ pub trait Itertools: Iterator {
     }
 
     // non-adaptor methods
+    /// Advances the iterator and returns the next items grouped in an array of
+    /// a specific size.
+    ///
+    /// If there are enough elements to be grouped in an array, then the array
+    /// is returned inside `Some`, otherwise `None` is returned.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut iter = 1..5;
+    ///
+    /// assert_eq!(Some([1, 2]), iter.next_array());
+    /// ```
+    fn next_array<const N: usize>(&mut self) -> Option<[Self::Item; N]>
+    where
+        Self: Sized,
+    {
+        next_array::next_array(self)
+    }
+
+    /// Collects all items from the iterator into an array of a specific size.
+    ///
+    /// If the number of elements inside the iterator is **exactly** equal to
+    /// the array size, then the array is returned inside `Some`, otherwise
+    /// `None` is returned.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let iter = 1..3;
+    ///
+    /// if let Some([x, y]) = iter.collect_array() {
+    ///     assert_eq!([x, y], [1, 2])
+    /// } else {
+    ///     panic!("Expected two elements")
+    /// }
+    /// ```
+    fn collect_array<const N: usize>(mut self) -> Option<[Self::Item; N]>
+    where
+        Self: Sized,
+    {
+        self.next_array().filter(|_| self.next().is_none())
+    }
+
     /// Advances the iterator and returns the next items grouped in a tuple of
     /// a specific size (up to 12).
     ///
