@@ -9,6 +9,7 @@
 ### Added
 - Added `array_combinations` (#991)
 - Added `k_smallest_relaxed` and variants (#925)
+- Added `next_array` and `collect_array` (#560)
 - Implemented `DoubleEndedIterator` for `FilterOk` (#948)
 - Implemented `DoubleEndedIterator` for `FilterMapOk` (#950)
 
