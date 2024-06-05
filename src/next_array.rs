@@ -3,8 +3,15 @@ use core::ptr;
 
 /// An array of at most `N` elements.
 struct ArrayBuilder<T, const N: usize> {
-    arr: [MaybeUninit<T>; N], // Invariant: arr[..len] is valid.
-    len: usize,               // Invariant: len <= N.
+    /// The (possibly uninitialized) elements of the `ArrayBuilder`.
+    ///
+    /// # Safety
+    ///
+    /// The elements of `arr[..len]` are valid `T`s.
+    arr: [MaybeUninit<T>; N],
+
+    /// The number of leading elements of `arr` that are valid `T`s, len <= N.
+    len: usize,
 }
 
 impl<T, const N: usize> ArrayBuilder<T, N> {
