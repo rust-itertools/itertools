@@ -1,35 +1,45 @@
-use core::mem::MaybeUninit;
+use core::mem::{self, MaybeUninit};
 use core::ptr;
 
-/// Helper struct to build up an array element by element.
+/// An array of at most `N` elements.
 struct ArrayBuilder<T, const N: usize> {
-    arr: [MaybeUninit<T>; N], // Invariant: arr[..len] is initialized.
+    arr: [MaybeUninit<T>; N], // Invariant: arr[..len] is valid.
     len: usize,               // Invariant: len <= N.
 }
 
 impl<T, const N: usize> ArrayBuilder<T, N> {
+    /// Initializes a new, empty `ArrayBuilder`.
     pub fn new() -> Self {
+        // SAFETY: the validity invariant trivially hold for a zero-length array.
         Self {
             arr: [(); N].map(|_| MaybeUninit::uninit()),
             len: 0,
         }
     }
 
+    /// Pushes `value` onto the end of the array.
+    ///
+    /// # Panics
+    ///
+    /// This panics if `self.len() >= N`.
     pub fn push(&mut self, value: T) {
-        // We maintain the invariant here that arr[..len] is initialized.
+        // SAFETY: we maintain the invariant here that arr[..len] is valid.
         // Indexing with self.len also ensures self.len < N, and thus <= N after
         // the increment.
         self.arr[self.len] = MaybeUninit::new(value);
         self.len += 1;
     }
 
+    /// Consumes the elements in the `ArrayBuilder` and returns them as an array `[T; N]`.
+    ///
+    /// If `self.len() < N`, this returns `None`.
     pub fn take(&mut self) -> Option<[T; N]> {
         if self.len == N {
-            // Take the array, resetting the length back to zero.
-            let arr = core::mem::replace(&mut self.arr, [(); N].map(|_| MaybeUninit::uninit()));
+            // Take the array, resetting our length back to zero.
             self.len = 0;
+            let arr = mem::replace(&mut self.arr, [(); N].map(|_| MaybeUninit::uninit()));
 
-            // SAFETY: we had len == N, so all elements in arr are initialized.
+            // SAFETY: we had len == N, so all elements in arr are valid.
             Some(unsafe { arr.map(|v| v.assume_init()) })
         } else {
             None
@@ -40,10 +50,10 @@ impl<T, const N: usize> ArrayBuilder<T, N> {
 impl<T, const N: usize> Drop for ArrayBuilder<T, N> {
     fn drop(&mut self) {
         unsafe {
-            // SAFETY: arr[..len] is initialized, so must be dropped.
-            // First we create a pointer to this initialized slice, then drop
-            // that slice in-place. The cast from *mut MaybeUninit<T> to *mut T
-            // is always sound by the layout guarantees of MaybeUninit.
+            // SAFETY: arr[..len] is valid, so must be dropped. First we create
+            // a pointer to this valid slice, then drop that slice in-place.
+            // The cast from *mut MaybeUninit<T> to *mut T is always sound by
+            // the layout guarantees of MaybeUninit.
             let ptr_to_first: *mut MaybeUninit<T> = self.arr.as_mut_ptr();
             let ptr_to_slice = ptr::slice_from_raw_parts_mut(ptr_to_first.cast::<T>(), self.len);
             ptr::drop_in_place(ptr_to_slice);
