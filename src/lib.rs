@@ -2528,24 +2528,26 @@ pub trait Itertools: Iterator {
     ///
     /// If `f` is associative you should also decide carefully:
     ///
-    /// - if `f` is a trivial operation like `u32::wrapping_add`, prefer the normal
-    /// [`Iterator::reduce`] instead since it will most likely result in the generation of simpler
-    /// code because the compiler is able to optimize it
-    /// - otherwise if `f` is non-trivial like `format!`, you should use `tree_reduce` since it
-    /// reduces the number of operations from `O(n)` to `O(ln(n))`
+    /// For an iterator producing `n` elements, both [`Iterator::reduce`] and `tree_reduce` will
+    /// call `f` `n - 1` times. However, `tree_reduce` will call `f` on earlier intermediate
+    /// results, which is beneficial for `f` that allocate and produce longer results for longer
+    /// arguments. For example if `f` combines arguments using `format!`, then `tree_reduce` will
+    /// operate on average on shorter arguments resulting in less bytes being allocated overall.
     ///
-    /// Here "non-trivial" means:
-    ///
-    /// - any allocating operation
-    /// - any function that is a composition of many operations
+    /// If 'f' does not benefit from such a reordering, like `u32::wrapping_add`, prefer the
+    /// normal [`Iterator::reduce`] instead since it will most likely result in the generation of
+    /// simpler code because the compiler is able to optimize it.
     ///
     /// ```
     /// use itertools::Itertools;
     ///
+    /// let f = |a: String, b: String| {
+    ///     format!("f({a}, {b})")
+    /// };
+    ///
     /// // The same tree as above
-    /// let num_strings = (1..8).map(|x| x.to_string());
-    /// assert_eq!(num_strings.tree_reduce(|x, y| format!("f({}, {})", x, y)),
-    ///     Some(String::from("f(f(f(1, 2), f(3, 4)), f(f(5, 6), 7))")));
+    /// assert_eq!((1..8).map(|x| x.to_string()).tree_reduce(f),
+    ///            Some(String::from("f(f(f(1, 2), f(3, 4)), f(f(5, 6), 7))")));
     ///
     /// // Like fold1, an empty iterator produces None
     /// assert_eq!((0..0).tree_reduce(|x, y| x * y), None);
@@ -2553,9 +2555,36 @@ pub trait Itertools: Iterator {
     /// // tree_reduce matches fold1 for associative operations...
     /// assert_eq!((0..10).tree_reduce(|x, y| x + y),
     ///     (0..10).fold1(|x, y| x + y));
+    ///
     /// // ...but not for non-associative ones
     /// assert_ne!((0..10).tree_reduce(|x, y| x - y),
     ///     (0..10).fold1(|x, y| x - y));
+    ///
+    ///
+    /// let mut total_capacity_reduce = 0;
+    /// let reduce_res = (1..100).map(|x| x.to_string())
+    ///     .reduce(|a, b| {
+    ///         let r = f(a, b);
+    ///         total_capacity_reduce += r.capacity();
+    ///         r
+    ///     })
+    ///     .unwrap();
+    ///
+    /// let mut total_capacity_tree_reduce = 0;
+    /// let tree_reduce_res = (1..100).map(|x| x.to_string())
+    ///     .tree_reduce(|a, b| {
+    ///         let r = f(a, b);
+    ///         total_capacity_tree_reduce += r.capacity();
+    ///         r
+    ///     })
+    ///     .unwrap();
+    ///
+    /// dbg!(total_capacity_reduce, total_capacity_tree_reduce,
+    ///      reduce_res.len(), tree_reduce_res.len());
+    /// // total_capacity_reduce = 65630
+    /// // total_capacity_tree_reduce = 7284
+    /// // reduce_res.len() = 679
+    /// // tree_reduce_res.len() = 679
     /// ```
     fn tree_reduce<F>(mut self, mut f: F) -> Option<Self::Item>
     where
