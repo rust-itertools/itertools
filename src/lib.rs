@@ -77,6 +77,9 @@ type VecDequeIntoIter<T> = alloc::collections::vec_deque::IntoIter<T>;
 type VecIntoIter<T> = alloc::vec::IntoIter<T>;
 use std::iter::FromIterator;
 
+#[cfg(feature = "use_alloc")]
+use crate::generic_containers::Map;
+
 #[macro_use]
 mod impl_macros;
 
@@ -108,6 +111,8 @@ pub mod structs {
     pub use crate::groupbylazy::GroupBy;
     #[cfg(feature = "use_alloc")]
     pub use crate::groupbylazy::{Chunk, ChunkBy, Chunks, Group, Groups, IntoChunks};
+    #[cfg(feature = "use_alloc")]
+    pub use crate::grouping_map::{GroupingGenericMap, GroupingGenericMapBy};
     #[cfg(feature = "use_std")]
     pub use crate::grouping_map::{GroupingMap, GroupingMapBy};
     pub use crate::intersperse::{Intersperse, IntersperseWith};
@@ -189,10 +194,12 @@ mod extrema_set;
 mod flatten_ok;
 mod format;
 #[cfg(feature = "use_alloc")]
+mod generic_containers;
+#[cfg(feature = "use_alloc")]
 mod group_map;
 #[cfg(feature = "use_alloc")]
 mod groupbylazy;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod grouping_map;
 mod intersperse;
 mod iter_index;
@@ -3409,15 +3416,15 @@ pub trait Itertools: Iterator {
     /// value of type `K` will be used as key to identify the groups and the
     /// value of type `V` as value for the folding operation.
     ///
-    /// See [`GroupingMap`] for more informations
+    /// See [`GroupingGenericMap`] for more informations
     /// on what operations are available.
     #[cfg(feature = "use_std")]
-    fn into_grouping_map<K, V>(self) -> GroupingMap<Self>
+    fn into_grouping_map<K, V, R>(self) -> GroupingMap<Self, R>
     where
         Self: Iterator<Item = (K, V)> + Sized,
         K: Hash + Eq,
     {
-        grouping_map::new(self)
+        self.into_grouping_map_in(HashMap::new())
     }
 
     /// Constructs a `GroupingMap` to be used later with one of the efficient
@@ -3426,16 +3433,59 @@ pub trait Itertools: Iterator {
     /// The values from this iterator will be used as values for the folding operation
     /// while the keys will be obtained from the values by calling `key_mapper`.
     ///
-    /// See [`GroupingMap`] for more informations
+    /// See [`GroupingGenericMap`] for more informations
     /// on what operations are available.
     #[cfg(feature = "use_std")]
-    fn into_grouping_map_by<K, V, F>(self, key_mapper: F) -> GroupingMapBy<Self, F>
+    fn into_grouping_map_by<K, V, F, R>(self, key_mapper: F) -> GroupingMapBy<Self, F, R>
     where
         Self: Iterator<Item = V> + Sized,
         K: Hash + Eq,
         F: FnMut(&V) -> K,
     {
-        grouping_map::new(grouping_map::new_map_for_grouping(self, key_mapper))
+        self.into_grouping_map_by_in(key_mapper, HashMap::new())
+    }
+
+    /// Constructs a `GroupingGenericMap` to be used later with one of the efficient
+    /// group-and-fold operations it allows to perform.
+    ///
+    /// The input iterator must yield item in the form of `(K, V)` where the
+    /// value of type `K` will be used as key to identify the groups and the
+    /// value of type `V` as value for the folding operation.
+    ///
+    /// See [`GroupingGenericMap`] for more informations
+    /// on what operations are available.
+    #[cfg(feature = "use_alloc")]
+    fn into_grouping_map_in<K, V, M>(self, map: M) -> GroupingGenericMap<Self, M>
+    where
+        Self: Iterator<Item = (K, V)> + Sized,
+        K: Eq,
+        M: Map<Key = K>,
+    {
+        grouping_map::new_in(self, map)
+    }
+
+    /// Constructs a `GroupingGenericMap` to be used later with one of the efficient
+    /// group-and-fold operations it allows to perform.
+    ///
+    /// The values from this iterator will be used as values for the folding operation
+    /// while the keys will be obtained from the values by calling `key_mapper`.
+    ///
+    /// See [`GroupingGenericMap`] for more informations
+    /// on what operations are available.
+    #[cfg(feature = "use_alloc")]
+    fn into_grouping_map_by_in<K, V, F, M>(
+        self,
+        key_mapper: F,
+        map: M,
+    ) -> GroupingGenericMapBy<Self, F, M>
+    where
+        Self: Iterator<Item = V> + Sized,
+        K: Eq,
+        F: FnMut(&V) -> K,
+        M: Map<Key = K>,
+    {
+        let iter = grouping_map::new_map_for_grouping(self, key_mapper);
+        grouping_map::new_in(iter, map)
     }
 
     /// Return all minimum elements of an iterator.

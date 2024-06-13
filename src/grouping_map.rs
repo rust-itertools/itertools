@@ -1,14 +1,42 @@
-#![cfg(feature = "use_std")]
+#![cfg(feature = "use_alloc")]
 
 use crate::{
     adaptors::map::{MapSpecialCase, MapSpecialCaseFn},
+    generic_containers::Map,
     MinMaxResult,
 };
 use std::cmp::Ordering;
-use std::collections::HashMap;
-use std::hash::Hash;
 use std::iter::Iterator;
 use std::ops::{Add, Mul};
+
+#[cfg(feature = "use_std")]
+pub use with_hashmap::{GroupingMap, GroupingMapBy};
+
+#[cfg(feature = "use_std")]
+mod with_hashmap {
+    use super::*;
+    use std::collections::HashMap;
+
+    // This is used to infer `K` when `I::Item = (K, V)` since we can't write `I::Item.0`.
+    pub trait KeyValue {
+        type Key;
+    }
+
+    impl<K, V> KeyValue for (K, V) {
+        type Key = K;
+    }
+
+    /// `GroupingMap` is an intermediate struct for efficient group-and-fold operations.
+    ///
+    /// See [`GroupingGenericMap`] for more informations.
+    pub type GroupingMap<I, R> =
+        GroupingGenericMap<I, HashMap<<<I as Iterator>::Item as KeyValue>::Key, R>>;
+
+    /// `GroupingMapBy` is an intermediate struct for efficient group-and-fold operations.
+    ///
+    /// See [`GroupingGenericMap`] for more informations.
+    pub type GroupingMapBy<I, F, R> = GroupingMap<MapForGrouping<I, F>, R>;
+}
 
 /// A wrapper to allow for an easy [`into_grouping_map_by`](crate::Itertools::into_grouping_map_by)
 pub type MapForGrouping<I, F> = MapSpecialCase<I, GroupingMapFn<F>>;
@@ -37,41 +65,43 @@ pub(crate) fn new_map_for_grouping<K, I: Iterator, F: FnMut(&I::Item) -> K>(
     }
 }
 
-/// Creates a new `GroupingMap` from `iter`
-pub fn new<I, K, V>(iter: I) -> GroupingMap<I>
+pub fn new_in<I, K, V, M>(iter: I, map: M) -> GroupingGenericMap<I, M>
 where
     I: Iterator<Item = (K, V)>,
-    K: Hash + Eq,
+    K: Eq,
+    M: Map<Key = K>,
 {
-    GroupingMap { iter }
+    GroupingGenericMap { iter, map }
 }
 
-/// `GroupingMapBy` is an intermediate struct for efficient group-and-fold operations.
+/// `GroupingGenericMapBy` is an intermediate struct for efficient group-and-fold operations.
 ///
-/// See [`GroupingMap`] for more informations.
-pub type GroupingMapBy<I, F> = GroupingMap<MapForGrouping<I, F>>;
+/// See [`GroupingGenericMap`] for more informations.
+pub type GroupingGenericMapBy<I, F, M> = GroupingGenericMap<MapForGrouping<I, F>, M>;
 
-/// `GroupingMap` is an intermediate struct for efficient group-and-fold operations.
+/// `GroupingGenericMap` is an intermediate struct for efficient group-and-fold operations.
 /// It groups elements by their key and at the same time fold each group
 /// using some aggregating operation.
 ///
 /// No method on this struct performs temporary allocations.
 #[derive(Clone, Debug)]
-#[must_use = "GroupingMap is lazy and do nothing unless consumed"]
-pub struct GroupingMap<I> {
+#[must_use = "GroupingGenericMap is lazy and do nothing unless consumed"]
+pub struct GroupingGenericMap<I, M> {
     iter: I,
+    map: M,
 }
 
-impl<I, K, V> GroupingMap<I>
+impl<I, K, V, M> GroupingGenericMap<I, M>
 where
     I: Iterator<Item = (K, V)>,
-    K: Hash + Eq,
+    K: Eq,
+    M: Map<Key = K>,
 {
-    /// This is the generic way to perform any operation on a `GroupingMap`.
+    /// This is the generic way to perform any operation on a `GroupingGenericMap`.
     /// It's suggested to use this method only to implement custom operations
     /// when the already provided ones are not enough.
     ///
-    /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
+    /// Groups elements from the `GroupingGenericMap` source by key and applies `operation` to the elements
     /// of each group sequentially, passing the previously accumulated value, a reference to the key
     /// and the current element as arguments, and stores the results in an `HashMap`.
     ///
@@ -107,23 +137,20 @@ where
     /// assert_eq!(lookup[&3], 7);
     /// assert_eq!(lookup.len(), 3);      // The final keys are only 0, 1 and 2
     /// ```
-    pub fn aggregate<FO, R>(self, mut operation: FO) -> HashMap<K, R>
+    pub fn aggregate<FO, R>(self, mut operation: FO) -> M
     where
         FO: FnMut(Option<R>, &K, V) -> Option<R>,
+        M: Map<Value = R>,
     {
-        let mut destination_map = HashMap::new();
+        let mut destination_map = self.map;
 
-        self.iter.for_each(|(key, val)| {
-            let acc = destination_map.remove(&key);
-            if let Some(op_res) = operation(acc, &key, val) {
-                destination_map.insert(key, op_res);
-            }
-        });
+        self.iter
+            .for_each(|(key, val)| destination_map.aggregate(key, val, &mut operation));
 
         destination_map
     }
 
-    /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
+    /// Groups elements from the `GroupingGenericMap` source by key and applies `operation` to the elements
     /// of each group sequentially, passing the previously accumulated value, a reference to the key
     /// and the current element as arguments, and stores the results in a new map.
     ///
@@ -156,10 +183,11 @@ where
     /// assert_eq!(lookup[&2].acc, 2 + 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn fold_with<FI, FO, R>(self, mut init: FI, mut operation: FO) -> HashMap<K, R>
+    pub fn fold_with<FI, FO, R>(self, mut init: FI, mut operation: FO) -> M
     where
         FI: FnMut(&K, &V) -> R,
         FO: FnMut(R, &K, V) -> R,
+        M: Map<Value = R>,
     {
         self.aggregate(|acc, key, val| {
             let acc = acc.unwrap_or_else(|| init(key, &val));
@@ -167,7 +195,7 @@ where
         })
     }
 
-    /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
+    /// Groups elements from the `GroupingGenericMap` source by key and applies `operation` to the elements
     /// of each group sequentially, passing the previously accumulated value, a reference to the key
     /// and the current element as arguments, and stores the results in a new map.
     ///
@@ -192,15 +220,16 @@ where
     /// assert_eq!(lookup[&2], 2 + 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn fold<FO, R>(self, init: R, operation: FO) -> HashMap<K, R>
+    pub fn fold<FO, R>(self, init: R, operation: FO) -> M
     where
         R: Clone,
         FO: FnMut(R, &K, V) -> R,
+        M: Map<Value = R>,
     {
         self.fold_with(|_, _| init.clone(), operation)
     }
 
-    /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
+    /// Groups elements from the `GroupingGenericMap` source by key and applies `operation` to the elements
     /// of each group sequentially, passing the previously accumulated value, a reference to the key
     /// and the current element as arguments, and stores the results in a new map.
     ///
@@ -213,7 +242,7 @@ where
     ///
     /// Return a `HashMap` associating the key of each group with the result of folding that group's elements.
     ///
-    /// [`fold`]: GroupingMap::fold
+    /// [`fold`]: GroupingGenericMap::fold
     ///
     /// ```
     /// use itertools::Itertools;
@@ -227,9 +256,10 @@ where
     /// assert_eq!(lookup[&2], 2 + 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn reduce<FO>(self, mut operation: FO) -> HashMap<K, V>
+    pub fn reduce<FO>(self, mut operation: FO) -> M
     where
         FO: FnMut(V, &K, V) -> V,
+        M: Map<Value = V>,
     {
         self.aggregate(|acc, key, val| {
             Some(match acc {
@@ -239,16 +269,17 @@ where
         })
     }
 
-    /// See [`.reduce()`](GroupingMap::reduce).
+    /// See [`.reduce()`](GroupingGenericMap::reduce).
     #[deprecated(note = "Use .reduce() instead", since = "0.13.0")]
-    pub fn fold_first<FO>(self, operation: FO) -> HashMap<K, V>
+    pub fn fold_first<FO>(self, operation: FO) -> M
     where
         FO: FnMut(V, &K, V) -> V,
+        M: Map<Value = V>,
     {
         self.reduce(operation)
     }
 
-    /// Groups elements from the `GroupingMap` source by key and collects the elements of each group in
+    /// Groups elements from the `GroupingGenericMap` source by key and collects the elements of each group in
     /// an instance of `C`. The iteration order is preserved when inserting elements.
     ///
     /// Return a `HashMap` associating the key of each group with the collection containing that group's elements.
@@ -266,23 +297,21 @@ where
     /// assert_eq!(lookup[&2], vec![2, 5].into_iter().collect::<HashSet<_>>());
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn collect<C>(self) -> HashMap<K, C>
+    pub fn collect<C>(self) -> M
     where
         C: Default + Extend<V>,
+        M: Map<Value = C>,
     {
-        let mut destination_map = HashMap::new();
+        let mut destination_map = self.map;
 
         self.iter.for_each(|(key, val)| {
-            destination_map
-                .entry(key)
-                .or_insert_with(C::default)
-                .extend(Some(val));
+            destination_map.entry_or_default(key).extend(Some(val));
         });
 
         destination_map
     }
 
-    /// Groups elements from the `GroupingMap` source by key and finds the maximum of each group.
+    /// Groups elements from the `GroupingGenericMap` source by key and finds the maximum of each group.
     ///
     /// If several elements are equally maximum, the last element is picked.
     ///
@@ -300,14 +329,15 @@ where
     /// assert_eq!(lookup[&2], 8);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn max(self) -> HashMap<K, V>
+    pub fn max(self) -> M
     where
         V: Ord,
+        M: Map<Value = V>,
     {
         self.max_by(|_, v1, v2| V::cmp(v1, v2))
     }
 
-    /// Groups elements from the `GroupingMap` source by key and finds the maximum of each group
+    /// Groups elements from the `GroupingGenericMap` source by key and finds the maximum of each group
     /// with respect to the specified comparison function.
     ///
     /// If several elements are equally maximum, the last element is picked.
@@ -326,9 +356,10 @@ where
     /// assert_eq!(lookup[&2], 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn max_by<F>(self, mut compare: F) -> HashMap<K, V>
+    pub fn max_by<F>(self, mut compare: F) -> M
     where
         F: FnMut(&K, &V, &V) -> Ordering,
+        M: Map<Value = V>,
     {
         self.reduce(|acc, key, val| match compare(key, &acc, &val) {
             Ordering::Less | Ordering::Equal => val,
@@ -336,7 +367,7 @@ where
         })
     }
 
-    /// Groups elements from the `GroupingMap` source by key and finds the element of each group
+    /// Groups elements from the `GroupingGenericMap` source by key and finds the element of each group
     /// that gives the maximum from the specified function.
     ///
     /// If several elements are equally maximum, the last element is picked.
@@ -355,15 +386,16 @@ where
     /// assert_eq!(lookup[&2], 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn max_by_key<F, CK>(self, mut f: F) -> HashMap<K, V>
+    pub fn max_by_key<F, CK>(self, mut f: F) -> M
     where
         F: FnMut(&K, &V) -> CK,
         CK: Ord,
+        M: Map<Value = V>,
     {
         self.max_by(|key, v1, v2| f(key, v1).cmp(&f(key, v2)))
     }
 
-    /// Groups elements from the `GroupingMap` source by key and finds the minimum of each group.
+    /// Groups elements from the `GroupingGenericMap` source by key and finds the minimum of each group.
     ///
     /// If several elements are equally minimum, the first element is picked.
     ///
@@ -381,14 +413,15 @@ where
     /// assert_eq!(lookup[&2], 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn min(self) -> HashMap<K, V>
+    pub fn min(self) -> M
     where
         V: Ord,
+        M: Map<Value = V>,
     {
         self.min_by(|_, v1, v2| V::cmp(v1, v2))
     }
 
-    /// Groups elements from the `GroupingMap` source by key and finds the minimum of each group
+    /// Groups elements from the `GroupingGenericMap` source by key and finds the minimum of each group
     /// with respect to the specified comparison function.
     ///
     /// If several elements are equally minimum, the first element is picked.
@@ -407,9 +440,10 @@ where
     /// assert_eq!(lookup[&2], 8);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn min_by<F>(self, mut compare: F) -> HashMap<K, V>
+    pub fn min_by<F>(self, mut compare: F) -> M
     where
         F: FnMut(&K, &V, &V) -> Ordering,
+        M: Map<Value = V>,
     {
         self.reduce(|acc, key, val| match compare(key, &acc, &val) {
             Ordering::Less | Ordering::Equal => acc,
@@ -417,7 +451,7 @@ where
         })
     }
 
-    /// Groups elements from the `GroupingMap` source by key and finds the element of each group
+    /// Groups elements from the `GroupingGenericMap` source by key and finds the element of each group
     /// that gives the minimum from the specified function.
     ///
     /// If several elements are equally minimum, the first element is picked.
@@ -436,15 +470,16 @@ where
     /// assert_eq!(lookup[&2], 8);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn min_by_key<F, CK>(self, mut f: F) -> HashMap<K, V>
+    pub fn min_by_key<F, CK>(self, mut f: F) -> M
     where
         F: FnMut(&K, &V) -> CK,
         CK: Ord,
+        M: Map<Value = V>,
     {
         self.min_by(|key, v1, v2| f(key, v1).cmp(&f(key, v2)))
     }
 
-    /// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of
+    /// Groups elements from the `GroupingGenericMap` source by key and find the maximum and minimum of
     /// each group.
     ///
     /// If several elements are equally maximum, the last element is picked.
@@ -471,14 +506,15 @@ where
     /// assert_eq!(lookup[&2], OneElement(5));
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn minmax(self) -> HashMap<K, MinMaxResult<V>>
+    pub fn minmax(self) -> M
     where
         V: Ord,
+        M: Map<Value = MinMaxResult<V>>,
     {
         self.minmax_by(|_, v1, v2| V::cmp(v1, v2))
     }
 
-    /// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of
+    /// Groups elements from the `GroupingGenericMap` source by key and find the maximum and minimum of
     /// each group with respect to the specified comparison function.
     ///
     /// If several elements are equally maximum, the last element is picked.
@@ -501,9 +537,10 @@ where
     /// assert_eq!(lookup[&2], OneElement(5));
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn minmax_by<F>(self, mut compare: F) -> HashMap<K, MinMaxResult<V>>
+    pub fn minmax_by<F>(self, mut compare: F) -> M
     where
         F: FnMut(&K, &V, &V) -> Ordering,
+        M: Map<Value = MinMaxResult<V>>,
     {
         self.aggregate(|acc, key, val| {
             Some(match acc {
@@ -529,7 +566,7 @@ where
         })
     }
 
-    /// Groups elements from the `GroupingMap` source by key and find the elements of each group
+    /// Groups elements from the `GroupingGenericMap` source by key and find the elements of each group
     /// that gives the minimum and maximum from the specified function.
     ///
     /// If several elements are equally maximum, the last element is picked.
@@ -552,15 +589,16 @@ where
     /// assert_eq!(lookup[&2], OneElement(5));
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn minmax_by_key<F, CK>(self, mut f: F) -> HashMap<K, MinMaxResult<V>>
+    pub fn minmax_by_key<F, CK>(self, mut f: F) -> M
     where
         F: FnMut(&K, &V) -> CK,
         CK: Ord,
+        M: Map<Value = MinMaxResult<V>>,
     {
         self.minmax_by(|key, v1, v2| f(key, v1).cmp(&f(key, v2)))
     }
 
-    /// Groups elements from the `GroupingMap` source by key and sums them.
+    /// Groups elements from the `GroupingGenericMap` source by key and sums them.
     ///
     /// This is just a shorthand for `self.reduce(|acc, _, val| acc + val)`.
     /// It is more limited than `Iterator::sum` since it doesn't use the `Sum` trait.
@@ -579,14 +617,15 @@ where
     /// assert_eq!(lookup[&2], 5 + 8);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn sum(self) -> HashMap<K, V>
+    pub fn sum(self) -> M
     where
         V: Add<V, Output = V>,
+        M: Map<Value = V>,
     {
         self.reduce(|acc, _, val| acc + val)
     }
 
-    /// Groups elements from the `GroupingMap` source by key and multiply them.
+    /// Groups elements from the `GroupingGenericMap` source by key and multiply them.
     ///
     /// This is just a shorthand for `self.reduce(|acc, _, val| acc * val)`.
     /// It is more limited than `Iterator::product` since it doesn't use the `Product` trait.
@@ -605,9 +644,10 @@ where
     /// assert_eq!(lookup[&2], 5 * 8);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn product(self) -> HashMap<K, V>
+    pub fn product(self) -> M
     where
         V: Mul<V, Output = V>,
+        M: Map<Value = V>,
     {
         self.reduce(|acc, _, val| acc * val)
     }

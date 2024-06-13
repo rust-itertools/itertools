@@ -242,10 +242,10 @@ must_use_tests! {
     }
     // Not iterator themselves but still lazy.
     into_grouping_map {
-        let _ = Panicking.map(|x| (x, x + 1)).into_grouping_map();
+        let _ = Panicking.map(|x| (x, x + 1)).into_grouping_map::<_, _, u8>();
     }
     into_grouping_map_by {
-        let _ = Panicking.into_grouping_map_by(|x| *x);
+        let _ = Panicking.into_grouping_map_by::<_, _, _, u8>(|x| *x);
     }
     // Macros:
     iproduct {
