@@ -20,7 +20,7 @@ fn test_zip_longest_size_hint() {
     let v: &[_] = &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     let v2 = &[10, 11, 12];
 
-    assert_eq!(c.zip_longest(v.iter()).size_hint(), (std::usize::MAX, None));
+    assert_eq!(c.zip_longest(v.iter()).size_hint(), (usize::MAX, None));
 
     assert_eq!(v.iter().zip_longest(v2.iter()).size_hint(), (10, Some(10)));
 }
