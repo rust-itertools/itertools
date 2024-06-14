@@ -108,7 +108,7 @@ pub mod structs {
     pub use crate::groupbylazy::GroupBy;
     #[cfg(feature = "use_alloc")]
     pub use crate::groupbylazy::{Chunk, ChunkBy, Chunks, Group, Groups, IntoChunks};
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     pub use crate::grouping_map::{GroupingMap, GroupingMapBy};
     pub use crate::intersperse::{Intersperse, IntersperseWith};
     #[cfg(feature = "use_alloc")]
@@ -189,10 +189,12 @@ mod extrema_set;
 mod flatten_ok;
 mod format;
 #[cfg(feature = "use_alloc")]
+mod generic_containers;
+#[cfg(feature = "use_alloc")]
 mod group_map;
 #[cfg(feature = "use_alloc")]
 mod groupbylazy;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "use_alloc")]
 mod grouping_map;
 mod intersperse;
 mod iter_index;
@@ -3411,11 +3413,11 @@ pub trait Itertools: Iterator {
     ///
     /// See [`GroupingMap`] for more informations
     /// on what operations are available.
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn into_grouping_map<K, V>(self) -> GroupingMap<Self>
     where
         Self: Iterator<Item = (K, V)> + Sized,
-        K: Hash + Eq,
+        K: Eq,
     {
         grouping_map::new(self)
     }
@@ -3428,11 +3430,11 @@ pub trait Itertools: Iterator {
     ///
     /// See [`GroupingMap`] for more informations
     /// on what operations are available.
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "use_alloc")]
     fn into_grouping_map_by<K, V, F>(self, key_mapper: F) -> GroupingMapBy<Self, F>
     where
         Self: Iterator<Item = V> + Sized,
-        K: Hash + Eq,
+        K: Eq,
         F: FnMut(&V) -> K,
     {
         grouping_map::new(grouping_map::new_map_for_grouping(self, key_mapper))
