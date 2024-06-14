@@ -1,5 +1,3 @@
-#![cfg(feature = "use_std")]
-
 use crate::{
     adaptors::map::{MapSpecialCase, MapSpecialCaseFn},
     MinMaxResult,
