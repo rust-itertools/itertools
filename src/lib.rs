@@ -2534,6 +2534,11 @@ pub trait Itertools: Iterator {
     /// arguments. For example if `f` combines arguments using `format!`, then `tree_reduce` will
     /// operate on average on shorter arguments resulting in less bytes being allocated overall.
     ///
+    /// Moreover, the output of `tree_reduce` is preferable to that of [`Iterator::reduce`] in
+    /// certain cases. For example, building a binary search tree using `tree_reduce` will result in
+    /// a balanced tree with height O(ln(n)), while [`Iterator::reduce`] will output a tree with
+    /// height O(n), essentially a linked list.
+    ///
     /// If 'f' does not benefit from such a reordering, like `u32::wrapping_add`, prefer the
     /// normal [`Iterator::reduce`] instead since it will most likely result in the generation of
     /// simpler code because the compiler is able to optimize it.
