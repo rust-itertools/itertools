@@ -2560,31 +2560,27 @@ pub trait Itertools: Iterator {
     /// assert_ne!((0..10).tree_reduce(|x, y| x - y),
     ///     (0..10).fold1(|x, y| x - y));
     ///
-    ///
-    /// let mut total_capacity_reduce = 0;
+    /// let mut total_len_reduce = 0;
     /// let reduce_res = (1..100).map(|x| x.to_string())
     ///     .reduce(|a, b| {
     ///         let r = f(a, b);
-    ///         total_capacity_reduce += r.capacity();
+    ///         total_len_reduce += r.len();
     ///         r
     ///     })
     ///     .unwrap();
     ///
-    /// let mut total_capacity_tree_reduce = 0;
+    /// let mut total_len_tree_reduce = 0;
     /// let tree_reduce_res = (1..100).map(|x| x.to_string())
     ///     .tree_reduce(|a, b| {
     ///         let r = f(a, b);
-    ///         total_capacity_tree_reduce += r.capacity();
+    ///         total_len_tree_reduce += r.len();
     ///         r
     ///     })
     ///     .unwrap();
     ///
-    /// dbg!(total_capacity_reduce, total_capacity_tree_reduce,
-    ///      reduce_res.len(), tree_reduce_res.len());
-    /// // total_capacity_reduce = 65630
-    /// // total_capacity_tree_reduce = 7284
-    /// // reduce_res.len() = 679
-    /// // tree_reduce_res.len() = 679
+    /// assert_eq!(total_len_reduce, 33299);
+    /// assert_eq!(total_len_tree_reduce, 4228);
+    /// assert_eq!(reduce_res.len(), tree_reduce_res.len());
     /// ```
     fn tree_reduce<F>(mut self, mut f: F) -> Option<Self::Item>
     where
