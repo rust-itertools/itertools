@@ -253,7 +253,6 @@ where
         let mut it = get_it();
 
         for _ in 0..(counts.len() - 1) {
-            #[allow(clippy::manual_assert)]
             if it.next().is_none() {
                 panic!("Iterator shouldn't be finished, may not be deterministic");
             }
