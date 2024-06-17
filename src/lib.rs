@@ -46,7 +46,7 @@
 //!
 //! ## Rust Version
 //!
-//! This version of itertools requires Rust 1.43.1 or later.
+//! This version of itertools requires Rust 1.63.0 or later.
 
 #[cfg(not(feature = "use_std"))]
 extern crate core as std;
