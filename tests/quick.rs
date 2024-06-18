@@ -1511,13 +1511,12 @@ quickcheck! {
                 acc + val
             });
 
-        // TODO: Swap `fold1` with stdlib's `reduce` when it's stabilized
         let group_map_lookup = a.iter()
             .map(|&b| b as u64)
             .map(|i| (i % modulo, i))
             .into_group_map()
             .into_iter()
-            .map(|(key, vals)| (key, vals.into_iter().fold1(|acc, val| acc + val).unwrap()))
+            .map(|(key, vals)| (key, vals.into_iter().reduce(|acc, val| acc + val).unwrap()))
             .collect::<HashMap<_,_>>();
         assert_eq!(lookup, group_map_lookup);
 

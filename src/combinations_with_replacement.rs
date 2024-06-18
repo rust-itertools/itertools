@@ -73,11 +73,7 @@ where
             Some((increment_from, increment_value)) => {
                 // We need to update the rightmost non-max value
                 // and all those to the right
-                for i in &mut self.indices[increment_from..] {
-                    *i = increment_value;
-                }
-                // TODO: once MSRV >= 1.50, use `fill` instead:
-                // self.indices[increment_from..].fill(increment_value);
+                self.indices[increment_from..].fill(increment_value);
                 false
             }
             // Otherwise, we're done
