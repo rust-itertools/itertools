@@ -2338,8 +2338,8 @@ pub trait Itertools: Iterator {
     /// # Panics
     /// When the formatter helper is formatted more than once.
     ///
-    /// ⚠ This can happen unexpectedly and be hard to debug if used in
-    /// _macros of some logging frameworks_ like `tracing`! ⚠
+    /// <div class="warning">This can happen unexpectedly and be hard to debug if used in
+    /// <i>macros of some logging frameworks</i> like <code>tracing</code>!</div>
     ///
     /// ```should_panic
     /// # macro_rules! tracing_info {
@@ -2393,8 +2393,8 @@ pub trait Itertools: Iterator {
     /// # Panics
     /// When the formatter helper is formatted more than once.
     ///
-    /// ⚠ This can happen unexpectedly and be hard to debug if used in
-    /// _macros of some logging frameworks_ like `tracing`! ⚠
+    /// <div class="warning">This can happen unexpectedly and be hard to debug if used in
+    /// <i>macros of some logging frameworks</i> like <code>tracing</code>!</div>
     ///
     /// ```should_panic
     /// # macro_rules! tracing_info {
