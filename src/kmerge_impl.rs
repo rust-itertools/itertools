@@ -1,5 +1,4 @@
 use crate::size_hint;
-use crate::Itertools;
 
 use alloc::vec::Vec;
 use std::fmt;
@@ -128,7 +127,7 @@ impl<T, F: FnMut(&T, &T) -> bool> KMergePredicate<T> for F {
 /// Create an iterator that merges elements of the contained iterators using
 /// the ordering function.
 ///
-/// [`IntoIterator`] enabled version of [`Itertools::kmerge`].
+/// [`IntoIterator`] enabled version of [`Itertools::kmerge`](crate::Itertools::kmerge).
 ///
 /// ```
 /// use itertools::kmerge;
@@ -172,7 +171,7 @@ where
 
 /// Create an iterator that merges elements of the contained iterators.
 ///
-/// [`IntoIterator`] enabled version of [`Itertools::kmerge_by`].
+/// [`IntoIterator`] enabled version of [`Itertools::kmerge_by`](crate::Itertools::kmerge_by).
 pub fn kmerge_by<I, F>(
     iterable: I,
     mut less_than: F,
@@ -223,11 +222,10 @@ where
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        #[allow(deprecated)] //TODO: once msrv hits 1.51. replace `fold1` with `reduce`
         self.heap
             .iter()
             .map(|i| i.size_hint())
-            .fold1(size_hint::add)
+            .reduce(size_hint::add)
             .unwrap_or((0, Some(0)))
     }
 }

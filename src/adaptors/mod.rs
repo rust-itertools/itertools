@@ -1108,9 +1108,7 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         let f = &mut self.f;
-        // TODO: once MSRV >= 1.62, use `then_some`.
-        self.iter
-            .find_map(|(count, val)| if f(val) { Some(count) } else { None })
+        self.iter.find_map(|(count, val)| f(val).then_some(count))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -1138,11 +1136,10 @@ where
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         let f = &mut self.f;
-        // TODO: once MSRV >= 1.62, use `then_some`.
         self.iter
             .by_ref()
             .rev()
-            .find_map(|(count, val)| if f(val) { Some(count) } else { None })
+            .find_map(|(count, val)| f(val).then_some(count))
     }
 
     fn rfold<B, G>(self, init: B, mut func: G) -> B

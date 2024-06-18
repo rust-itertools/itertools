@@ -1,8 +1,6 @@
-use crate::Itertools;
-
 /// Combine all an iterator's elements into one element by using [`Extend`].
 ///
-/// [`IntoIterator`]-enabled version of [`Itertools::concat`].
+/// [`IntoIterator`]-enabled version of [`Itertools::concat`](crate::Itertools::concat).
 ///
 /// This combinator will extend the first item with each of the rest of the
 /// items of the iterator. If the iterator is empty, the default value of
@@ -19,10 +17,9 @@ where
     I: IntoIterator,
     I::Item: Extend<<<I as IntoIterator>::Item as IntoIterator>::Item> + IntoIterator + Default,
 {
-    #[allow(deprecated)] //TODO: once msrv hits 1.51. replace `fold1` with `reduce`
     iterable
         .into_iter()
-        .fold1(|mut a, b| {
+        .reduce(|mut a, b| {
             a.extend(b);
             a
         })
