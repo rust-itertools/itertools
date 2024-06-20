@@ -3153,6 +3153,105 @@ pub trait Itertools: Iterator {
         self.k_smallest_by(k, k_smallest::key_to_cmp(key))
     }
 
+    /// Sort the k smallest elements into a new iterator, in ascending order, relaxing the amount of memory required.
+    ///
+    /// **Note:** This consumes the entire iterator, and returns the result
+    /// as a new iterator that owns its elements.  If the input contains
+    /// less than k elements, the result is equivalent to `self.sorted()`.
+    ///
+    /// This is guaranteed to use `2 * k * sizeof(Self::Item) + O(1)` memory
+    /// and `O(n + k log k)` time, with `n` the number of elements in the input,
+    /// meaning it uses more memory than the minimum obtained by [`k_smallest`](Itertools::k_smallest)
+    /// but achieves linear time in the number of elements.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// **Note:** This is functionally-equivalent to `self.sorted().take(k)`
+    /// but much more efficient.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_smallest = numbers
+    ///     .into_iter()
+    ///     .k_smallest_relaxed(5);
+    ///
+    /// itertools::assert_equal(five_smallest, 0..5);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_smallest_relaxed(self, k: usize) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        Self::Item: Ord,
+    {
+        self.k_smallest_relaxed_by(k, Ord::cmp)
+    }
+
+    /// Sort the k smallest elements into a new iterator using the provided comparison, relaxing the amount of memory required.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// This corresponds to `self.sorted_by(cmp).take(k)` in the same way that
+    /// [`k_smallest_relaxed`](Itertools::k_smallest_relaxed) corresponds to `self.sorted().take(k)`,
+    /// in both semantics and complexity.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_smallest = numbers
+    ///     .into_iter()
+    ///     .k_smallest_relaxed_by(5, |a, b| (a % 7).cmp(&(b % 7)).then(a.cmp(b)));
+    ///
+    /// itertools::assert_equal(five_smallest, vec![0, 7, 14, 1, 8]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_smallest_relaxed_by<F>(self, k: usize, cmp: F) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item, &Self::Item) -> Ordering,
+    {
+        k_smallest::k_smallest_relaxed_general(self, k, cmp).into_iter()
+    }
+
+    /// Return the elements producing the k smallest outputs of the provided function, relaxing the amount of memory required.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// This corresponds to `self.sorted_by_key(key).take(k)` in the same way that
+    /// [`k_smallest_relaxed`](Itertools::k_smallest_relaxed) corresponds to `self.sorted().take(k)`,
+    /// in both semantics and complexity.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_smallest = numbers
+    ///     .into_iter()
+    ///     .k_smallest_relaxed_by_key(5, |n| (n % 7, *n));
+    ///
+    /// itertools::assert_equal(five_smallest, vec![0, 7, 14, 1, 8]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_smallest_relaxed_by_key<F, K>(self, k: usize, key: F) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item) -> K,
+        K: Ord,
+    {
+        self.k_smallest_relaxed_by(k, k_smallest::key_to_cmp(key))
+    }
+
     /// Sort the k largest elements into a new iterator, in descending order.
     ///
     /// The sorted iterator, if directly collected to a `Vec`, is converted
@@ -3241,6 +3340,94 @@ pub trait Itertools: Iterator {
         K: Ord,
     {
         self.k_largest_by(k, k_smallest::key_to_cmp(key))
+    }
+
+    /// Sort the k largest elements into a new iterator, in descending order, relaxing the amount of memory required.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// It is semantically equivalent to [`k_smallest_relaxed`](Itertools::k_smallest_relaxed)
+    /// with a reversed `Ord`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_largest = numbers
+    ///     .into_iter()
+    ///     .k_largest_relaxed(5);
+    ///
+    /// itertools::assert_equal(five_largest, vec![14, 13, 12, 11, 10]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_largest_relaxed(self, k: usize) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        Self::Item: Ord,
+    {
+        self.k_largest_relaxed_by(k, Self::Item::cmp)
+    }
+
+    /// Sort the k largest elements into a new iterator using the provided comparison, relaxing the amount of memory required.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// Functionally equivalent to [`k_smallest_relaxed_by`](Itertools::k_smallest_relaxed_by)
+    /// with a reversed `Ord`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_largest = numbers
+    ///     .into_iter()
+    ///     .k_largest_relaxed_by(5, |a, b| (a % 7).cmp(&(b % 7)).then(a.cmp(b)));
+    ///
+    /// itertools::assert_equal(five_largest, vec![13, 6, 12, 5, 11]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_largest_relaxed_by<F>(self, k: usize, mut cmp: F) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item, &Self::Item) -> Ordering,
+    {
+        self.k_smallest_relaxed_by(k, move |a, b| cmp(b, a))
+    }
+
+    /// Return the elements producing the k largest outputs of the provided function, relaxing the amount of memory required.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// Functionally equivalent to [`k_smallest_relaxed_by_key`](Itertools::k_smallest_relaxed_by_key)
+    /// with a reversed `Ord`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_largest = numbers
+    ///     .into_iter()
+    ///     .k_largest_relaxed_by_key(5, |n| (n % 7, *n));
+    ///
+    /// itertools::assert_equal(five_largest, vec![13, 6, 12, 5, 11]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_largest_relaxed_by_key<F, K>(self, k: usize, key: F) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item) -> K,
+        K: Ord,
+    {
+        self.k_largest_relaxed_by(k, k_smallest::key_to_cmp(key))
     }
 
     /// Consumes the iterator and return an iterator of the last `n` elements.
