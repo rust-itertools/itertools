@@ -50,7 +50,9 @@
 //!
 //! ## Rust Version
 //!
-//! This version of itertools requires Rust 1.63.0 or later.
+//! This version of itertools requires Rust
+#![doc = env!("CARGO_PKG_RUST_VERSION")]
+//! or later.
 
 #[cfg(not(feature = "use_std"))]
 extern crate core as std;
