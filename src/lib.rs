@@ -1928,9 +1928,9 @@ pub trait Itertools: Iterator {
     ///
     /// assert_eq!(Some([1, 2]), iter.next_array());
     /// ```
-    fn next_array<T, const N: usize>(&mut self) -> Option<[T; N]>
+    fn next_array<const N: usize>(&mut self) -> Option<[Self::Item; N]>
     where
-        Self: Sized + Iterator<Item = T>,
+        Self: Sized,
     {
         next_array::next_array(self)
     }
@@ -1952,9 +1952,9 @@ pub trait Itertools: Iterator {
     ///     panic!("Expected two elements")
     /// }
     /// ```
-    fn collect_array<T, const N: usize>(mut self) -> Option<[T; N]>
+    fn collect_array<const N: usize>(mut self) -> Option<[Self::Item; N]>
     where
-        Self: Sized + Iterator<Item = T>,
+        Self: Sized,
     {
         self.next_array().filter(|_| self.next().is_none())
     }

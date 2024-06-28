@@ -380,7 +380,7 @@ fn next_array() {
     assert_eq!(iter.next_array(), Some([]));
     assert_eq!(iter.next_array().map(|[&x, &y]| [x, y]), Some([1, 2]));
     assert_eq!(iter.next_array().map(|[&x, &y]| [x, y]), Some([3, 4]));
-    assert_eq!(iter.next_array::<_, 2>(), None);
+    assert_eq!(iter.next_array::<2>(), None);
 }
 
 #[test]
@@ -391,9 +391,9 @@ fn collect_array() {
 
     let v = [1];
     let iter = v.iter().cloned();
-    assert_eq!(iter.collect_array::<_, 2>(), None);
+    assert_eq!(iter.collect_array::<2>(), None);
 
     let v = [1, 2, 3];
     let iter = v.iter().cloned();
-    assert_eq!(iter.collect_array::<_, 2>(), None);
+    assert_eq!(iter.collect_array::<2>(), None);
 }
