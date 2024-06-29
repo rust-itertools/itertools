@@ -1,3 +1,10 @@
+//! Test specializations of methods with default impls match the behavior of the
+//! default impls.
+//!
+//! **NOTE:** Due to performance limitations, these tests are not run with miri!
+//! They cannot be relied upon to discover soundness issues.
+
+#![cfg(not(miri))]
 #![allow(unstable_name_collisions)]
 
 use itertools::Itertools;
