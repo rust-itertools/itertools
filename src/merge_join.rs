@@ -31,6 +31,7 @@ pub type Merge<I, J> = MergeBy<I, J, MergeLte>;
 ///
 /// for elt in merge(&[1, 2, 3], &[2, 3, 4]) {
 ///     /* loop body */
+///     # let _ = elt;
 /// }
 /// ```
 pub fn merge<I, J>(
