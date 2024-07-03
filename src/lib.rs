@@ -1,6 +1,7 @@
 #![warn(missing_docs, clippy::default_numeric_fallback)]
 #![crate_name = "itertools"]
 #![cfg_attr(not(feature = "use_std"), no_std)]
+#![doc(test(attr(deny(warnings), allow(deprecated, unstable_name_collisions))))]
 
 //! Extra iterator adaptors, functions and macros.
 //!
@@ -8,6 +9,7 @@
 //! the [`Itertools`] trait:
 //!
 //! ```
+//! # #[allow(unused_imports)]
 //! use itertools::Itertools;
 //! ```
 //!
@@ -29,6 +31,7 @@
 //!
 //! for elt in interleave(&[1, 2, 3], &[2, 3, 4]) {
 //!     /* loop body */
+//!     # let _ = elt;
 //! }
 //! ```
 //!
@@ -248,6 +251,7 @@ mod ziptuple;
 /// // from (0, 0, 0), (0, 0, 1), .., (0, 1, 0), (0, 1, 1), .. etc until (3, 3, 3)
 /// for (i, j, k) in iproduct!(0..4, 0..4, 0..4) {
 ///    // ..
+///    # let _ = (i, j, k);
 /// }
 /// # }
 /// ```
@@ -375,16 +379,16 @@ macro_rules! izip {
 ///
 /// Invocations of `chain!` with one argument expand to [`arg.into_iter()`](IntoIterator):
 /// ```
-/// use std::{ops::Range, slice};
+/// use std::ops::Range;
 /// use itertools::chain;
-/// let _: <Range<_> as IntoIterator>::IntoIter = chain!((2..6),); // trailing comma optional!
+/// let _: <Range<_> as IntoIterator>::IntoIter = chain!(2..6,); // trailing comma optional!
 /// let _:     <&[_] as IntoIterator>::IntoIter = chain!(&[2, 3, 4]);
 /// ```
 ///
 /// Invocations of `chain!` with multiple arguments [`.into_iter()`](IntoIterator) each
 /// argument, and then [`chain`] them together:
 /// ```
-/// use std::{iter::*, ops::Range, slice};
+/// use std::{iter::*, slice};
 /// use itertools::{assert_equal, chain};
 ///
 /// // e.g., this:
@@ -1902,7 +1906,7 @@ pub trait Itertools: Iterator {
     /// use itertools::Itertools;
     ///
     /// let input = vec![vec![1], vec![3, 2, 1]];
-    /// let it = input.into_iter().update(|mut v| v.push(0));
+    /// let it = input.into_iter().update(|v| v.push(0));
     /// itertools::assert_equal(it, vec![vec![1, 0], vec![3, 2, 1, 0]]);
     /// ```
     fn update<F>(self, updater: F) -> Update<Self, F>
@@ -2162,7 +2166,7 @@ pub trait Itertools: Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let mut iter = "αβγ".chars().dropping(2);
+    /// let iter = "αβγ".chars().dropping(2);
     /// itertools::assert_equal(iter, "γ".chars());
     /// ```
     ///
@@ -2246,14 +2250,17 @@ pub trait Itertools: Iterator {
     ///
     /// fn process_dir_entries(entries: &[fs::DirEntry]) {
     ///     // ...
+    ///     # let _ = entries;
     /// }
     ///
-    /// fn do_stuff() -> std::io::Result<()> {
+    /// fn do_stuff() -> io::Result<()> {
     ///     let entries: Vec<_> = fs::read_dir(".")?.try_collect()?;
     ///     process_dir_entries(&entries);
     ///
     ///     Ok(())
     /// }
+    ///
+    /// # let _ = do_stuff;
     /// ```
     fn try_collect<T, U, E>(self) -> Result<U, E>
     where
@@ -2404,6 +2411,7 @@ pub trait Itertools: Iterator {
     /// accum = f(accum, 1);
     /// accum = f(accum, 2);
     /// accum = f(accum, 3);
+    /// # let _ = accum;
     /// ```
     ///
     /// With a `start` value of 0 and an addition as folding function,
@@ -2554,16 +2562,16 @@ pub trait Itertools: Iterator {
     /// assert_eq!((1..8).map(|x| x.to_string()).tree_reduce(f),
     ///            Some(String::from("f(f(f(1, 2), f(3, 4)), f(f(5, 6), 7))")));
     ///
-    /// // Like fold1, an empty iterator produces None
+    /// // Like reduce, an empty iterator produces None
     /// assert_eq!((0..0).tree_reduce(|x, y| x * y), None);
     ///
-    /// // tree_reduce matches fold1 for associative operations...
+    /// // tree_reduce matches reduce for associative operations...
     /// assert_eq!((0..10).tree_reduce(|x, y| x + y),
-    ///     (0..10).fold1(|x, y| x + y));
+    ///     (0..10).reduce(|x, y| x + y));
     ///
     /// // ...but not for non-associative ones
     /// assert_ne!((0..10).tree_reduce(|x, y| x - y),
-    ///     (0..10).fold1(|x, y| x - y));
+    ///     (0..10).reduce(|x, y| x - y));
     ///
     /// let mut total_len_reduce = 0;
     /// let reduce_res = (1..100).map(|x| x.to_string())
@@ -4163,7 +4171,7 @@ pub trait Itertools: Iterator {
     /// # Examples
     /// ```
     /// # use itertools::Itertools;
-    /// let counts = [1, 1, 1, 3, 3, 5].into_iter().counts();
+    /// let counts = [1, 1, 1, 3, 3, 5].iter().counts();
     /// assert_eq!(counts[&1], 3);
     /// assert_eq!(counts[&3], 2);
     /// assert_eq!(counts[&5], 1);
@@ -4189,6 +4197,7 @@ pub trait Itertools: Iterator {
     /// # use itertools::Itertools;
     /// struct Character {
     ///   first_name: &'static str,
+    ///   # #[allow(dead_code)]
     ///   last_name:  &'static str,
     /// }
     ///

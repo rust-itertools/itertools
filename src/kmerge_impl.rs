@@ -134,6 +134,7 @@ impl<T, F: FnMut(&T, &T) -> bool> KMergePredicate<T> for F {
 ///
 /// for elt in kmerge(vec![vec![0, 2, 4], vec![1, 3, 5], vec![6, 7]]) {
 ///     /* loop body */
+///     # let _ = elt;
 /// }
 /// ```
 pub fn kmerge<I>(iterable: I) -> KMerge<<I::Item as IntoIterator>::IntoIter>

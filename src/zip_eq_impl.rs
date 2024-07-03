@@ -21,6 +21,7 @@ pub struct ZipEq<I, J> {
 /// let data = [1, 2, 3, 4, 5];
 /// for (a, b) in zip_eq(&data[..data.len() - 1], &data[1..]) {
 ///     /* loop body */
+///     # let _ = (a, b);
 /// }
 /// ```
 pub fn zip_eq<I, J>(i: I, j: J) -> ZipEq<I::IntoIter, J::IntoIter>
