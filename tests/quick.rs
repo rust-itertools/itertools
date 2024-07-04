@@ -1894,7 +1894,7 @@ quickcheck! {
     fn fused_filter_map_ok(a: Iter<i16>) -> bool
     {
         is_fused(a.map(|x| if x % 2 == 0 {Ok(x)} else {Err(x)} )
-                 .filter_map_ok(|x| if x % 3 == 0 {Some(x / 3)} else {None})
+                 .filter_map_ok(|x| (x % 3 == 0).then_some(x / 3))
                  .fuse())
     }
 

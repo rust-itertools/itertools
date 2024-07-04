@@ -229,7 +229,7 @@ quickcheck! {
     }
 
     fn while_some(v: Vec<u8>) -> () {
-        test_specializations(&v.iter().map(|&x| if x < 100 { Some(2 * x) } else { None }).while_some());
+        test_specializations(&v.iter().map(|&x| (x < 100).then_some(2 * x)).while_some());
     }
 
     fn pad_using(v: Vec<u8>) -> () {
@@ -480,7 +480,7 @@ quickcheck! {
     }
 
     fn filter_map_ok(v: Vec<Result<u8, char>>) -> () {
-        let it = v.into_iter().filter_map_ok(|i| if i < 20 { Some(i * 2) } else { None });
+        let it = v.into_iter().filter_map_ok(|i| (i < 20).then_some(i * 2));
         test_specializations(&it);
         test_double_ended_specializations(&it);
     }
