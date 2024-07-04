@@ -1,6 +1,7 @@
 use super::size_hint;
 use std::cmp::Ordering::{Equal, Greater, Less};
 use std::iter::{Fuse, FusedIterator};
+use std::ops::ControlFlow;
 
 use crate::either_or_both::EitherOrBoth;
 
@@ -62,12 +63,12 @@ where
     {
         let Self { mut a, mut b } = self;
         let res = a.try_fold(init, |init, a| match b.next() {
-            Some(b) => Ok(f(init, EitherOrBoth::Both(a, b))),
-            None => Err(f(init, EitherOrBoth::Left(a))),
+            Some(b) => ControlFlow::Continue(f(init, EitherOrBoth::Both(a, b))),
+            None => ControlFlow::Break(f(init, EitherOrBoth::Left(a))),
         });
         match res {
-            Ok(acc) => b.map(EitherOrBoth::Right).fold(acc, f),
-            Err(acc) => a.map(EitherOrBoth::Left).fold(acc, f),
+            ControlFlow::Continue(acc) => b.map(EitherOrBoth::Right).fold(acc, f),
+            ControlFlow::Break(acc) => a.map(EitherOrBoth::Left).fold(acc, f),
         }
     }
 }

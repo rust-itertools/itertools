@@ -2908,7 +2908,7 @@ pub trait Itertools: Iterator {
         Self: Sized,
         F: FnMut(B, Self::Item) -> FoldWhile<B>,
     {
-        use Result::{Err as Break, Ok as Continue};
+        use std::ops::ControlFlow::{Break, Continue};
 
         let result = self.try_fold(
             init,
