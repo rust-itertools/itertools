@@ -43,7 +43,7 @@ where
     I: Iterator + Clone,
 {
     macro_rules! check_specialized {
-        ($src:expr, |$it:pat| $closure:expr) => {
+        ($src:expr, |$it:pat_param| $closure:expr) => {
             // Many iterators special-case the first elements, so we test specializations for iterators that have already been advanced.
             let mut src = $src.clone();
             for _ in 0..5 {
@@ -101,7 +101,7 @@ where
     I: DoubleEndedIterator + Clone,
 {
     macro_rules! check_specialized {
-        ($src:expr, |$it:pat| $closure:expr) => {
+        ($src:expr, |$it:pat_param| $closure:expr) => {
             // Many iterators special-case the first elements, so we test specializations for iterators that have already been advanced.
             let mut src = $src.clone();
             for step in 0..8 {
@@ -501,7 +501,7 @@ quickcheck! {
 
         fn helper(it: impl DoubleEndedIterator<Item = Result<u8, u8>> + Clone) {
             macro_rules! check_results_specialized {
-                ($src:expr, |$it:pat| $closure:expr) => {
+                ($src:expr, |$it:pat_param| $closure:expr) => {
                     assert_eq!(
                         itertools::process_results($src.clone(), |$it| $closure),
                         itertools::process_results($src.clone(), |i| {
