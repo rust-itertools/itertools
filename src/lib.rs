@@ -2068,7 +2068,7 @@ pub trait Itertools: Iterator {
     where
         Self: Sized,
         Self::Item: Borrow<Q>,
-        Q: PartialEq,
+        Q: PartialEq + ?Sized,
     {
         self.any(|x| x.borrow() == query)
     }
