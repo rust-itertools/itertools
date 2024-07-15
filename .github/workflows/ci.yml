@@ -85,7 +85,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - uses: obi1kenobi/cargo-semver-checks-action@v2.4
+      - uses: obi1kenobi/cargo-semver-checks-action@v2.5
         with:
           rust-toolchain: manual
           feature-group: all-features
