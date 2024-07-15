@@ -1594,6 +1594,7 @@ pub trait Itertools: Iterator {
     ///     .collect();
     /// let expected: Vec<_> = vec![1, 2, 3].into_iter().map(NoCloneImpl).collect();
     /// assert_eq!(filtered, expected);
+    #[doc(alias = "take_until")]
     fn take_while_inclusive<F>(self, accept: F) -> TakeWhileInclusive<Self, F>
     where
         Self: Sized,
