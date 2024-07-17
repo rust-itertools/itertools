@@ -654,7 +654,7 @@ bench_specializations! {
                 .map(|x| if x % 2 == 1 { Err(x) } else { Ok(x) })
                 .collect_vec());
         }
-        v.iter().copied().filter_map_ok(|x| if x % 3 == 0 { Some(x + 1) } else { None })
+        v.iter().copied().filter_map_ok(|x| (x % 3 == 0).then_some(x + 1))
     }
     flatten_ok {
         DoubleEndedIterator
