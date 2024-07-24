@@ -1091,7 +1091,9 @@ pub trait Itertools: Iterator {
     /// let b = (0..10).step_by(3);
     ///
     /// itertools::assert_equal(
-    ///     a.merge_join_by(b, |i, j| i.cmp(j)),
+    ///     // This performs a diff in the style of the Unix command comm(1),
+    ///     // generalized to arbitrary types rather than text.
+    ///     a.merge_join_by(b, Ord::cmp),
     ///     vec![Both(0, 0), Left(2), Right(3), Left(4), Both(6, 6), Left(1), Right(9)]
     /// );
     /// ```
@@ -1123,6 +1125,7 @@ pub trait Itertools: Iterator {
     /// );
     /// ```
     #[inline]
+    #[doc(alias = "comm")]
     fn merge_join_by<J, F, T>(self, other: J, cmp_fn: F) -> MergeJoinBy<Self, J::IntoIter, F>
     where
         J: IntoIterator,
