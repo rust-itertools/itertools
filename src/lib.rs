@@ -4571,6 +4571,7 @@ where
 /// assert_equal("exceed".split('c'), "excess".split('c'));
 /// // ^PANIC: panicked at 'Failed assertion Some("eed") == Some("ess") for iteration 1'.
 /// ```
+#[track_caller]
 pub fn assert_equal<I, J>(a: I, b: J)
 where
     I: IntoIterator,
