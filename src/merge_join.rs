@@ -31,6 +31,7 @@ pub type Merge<I, J> = MergeBy<I, J, MergeLte>;
 ///
 /// for elt in merge(&[1, 2, 3], &[2, 3, 4]) {
 ///     /* loop body */
+///     # let _ = elt;
 /// }
 /// ```
 pub fn merge<I, J>(
@@ -115,7 +116,7 @@ pub trait OrderingOrBool<L, R> {
     // "merge" never returns (Some(...), Some(...), ...) so Option<Either<I::Item, J::Item>>
     // is appealing but it is always followed by two put_backs, so we think the compiler is
     // smart enough to optimize it. Or we could move put_backs into "merge".
-    fn merge(&mut self, left: L, right: R) -> (Option<L>, Option<R>, Self::MergeResult);
+    fn merge(&mut self, left: L, right: R) -> (Option<Either<L, R>>, Self::MergeResult);
     fn size_hint(left: SizeHint, right: SizeHint) -> SizeHint;
 }
 
@@ -127,11 +128,11 @@ impl<L, R, F: FnMut(&L, &R) -> Ordering> OrderingOrBool<L, R> for MergeFuncLR<F,
     fn right(right: R) -> Self::MergeResult {
         EitherOrBoth::Right(right)
     }
-    fn merge(&mut self, left: L, right: R) -> (Option<L>, Option<R>, Self::MergeResult) {
+    fn merge(&mut self, left: L, right: R) -> (Option<Either<L, R>>, Self::MergeResult) {
         match self.0(&left, &right) {
-            Ordering::Equal => (None, None, EitherOrBoth::Both(left, right)),
-            Ordering::Less => (None, Some(right), EitherOrBoth::Left(left)),
-            Ordering::Greater => (Some(left), None, EitherOrBoth::Right(right)),
+            Ordering::Equal => (None, EitherOrBoth::Both(left, right)),
+            Ordering::Less => (Some(Either::Right(right)), EitherOrBoth::Left(left)),
+            Ordering::Greater => (Some(Either::Left(left)), EitherOrBoth::Right(right)),
         }
     }
     fn size_hint(left: SizeHint, right: SizeHint) -> SizeHint {
@@ -154,11 +155,11 @@ impl<L, R, F: FnMut(&L, &R) -> bool> OrderingOrBool<L, R> for MergeFuncLR<F, boo
     fn right(right: R) -> Self::MergeResult {
         Either::Right(right)
     }
-    fn merge(&mut self, left: L, right: R) -> (Option<L>, Option<R>, Self::MergeResult) {
+    fn merge(&mut self, left: L, right: R) -> (Option<Either<L, R>>, Self::MergeResult) {
         if self.0(&left, &right) {
-            (None, Some(right), Either::Left(left))
+            (Some(Either::Right(right)), Either::Left(left))
         } else {
-            (Some(left), None, Either::Right(right))
+            (Some(Either::Left(left)), Either::Right(right))
         }
     }
     fn size_hint(left: SizeHint, right: SizeHint) -> SizeHint {
@@ -175,11 +176,11 @@ impl<T, F: FnMut(&T, &T) -> bool> OrderingOrBool<T, T> for F {
     fn right(right: T) -> Self::MergeResult {
         right
     }
-    fn merge(&mut self, left: T, right: T) -> (Option<T>, Option<T>, Self::MergeResult) {
+    fn merge(&mut self, left: T, right: T) -> (Option<Either<T, T>>, Self::MergeResult) {
         if self(&left, &right) {
-            (None, Some(right), left)
+            (Some(Either::Right(right)), left)
         } else {
-            (Some(left), None, right)
+            (Some(Either::Left(left)), right)
         }
     }
     fn size_hint(left: SizeHint, right: SizeHint) -> SizeHint {
@@ -196,11 +197,11 @@ impl<T: PartialOrd> OrderingOrBool<T, T> for MergeLte {
     fn right(right: T) -> Self::MergeResult {
         right
     }
-    fn merge(&mut self, left: T, right: T) -> (Option<T>, Option<T>, Self::MergeResult) {
+    fn merge(&mut self, left: T, right: T) -> (Option<Either<T, T>>, Self::MergeResult) {
         if left <= right {
-            (None, Some(right), left)
+            (Some(Either::Right(right)), left)
         } else {
-            (Some(left), None, right)
+            (Some(Either::Left(left)), right)
         }
     }
     fn size_hint(left: SizeHint, right: SizeHint) -> SizeHint {
@@ -244,66 +245,71 @@ where
             (Some(left), None) => Some(F::left(left)),
             (None, Some(right)) => Some(F::right(right)),
             (Some(left), Some(right)) => {
-                let (left, right, next) = self.cmp_fn.merge(left, right);
-                if let Some(left) = left {
-                    self.left.put_back(left);
+                let (not_next, next) = self.cmp_fn.merge(left, right);
+                match not_next {
+                    Some(Either::Left(l)) => {
+                        self.left.put_back(l);
+                    }
+                    Some(Either::Right(r)) => {
+                        self.right.put_back(r);
+                    }
+                    None => (),
                 }
-                if let Some(right) = right {
-                    self.right.put_back(right);
-                }
+
                 Some(next)
             }
         }
     }
 
+    fn fold<B, G>(mut self, init: B, mut f: G) -> B
+    where
+        Self: Sized,
+        G: FnMut(B, Self::Item) -> B,
+    {
+        let mut acc = init;
+        let mut left = self.left.next();
+        let mut right = self.right.next();
+
+        loop {
+            match (left, right) {
+                (Some(l), Some(r)) => match self.cmp_fn.merge(l, r) {
+                    (Some(Either::Right(r)), x) => {
+                        acc = f(acc, x);
+                        left = self.left.next();
+                        right = Some(r);
+                    }
+                    (Some(Either::Left(l)), x) => {
+                        acc = f(acc, x);
+                        left = Some(l);
+                        right = self.right.next();
+                    }
+                    (None, x) => {
+                        acc = f(acc, x);
+                        left = self.left.next();
+                        right = self.right.next();
+                    }
+                },
+                (Some(l), None) => {
+                    self.left.put_back(l);
+                    acc = self.left.fold(acc, |acc, x| f(acc, F::left(x)));
+                    break;
+                }
+                (None, Some(r)) => {
+                    self.right.put_back(r);
+                    acc = self.right.fold(acc, |acc, x| f(acc, F::right(x)));
+                    break;
+                }
+                (None, None) => {
+                    break;
+                }
+            }
+        }
+
+        acc
+    }
+
     fn size_hint(&self) -> SizeHint {
         F::size_hint(self.left.size_hint(), self.right.size_hint())
-    }
-
-    fn count(mut self) -> usize {
-        let mut count = 0;
-        loop {
-            match (self.left.next(), self.right.next()) {
-                (None, None) => break count,
-                (Some(_left), None) => break count + 1 + self.left.into_parts().1.count(),
-                (None, Some(_right)) => break count + 1 + self.right.into_parts().1.count(),
-                (Some(left), Some(right)) => {
-                    count += 1;
-                    let (left, right, _) = self.cmp_fn.merge(left, right);
-                    if let Some(left) = left {
-                        self.left.put_back(left);
-                    }
-                    if let Some(right) = right {
-                        self.right.put_back(right);
-                    }
-                }
-            }
-        }
-    }
-
-    fn last(mut self) -> Option<Self::Item> {
-        let mut previous_element = None;
-        loop {
-            match (self.left.next(), self.right.next()) {
-                (None, None) => break previous_element,
-                (Some(left), None) => {
-                    break Some(F::left(self.left.into_parts().1.last().unwrap_or(left)))
-                }
-                (None, Some(right)) => {
-                    break Some(F::right(self.right.into_parts().1.last().unwrap_or(right)))
-                }
-                (Some(left), Some(right)) => {
-                    let (left, right, elem) = self.cmp_fn.merge(left, right);
-                    if let Some(left) = left {
-                        self.left.put_back(left);
-                    }
-                    if let Some(right) = right {
-                        self.right.put_back(right);
-                    }
-                    previous_element = Some(elem);
-                }
-            }
-        }
     }
 
     fn nth(&mut self, mut n: usize) -> Option<Self::Item> {
@@ -317,12 +323,15 @@ where
                 (Some(_left), None) => break self.left.nth(n).map(F::left),
                 (None, Some(_right)) => break self.right.nth(n).map(F::right),
                 (Some(left), Some(right)) => {
-                    let (left, right, _) = self.cmp_fn.merge(left, right);
-                    if let Some(left) = left {
-                        self.left.put_back(left);
-                    }
-                    if let Some(right) = right {
-                        self.right.put_back(right);
+                    let (not_next, _) = self.cmp_fn.merge(left, right);
+                    match not_next {
+                        Some(Either::Left(l)) => {
+                            self.left.put_back(l);
+                        }
+                        Some(Either::Right(r)) => {
+                            self.right.put_back(r);
+                        }
+                        None => (),
                     }
                 }
             }

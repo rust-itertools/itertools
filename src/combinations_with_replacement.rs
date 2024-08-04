@@ -30,17 +30,6 @@ where
     debug_fmt_fields!(CombinationsWithReplacement, indices, pool, first);
 }
 
-impl<I> CombinationsWithReplacement<I>
-where
-    I: Iterator,
-    I::Item: Clone,
-{
-    /// Map the current mask over the pool to get an output combination
-    fn current(&self) -> Vec<I::Item> {
-        self.indices.iter().map(|i| self.pool[*i].clone()).collect()
-    }
-}
-
 /// Create a new `CombinationsWithReplacement` from a clonable iterator.
 pub fn combinations_with_replacement<I>(iter: I, k: usize) -> CombinationsWithReplacement<I>
 where
@@ -57,51 +46,78 @@ where
     }
 }
 
-impl<I> Iterator for CombinationsWithReplacement<I>
+impl<I> CombinationsWithReplacement<I>
 where
     I: Iterator,
     I::Item: Clone,
 {
-    type Item = Vec<I::Item>;
-    fn next(&mut self) -> Option<Self::Item> {
-        // If this is the first iteration, return early
-        if self.first {
-            // In empty edge cases, stop iterating immediately
-            return if !(self.indices.is_empty() || self.pool.get_next()) {
-                None
-            // Otherwise, yield the initial state
-            } else {
-                self.first = false;
-                Some(self.current())
-            };
-        }
-
+    /// Increments indices representing the combination to advance to the next
+    /// (in lexicographic order by increasing sequence) combination.
+    ///
+    /// Returns true if we've run out of combinations, false otherwise.
+    fn increment_indices(&mut self) -> bool {
         // Check if we need to consume more from the iterator
         // This will run while we increment our first index digit
         self.pool.get_next();
 
         // Work out where we need to update our indices
-        let mut increment: Option<(usize, usize)> = None;
+        let mut increment = None;
         for (i, indices_int) in self.indices.iter().enumerate().rev() {
             if *indices_int < self.pool.len() - 1 {
                 increment = Some((i, indices_int + 1));
                 break;
             }
         }
-
         match increment {
             // If we can update the indices further
             Some((increment_from, increment_value)) => {
                 // We need to update the rightmost non-max value
                 // and all those to the right
-                for indices_index in increment_from..self.indices.len() {
-                    self.indices[indices_index] = increment_value;
-                }
-                Some(self.current())
+                self.indices[increment_from..].fill(increment_value);
+                false
             }
             // Otherwise, we're done
-            None => None,
+            None => true,
         }
+    }
+}
+
+impl<I> Iterator for CombinationsWithReplacement<I>
+where
+    I: Iterator,
+    I::Item: Clone,
+{
+    type Item = Vec<I::Item>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.first {
+            // In empty edge cases, stop iterating immediately
+            if !(self.indices.is_empty() || self.pool.get_next()) {
+                return None;
+            }
+            self.first = false;
+        } else if self.increment_indices() {
+            return None;
+        }
+        Some(self.pool.get_at(&self.indices))
+    }
+
+    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+        if self.first {
+            // In empty edge cases, stop iterating immediately
+            if !(self.indices.is_empty() || self.pool.get_next()) {
+                return None;
+            }
+            self.first = false;
+        } else if self.increment_indices() {
+            return None;
+        }
+        for _ in 0..n {
+            if self.increment_indices() {
+                return None;
+            }
+        }
+        Some(self.pool.get_at(&self.indices))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {

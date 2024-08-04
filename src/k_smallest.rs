@@ -2,7 +2,7 @@ use alloc::vec::Vec;
 use core::cmp::Ordering;
 
 /// Consumes a given iterator, returning the minimum elements in **ascending** order.
-pub(crate) fn k_smallest_general<I, F>(mut iter: I, k: usize, mut comparator: F) -> Vec<I::Item>
+pub(crate) fn k_smallest_general<I, F>(iter: I, k: usize, mut comparator: F) -> Vec<I::Item>
 where
     I: Iterator,
     F: FnMut(&I::Item, &I::Item) -> Ordering,
@@ -42,8 +42,13 @@ where
     }
 
     if k == 0 {
+        iter.last();
         return Vec::new();
     }
+    if k == 1 {
+        return iter.min_by(comparator).into_iter().collect();
+    }
+    let mut iter = iter.fuse();
     let mut storage: Vec<I::Item> = iter.by_ref().take(k).collect();
 
     let mut is_less_than = move |a: &_, b: &_| comparator(a, b) == Ordering::Less;
@@ -55,19 +60,16 @@ where
         sift_down(&mut storage, &mut is_less_than, i);
     }
 
-    if k == storage.len() {
-        // If we fill the storage, there may still be iterator elements left so feed them into the heap.
-        // Also avoids unexpected behaviour with restartable iterators.
-        iter.for_each(|val| {
-            if is_less_than(&val, &storage[0]) {
-                // Treating this as an push-and-pop saves having to write a sift-up implementation.
-                // https://en.wikipedia.org/wiki/Binary_heap#Insert_then_extract
-                storage[0] = val;
-                // We retain the smallest items we've seen so far, but ordered largest first so we can drop the largest efficiently.
-                sift_down(&mut storage, &mut is_less_than, 0);
-            }
-        });
-    }
+    iter.for_each(|val| {
+        debug_assert_eq!(storage.len(), k);
+        if is_less_than(&val, &storage[0]) {
+            // Treating this as an push-and-pop saves having to write a sift-up implementation.
+            // https://en.wikipedia.org/wiki/Binary_heap#Insert_then_extract
+            storage[0] = val;
+            // We retain the smallest items we've seen so far, but ordered largest first so we can drop the largest efficiently.
+            sift_down(&mut storage, &mut is_less_than, 0);
+        }
+    });
 
     // Ultimately the items need to be in least-first, strict order, but the heap is currently largest-first.
     // To achieve this, repeatedly,
@@ -86,10 +88,50 @@ where
     storage
 }
 
-#[inline]
-pub(crate) fn key_to_cmp<T, K, F>(key: F) -> impl Fn(&T, &T) -> Ordering
+pub(crate) fn k_smallest_relaxed_general<I, F>(iter: I, k: usize, mut comparator: F) -> Vec<I::Item>
 where
-    F: Fn(&T) -> K,
+    I: Iterator,
+    F: FnMut(&I::Item, &I::Item) -> Ordering,
+{
+    if k == 0 {
+        iter.last();
+        return Vec::new();
+    }
+
+    let mut iter = iter.fuse();
+    let mut buf = iter.by_ref().take(2 * k).collect::<Vec<_>>();
+
+    if buf.len() < k {
+        buf.sort_unstable_by(&mut comparator);
+        return buf;
+    }
+
+    buf.select_nth_unstable_by(k - 1, &mut comparator);
+    buf.truncate(k);
+
+    iter.for_each(|val| {
+        if comparator(&val, &buf[k - 1]) != Ordering::Less {
+            return;
+        }
+
+        assert_ne!(buf.len(), buf.capacity());
+        buf.push(val);
+
+        if buf.len() == 2 * k {
+            buf.select_nth_unstable_by(k - 1, &mut comparator);
+            buf.truncate(k);
+        }
+    });
+
+    buf.sort_unstable_by(&mut comparator);
+    buf.truncate(k);
+    buf
+}
+
+#[inline]
+pub(crate) fn key_to_cmp<T, K, F>(mut key: F) -> impl FnMut(&T, &T) -> Ordering
+where
+    F: FnMut(&T) -> K,
     K: Ord,
 {
     move |a, b| key(a).cmp(&key(b))

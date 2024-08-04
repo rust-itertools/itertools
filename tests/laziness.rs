@@ -63,6 +63,14 @@ must_use_tests! {
     intersperse_with {
         let _ = Panicking.intersperse_with(|| 0);
     }
+    get {
+        let _ = Panicking.get(1..4);
+        let _ = Panicking.get(1..=4);
+        let _ = Panicking.get(1..);
+        let _ = Panicking.get(..4);
+        let _ = Panicking.get(..=4);
+        let _ = Panicking.get(..);
+    }
     zip_longest {
         let _ = Panicking.zip_longest(Panicking);
     }
@@ -135,11 +143,11 @@ must_use_tests! {
         let _ = Panicking.merge_join_by(Panicking, |_, _| true);
         let _ = Panicking.merge_join_by(Panicking, Ord::cmp);
     }
-    #[ignore]
+    #[should_panic]
     kmerge {
         let _ = Panicking.map(|_| Panicking).kmerge();
     }
-    #[ignore]
+    #[should_panic]
     kmerge_by {
         let _ = Panicking.map(|_| Panicking).kmerge_by(|_, _| true);
     }
@@ -188,10 +196,15 @@ must_use_tests! {
     while_some {
         let _ = Panicking.map(Some).while_some();
     }
-    #[ignore]
-    tuple_combinations {
+    tuple_combinations1 {
         let _ = Panicking.tuple_combinations::<(_,)>();
+    }
+    #[should_panic]
+    tuple_combinations2 {
         let _ = Panicking.tuple_combinations::<(_, _)>();
+    }
+    #[should_panic]
+    tuple_combinations3 {
         let _ = Panicking.tuple_combinations::<(_, _, _)>();
     }
     combinations {

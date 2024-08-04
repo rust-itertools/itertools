@@ -36,7 +36,7 @@ pub use crate::zip_eq_impl::zip_eq;
 /// ```
 /// use itertools::intersperse;
 ///
-/// itertools::assert_equal(intersperse((0..3), 8), vec![0, 8, 1, 8, 2]);
+/// itertools::assert_equal(intersperse(0..3, 8), vec![0, 8, 1, 8, 2]);
 /// ```
 pub fn intersperse<I>(iterable: I, element: I::Item) -> Intersperse<I::IntoIter>
 where
@@ -55,7 +55,7 @@ where
 /// use itertools::intersperse_with;
 ///
 /// let mut i = 10;
-/// itertools::assert_equal(intersperse_with((0..3), || { i -= 1; i }), vec![0, 9, 1, 8, 2]);
+/// itertools::assert_equal(intersperse_with(0..3, || { i -= 1; i }), vec![0, 9, 1, 8, 2]);
 /// assert_eq!(i, 8);
 /// ```
 pub fn intersperse_with<I, F>(iterable: I, element: F) -> IntersperseWith<I::IntoIter, F>
@@ -75,6 +75,7 @@ where
 ///
 /// for (i, elt) in enumerate(&[1, 2, 3]) {
 ///     /* loop body */
+///     # let _ = (i, elt);
 /// }
 /// ```
 pub fn enumerate<I>(iterable: I) -> iter::Enumerate<I::IntoIter>
@@ -93,6 +94,7 @@ where
 ///
 /// for elt in rev(&[1, 2, 3]) {
 ///     /* loop body */
+///     # let _ = elt;
 /// }
 /// ```
 pub fn rev<I>(iterable: I) -> iter::Rev<I::IntoIter>
@@ -157,7 +159,7 @@ where
     i.into_iter().chain(j)
 }
 
-/// Create an iterator that clones each element from &T to T
+/// Create an iterator that clones each element from `&T` to `T`.
 ///
 /// [`IntoIterator`] enabled version of [`Iterator::cloned`].
 ///
@@ -259,7 +261,7 @@ where
     iterable.into_iter().min()
 }
 
-/// Combine all iterator elements into one String, separated by `sep`.
+/// Combine all iterator elements into one `String`, separated by `sep`.
 ///
 /// [`IntoIterator`] enabled version of [`Itertools::join`].
 ///
@@ -298,6 +300,7 @@ where
 
 /// Sort all iterator elements into a new iterator in ascending order.
 /// This sort is unstable (i.e., may reorder equal elements).
+///
 /// [`IntoIterator`] enabled version of [`Itertools::sorted_unstable`].
 ///
 /// ```

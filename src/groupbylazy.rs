@@ -66,12 +66,13 @@ where
     /// Least index for which we still have elements buffered
     oldest_buffered_group: usize,
     /// Group index for `buffer[0]` -- the slots
-    /// bottom_group..oldest_buffered_group are unused and will be erased when
+    /// `bottom_group..oldest_buffered_group` are unused and will be erased when
     /// that range is large enough.
     bottom_group: usize,
     /// Buffered groups, from `bottom_group` (index 0) to `top_group`.
     buffer: Vec<vec::IntoIter<I::Item>>,
-    /// index of last group iter that was dropped, usize::MAX == none
+    /// index of last group iter that was dropped,
+    /// `usize::MAX` initially when no group was dropped
     dropped_group: usize,
 }
 

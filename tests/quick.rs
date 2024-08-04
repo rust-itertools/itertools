@@ -2,7 +2,11 @@
 //! and adaptors.
 //!
 //! In particular we test the tedious size_hint and exact size correctness.
+//!
+//! **NOTE:** Due to performance limitations, these tests are not run with miri!
+//! They cannot be relied upon to discover soundness issues.
 
+#![cfg(not(miri))]
 #![allow(deprecated, unstable_name_collisions)]
 
 use itertools::free::{
@@ -253,7 +257,6 @@ where
         let mut it = get_it();
 
         for _ in 0..(counts.len() - 1) {
-            #[allow(clippy::manual_assert)]
             if it.next().is_none() {
                 panic!("Iterator shouldn't be finished, may not be deterministic");
             }
@@ -571,6 +574,14 @@ quickcheck! {
         let b = &b[..len];
         itertools::equal(zip_eq(a, b), zip(a, b))
     }
+
+    #[should_panic]
+    fn zip_eq_panics(a: Vec<u8>, b: Vec<u8>) -> TestResult {
+        if a.len() == b.len() { return TestResult::discard(); }
+        zip_eq(a.iter(), b.iter()).for_each(|_| {});
+        TestResult::passed() // won't come here
+    }
+
     fn equal_positions(a: Vec<i32>) -> bool {
         let with_pos = a.iter().positions(|v| v % 2 == 0);
         let without = a.iter().enumerate().filter(|(_, v)| *v % 2 == 0).map(|(i, _)| i);
@@ -1351,7 +1362,7 @@ quickcheck! {
 }
 
 quickcheck! {
-    fn tree_fold1_f64(mut a: Vec<f64>) -> TestResult {
+    fn tree_reduce_f64(mut a: Vec<f64>) -> TestResult {
         fn collapse_adjacent<F>(x: Vec<f64>, mut f: F) -> Vec<f64>
             where F: FnMut(f64, f64) -> f64
         {
@@ -1370,7 +1381,7 @@ quickcheck! {
             return TestResult::discard();
         }
 
-        let actual = a.iter().cloned().tree_fold1(f64::atan2);
+        let actual = a.iter().cloned().tree_reduce(f64::atan2);
 
         while a.len() > 1 {
             a = collapse_adjacent(a, f64::atan2);
@@ -1512,22 +1523,21 @@ quickcheck! {
         }
     }
 
-    fn correct_grouping_map_by_fold_first_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+    fn correct_grouping_map_by_reduce_modulo_key(a: Vec<u8>, modulo: u8) -> () {
         let modulo = if modulo == 0 { 1 } else { modulo } as u64; // Avoid `% 0`
         let lookup = a.iter().map(|&b| b as u64) // Avoid overflows
             .into_grouping_map_by(|i| i % modulo)
-            .fold_first(|acc, &key, val| {
+            .reduce(|acc, &key, val| {
                 assert!(val % modulo == key);
                 acc + val
             });
 
-        // TODO: Swap `fold1` with stdlib's `fold_first` when it's stabilized
         let group_map_lookup = a.iter()
             .map(|&b| b as u64)
             .map(|i| (i % modulo, i))
             .into_group_map()
             .into_iter()
-            .map(|(key, vals)| (key, vals.into_iter().fold1(|acc, val| acc + val).unwrap()))
+            .map(|(key, vals)| (key, vals.into_iter().reduce(|acc, val| acc + val).unwrap()))
             .collect::<HashMap<_,_>>();
         assert_eq!(lookup, group_map_lookup);
 
@@ -1965,5 +1975,12 @@ quickcheck! {
         } else {
             result_set.is_empty()
         }
+    }
+
+    fn tail(v: Vec<i32>, n: u8) -> bool {
+        let n = n as usize;
+        let result = &v[v.len().saturating_sub(n)..];
+        itertools::equal(v.iter().tail(n), result)
+            && itertools::equal(v.iter().filter(|_| true).tail(n), result)
     }
 }

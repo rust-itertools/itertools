@@ -9,7 +9,7 @@ use std::fmt;
 /// See [`.format_with()`](crate::Itertools::format_with) for more information.
 pub struct FormatWith<'a, I, F> {
     sep: &'a str,
-    /// FormatWith uses interior mutability because Display::fmt takes &self.
+    /// `FormatWith` uses interior mutability because `Display::fmt` takes `&self`.
     inner: Cell<Option<(I, F)>>,
 }
 
@@ -22,7 +22,7 @@ pub struct FormatWith<'a, I, F> {
 /// for more information.
 pub struct Format<'a, I> {
     sep: &'a str,
-    /// Format uses interior mutability because Display::fmt takes &self.
+    /// `Format` uses interior mutability because `Display::fmt` takes `&self`.
     inner: Cell<Option<I>>,
 }
 
@@ -68,6 +68,16 @@ where
             })?;
         }
         Ok(())
+    }
+}
+
+impl<'a, I, F> fmt::Debug for FormatWith<'a, I, F>
+where
+    I: Iterator,
+    F: FnMut(I::Item, &mut dyn FnMut(&dyn fmt::Display) -> fmt::Result) -> fmt::Result,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
     }
 }
 

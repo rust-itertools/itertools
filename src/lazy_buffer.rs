@@ -51,6 +51,16 @@ where
     }
 }
 
+impl<I> LazyBuffer<I>
+where
+    I: Iterator,
+    I::Item: Clone,
+{
+    pub fn get_at(&self, indices: &[usize]) -> Vec<I::Item> {
+        indices.iter().map(|i| self.buffer[*i].clone()).collect()
+    }
+}
+
 impl<I, J> Index<J> for LazyBuffer<I>
 where
     I: Iterator,

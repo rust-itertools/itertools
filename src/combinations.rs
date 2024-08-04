@@ -94,6 +94,76 @@ impl<I: Iterator> Combinations<I> {
         let n = pool.count();
         (n, remaining_for(n, first, &indices).unwrap())
     }
+
+    /// Initialises the iterator by filling a buffer with elements from the
+    /// iterator. Returns true if there are no combinations, false otherwise.
+    fn init(&mut self) -> bool {
+        self.pool.prefill(self.k());
+        let done = self.k() > self.n();
+        if !done {
+            self.first = false;
+        }
+
+        done
+    }
+
+    /// Increments indices representing the combination to advance to the next
+    /// (in lexicographic order by increasing sequence) combination. For example
+    /// if we have n=4 & k=2 then `[0, 1] -> [0, 2] -> [0, 3] -> [1, 2] -> ...`
+    ///
+    /// Returns true if we've run out of combinations, false otherwise.
+    fn increment_indices(&mut self) -> bool {
+        if self.indices.is_empty() {
+            return true; // Done
+        }
+
+        // Scan from the end, looking for an index to increment
+        let mut i: usize = self.indices.len() - 1;
+
+        // Check if we need to consume more from the iterator
+        if self.indices[i] == self.pool.len() - 1 {
+            self.pool.get_next(); // may change pool size
+        }
+
+        while self.indices[i] == i + self.pool.len() - self.indices.len() {
+            if i > 0 {
+                i -= 1;
+            } else {
+                // Reached the last combination
+                return true;
+            }
+        }
+
+        // Increment index, and reset the ones to its right
+        self.indices[i] += 1;
+        for j in i + 1..self.indices.len() {
+            self.indices[j] = self.indices[j - 1] + 1;
+        }
+
+        // If we've made it this far, we haven't run out of combos
+        false
+    }
+
+    /// Returns the n-th item or the number of successful steps.
+    pub(crate) fn try_nth(&mut self, n: usize) -> Result<<Self as Iterator>::Item, usize>
+    where
+        I::Item: Clone,
+    {
+        let done = if self.first {
+            self.init()
+        } else {
+            self.increment_indices()
+        };
+        if done {
+            return Err(0);
+        }
+        for i in 0..n {
+            if self.increment_indices() {
+                return Err(i + 1);
+            }
+        }
+        Ok(self.pool.get_at(&self.indices))
+    }
 }
 
 impl<I> Iterator for Combinations<I>
@@ -103,41 +173,21 @@ where
 {
     type Item = Vec<I::Item>;
     fn next(&mut self) -> Option<Self::Item> {
-        if self.first {
-            self.pool.prefill(self.k());
-            if self.k() > self.n() {
-                return None;
-            }
-            self.first = false;
-        } else if self.indices.is_empty() {
-            return None;
+        let done = if self.first {
+            self.init()
         } else {
-            // Scan from the end, looking for an index to increment
-            let mut i: usize = self.indices.len() - 1;
+            self.increment_indices()
+        };
 
-            // Check if we need to consume more from the iterator
-            if self.indices[i] == self.pool.len() - 1 {
-                self.pool.get_next(); // may change pool size
-            }
-
-            while self.indices[i] == i + self.pool.len() - self.indices.len() {
-                if i > 0 {
-                    i -= 1;
-                } else {
-                    // Reached the last combination
-                    return None;
-                }
-            }
-
-            // Increment index, and reset the ones to its right
-            self.indices[i] += 1;
-            for j in i + 1..self.indices.len() {
-                self.indices[j] = self.indices[j - 1] + 1;
-            }
+        if done {
+            return None;
         }
 
-        // Create result vector based on the indices
-        Some(self.indices.iter().map(|i| self.pool[*i].clone()).collect())
+        Some(self.pool.get_at(&self.indices))
+    }
+
+    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+        self.try_nth(n).ok()
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
