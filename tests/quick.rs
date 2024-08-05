@@ -750,11 +750,10 @@ quickcheck! {
         vec.append(&mut vec![1; n2]);
         vec.append(&mut vec![2; n3]);
         vec.append(&mut vec![3; n4]);
-        let mut perm1 = vec.clone().into_iter().permutations(vec.len()).unique().collect_vec();
-        perm1.sort();
-        let mut perm2 = vec.into_iter().multiset_permutations().collect_vec();
-        perm2.sort();
-        assert_eq!(perm1, perm2);
+        let n = vec.len();
+        let unique_permutations = vec.iter().permutations(n).unique().sorted().collect_vec();
+        let multiset_permutations = vec.iter().multiset_permutations().sorted().collect_vec();
+        assert_eq!(unique_permutations, multiset_permutations);
     }
 
 }
