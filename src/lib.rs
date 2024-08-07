@@ -1999,6 +1999,15 @@ pub trait Itertools: Iterator {
     /// assert_eq!(numbers.iter().find_or_last(|&&x| x > 5), Some(&4));
     /// assert_eq!(numbers.iter().find_or_last(|&&x| x > 2), Some(&3));
     /// assert_eq!(std::iter::empty::<i32>().find_or_last(|&x| x > 5), None);
+    ///
+    /// // An iterator of Results can return the first Ok or the last Err:
+    /// let input = vec![Err(()), Ok(11), Err(()), Ok(22)];
+    /// assert_eq!(input.into_iter().find_or_last(Result::is_ok), Some(Ok(11)));
+    ///
+    /// let input: Vec<Result<(), i32>> = vec![Err(11), Err(22)];
+    /// assert_eq!(input.into_iter().find_or_last(Result::is_ok), Some(Err(22)));
+    ///
+    /// assert_eq!(std::iter::empty::<Result<(), i32>>().find_or_last(Result::is_ok), None);
     /// ```
     fn find_or_last<P>(mut self, mut predicate: P) -> Option<Self::Item>
     where
@@ -2027,6 +2036,15 @@ pub trait Itertools: Iterator {
     /// assert_eq!(numbers.iter().find_or_first(|&&x| x > 5), Some(&1));
     /// assert_eq!(numbers.iter().find_or_first(|&&x| x > 2), Some(&3));
     /// assert_eq!(std::iter::empty::<i32>().find_or_first(|&x| x > 5), None);
+    ///
+    /// // An iterator of Results can return the first Ok or the first Err:
+    /// let input = vec![Err(()), Ok(11), Err(()), Ok(22)];
+    /// assert_eq!(input.into_iter().find_or_first(Result::is_ok), Some(Ok(11)));
+    ///
+    /// let input: Vec<Result<(), i32>> = vec![Err(11), Err(22)];
+    /// assert_eq!(input.into_iter().find_or_first(Result::is_ok), Some(Err(11)));
+    ///
+    /// assert_eq!(std::iter::empty::<Result<(), i32>>().find_or_first(Result::is_ok), None);
     /// ```
     fn find_or_first<P>(mut self, mut predicate: P) -> Option<Self::Item>
     where
