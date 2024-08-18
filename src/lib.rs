@@ -427,13 +427,13 @@ macro_rules! chain {
 /// This trait defines a number of methods. They are divided into two groups:
 ///
 /// * *Adaptors* take an iterator and parameter as input, and return
-/// a new iterator value. These are listed first in the trait. An example
-/// of an adaptor is [`.interleave()`](Itertools::interleave)
+///   a new iterator value. These are listed first in the trait. An example
+///   of an adaptor is [`.interleave()`](Itertools::interleave)
 ///
 /// * *Regular methods* are those that don't return iterators and instead
-/// return a regular value of some other kind.
-/// [`.next_tuple()`](Itertools::next_tuple) is an example and the first regular
-/// method in the list.
+///   return a regular value of some other kind.
+///   [`.next_tuple()`](Itertools::next_tuple) is an example and the first regular
+///   method in the list.
 pub trait Itertools: Iterator {
     // adaptors
 
