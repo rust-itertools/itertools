@@ -273,6 +273,16 @@ quickcheck! {
         test_specializations(&v.into_iter().intersperse_with(|| 0));
     }
 
+    fn array_combinations(v: Vec<u8>) -> TestResult {
+        if v.len() > 10 {
+            return TestResult::discard();
+        }
+        test_specializations(&v.iter().array_combinations::<1>());
+        test_specializations(&v.iter().array_combinations::<2>());
+        test_specializations(&v.iter().array_combinations::<3>());
+        TestResult::passed()
+    }
+
     fn combinations(a: Vec<u8>, n: u8) -> TestResult {
         if n > 3 || a.len() > 8 {
             return TestResult::discard();
