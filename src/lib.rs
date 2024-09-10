@@ -97,9 +97,7 @@ pub mod structs {
         TakeWhileRef, TupleCombinations, Update, WhileSome,
     };
     #[cfg(feature = "use_alloc")]
-    pub use crate::array_combinations::ArrayCombinations;
-    #[cfg(feature = "use_alloc")]
-    pub use crate::combinations::Combinations;
+    pub use crate::combinations::{ArrayCombinations, Combinations};
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations_with_replacement::CombinationsWithReplacement;
     pub use crate::cons_tuples_impl::ConsTuples;
@@ -179,8 +177,6 @@ pub use crate::either_or_both::EitherOrBoth;
 pub mod free;
 #[doc(inline)]
 pub use crate::free::*;
-#[cfg(feature = "use_alloc")]
-mod array_combinations;
 #[cfg(feature = "use_alloc")]
 mod combinations;
 #[cfg(feature = "use_alloc")]
@@ -1721,7 +1717,7 @@ pub trait Itertools: Iterator {
         Self: Sized + Clone,
         Self::Item: Clone,
     {
-        array_combinations::array_combinations(self)
+        combinations::array_combinations(self)
     }
 
     /// Return an iterator adaptor that iterates over the `k`-length combinations of
