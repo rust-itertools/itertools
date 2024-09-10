@@ -1,3 +1,5 @@
+use core::array;
+use core::ops::IndexMut;
 use std::fmt;
 use std::iter::FusedIterator;
 
@@ -6,45 +8,112 @@ use alloc::vec::Vec;
 
 use crate::adaptors::checked_binomial;
 
+/// Iterator for `Vec` valued combinations returned by [`.combinations()`](crate::Itertools::combinations)
+pub type Combinations<I> = CombinationsGeneric<I, Vec<usize>>;
+/// Iterator for const generic combinations returned by [`.array_combinations()`](crate::Itertools::array_combinations)
+pub type ArrayCombinations<I, const K: usize> = CombinationsGeneric<I, [usize; K]>;
+
+/// Create a new `Combinations` from a clonable iterator.
+pub fn combinations<I: Iterator>(iter: I, k: usize) -> Combinations<I>
+where
+    I::Item: Clone,
+{
+    Combinations::new(iter, (0..k).collect())
+}
+
+/// Create a new `ArrayCombinations` from a clonable iterator.
+pub fn array_combinations<I: Iterator, const K: usize>(iter: I) -> ArrayCombinations<I, K>
+where
+    I::Item: Clone,
+{
+    ArrayCombinations::new(iter, array::from_fn(|i| i))
+}
+
 /// An iterator to iterate through all the `k`-length combinations in an iterator.
 ///
-/// See [`.combinations()`](crate::Itertools::combinations) for more information.
+/// See [`.combinations()`](crate::Itertools::combinations) and [`.array_combinations()`](crate::Itertools::array_combinations) for more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct Combinations<I: Iterator> {
-    indices: Vec<usize>,
+pub struct CombinationsGeneric<I: Iterator, Idx> {
+    indices: Idx,
     pool: LazyBuffer<I>,
     first: bool,
 }
 
-impl<I> Clone for Combinations<I>
+pub trait PoolIndex<T>: IndexMut<usize, Output = usize> {
+    type Item;
+
+    fn len(&self) -> usize;
+    fn extract_item<I: Iterator<Item = T>>(&self, pool: &LazyBuffer<I>) -> Self::Item
+    where
+        T: Clone;
+    fn as_slice(&self) -> &[usize];
+}
+
+impl<T> PoolIndex<T> for Vec<usize> {
+    type Item = Vec<T>;
+
+    fn len(&self) -> usize {
+        self.len()
+    }
+    fn extract_item<I: Iterator<Item = T>>(&self, pool: &LazyBuffer<I>) -> Vec<T>
+    where
+        T: Clone,
+    {
+        pool.get_at(self)
+    }
+
+    fn as_slice(&self) -> &[usize] {
+        self
+    }
+}
+
+impl<T, const K: usize> PoolIndex<T> for [usize; K] {
+    type Item = [T; K];
+
+    fn len(&self) -> usize {
+        K
+    }
+
+    fn extract_item<I: Iterator<Item = T>>(&self, pool: &LazyBuffer<I>) -> [T; K]
+    where
+        T: Clone,
+    {
+        pool.get_array(*self)
+    }
+
+    fn as_slice(&self) -> &[usize] {
+        self
+    }
+}
+
+impl<I, Idx> Clone for CombinationsGeneric<I, Idx>
 where
-    I: Clone + Iterator,
+    I: Iterator + Clone,
     I::Item: Clone,
+    Idx: Clone,
 {
     clone_fields!(indices, pool, first);
 }
 
-impl<I> fmt::Debug for Combinations<I>
+impl<I, Idx> fmt::Debug for CombinationsGeneric<I, Idx>
 where
     I: Iterator + fmt::Debug,
     I::Item: fmt::Debug,
+    Idx: fmt::Debug,
 {
     debug_fmt_fields!(Combinations, indices, pool, first);
 }
 
-/// Create a new `Combinations` from a clonable iterator.
-pub fn combinations<I>(iter: I, k: usize) -> Combinations<I>
-where
-    I: Iterator,
-{
-    Combinations {
-        indices: (0..k).collect(),
-        pool: LazyBuffer::new(iter),
-        first: true,
+impl<I: Iterator, Idx: PoolIndex<I::Item>> CombinationsGeneric<I, Idx> {
+    /// Constructor with arguments the inner iterator and the initial state for the indices.
+    fn new(iter: I, indices: Idx) -> Self {
+        Self {
+            indices,
+            pool: LazyBuffer::new(iter),
+            first: true,
+        }
     }
-}
 
-impl<I: Iterator> Combinations<I> {
     /// Returns the length of a combination produced by this iterator.
     #[inline]
     pub fn k(&self) -> usize {
@@ -64,34 +133,17 @@ impl<I: Iterator> Combinations<I> {
         &self.pool
     }
 
-    /// Resets this `Combinations` back to an initial state for combinations of length
-    /// `k` over the same pool data source. If `k` is larger than the current length
-    /// of the data pool an attempt is made to prefill the pool so that it holds `k`
-    /// elements.
-    pub(crate) fn reset(&mut self, k: usize) {
-        self.first = true;
-
-        if k < self.indices.len() {
-            self.indices.truncate(k);
-            for i in 0..k {
-                self.indices[i] = i;
-            }
-        } else {
-            for i in 0..self.indices.len() {
-                self.indices[i] = i;
-            }
-            self.indices.extend(self.indices.len()..k);
-            self.pool.prefill(k);
-        }
-    }
-
+    /// Return the length of the inner iterator and the count of remaining combinations.
     pub(crate) fn n_and_count(self) -> (usize, usize) {
         let Self {
             indices,
             pool,
             first,
         } = self;
-        n_and_count(pool, first, &indices)
+        {
+            let n = pool.count();
+            (n, remaining_for(n, first, indices.as_slice()).unwrap())
+        }
     }
 
     /// Initialises the iterator by filling a buffer with elements from the
@@ -112,7 +164,7 @@ impl<I: Iterator> Combinations<I> {
     ///
     /// Returns true if we've run out of combinations, false otherwise.
     fn increment_indices(&mut self) -> bool {
-        if self.indices.is_empty() {
+        if self.indices.len() == 0 {
             return true; // Done
         }
 
@@ -144,8 +196,9 @@ impl<I: Iterator> Combinations<I> {
     }
 
     /// Returns the n-th item or the number of successful steps.
-    pub(crate) fn try_nth(&mut self, n: usize) -> Result<<Self as Iterator>::Item, usize>
+    pub(crate) fn try_nth(&mut self, n: usize) -> Result<Idx::Item, usize>
     where
+        I: Iterator,
         I::Item: Clone,
     {
         let done = if self.first {
@@ -161,16 +214,17 @@ impl<I: Iterator> Combinations<I> {
                 return Err(i + 1);
             }
         }
-        Ok(self.pool.get_at(&self.indices))
+        Ok(self.indices.extract_item(&self.pool))
     }
 }
 
-impl<I> Iterator for Combinations<I>
+impl<I, Idx> Iterator for CombinationsGeneric<I, Idx>
 where
     I: Iterator,
     I::Item: Clone,
+    Idx: PoolIndex<I::Item>,
 {
-    type Item = Vec<I::Item>;
+    type Item = Idx::Item;
     fn next(&mut self) -> Option<Self::Item> {
         let done = if self.first {
             self.init()
@@ -182,7 +236,7 @@ where
             return None;
         }
 
-        Some(self.pool.get_at(&self.indices))
+        Some(self.indices.extract_item(&self.pool))
     }
 
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
@@ -191,8 +245,8 @@ where
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (mut low, mut upp) = self.pool.size_hint();
-        low = remaining_for(low, self.first, &self.indices).unwrap_or(usize::MAX);
-        upp = upp.and_then(|upp| remaining_for(upp, self.first, &self.indices));
+        low = remaining_for(low, self.first, self.indices.as_slice()).unwrap_or(usize::MAX);
+        upp = upp.and_then(|upp| remaining_for(upp, self.first, self.indices.as_slice()));
         (low, upp)
     }
 
@@ -202,21 +256,35 @@ where
     }
 }
 
-impl<I> FusedIterator for Combinations<I>
+impl<I, Idx> FusedIterator for CombinationsGeneric<I, Idx>
 where
     I: Iterator,
     I::Item: Clone,
+    Idx: PoolIndex<I::Item>,
 {
 }
 
-/// Return the length of the inner iterator and the count of remaining combinations.
-pub(crate) fn n_and_count<I: Iterator>(
-    pool: LazyBuffer<I>,
-    first: bool,
-    indices: &[usize],
-) -> (usize, usize) {
-    let n = pool.count();
-    (n, remaining_for(n, first, indices).unwrap())
+impl<I: Iterator> Combinations<I> {
+    /// Resets this `Combinations` back to an initial state for combinations of length
+    /// `k` over the same pool data source. If `k` is larger than the current length
+    /// of the data pool an attempt is made to prefill the pool so that it holds `k`
+    /// elements.
+    pub(crate) fn reset(&mut self, k: usize) {
+        self.first = true;
+
+        if k < self.indices.len() {
+            self.indices.truncate(k);
+            for i in 0..k {
+                self.indices[i] = i;
+            }
+        } else {
+            for i in 0..self.indices.len() {
+                self.indices[i] = i;
+            }
+            self.indices.extend(self.indices.len()..k);
+            self.pool.prefill(k);
+        }
+    }
 }
 
 /// For a given size `n`, return the count of remaining combinations or None if it would overflow.
