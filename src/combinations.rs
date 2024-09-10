@@ -209,6 +209,7 @@ where
 {
 }
 
+/// Return the length of the inner iterator and the count of remaining combinations.
 pub(crate) fn n_and_count<I: Iterator>(
     pool: LazyBuffer<I>,
     first: bool,
