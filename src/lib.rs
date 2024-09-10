@@ -96,6 +96,7 @@ pub mod structs {
         FilterOk, Interleave, InterleaveShortest, MapInto, MapOk, Positions, Product, PutBack,
         TakeWhileRef, TupleCombinations, Update, WhileSome,
     };
+    pub use crate::array_combinations::ArrayCombinations;
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations::Combinations;
     #[cfg(feature = "use_alloc")]
@@ -177,6 +178,7 @@ pub use crate::either_or_both::EitherOrBoth;
 pub mod free;
 #[doc(inline)]
 pub use crate::free::*;
+mod array_combinations;
 #[cfg(feature = "use_alloc")]
 mod combinations;
 #[cfg(feature = "use_alloc")]
@@ -1672,6 +1674,51 @@ pub trait Itertools: Iterator {
         T: adaptors::HasCombination<Self>,
     {
         adaptors::tuple_combinations(self)
+    }
+
+    /// Return an iterator adaptor that iterates over the combinations of the
+    /// elements from an iterator.
+    ///
+    /// Iterator element can be any array of type `Self::Item`.
+    ///
+    /// # Guarantees
+    ///
+    /// If the adapted iterator is deterministic,
+    /// this iterator adapter yields items in a reliable order.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut v = Vec::new();
+    /// for [a, b] in (1..5).array_combinations() {
+    ///     v.push([a, b]);
+    /// }
+    /// assert_eq!(v, vec![[1, 2], [1, 3], [1, 4], [2, 3], [2, 4], [3, 4]]);
+    ///
+    /// let mut it = (1..5).array_combinations();
+    /// assert_eq!(Some([1, 2, 3]), it.next());
+    /// assert_eq!(Some([1, 2, 4]), it.next());
+    /// assert_eq!(Some([1, 3, 4]), it.next());
+    /// assert_eq!(Some([2, 3, 4]), it.next());
+    /// assert_eq!(None, it.next());
+    ///
+    /// // this requires a type hint
+    /// let it = (1..5).array_combinations::<3>();
+    /// itertools::assert_equal(it, vec![[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]);
+    ///
+    /// // you can also specify the complete type
+    /// use itertools::ArrayCombinations;
+    /// use std::ops::Range;
+    ///
+    /// let it: ArrayCombinations<Range<u32>, 3> = (1..5).array_combinations();
+    /// itertools::assert_equal(it, vec![[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]);
+    /// ```
+    fn array_combinations<const K: usize>(self) -> ArrayCombinations<Self, K>
+    where
+        Self: Sized + Clone,
+        Self::Item: Clone,
+    {
+        array_combinations::array_combinations(self)
     }
 
     /// Return an iterator adaptor that iterates over the `k`-length combinations of

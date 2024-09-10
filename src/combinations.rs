@@ -91,8 +91,7 @@ impl<I: Iterator> Combinations<I> {
             pool,
             first,
         } = self;
-        let n = pool.count();
-        (n, remaining_for(n, first, &indices).unwrap())
+        n_and_count(pool, first, &indices)
     }
 
     /// Initialises the iterator by filling a buffer with elements from the
@@ -210,8 +209,17 @@ where
 {
 }
 
+pub(crate) fn n_and_count<I: Iterator>(
+    pool: LazyBuffer<I>,
+    first: bool,
+    indices: &[usize],
+) -> (usize, usize) {
+    let n = pool.count();
+    (n, remaining_for(n, first, indices).unwrap())
+}
+
 /// For a given size `n`, return the count of remaining combinations or None if it would overflow.
-fn remaining_for(n: usize, first: bool, indices: &[usize]) -> Option<usize> {
+pub(crate) fn remaining_for(n: usize, first: bool, indices: &[usize]) -> Option<usize> {
     let k = indices.len();
     if n < k {
         Some(0)

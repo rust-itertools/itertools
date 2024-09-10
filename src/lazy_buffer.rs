@@ -59,6 +59,10 @@ where
     pub fn get_at(&self, indices: &[usize]) -> Vec<I::Item> {
         indices.iter().map(|i| self.buffer[*i].clone()).collect()
     }
+
+    pub fn get_array<const K: usize>(&self, indices: [usize; K]) -> [I::Item; K] {
+        indices.map(|i| self.buffer[i].clone())
+    }
 }
 
 impl<I, J> Index<J> for LazyBuffer<I>
