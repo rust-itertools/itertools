@@ -40,7 +40,7 @@ where
     I::Item: Clone,
 {
     /// Returns the (current) length of the pool from which combination elements are
-    /// selected. This value can change between invocations of [`next`](Combinations::next).
+    /// selected. This value can change between invocations of [`next`](ArrayCombinations::next).
     #[inline]
     pub fn n(&self) -> usize {
         self.pool.len()
