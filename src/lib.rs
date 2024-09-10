@@ -96,6 +96,7 @@ pub mod structs {
         FilterOk, Interleave, InterleaveShortest, MapInto, MapOk, Positions, Product, PutBack,
         TakeWhileRef, TupleCombinations, Update, WhileSome,
     };
+    #[cfg(feature = "use_alloc")]
     pub use crate::array_combinations::ArrayCombinations;
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations::Combinations;
@@ -178,6 +179,7 @@ pub use crate::either_or_both::EitherOrBoth;
 pub mod free;
 #[doc(inline)]
 pub use crate::free::*;
+#[cfg(feature = "use_alloc")]
 mod array_combinations;
 #[cfg(feature = "use_alloc")]
 mod combinations;
@@ -1713,6 +1715,7 @@ pub trait Itertools: Iterator {
     /// let it: ArrayCombinations<Range<u32>, 3> = (1..5).array_combinations();
     /// itertools::assert_equal(it, vec![[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]);
     /// ```
+    #[cfg(feature = "use_alloc")]
     fn array_combinations<const K: usize>(self) -> ArrayCombinations<Self, K>
     where
         Self: Sized + Clone,
