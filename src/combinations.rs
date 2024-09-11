@@ -46,7 +46,6 @@ pub trait PoolIndex<T>: BorrowMut<[usize]> {
     where
         T: Clone;
 
-    #[inline]
     fn len(&self) -> usize {
         self.borrow().len()
     }
@@ -71,10 +70,6 @@ impl<T, const K: usize> PoolIndex<T> for [usize; K] {
         T: Clone,
     {
         pool.get_array(*self)
-    }
-
-    fn len(&self) -> usize {
-        K
     }
 }
 
@@ -132,10 +127,8 @@ impl<I: Iterator, Idx: PoolIndex<I::Item>> CombinationsGeneric<I, Idx> {
             pool,
             first,
         } = self;
-        {
-            let n = pool.count();
-            (n, remaining_for(n, first, indices.borrow()).unwrap())
-        }
+        let n = pool.count();
+        (n, remaining_for(n, first, indices.borrow()).unwrap())
     }
 
     /// Initialises the iterator by filling a buffer with elements from the
@@ -189,7 +182,7 @@ impl<I: Iterator, Idx: PoolIndex<I::Item>> CombinationsGeneric<I, Idx> {
     }
 
     /// Returns the n-th item or the number of successful steps.
-    pub(crate) fn try_nth(&mut self, n: usize) -> Result<Idx::Item, usize>
+    pub(crate) fn try_nth(&mut self, n: usize) -> Result<<Self as Iterator>::Item, usize>
     where
         I: Iterator,
         I::Item: Clone,
@@ -281,7 +274,7 @@ impl<I: Iterator> Combinations<I> {
 }
 
 /// For a given size `n`, return the count of remaining combinations or None if it would overflow.
-pub(crate) fn remaining_for(n: usize, first: bool, indices: &[usize]) -> Option<usize> {
+fn remaining_for(n: usize, first: bool, indices: &[usize]) -> Option<usize> {
     let k = indices.len();
     if n < k {
         Some(0)

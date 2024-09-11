@@ -1677,7 +1677,8 @@ pub trait Itertools: Iterator {
     /// Return an iterator adaptor that iterates over the combinations of the
     /// elements from an iterator.
     ///
-    /// Iterator element can be any array of type `Self::Item`.
+    /// Iterator element type is [Self::Item; K]. The iterator produces a new
+    /// array per iteration, and clones the iterator elements.
     ///
     /// # Guarantees
     ///
