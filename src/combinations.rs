@@ -1,5 +1,5 @@
 use core::array;
-use core::ops::IndexMut;
+use core::borrow::BorrowMut;
 use std::fmt;
 use std::iter::FusedIterator;
 
@@ -39,40 +39,32 @@ pub struct CombinationsGeneric<I: Iterator, Idx> {
     first: bool,
 }
 
-pub trait PoolIndex<T>: IndexMut<usize, Output = usize> {
+pub trait PoolIndex<T>: BorrowMut<[usize]> {
     type Item;
 
-    fn len(&self) -> usize;
     fn extract_item<I: Iterator<Item = T>>(&self, pool: &LazyBuffer<I>) -> Self::Item
     where
         T: Clone;
-    fn as_slice(&self) -> &[usize];
+
+    #[inline]
+    fn len(&self) -> usize {
+        self.borrow().len()
+    }
 }
 
 impl<T> PoolIndex<T> for Vec<usize> {
     type Item = Vec<T>;
 
-    fn len(&self) -> usize {
-        self.len()
-    }
     fn extract_item<I: Iterator<Item = T>>(&self, pool: &LazyBuffer<I>) -> Vec<T>
     where
         T: Clone,
     {
         pool.get_at(self)
     }
-
-    fn as_slice(&self) -> &[usize] {
-        self
-    }
 }
 
 impl<T, const K: usize> PoolIndex<T> for [usize; K] {
     type Item = [T; K];
-
-    fn len(&self) -> usize {
-        K
-    }
 
     fn extract_item<I: Iterator<Item = T>>(&self, pool: &LazyBuffer<I>) -> [T; K]
     where
@@ -81,8 +73,8 @@ impl<T, const K: usize> PoolIndex<T> for [usize; K] {
         pool.get_array(*self)
     }
 
-    fn as_slice(&self) -> &[usize] {
-        self
+    fn len(&self) -> usize {
+        K
     }
 }
 
@@ -142,7 +134,7 @@ impl<I: Iterator, Idx: PoolIndex<I::Item>> CombinationsGeneric<I, Idx> {
         } = self;
         {
             let n = pool.count();
-            (n, remaining_for(n, first, indices.as_slice()).unwrap())
+            (n, remaining_for(n, first, indices.borrow()).unwrap())
         }
     }
 
@@ -164,19 +156,21 @@ impl<I: Iterator, Idx: PoolIndex<I::Item>> CombinationsGeneric<I, Idx> {
     ///
     /// Returns true if we've run out of combinations, false otherwise.
     fn increment_indices(&mut self) -> bool {
-        if self.indices.len() == 0 {
+        // Borrow once instead of noise each time it's indexed
+        let indices = self.indices.borrow_mut();
+
+        if indices.is_empty() {
             return true; // Done
         }
-
         // Scan from the end, looking for an index to increment
-        let mut i: usize = self.indices.len() - 1;
+        let mut i: usize = indices.len() - 1;
 
         // Check if we need to consume more from the iterator
-        if self.indices[i] == self.pool.len() - 1 {
+        if indices[i] == self.pool.len() - 1 {
             self.pool.get_next(); // may change pool size
         }
 
-        while self.indices[i] == i + self.pool.len() - self.indices.len() {
+        while indices[i] == i + self.pool.len() - indices.len() {
             if i > 0 {
                 i -= 1;
             } else {
@@ -186,11 +180,10 @@ impl<I: Iterator, Idx: PoolIndex<I::Item>> CombinationsGeneric<I, Idx> {
         }
 
         // Increment index, and reset the ones to its right
-        self.indices[i] += 1;
-        for j in i + 1..self.indices.len() {
-            self.indices[j] = self.indices[j - 1] + 1;
+        indices[i] += 1;
+        for j in i + 1..indices.len() {
+            indices[j] = indices[j - 1] + 1;
         }
-
         // If we've made it this far, we haven't run out of combos
         false
     }
@@ -245,8 +238,8 @@ where
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (mut low, mut upp) = self.pool.size_hint();
-        low = remaining_for(low, self.first, self.indices.as_slice()).unwrap_or(usize::MAX);
-        upp = upp.and_then(|upp| remaining_for(upp, self.first, self.indices.as_slice()));
+        low = remaining_for(low, self.first, self.indices.borrow()).unwrap_or(usize::MAX);
+        upp = upp.and_then(|upp| remaining_for(upp, self.first, self.indices.borrow()));
         (low, upp)
     }
 
