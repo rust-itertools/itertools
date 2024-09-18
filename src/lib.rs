@@ -427,13 +427,13 @@ macro_rules! chain {
 /// This trait defines a number of methods. They are divided into two groups:
 ///
 /// * *Adaptors* take an iterator and parameter as input, and return
-/// a new iterator value. These are listed first in the trait. An example
-/// of an adaptor is [`.interleave()`](Itertools::interleave)
+///   a new iterator value. These are listed first in the trait. An example
+///   of an adaptor is [`.interleave()`](Itertools::interleave)
 ///
 /// * *Regular methods* are those that don't return iterators and instead
-/// return a regular value of some other kind.
-/// [`.next_tuple()`](Itertools::next_tuple) is an example and the first regular
-/// method in the list.
+///   return a regular value of some other kind.
+///   [`.next_tuple()`](Itertools::next_tuple) is an example and the first regular
+///   method in the list.
 pub trait Itertools: Iterator {
     // adaptors
 
@@ -1597,6 +1597,7 @@ pub trait Itertools: Iterator {
     ///     .collect();
     /// let expected: Vec<_> = vec![1, 2, 3].into_iter().map(NoCloneImpl).collect();
     /// assert_eq!(filtered, expected);
+    #[doc(alias = "take_until")]
     fn take_while_inclusive<F>(self, accept: F) -> TakeWhileInclusive<Self, F>
     where
         Self: Sized,
@@ -2001,6 +2002,15 @@ pub trait Itertools: Iterator {
     /// assert_eq!(numbers.iter().find_or_last(|&&x| x > 5), Some(&4));
     /// assert_eq!(numbers.iter().find_or_last(|&&x| x > 2), Some(&3));
     /// assert_eq!(std::iter::empty::<i32>().find_or_last(|&x| x > 5), None);
+    ///
+    /// // An iterator of Results can return the first Ok or the last Err:
+    /// let input = vec![Err(()), Ok(11), Err(()), Ok(22)];
+    /// assert_eq!(input.into_iter().find_or_last(Result::is_ok), Some(Ok(11)));
+    ///
+    /// let input: Vec<Result<(), i32>> = vec![Err(11), Err(22)];
+    /// assert_eq!(input.into_iter().find_or_last(Result::is_ok), Some(Err(22)));
+    ///
+    /// assert_eq!(std::iter::empty::<Result<(), i32>>().find_or_last(Result::is_ok), None);
     /// ```
     fn find_or_last<P>(mut self, mut predicate: P) -> Option<Self::Item>
     where
@@ -2029,6 +2039,15 @@ pub trait Itertools: Iterator {
     /// assert_eq!(numbers.iter().find_or_first(|&&x| x > 5), Some(&1));
     /// assert_eq!(numbers.iter().find_or_first(|&&x| x > 2), Some(&3));
     /// assert_eq!(std::iter::empty::<i32>().find_or_first(|&x| x > 5), None);
+    ///
+    /// // An iterator of Results can return the first Ok or the first Err:
+    /// let input = vec![Err(()), Ok(11), Err(()), Ok(22)];
+    /// assert_eq!(input.into_iter().find_or_first(Result::is_ok), Some(Ok(11)));
+    ///
+    /// let input: Vec<Result<(), i32>> = vec![Err(11), Err(22)];
+    /// assert_eq!(input.into_iter().find_or_first(Result::is_ok), Some(Err(11)));
+    ///
+    /// assert_eq!(std::iter::empty::<Result<(), i32>>().find_or_first(Result::is_ok), None);
     /// ```
     fn find_or_first<P>(mut self, mut predicate: P) -> Option<Self::Item>
     where
@@ -2071,7 +2090,7 @@ pub trait Itertools: Iterator {
     where
         Self: Sized,
         Self::Item: Borrow<Q>,
-        Q: PartialEq,
+        Q: PartialEq + ?Sized,
     {
         self.any(|x| x.borrow() == query)
     }
