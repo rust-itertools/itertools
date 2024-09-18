@@ -2,7 +2,11 @@
 //! and adaptors.
 //!
 //! In particular we test the tedious size_hint and exact size correctness.
+//!
+//! **NOTE:** Due to performance limitations, these tests are not run with miri!
+//! They cannot be relied upon to discover soundness issues.
 
+#![cfg(not(miri))]
 #![allow(deprecated, unstable_name_collisions)]
 
 use itertools::free::{

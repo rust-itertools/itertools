@@ -491,6 +491,7 @@ fn sorted_by() {
     it::assert_equal(v, vec![4, 3, 2, 1, 0]);
 }
 
+#[cfg(not(miri))]
 qc::quickcheck! {
     fn k_smallest_range(n: i64, m: u16, k: u16) -> () {
         // u16 is used to constrain k and m to 0..2¹⁶,
@@ -517,6 +518,42 @@ qc::quickcheck! {
         let largest = v.iter().cloned().k_largest(k);
         let largest_by = v.iter().cloned().k_largest_by(k, Ord::cmp);
         let largest_by_key = v.iter().cloned().k_largest_by_key(k, |&x| x);
+
+        // Check the variations produce the same answers and that they're right
+        it::assert_equal(smallest, sorted_smallest.clone());
+        it::assert_equal(smallest_by, sorted_smallest.clone());
+        it::assert_equal(smallest_by_key, sorted_smallest);
+
+        it::assert_equal(largest, sorted_largest.clone());
+        it::assert_equal(largest_by, sorted_largest.clone());
+        it::assert_equal(largest_by_key, sorted_largest);
+    }
+
+    fn k_smallest_relaxed_range(n: i64, m: u16, k: u16) -> () {
+        // u16 is used to constrain k and m to 0..2¹⁶,
+        //  otherwise the test could use too much memory.
+        let (k, m) = (k as usize, m as u64);
+
+        let mut v: Vec<_> = (n..n.saturating_add(m as _)).collect();
+        // Generate a random permutation of n..n+m
+        v.shuffle(&mut thread_rng());
+
+        // Construct the right answers for the top and bottom elements
+        let mut sorted = v.clone();
+        sorted.sort();
+        // how many elements are we checking
+        let num_elements = min(k, m as _);
+
+        // Compute the top and bottom k in various combinations
+        let sorted_smallest = sorted[..num_elements].iter().cloned();
+        let smallest = v.iter().cloned().k_smallest_relaxed(k);
+        let smallest_by = v.iter().cloned().k_smallest_relaxed_by(k, Ord::cmp);
+        let smallest_by_key = v.iter().cloned().k_smallest_relaxed_by_key(k, |&x| x);
+
+        let sorted_largest = sorted[sorted.len() - num_elements..].iter().rev().cloned();
+        let largest = v.iter().cloned().k_largest_relaxed(k);
+        let largest_by = v.iter().cloned().k_largest_relaxed_by(k, Ord::cmp);
+        let largest_by_key = v.iter().cloned().k_largest_relaxed_by_key(k, |&x| x);
 
         // Check the variations produce the same answers and that they're right
         it::assert_equal(smallest, sorted_smallest.clone());
@@ -571,8 +608,11 @@ where
     I::Item: Ord + Debug,
 {
     let j = i.clone();
+    let i1 = i.clone();
+    let j1 = i.clone();
     let k = k as usize;
-    it::assert_equal(i.k_smallest(k), j.sorted().take(k))
+    it::assert_equal(i.k_smallest(k), j.sorted().take(k));
+    it::assert_equal(i1.k_smallest_relaxed(k), j1.sorted().take(k));
 }
 
 // Similar to `k_smallest_sort` but for our custom heap implementation.
@@ -582,8 +622,11 @@ where
     I::Item: Ord + Debug,
 {
     let j = i.clone();
+    let i1 = i.clone();
+    let j1 = i.clone();
     let k = k as usize;
-    it::assert_equal(i.k_smallest_by(k, Ord::cmp), j.sorted().take(k))
+    it::assert_equal(i.k_smallest_by(k, Ord::cmp), j.sorted().take(k));
+    it::assert_equal(i1.k_smallest_relaxed_by(k, Ord::cmp), j1.sorted().take(k));
 }
 
 macro_rules! generic_test {
@@ -598,7 +641,9 @@ macro_rules! generic_test {
     };
 }
 
+#[cfg(not(miri))]
 generic_test!(k_smallest_sort, u8, u16, u32, u64, i8, i16, i32, i64);
+#[cfg(not(miri))]
 generic_test!(k_smallest_by_sort, u8, u16, u32, u64, i8, i16, i32, i64);
 
 #[test]
@@ -1055,8 +1100,8 @@ fn binomial(n: usize, k: usize) -> usize {
 
 #[test]
 fn combinations_range_count() {
-    for n in 0..=10 {
-        for k in 0..=10 {
+    for n in 0..=7 {
+        for k in 0..=7 {
             let len = binomial(n, k);
             let mut it = (0..n).combinations(k);
             assert_eq!(len, it.clone().count());
@@ -1077,7 +1122,7 @@ fn combinations_range_count() {
 
 #[test]
 fn combinations_inexact_size_hints() {
-    for k in 0..=10 {
+    for k in 0..=7 {
         let mut numbers = (0..18).filter(|i| i % 2 == 0); // 9 elements
         let mut it = numbers.clone().combinations(k);
         let real_n = numbers.clone().count();
@@ -1129,8 +1174,8 @@ fn permutations_zero() {
 
 #[test]
 fn permutations_range_count() {
-    for n in 0..=7 {
-        for k in 0..=7 {
+    for n in 0..=4 {
+        for k in 0..=4 {
             let len = if k <= n { (n - k + 1..=n).product() } else { 0 };
             let mut it = (0..n).permutations(k);
             assert_eq!(len, it.clone().count());
@@ -1162,6 +1207,7 @@ fn permutations_overflowed_size_hints() {
 }
 
 #[test]
+#[cfg(not(miri))]
 fn combinations_with_replacement() {
     // Pool smaller than n
     it::assert_equal((0..1).combinations_with_replacement(2), vec![vec![0, 0]]);
@@ -1190,8 +1236,8 @@ fn combinations_with_replacement() {
 
 #[test]
 fn combinations_with_replacement_range_count() {
-    for n in 0..=7 {
-        for k in 0..=7 {
+    for n in 0..=4 {
+        for k in 0..=4 {
             let len = binomial(usize::saturating_sub(n + k, 1), k);
             let mut it = (0..n).combinations_with_replacement(k);
             assert_eq!(len, it.clone().count());
@@ -1236,7 +1282,7 @@ fn powerset() {
     assert_eq!((0..8).powerset().count(), 1 << 8);
     assert_eq!((0..16).powerset().count(), 1 << 16);
 
-    for n in 0..=10 {
+    for n in 0..=4 {
         let mut it = (0..n).powerset();
         let len = 2_usize.pow(n);
         assert_eq!(len, it.clone().count());

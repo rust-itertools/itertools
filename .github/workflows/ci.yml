@@ -54,6 +54,21 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo test --all-features
 
+  miri:
+    runs-on: ubuntu-latest
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+          components: miri
+      - uses: taiki-e/install-action@nextest
+      - run: |
+          cargo miri nextest run --all-features
+          cargo miri test --doc
+
   check-format:
     name: check format
     runs-on: ubuntu-latest
