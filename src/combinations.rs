@@ -39,6 +39,8 @@ pub struct CombinationsGeneric<I: Iterator, Idx> {
     first: bool,
 }
 
+/// A type holding indices of elements in a pool or buffer of items from an inner iterator
+/// and used to pick out different combinations in a generic way.
 pub trait PoolIndex<T>: BorrowMut<[usize]> {
     type Item;
 
