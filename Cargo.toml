@@ -13,7 +13,7 @@ description = "Extra iterator adaptors, iterator methods, free functions, and ma
 keywords = ["iterator", "data-structure", "zip", "product"]
 categories = ["algorithms", "rust-patterns", "no-std", "no-std::no-alloc"]
 
-edition = "2018"
+edition = "2021"
 
 # When bumping, please resolve all `#[allow(clippy::*)]` that are newly resolvable.
 rust-version = "1.63.0"
@@ -30,7 +30,7 @@ rand = "0.7"
 criterion = { version = "0.4.0", features = ["html_reports"] }
 paste = "1.0.0"  # Used in test_std to instantiate generic tests
 permutohedron = "0.2"
-quickcheck = { version = "0.9", default_features = false }
+quickcheck = { version = "0.9", default-features = false }
 
 [features]
 default = ["use_std"]
