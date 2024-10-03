@@ -1804,7 +1804,7 @@ pub trait Itertools: Iterator {
     /// TODO: illustrative example.
     /// ```
     #[cfg(feature = "use_alloc")]
-    fn cartesian_power(self, pow: usize) -> CartesianPower<Self>
+    fn cartesian_power(self, pow: u32) -> CartesianPower<Self>
     where
         Self: Sized,
         Self::Item: Clone,
