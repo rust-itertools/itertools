@@ -1,8 +1,205 @@
 use alloc::vec::Vec;
 use std::fmt;
 
+/// Pseudo-iterator owned by [`CartesianPower`],
+/// yielding underlying indices by references to itself,
+/// the [streaming iterator](https://docs.rs/streaming-iterator/latest/streaming_iterator/) way.
+#[derive(Debug, Clone)]
+pub struct Indices {
+    // May be incremented by owner on first pass as long as exact value is unknown.
+    base: usize,
+    pow: u32,
+
+    // Indices just yielded. Length is 'pow'.
+    // 0 0 .. 0 0 means that the first combination has been yielded.
+    // 0 0 .. 0 1 means that the second combination has been yielded.
+    // m m .. m m means that the last combination has just been yielded (m = base - 1).
+    // b 0 .. 0 0 means that 'None' has just been yielded (b = base).
+    // The latter is a special value marking the renewal of the iterator,
+    // which can cycle again through another full round, ad libitum.
+    values: Option<Vec<usize>>,
+}
+
+impl Indices {
+    pub fn new(base: usize, pow: u32) -> Self {
+        Self {
+            base,
+            pow,
+            values: None,
+        }
+    }
+    pub fn next(&mut self) -> Option<&[usize]> {
+        let Self { base, pow, values } = self;
+
+        match (base, pow, values) {
+            // First iteration with degenerated 0th power.
+            (_, 0, values @ None) => Some(values.insert(Vec::new())),
+
+            // Last degenerated 0th power iteration.
+            // Use the Some<(empty)Vec> as a flag to alternate between yielding [] or None.
+            (_, 0, values @ Some(_)) => {
+                *values = None;
+                None
+            }
+
+            // Stable iteration in 0-base.
+            (0, _, _) => None,
+
+            // First iteration in the general case.
+            (_, pow, values @ None) => Some(values.insert(vec![0; *pow as usize])),
+
+            // Subsequent iteration in the general case.
+            (&mut base, _, Some(values)) => {
+                if values[0] == base {
+                    // Special marker that iteration can start over for a new round.
+                    values[0] = 0;
+                    return Some(values);
+                }
+                if inbounds_increment(values, base) {
+                    return Some(values);
+                }
+                // Iteration is over.
+                // Mark a special index value to not fuse the iterator
+                // and make it possible to cycle through all results again.
+                values[0] = base;
+                None
+            }
+        }
+    }
+
+    pub fn nth(&mut self, n: usize) -> Option<&[usize]> {
+        let Self { base, pow, values } = self;
+        match (base, pow, values, n) {
+            // First iteration with degenerated 0th power.
+            (_, 0, values @ None, 0) => {
+                Some(values.insert(Vec::new())) // Same as .next()
+            }
+            // Saturate.
+            (_, 0, values, _) => {
+                *values = None;
+                None
+            }
+            // Stable iteration in 0-base.
+            (0, _, _, _) => None,
+            // First iteration in the general case.
+            (&mut base, pow, values @ None, n) => {
+                let values = values.insert(vec![0; *pow as usize]);
+                if inbounds_increment_by(n, values, base) {
+                    return Some(values);
+                }
+                // Immediate saturation.
+                values[0] = base;
+                None
+            }
+            // Subsequent iteration in the general case.
+            (&mut base, _, Some(values), n) => {
+                let shift = if values[0] == base {
+                    // Start over for a new round (already counted then).
+                    values[0] = 0;
+                    0
+                } else {
+                    1
+                };
+                if inbounds_increment_by(n + shift, values, base) {
+                    return Some(values);
+                }
+                // Immediate re-saturation.
+                values[0] = base;
+                None
+            }
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.size_hint_with_base(self.base)
+    }
+
+    fn size_hint_with_base(&self, base: usize) -> (usize, Option<usize>) {
+        let Self {
+            base: _,
+            pow,
+            values,
+        } = self;
+
+        // The following case analysis matches implementation of `.next()`.
+        match (base, pow, values) {
+            // First iteration with degenerated 0th power.
+            (_, 0, None) => (1, Some(1)),
+
+            // Last degenerated 0th power iteration | Stable iteration in 0-base.
+            // Use the Some<(empty)Vec> as a flag to alternate between yielding [] or None.
+            (0, _, _) | (_, 0, Some(_)) => (0, Some(0)),
+
+            // First iteration in the general case.
+            (base, &pow, None) => {
+                let c = base.checked_pow(pow);
+                (c.unwrap_or(usize::MAX), c)
+            }
+
+            // Subsequent iteration in the general case.
+            (base, &pow, Some(values)) => {
+                if values[0] == base {
+                    // Fresh re-start.
+                    let r = base.checked_pow(pow);
+                    return (r.unwrap_or(usize::MAX), r);
+                }
+                // Count what's left from current indices.
+                // This is subtracting the current iteration number base^pow,
+                // using the complement method.
+                let calc = || -> Option<usize> {
+                    // (closure-wrap to ease interruption on overflow with ?-operator)
+                    let mut r = 0usize;
+                    for (&i, rank) in values.iter().rev().zip(0u32..) {
+                        let complement = base - 1 - i;
+                        let increment = complement.checked_mul(base.checked_pow(rank)?)?;
+                        r = r.checked_add(increment)?;
+                    }
+                    Some(r)
+                };
+                let Some(r) = calc() else {
+                    return (usize::MAX, None);
+                };
+                (r, Some(r))
+            }
+        }
+    }
+}
+
+/// Increment indices, returning false in case of overflow.
+fn inbounds_increment(indices: &mut [usize], base: usize) -> bool {
+    for index in indices.iter_mut().rev() {
+        *index += 1;
+        if *index < base {
+            return true;
+        }
+        *index = 0; // Wrap and increment left.
+    }
+    false
+}
+
+/// Increment indices by n, returning false in case of (saturating) overflow.
+fn inbounds_increment_by(n: usize, indices: &mut [usize], base: usize) -> bool {
+    let mut q = n;
+    for index in indices.iter_mut().rev() {
+        let s = *index + q;
+        q = s / base;
+        *index = s % base;
+        if q == 0 {
+            return true;
+        }
+    }
+    // Saturation requires a second pass to reset all indices.
+    for index in indices.iter_mut() {
+        *index = 0;
+    }
+    false
+}
+
 /// An adaptor iterating through all the ordered `n`-length lists of items
 /// yielded by the underlying iterator, including repetitions.
+/// Works by cloning the items into a fresh Vector on every `.next()`.
+/// If this is too much allocation for you,
+/// consider using the underlying lending [`Indices`] iterator instead.
 ///
 /// See [`.cartesian_power()`](crate::Itertools::cartesian_power)
 /// for more information.
@@ -13,20 +210,11 @@ where
     I: Iterator,
     I::Item: Clone,
 {
-    pow: u32,
     iter: Option<I>, // Inner iterator. Forget once consumed after 'base' iterations.
-    items: Option<Vec<I::Item>>, // Fill from iter. Final length is 'base'.
-    // None means that collection has not started yet.
-    // Some(empty) means that collection would have started but pow = 0.
-
-    // Indices just yielded. Length is 'pow'.
-    // 0 0 .. 0 0 means that the first combination has been yielded.
-    // 0 0 .. 0 1 means that the second combination has been yielded.
-    // m m .. m m means that the last combination has just been yielded (m = base - 1).
-    // b 0 .. 0 0 means that 'None' has just been yielded (b = base).
-    // The latter is a special value marking the renewal of the iterator,
-    // which can cycle again through another full round, ad libitum.
-    indices: Vec<usize>,
+    items: Option<Vec<I::Item>>, // Fill from 'iter'. Final length is 'base'.
+    // Keep track of the items to yield,
+    // updating 'base' as the inner iterator is consumed.
+    indices: Indices,
 }
 
 /// Create a new `CartesianPower` from an iterator of clonables.
@@ -36,10 +224,9 @@ where
     I::Item: Clone,
 {
     CartesianPower {
-        pow,
         iter: Some(iter),
         items: None,
-        indices: Vec::new(),
+        indices: Indices::new(0, pow),
     }
 }
 
@@ -57,130 +244,25 @@ where
     /// valid within the collected items slice also returned.
     fn increment_indices(&mut self) -> Option<(&[usize], &[I::Item])> {
         let Self {
-            pow,
             iter,
             items,
             indices,
         } = self;
 
-        let pow = *pow as usize;
-
-        // (weird 'items @' bindings circumvent NLL limitations, unneeded with polonius)
-        match (pow, iter, &mut *items) {
-            // First iteration with degenerated 0th power.
-            (0, Some(_), items @ None) => {
-                self.iter = None; // Forget about underlying iteration immediately.
-                let empty = items.insert(Vec::new()); // Raise this value as a boolean flag.
-                Some((indices, empty)) // Yield empty list.
-            }
-
-            // Subsequent degenerated 0th power iteration.
-            // Use the Some<(empty)Vec> as a flag to alternate between yielding [] or None.
-            (0, None, items @ Some(_)) => {
-                *items = None;
-                None
-            }
-            (0, None, items @ None) => Some((indices, items.insert(Vec::new()))),
-
-            // First iteration in the general case.
-            (pow, Some(it), items @ None) => {
-                // Check whether there is at least one element in the iterator.
-                if let Some(first) = it.next() {
-                    items // Collect it.
-                        .insert(Vec::with_capacity(it.size_hint().0))
-                        .push(first);
-                    // Prepare indices to be yielded.
-                    indices.reserve_exact(pow);
-                    for _ in 0..pow {
-                        indices.push(0);
-                    }
-                    Some((indices, items.as_ref().unwrap()))
-                } else {
-                    // Degenerated iteration over an empty set:
-                    // 'base = 0', yet with non-null power.
-                    self.iter = None;
-                    None
-                }
-            }
-
-            // Stable iteration in the degenerated case 'base = 0'.
-            (_, None, None) => None,
-
-            // Subsequent iteration in the general case.
-            (pow, Some(it), Some(items)) => {
-                // We are still unsure whether all items have been collected.
-                // As a consequence, the exact value of 'base' is still uncertain,
-                // but then we know that indices haven't started wrapping around yet.
-                if let Some(next) = it.next() {
-                    items.push(next);
-                    indices[pow - 1] += 1;
-                    return Some((indices, items));
-                }
-
-                // The item collected on previous call was the last one.
+        if let Some(iter) = iter {
+            let items = items.get_or_insert_with(|| Vec::with_capacity(iter.size_hint().0));
+            if let Some(new) = iter.next() {
+                indices.base += 1;
+                items.push(new);
+            } else {
                 self.iter = None;
-                let base = items.len(); // Definitive 'base' value.
-                if base == 1 || pow == 1 {
-                    // Early end of singleton iteration.
-                    indices[0] = base; // Mark to cycle again on next iteration.
-                    return None;
-                }
-
-                // First wrap around.
-                indices[pow - 1] = 0;
-                indices[pow - 2] = 1;
-                Some((indices, items))
             }
-
-            // Subsequent iteration in the general case after all items have been collected.
-            (_, None, Some(items)) => {
-                let base = items.len();
-                if indices[0] == base {
-                    // Special marker that iteration can start over for a new round.
-                    indices[0] = 0;
-                    return Some((indices, items));
-                }
-                // Keep yielding items list, incrementing indices rightmost first.
-                if Self::inbounds_increment(indices, base) {
-                    return Some((indices, items));
-                }
-                // Iteration is over.
-                // Mark a special index value to not fuse the iterator
-                // and make it possible to cycle through all results again.
-                indices[0] = base;
-                None
-            }
+            indices.next().map(move |i| (i, items.as_slice()))
+        } else if let Some(items) = items {
+            indices.next().map(move |i| (i, items.as_slice()))
+        } else {
+            indices.next().map(move |i| (i, [].as_slice()))
         }
-    }
-
-    /// Increment indices, returning false in case of overflow.
-    fn inbounds_increment(indices: &mut [usize], base: usize) -> bool {
-        for index in indices.iter_mut().rev() {
-            *index += 1;
-            if *index < base {
-                return true;
-            }
-            *index = 0; // Wrap and increment left.
-        }
-        false
-    }
-
-    /// Increment indices by n, returning false in case of (saturating) overflow.
-    fn inbounds_increment_by(n: usize, indices: &mut [usize], base: usize) -> bool {
-        let mut q = n;
-        for index in indices.iter_mut().rev() {
-            let s = *index + q;
-            q = s / base;
-            *index = s % base;
-            if q == 0 {
-                return true;
-            }
-        }
-        // Saturation requires a second pass to reset all indices.
-        for index in indices.iter_mut() {
-            *index = 0;
-        }
-        false
     }
 
     /// Same as [`increment_indices`], but does n increments at once.
@@ -188,128 +270,27 @@ where
     /// and 'saturates' to None instead.
     fn increment_indices_by_n(&mut self, n: usize) -> Option<(&[usize], &[I::Item])> {
         let Self {
-            pow,
             iter,
             items,
             indices,
         } = self;
 
-        let pow = *pow as usize;
-
-        match (pow, iter, &mut *items, n) {
-            // First iteration with degenerated 0th power.
-            (0, Some(_), items @ None, 0) => {
-                // Same as .next().
-                self.iter = None;
-                let empty = items.insert(Vec::new());
-                Some((indices, empty))
-            }
-            (0, Some(_), None, _) => {
-                // Saturate.
-                self.iter = None;
-                None
-            }
-
-            // Subsequent degenerated 0th power iteration.
-            // Same as `.next()`.
-            (0, None, items @ None, 0) => Some((indices, items.insert(Vec::new()))),
-            // Saturate.
-            (0, None, items, _) => {
-                *items = None;
-                None
-            }
-
-            // First iterations in the general case.
-            // Possibly this will consume the entire underlying iterator,
-            // but we need to consume to check.
-            (pow, Some(it), items @ None, mut remaining) => {
-                if let Some(first) = it.next() {
-                    // There is at least one element in the iterator, prepare collection + indices.
-                    let items = items.insert(Vec::with_capacity(it.size_hint().0));
-                    items.push(first);
-                    indices.reserve_exact(pow);
-                    for _ in 0..pow {
-                        indices.push(0);
-                    }
-                    // Collect more.
-                    loop {
-                        if remaining == 0 {
-                            // Stop before collection completion.
-                            indices[pow - 1] = n; // Hasn't wrapped yet.
-                            return Some((indices, items));
-                        }
-                        if let Some(next) = it.next() {
-                            items.push(next);
-                            remaining -= 1;
-                            continue;
-                        }
-                        // Collection completed, but we need to go further.
-                        self.iter = None;
-                        let base = items.len();
-                        if Self::inbounds_increment_by(n, indices, base) {
-                            return Some((indices, items));
-                        }
-                        // Immediate saturation.
-                        indices[0] = base;
-                        return None;
-                    }
+        if let Some(iter) = iter {
+            let items = items.get_or_insert_with(|| Vec::with_capacity(iter.size_hint().0));
+            for _ in 0..=n {
+                if let Some(new) = iter.next() {
+                    indices.base += 1;
+                    items.push(new);
                 } else {
-                    // Degenerated iteration over an empty set.
                     self.iter = None;
-                    None
+                    break;
                 }
             }
-
-            // Stable iteration in the degenerated case 'base = 0'.
-            (_, None, None, _) => None,
-
-            // Subsequent iteration in the general case.
-            // Again, immediate saturation is an option.
-            (pow, Some(it), Some(items), mut remaining) => {
-                if let Some(next) = it.next() {
-                    items.push(next);
-                    loop {
-                        if remaining == 0 {
-                            indices[pow - 1] += n + 1; // Hasn't wrapped yet.
-                            return Some((indices, items));
-                        }
-                        if let Some(next) = it.next() {
-                            items.push(next);
-                            remaining -= 1;
-                            continue;
-                        }
-                        break;
-                    }
-                }
-                // Collection completed.
-                self.iter = None;
-                let base = items.len();
-                if Self::inbounds_increment_by(n + 1, indices, base) {
-                    return Some((indices, items));
-                }
-                // Saturate.
-                indices[0] = base;
-                None
-            }
-
-            // Subsequent iteration in the general case
-            // after all items have been collected.
-            (_, None, Some(items), n) => {
-                let base = items.len();
-                let shift = if indices[0] == base {
-                    // Start over for a new round (already counted then).
-                    indices[0] = 0;
-                    0
-                } else {
-                    1
-                };
-                if Self::inbounds_increment_by(n + shift, indices, base) {
-                    return Some((indices, items));
-                }
-                // Immediate re-saturation.
-                indices[0] = base;
-                None
-            }
+            indices.nth(n).map(move |i| (i, items.as_slice()))
+        } else if let Some(items) = items {
+            indices.nth(n).map(move |i| (i, items.as_slice()))
+        } else {
+            indices.nth(n).map(move |i| (i, [].as_slice()))
         }
     }
 }
@@ -343,75 +324,15 @@ where
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let Self {
-            pow,
-            iter,
-            items,
-            indices,
-        } = self;
-
-        // The following case analysis matches implementation of `.next()`.
-        #[allow(clippy::match_same_arms)]
-        match (*pow, iter, items) {
-            // First iteration with degenerated 0th power.
-            (0, Some(_), None) => (1, Some(1)),
-
-            // Subsequent degenerated 0th power iteration.
-            // Alternating for cycling behaviour.
-            (0, None, Some(_)) => (0, Some(0)),
-            (0, None, None) => (1, Some(1)),
-
-            // First iteration in the general case.
-            (pow, Some(it), None) => {
-                let (a, b) = it.size_hint();
-                (
-                    a.checked_pow(pow).unwrap_or(usize::MAX),
-                    b.and_then(|b| b.checked_pow(pow)),
-                )
-            }
-
-            // Stable iteration in the degenerated case 'base = 0'.
-            (_, None, None) => (0, Some(0)),
-
-            // Subsequent iteration in the general case.
-            (pow, Some(it), Some(items)) => {
-                let already = items.len();
-                let minus_already = |total| total - already;
-                let (a, b) = it.size_hint();
-                (
-                    (a + already)
-                        .checked_pow(pow)
-                        .map_or(usize::MAX, minus_already),
-                    b.and_then(|b| (b + already).checked_pow(pow).map(minus_already)),
-                )
-            }
-
-            // Subsequent iteration in the general case after all items have been collected.
-            (pow, None, Some(items)) => {
-                let base = items.len();
-                if indices[0] == base {
-                    // Fresh re-start.
-                    let r = base.checked_pow(pow);
-                    return (r.unwrap_or(usize::MAX), r);
-                }
-                // Count what's left from current indices.
-                // This is subtracting the current iteration number base^pow,
-                // using the complement method.
-                let calc = || -> Option<usize> {
-                    // (closure-wrap to ease interruption on overflow with ?-operator)
-                    let mut r = 0usize;
-                    for (&i, rank) in indices.iter().rev().zip(0u32..) {
-                        let complement = base - 1 - i;
-                        let increment = complement.checked_mul(base.checked_pow(rank)?)?;
-                        r = r.checked_add(increment)?;
-                    }
-                    Some(r)
-                };
-                let Some(r) = calc() else {
-                    return (usize::MAX, None);
-                };
-                (r, Some(r))
-            }
+        let Self { iter, indices, .. } = self;
+        if let Some(iter) = iter {
+            let yet = indices.base; // <- The number of items yielded so far.
+            let (a, b) = iter.size_hint(); // <- The estimated number of remaining items.
+            let a = indices.size_hint_with_base(yet + a).0;
+            let b = b.and_then(|b| indices.size_hint_with_base(yet + b).1);
+            (a, b)
+        } else {
+            indices.size_hint()
         }
     }
 
@@ -428,13 +349,11 @@ where
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let Self {
-            pow,
             iter,
             items,
             indices,
         } = self;
         f.debug_struct("CartesianPower")
-            .field("pow", pow)
             .field("iter", &iter.is_some())
             .field("items", items)
             .field("indices", indices)
@@ -446,10 +365,10 @@ where
 #[cfg(test)]
 mod tests {
 
-    use crate::Itertools;
+    use crate::{cartesian_power::Indices, Itertools};
 
     #[test]
-    fn basic() {
+    fn next() {
         fn check(origin: &str, pow: u32, expected: &[&str]) {
             println!("================== ({origin:?}^{pow})");
             let mut it_act = origin
