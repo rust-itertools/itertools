@@ -34,7 +34,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         if self.n > 1 {
             self.n -= 1;
-            self.elt.as_ref().cloned()
+            self.elt.clone()
         } else {
             self.n = 0;
             self.elt.take()
