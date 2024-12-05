@@ -372,3 +372,28 @@ fn product1() {
     assert_eq!(v[1..3].iter().cloned().product1::<i32>(), Some(2));
     assert_eq!(v[1..5].iter().cloned().product1::<i32>(), Some(24));
 }
+
+#[test]
+fn next_array() {
+    let v = [1, 2, 3, 4, 5];
+    let mut iter = v.iter();
+    assert_eq!(iter.next_array(), Some([]));
+    assert_eq!(iter.next_array().map(|[&x, &y]| [x, y]), Some([1, 2]));
+    assert_eq!(iter.next_array().map(|[&x, &y]| [x, y]), Some([3, 4]));
+    assert_eq!(iter.next_array::<2>(), None);
+}
+
+#[test]
+fn collect_array() {
+    let v = [1, 2];
+    let iter = v.iter().cloned();
+    assert_eq!(iter.collect_array(), Some([1, 2]));
+
+    let v = [1];
+    let iter = v.iter().cloned();
+    assert_eq!(iter.collect_array::<2>(), None);
+
+    let v = [1, 2, 3];
+    let iter = v.iter().cloned();
+    assert_eq!(iter.collect_array::<2>(), None);
+}
