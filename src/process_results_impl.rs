@@ -62,8 +62,7 @@ where
 
 impl<'a, I, T, E> DoubleEndedIterator for ProcessResults<'a, I, E>
 where
-    I: Iterator<Item = Result<T, E>>,
-    I: DoubleEndedIterator,
+    I: DoubleEndedIterator<Item = Result<T, E>>,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         let item = self.iter.next_back();
