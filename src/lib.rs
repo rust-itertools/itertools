@@ -3659,8 +3659,8 @@ pub trait Itertools: Iterator {
         group_map::into_group_map(self)
     }
 
-    /// Return an `Iterator` on a `HashMap`. Keys mapped to `Vec`s of values. The key is specified
-    /// in the closure.
+    /// Return a `HashMap` of keys mapped to `Vec`s of values. The key is specified
+    /// in the closure. The values are taken from the input iterator.
     ///
     /// Essentially a shorthand for `.into_grouping_map_by(f).collect::<Vec<_>>()`.
     ///
@@ -3672,7 +3672,7 @@ pub trait Itertools: Iterator {
     /// let lookup: HashMap<u32,Vec<(u32, u32)>> =
     ///     data.clone().into_iter().into_group_map_by(|a| a.0);
     ///
-    /// assert_eq!(lookup[&0], vec![(0,10),(0,20)]);
+    /// assert_eq!(lookup[&0], vec![(0,10), (0,20)]);
     /// assert_eq!(lookup.get(&1), None);
     /// assert_eq!(lookup[&2], vec![(2,12), (2,42)]);
     /// assert_eq!(lookup[&3], vec![(3,13), (3,33)]);
