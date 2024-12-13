@@ -97,7 +97,7 @@ pub mod structs {
         TakeWhileRef, TupleCombinations, Update, WhileSome,
     };
     #[cfg(feature = "use_alloc")]
-    pub use crate::combinations::Combinations;
+    pub use crate::combinations::{ArrayCombinations, Combinations};
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations_with_replacement::CombinationsWithReplacement;
     pub use crate::cons_tuples_impl::ConsTuples;
@@ -431,13 +431,13 @@ macro_rules! chain {
 /// This trait defines a number of methods. They are divided into two groups:
 ///
 /// * *Adaptors* take an iterator and parameter as input, and return
-/// a new iterator value. These are listed first in the trait. An example
-/// of an adaptor is [`.interleave()`](Itertools::interleave)
+///   a new iterator value. These are listed first in the trait. An example
+///   of an adaptor is [`.interleave()`](Itertools::interleave)
 ///
 /// * *Regular methods* are those that don't return iterators and instead
-/// return a regular value of some other kind.
-/// [`.next_tuple()`](Itertools::next_tuple) is an example and the first regular
-/// method in the list.
+///   return a regular value of some other kind.
+///   [`.next_tuple()`](Itertools::next_tuple) is an example and the first regular
+///   method in the list.
 pub trait Itertools: Iterator {
     // adaptors
 
@@ -1095,7 +1095,9 @@ pub trait Itertools: Iterator {
     /// let b = (0..10).step_by(3);
     ///
     /// itertools::assert_equal(
-    ///     a.merge_join_by(b, |i, j| i.cmp(j)),
+    ///     // This performs a diff in the style of the Unix command comm(1),
+    ///     // generalized to arbitrary types rather than text.
+    ///     a.merge_join_by(b, Ord::cmp),
     ///     vec![Both(0, 0), Left(2), Right(3), Left(4), Both(6, 6), Left(1), Right(9)]
     /// );
     /// ```
@@ -1127,6 +1129,7 @@ pub trait Itertools: Iterator {
     /// );
     /// ```
     #[inline]
+    #[doc(alias = "comm")]
     fn merge_join_by<J, F, T>(self, other: J, cmp_fn: F) -> MergeJoinBy<Self, J::IntoIter, F>
     where
         J: IntoIterator,
@@ -1675,6 +1678,53 @@ pub trait Itertools: Iterator {
         adaptors::tuple_combinations(self)
     }
 
+    /// Return an iterator adaptor that iterates over the combinations of the
+    /// elements from an iterator.
+    ///
+    /// Iterator element type is [Self::Item; K]. The iterator produces a new
+    /// array per iteration, and clones the iterator elements.
+    ///
+    /// # Guarantees
+    ///
+    /// If the adapted iterator is deterministic,
+    /// this iterator adapter yields items in a reliable order.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut v = Vec::new();
+    /// for [a, b] in (1..5).array_combinations() {
+    ///     v.push([a, b]);
+    /// }
+    /// assert_eq!(v, vec![[1, 2], [1, 3], [1, 4], [2, 3], [2, 4], [3, 4]]);
+    ///
+    /// let mut it = (1..5).array_combinations();
+    /// assert_eq!(Some([1, 2, 3]), it.next());
+    /// assert_eq!(Some([1, 2, 4]), it.next());
+    /// assert_eq!(Some([1, 3, 4]), it.next());
+    /// assert_eq!(Some([2, 3, 4]), it.next());
+    /// assert_eq!(None, it.next());
+    ///
+    /// // this requires a type hint
+    /// let it = (1..5).array_combinations::<3>();
+    /// itertools::assert_equal(it, vec![[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]);
+    ///
+    /// // you can also specify the complete type
+    /// use itertools::ArrayCombinations;
+    /// use std::ops::Range;
+    ///
+    /// let it: ArrayCombinations<Range<u32>, 3> = (1..5).array_combinations();
+    /// itertools::assert_equal(it, vec![[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn array_combinations<const K: usize>(self) -> ArrayCombinations<Self, K>
+    where
+        Self: Sized + Clone,
+        Self::Item: Clone,
+    {
+        combinations::array_combinations(self)
+    }
+
     /// Return an iterator adaptor that iterates over the `k`-length combinations of
     /// the elements from an iterator.
     ///
@@ -2052,6 +2102,15 @@ pub trait Itertools: Iterator {
     /// assert_eq!(numbers.iter().find_or_last(|&&x| x > 5), Some(&4));
     /// assert_eq!(numbers.iter().find_or_last(|&&x| x > 2), Some(&3));
     /// assert_eq!(std::iter::empty::<i32>().find_or_last(|&x| x > 5), None);
+    ///
+    /// // An iterator of Results can return the first Ok or the last Err:
+    /// let input = vec![Err(()), Ok(11), Err(()), Ok(22)];
+    /// assert_eq!(input.into_iter().find_or_last(Result::is_ok), Some(Ok(11)));
+    ///
+    /// let input: Vec<Result<(), i32>> = vec![Err(11), Err(22)];
+    /// assert_eq!(input.into_iter().find_or_last(Result::is_ok), Some(Err(22)));
+    ///
+    /// assert_eq!(std::iter::empty::<Result<(), i32>>().find_or_last(Result::is_ok), None);
     /// ```
     fn find_or_last<P>(mut self, mut predicate: P) -> Option<Self::Item>
     where
@@ -2080,6 +2139,15 @@ pub trait Itertools: Iterator {
     /// assert_eq!(numbers.iter().find_or_first(|&&x| x > 5), Some(&1));
     /// assert_eq!(numbers.iter().find_or_first(|&&x| x > 2), Some(&3));
     /// assert_eq!(std::iter::empty::<i32>().find_or_first(|&x| x > 5), None);
+    ///
+    /// // An iterator of Results can return the first Ok or the first Err:
+    /// let input = vec![Err(()), Ok(11), Err(()), Ok(22)];
+    /// assert_eq!(input.into_iter().find_or_first(Result::is_ok), Some(Ok(11)));
+    ///
+    /// let input: Vec<Result<(), i32>> = vec![Err(11), Err(22)];
+    /// assert_eq!(input.into_iter().find_or_first(Result::is_ok), Some(Err(11)));
+    ///
+    /// assert_eq!(std::iter::empty::<Result<(), i32>>().find_or_first(Result::is_ok), None);
     /// ```
     fn find_or_first<P>(mut self, mut predicate: P) -> Option<Self::Item>
     where
@@ -3644,8 +3712,8 @@ pub trait Itertools: Iterator {
         group_map::into_group_map(self)
     }
 
-    /// Return an `Iterator` on a `HashMap`. Keys mapped to `Vec`s of values. The key is specified
-    /// in the closure.
+    /// Return a `HashMap` of keys mapped to `Vec`s of values. The key is specified
+    /// in the closure. The values are taken from the input iterator.
     ///
     /// Essentially a shorthand for `.into_grouping_map_by(f).collect::<Vec<_>>()`.
     ///
@@ -3657,7 +3725,7 @@ pub trait Itertools: Iterator {
     /// let lookup: HashMap<u32,Vec<(u32, u32)>> =
     ///     data.clone().into_iter().into_group_map_by(|a| a.0);
     ///
-    /// assert_eq!(lookup[&0], vec![(0,10),(0,20)]);
+    /// assert_eq!(lookup[&0], vec![(0,10), (0,20)]);
     /// assert_eq!(lookup.get(&1), None);
     /// assert_eq!(lookup[&2], vec![(2,12), (2,42)]);
     /// assert_eq!(lookup[&3], vec![(3,13), (3,33)]);
@@ -4556,6 +4624,7 @@ where
 /// assert_equal("exceed".split('c'), "excess".split('c'));
 /// // ^PANIC: panicked at 'Failed assertion Some("eed") == Some("ess") for iteration 1'.
 /// ```
+#[track_caller]
 pub fn assert_equal<I, J>(a: I, b: J)
 where
     I: IntoIterator,

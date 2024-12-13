@@ -1,7 +1,7 @@
 //! "Diff"ing iterators for caching elements to sequential collections without requiring the new
 //! elements' iterator to be `Clone`.
 //!
-//! - [`Diff`] (produced by the [`diff_with`] function)
+//! [`Diff`] (produced by the [`diff_with`] function)
 //! describes the difference between two non-`Clone` iterators `I` and `J` after breaking ASAP from
 //! a lock-step comparison.
 
