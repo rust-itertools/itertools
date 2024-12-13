@@ -1,6 +1,10 @@
 use std::iter::FromIterator;
 
-/// TODO!
+/// An iterator adaptor that iterates through all the unique multiset permutations of the iterator.
+///  The supplied iterator is fully consumed, so it must be finite.
+///
+/// See [`.multiset_permutations()`](crate::Itertools::multiset_permutations) for
+/// more information.
 #[derive(Debug, Clone)]
 pub struct MultisetPermutations<I> {
     buffer: Vec<I>,
@@ -98,33 +102,20 @@ mod tests {
     #[test]
     fn test3() {
         use rand::Rng;
-        use std::time::Instant;
-
         let n = 12;
         let mut rng = rand::thread_rng();
         let vec: Vec<i32> = (0..n).map(|_| rng.gen_range(0, 10)).collect();
 
-        println!("{:?}", vec);
-
-        let now = Instant::now();
         let mut permutations1 = vec
             .clone()
             .into_iter()
             .permutations(n)
             .unique()
             .collect_vec();
-        println!("permutations: {:.2?}", now.elapsed());
-
-        let now = Instant::now();
         let mut permutations2 = vec.into_iter().multiset_permutations().collect_vec();
-        println!("multiset_permutations: {:.2?}", now.elapsed());
 
         permutations1.sort();
         permutations2.sort();
-        // println!("{:?}", permutations1);
-
-        // println!("{:?}", permutations2);
-
         assert_eq!(permutations1, permutations2);
     }
 
@@ -155,19 +146,5 @@ mod tests {
         let mut iter: crate::MultisetPermutations<i32> = vec![].into_iter().multiset_permutations();
         assert_eq!(iter.next(), Some(vec![]));
         assert_eq!(iter.next(), None);
-    }
-
-    #[test]
-    fn timing() {
-        use std::time::Instant;
-        let now = Instant::now();
-
-        let iter = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0]
-            .iter()
-            .multiset_permutations();
-        let count = iter.count();
-
-        let elapsed = now.elapsed();
-        println!("Elapsed: {:.2?} {count}", elapsed);
     }
 }
