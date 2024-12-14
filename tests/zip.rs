@@ -3,6 +3,52 @@ use itertools::EitherOrBoth::{Both, Left, Right};
 use itertools::Itertools;
 
 #[test]
+fn zip_squash() {
+    let a: [i32; 0] = [];
+    let b: [i32; 0] = [];
+    let it = a.iter().copied().zip_squash(b.iter().copied());
+    itertools::assert_equal(it, vec![]);
+
+    let a = [1, 2, 3, 4, 5, 6];
+    let b: [i32; 0] = [];
+    let it = a.iter().copied().zip_squash(b.iter().copied());
+    itertools::assert_equal(it, vec![]);
+
+    let a: [i32; 0] = [];
+    let b = [1, 2, 3, 7];
+    let it = a.iter().copied().zip_squash(b.iter().copied());
+    itertools::assert_equal(it, vec![]);
+
+    let a = [1, 2, 3, 4, 5, 6];
+    let b = [1, 2, 3, 7];
+    let it = a.iter().copied().zip_squash(b.iter().copied());
+    itertools::assert_equal(it, vec![(1, 1), (2, 2), (4, 3), (5, 7)]);
+}
+
+#[test]
+fn zip_stretch() {
+    let a: [i32; 0] = [];
+    let b: [i32; 0] = [];
+    let it = a.iter().copied().zip_stretch(b.iter().copied());
+    itertools::assert_equal(it, vec![]);
+
+    let a = [1, 2, 3, 4, 5, 6];
+    let b: [i32; 0] = [];
+    let it = a.iter().copied().zip_stretch(b.iter().copied());
+    itertools::assert_equal(it, vec![]);
+
+    let a: [i32; 0] = [];
+    let b = [1, 2, 3, 7];
+    let it = a.iter().copied().zip_stretch(b.iter().copied());
+    itertools::assert_equal(it, vec![]);
+
+    let a = [1, 2, 3, 4, 5, 6];
+    let b = [1, 2, 3, 7];
+    let it = a.iter().copied().zip_stretch(b.iter().copied());
+    itertools::assert_equal(it, vec![(1, 1), (2, 1), (3, 2), (4, 3), (5, 3), (6, 7)]);
+}
+
+#[test]
 fn zip_longest_fused() {
     let a = [Some(1), None, Some(3), Some(4)];
     let b = [1, 2, 3];
