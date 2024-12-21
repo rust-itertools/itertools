@@ -81,6 +81,21 @@ mod private {
             iter.find_map(|v| meta.filter(v))
         }
 
+        fn fold<B, G>(self, init: B, mut f: G) -> B
+        where
+            Self: Sized,
+            G: FnMut(B, Self::Item) -> B,
+        {
+            let Self { iter, mut meta } = self;
+            iter.fold(init, |mut acc, v| {
+                if let Some(x) = meta.filter(v) {
+                    acc = f(acc, x)
+                }
+
+                acc
+            })
+        }
+
         #[inline]
         fn size_hint(&self) -> (usize, Option<usize>) {
             let (_, hi) = self.iter.size_hint();
