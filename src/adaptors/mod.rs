@@ -515,7 +515,7 @@ pub struct TakeWhileRef<'a, I: 'a, F> {
     f: F,
 }
 
-impl<'a, I, F> fmt::Debug for TakeWhileRef<'a, I, F>
+impl<I, F> fmt::Debug for TakeWhileRef<'_, I, F>
 where
     I: Iterator + fmt::Debug,
 {
@@ -530,7 +530,7 @@ where
     TakeWhileRef { iter, f }
 }
 
-impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F>
+impl<I, F> Iterator for TakeWhileRef<'_, I, F>
 where
     I: Iterator + Clone,
     F: FnMut(&I::Item) -> bool,

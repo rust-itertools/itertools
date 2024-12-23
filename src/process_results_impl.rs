@@ -13,7 +13,7 @@ pub struct ProcessResults<'a, I, E: 'a> {
     iter: I,
 }
 
-impl<'a, I, E> ProcessResults<'a, I, E> {
+impl<I, E> ProcessResults<'_, I, E> {
     #[inline(always)]
     fn next_body<T>(&mut self, item: Option<Result<T, E>>) -> Option<T> {
         match item {
@@ -27,7 +27,7 @@ impl<'a, I, E> ProcessResults<'a, I, E> {
     }
 }
 
-impl<'a, I, T, E> Iterator for ProcessResults<'a, I, E>
+impl<I, T, E> Iterator for ProcessResults<'_, I, E>
 where
     I: Iterator<Item = Result<T, E>>,
 {
@@ -60,7 +60,7 @@ where
     }
 }
 
-impl<'a, I, T, E> DoubleEndedIterator for ProcessResults<'a, I, E>
+impl<I, T, E> DoubleEndedIterator for ProcessResults<'_, I, E>
 where
     I: Iterator<Item = Result<T, E>>,
     I: DoubleEndedIterator,
