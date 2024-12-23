@@ -1419,7 +1419,7 @@ pub trait Itertools: Iterator {
     /// Setting it manually using this function can expose a DoS attack vector.
     ///
     /// ```
-    /// use ahash::RandomState;
+    /// use std::hash::RandomState;
     /// use itertools::Itertools;
     ///
     /// let data = vec![10, 20, 30, 20, 40, 10, 50];
@@ -1464,15 +1464,15 @@ pub trait Itertools: Iterator {
     }
 
     /// Return an iterator which yields the same elements as the one returned by
-    /// [.duplicates()](crate::Itertools::duplicates), but uses the specified hash builder to hash
-    /// the keys for comparison.
+    /// [.duplicates_by()](crate::Itertools::duplicates_by), but uses the specified hash builder to
+    /// hash the keys for comparison.
     ///
     /// Warning: `hash_builder` is normally randomly generated, and is designed to allow it's
     /// users to be resistant to attacks that cause many collisions and very poor performance.
     /// Setting it manually using this function can expose a DoS attack vector.
     ///
     /// ```
-    /// use ahash::RandomState;
+    /// use std::hash::RandomState;
     /// use itertools::Itertools;
     ///
     /// let data = vec!["a", "bb", "aa", "c", "ccc"];
@@ -1518,7 +1518,33 @@ pub trait Itertools: Iterator {
         Self: Sized,
         Self::Item: Clone + Eq + Hash,
     {
-        unique_impl::unique(self)
+        unique_impl::unique_with_hasher(self, RandomState::new())
+    }
+
+    /// Return an iterator which yields the same elements as the one returned by
+    /// [.unique()](crate::Itertools::unique), but uses the specified hash builder to hash the
+    /// elements for comparison.
+    ///
+    /// Warning: `hash_builder` is normally randomly generated, and is designed to allow it's
+    /// users to be resistant to attacks that cause many collisions and very poor performance.
+    /// Setting it manually using this function can expose a DoS attack vector.
+    ///
+    /// ```
+    /// use std::hash::RandomState;
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![10, 20, 30, 20, 40, 10, 50];
+    /// itertools::assert_equal(data.into_iter().unique_with_hasher(RandomState::new()),
+    ///                         vec![10, 20, 30, 40, 50]);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn unique_with_hasher<S>(self, hash_builder: S) -> Unique<Self, S>
+    where
+        Self: Sized,
+        Self::Item: Clone + Eq + Hash,
+        S: BuildHasher,
+    {
+        unique_impl::unique_with_hasher(self, hash_builder)
     }
 
     /// Return an iterator adaptor that filters out elements that have
@@ -1546,7 +1572,34 @@ pub trait Itertools: Iterator {
         V: Eq + Hash,
         F: FnMut(&Self::Item) -> V,
     {
-        unique_impl::unique_by(self, f)
+        unique_impl::unique_by_with_hasher(self, f, RandomState::new())
+    }
+
+    /// Return an iterator which yields the same elements as the one returned by
+    /// [.unique_by()](crate::Itertools::unique_by), but uses the specified hash builder to hash
+    /// the elements for comparison.
+    ///
+    /// Warning: `hash_builder` is normally randomly generated, and is designed to allow it's
+    /// users to be resistant to attacks that cause many collisions and very poor performance.
+    /// Setting it manually using this function can expose a DoS attack vector.
+    ///
+    /// ```
+    /// use std::hash::RandomState;
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec!["a", "bb", "aa", "c", "ccc"];
+    /// itertools::assert_equal(data.into_iter().unique_by_with_hasher(|s| s.len(), RandomState::new()),
+    ///                         vec!["a", "bb", "ccc"]);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn unique_by_with_hasher<V, F, S>(self, f: F, hash_builder: S) -> UniqueBy<Self, V, F, S>
+    where
+        Self: Sized,
+        V: Eq + Hash,
+        F: FnMut(&Self::Item) -> V,
+        S: BuildHasher,
+    {
+        unique_impl::unique_by_with_hasher(self, f, hash_builder)
     }
 
     /// Return an iterator adaptor that borrows from this iterator and
