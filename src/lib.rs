@@ -63,6 +63,7 @@ use alloc::{collections::VecDeque, string::String, vec::Vec};
 pub use either::Either;
 
 use core::borrow::Borrow;
+use core::hash::BuildHasher;
 use std::cmp::Ordering;
 #[cfg(feature = "use_std")]
 use std::collections::HashMap;
@@ -72,7 +73,7 @@ use std::fmt;
 #[cfg(feature = "use_alloc")]
 use std::fmt::Write;
 #[cfg(feature = "use_std")]
-use std::hash::Hash;
+use std::hash::{Hash, RandomState};
 use std::iter::{once, IntoIterator};
 #[cfg(feature = "use_alloc")]
 type VecDequeIntoIter<T> = alloc::collections::vec_deque::IntoIter<T>;
@@ -1406,7 +1407,33 @@ pub trait Itertools: Iterator {
         Self: Sized,
         Self::Item: Eq + Hash,
     {
-        duplicates_impl::duplicates(self)
+        duplicates_impl::duplicates_with_hasher(self, RandomState::new())
+    }
+
+    /// Return an iterator which yields the same elements as the one returned by
+    /// [.duplicates()](crate::Itertools::duplicates), but uses the specified hash builder to hash
+    /// the elements for comparison.
+    ///
+    /// Warning: `hash_builder` is normally randomly generated, and is designed to allow it's
+    /// users to be resistant to attacks that cause many collisions and very poor performance.
+    /// Setting it manually using this function can expose a DoS attack vector.
+    ///
+    /// ```
+    /// use ahash::RandomState;
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![10, 20, 30, 20, 40, 10, 50];
+    /// itertools::assert_equal(data.into_iter().duplicates_with_hasher(RandomState::new()),
+    ///                         vec![20,10]);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn duplicates_with_hasher<S>(self, hash_builder: S) -> Duplicates<Self, S>
+    where
+        Self: Sized,
+        Self::Item: Eq + Hash,
+        S: BuildHasher,
+    {
+        duplicates_impl::duplicates_with_hasher(self, hash_builder)
     }
 
     /// Return an iterator adaptor that produces elements that appear more than once during the
@@ -1433,7 +1460,38 @@ pub trait Itertools: Iterator {
         V: Eq + Hash,
         F: FnMut(&Self::Item) -> V,
     {
-        duplicates_impl::duplicates_by(self, f)
+        duplicates_impl::duplicates_by_with_hasher(self, f, RandomState::new())
+    }
+
+    /// Return an iterator which yields the same elements as the one returned by
+    /// [.duplicates()](crate::Itertools::duplicates), but uses the specified hash builder to hash
+    /// the keys for comparison.
+    ///
+    /// Warning: `hash_builder` is normally randomly generated, and is designed to allow it's
+    /// users to be resistant to attacks that cause many collisions and very poor performance.
+    /// Setting it manually using this function can expose a DoS attack vector.
+    ///
+    /// ```
+    /// use ahash::RandomState;
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec!["a", "bb", "aa", "c", "ccc"];
+    /// itertools::assert_equal(data.into_iter().duplicates_by_with_hasher(|s| s.len(),RandomState::new()),
+    ///                         vec!["aa", "c"]);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn duplicates_by_with_hasher<V, F, S>(
+        self,
+        f: F,
+        hash_builder: S,
+    ) -> DuplicatesBy<Self, V, F, S>
+    where
+        Self: Sized,
+        V: Eq + Hash,
+        F: FnMut(&Self::Item) -> V,
+        S: BuildHasher,
+    {
+        duplicates_impl::duplicates_by_with_hasher(self, f, hash_builder)
     }
 
     /// Return an iterator adaptor that filters out elements that have
