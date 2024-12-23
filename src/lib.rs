@@ -3792,7 +3792,36 @@ pub trait Itertools: Iterator {
         Self: Iterator<Item = (K, V)> + Sized,
         K: Hash + Eq,
     {
-        group_map::into_group_map(self)
+        group_map::into_group_map_with_hasher(self, RandomState::new())
+    }
+
+    /// Return a `HashMap` of keys mapped to `Vec`s of values, using the hash builder for hashing.
+    /// See [.into_group_map()](crate::Itertools::into_group_map) for more information.
+    ///
+    /// Warning: `hash_builder` is normally randomly generated, and is designed to allow it's
+    /// users to be resistant to attacks that cause many collisions and very poor performance.
+    /// Setting it manually using this function can expose a DoS attack vector.
+    ///
+    /// ```
+    /// use std::hash::RandomState;
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
+    /// let lookup = data.into_iter().into_group_map_with_hasher(RandomState::new());
+    ///
+    /// assert_eq!(lookup[&0], vec![10, 20]);
+    /// assert_eq!(lookup.get(&1), None);
+    /// assert_eq!(lookup[&2], vec![12, 42]);
+    /// assert_eq!(lookup[&3], vec![13, 33]);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn into_group_map_with_hasher<K, V, S>(self, hash_builder: S) -> HashMap<K, Vec<V>, S>
+    where
+        Self: Iterator<Item = (K, V)> + Sized,
+        K: Hash + Eq,
+        S: BuildHasher,
+    {
+        group_map::into_group_map_with_hasher(self, hash_builder)
     }
 
     /// Return a `HashMap` of keys mapped to `Vec`s of values. The key is specified
@@ -3829,7 +3858,52 @@ pub trait Itertools: Iterator {
         K: Hash + Eq,
         F: FnMut(&V) -> K,
     {
-        group_map::into_group_map_by(self, f)
+        group_map::into_group_map_by_with_hasher(self, f, RandomState::new())
+    }
+
+    /// Return a `HashMap` of keys mapped to `Vec`s of values, using the hash builder for hashing.
+    /// See [.into_group_map_by()](crate::Itertools::into_group_map_by) for more information.
+    ///
+    /// Warning: `hash_builder` is normally randomly generated, and is designed to allow it's
+    /// users to be resistant to attacks that cause many collisions and very poor performance.
+    /// Setting it manually using this function can expose a DoS attack vector.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use std::collections::HashMap;
+    /// use std::hash::RandomState;
+    ///
+    /// let data = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
+    /// let lookup: HashMap<u32,Vec<(u32, u32)>> =
+    ///     data.clone().into_iter().into_group_map_by_with_hasher(|a| a.0, RandomState::new());
+    ///
+    /// assert_eq!(lookup[&0], vec![(0,10), (0,20)]);
+    /// assert_eq!(lookup.get(&1), None);
+    /// assert_eq!(lookup[&2], vec![(2,12), (2,42)]);
+    /// assert_eq!(lookup[&3], vec![(3,13), (3,33)]);
+    ///
+    /// assert_eq!(
+    ///     data.into_iter()
+    ///         .into_group_map_by_with_hasher(|x| x.0, RandomState::new())
+    ///         .into_iter()
+    ///         .map(|(key, values)| (key, values.into_iter().fold(0,|acc, (_,v)| acc + v )))
+    ///         .collect::<HashMap<u32,u32>>()[&0],
+    ///     30,
+    /// );
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn into_group_map_by_with_hasher<K, V, F, S>(
+        self,
+        f: F,
+        hash_builder: S,
+    ) -> HashMap<K, Vec<V>, S>
+    where
+        Self: Iterator<Item = V> + Sized,
+        K: Hash + Eq,
+        F: FnMut(&V) -> K,
+        S: BuildHasher,
+    {
+        group_map::into_group_map_by_with_hasher(self, f, hash_builder)
     }
 
     /// Constructs a `GroupingMap` to be used later with one of the efficient
