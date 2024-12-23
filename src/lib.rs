@@ -4688,7 +4688,19 @@ pub trait Itertools: Iterator {
         Self: Sized,
         Self::Item: Eq + Hash,
     {
-        let mut counts = HashMap::new();
+        self.counts_with_hasher(RandomState::new())
+    }
+
+    /// Collect the items in this iterator and return a `HashMap` the same way
+    /// [.counts()](crate::Itertools::counts) does, but use the specified hash builder for hashing.
+    #[cfg(feature = "use_std")]
+    fn counts_with_hasher<S>(self, hash_builder: S) -> HashMap<Self::Item, usize, S>
+    where
+        Self: Sized,
+        Self::Item: Eq + Hash,
+        S: BuildHasher,
+    {
+        let mut counts = HashMap::with_hasher(hash_builder);
         self.for_each(|item| *counts.entry(item).or_default() += 1);
         counts
     }
@@ -4733,7 +4745,20 @@ pub trait Itertools: Iterator {
         K: Eq + Hash,
         F: FnMut(Self::Item) -> K,
     {
-        self.map(f).counts()
+        self.counts_by_with_hasher(f, RandomState::new())
+    }
+
+    /// Collect the items in this iterator and return a `HashMap` the same way
+    /// [.counts_by()](crate::Itertools::counts_by) does, but use the specified hash builder for hashing.
+    #[cfg(feature = "use_std")]
+    fn counts_by_with_hasher<K, F, S>(self, f: F, hash_builder: S) -> HashMap<K, usize, S>
+    where
+        Self: Sized,
+        K: Eq + Hash,
+        F: FnMut(Self::Item) -> K,
+        S: BuildHasher,
+    {
+        self.map(f).counts_with_hasher(hash_builder)
     }
 
     /// Converts an iterator of tuples into a tuple of containers.
