@@ -1055,7 +1055,6 @@ pub trait Itertools: Iterator {
     /// let it = a.merge_by(b, |x, y| x.1 <= y.1);
     /// itertools::assert_equal(it, vec![(0, 'a'), (0, 'b'), (1, 'c'), (1, 'd')]);
     /// ```
-
     fn merge_by<J, F>(self, other: J, is_first: F) -> MergeBy<Self, J::IntoIter, F>
     where
         Self: Sized,
