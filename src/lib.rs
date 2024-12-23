@@ -3921,7 +3921,21 @@ pub trait Itertools: Iterator {
         Self: Iterator<Item = (K, V)> + Sized,
         K: Hash + Eq,
     {
-        grouping_map::new(self)
+        grouping_map::new(self, RandomState::new())
+    }
+
+    /// Constructs a `GroupingMap` to be used later with one of the efficient
+    /// group-and-fold operations it allows to perform, using the specified hash builder for
+    /// hashing the elements.
+    /// See [.into_grouping_map()](crate::Itertools::into_grouping_map) for more information.
+    #[cfg(feature = "use_std")]
+    fn into_grouping_map_with_hasher<K, V, S>(self, hash_builder: S) -> GroupingMap<Self, S>
+    where
+        Self: Iterator<Item = (K, V)> + Sized,
+        K: Hash + Eq,
+        S: BuildHasher,
+    {
+        grouping_map::new(self, hash_builder)
     }
 
     /// Constructs a `GroupingMap` to be used later with one of the efficient
@@ -3939,7 +3953,32 @@ pub trait Itertools: Iterator {
         K: Hash + Eq,
         F: FnMut(&V) -> K,
     {
-        grouping_map::new(grouping_map::new_map_for_grouping(self, key_mapper))
+        grouping_map::new(
+            grouping_map::new_map_for_grouping(self, key_mapper),
+            RandomState::new(),
+        )
+    }
+
+    /// Constructs a `GroupingMap` to be used later with one of the efficient
+    /// group-and-fold operations it allows to perform, using the specified hash builder for
+    /// hashing the keys.
+    /// See [.into_grouping_map_by()](crate::Itertools::into_grouping_map_by) for more information.
+    #[cfg(feature = "use_std")]
+    fn into_grouping_map_by_with_hasher<K, V, F, S>(
+        self,
+        key_mapper: F,
+        hash_builder: S,
+    ) -> GroupingMapBy<Self, F, S>
+    where
+        Self: Iterator<Item = V> + Sized,
+        K: Hash + Eq,
+        F: FnMut(&V) -> K,
+        S: BuildHasher,
+    {
+        grouping_map::new(
+            grouping_map::new_map_for_grouping(self, key_mapper),
+            hash_builder,
+        )
     }
 
     /// Return all minimum elements of an iterator.
