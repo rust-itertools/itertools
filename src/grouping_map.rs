@@ -2,11 +2,12 @@ use crate::{
     adaptors::map::{MapSpecialCase, MapSpecialCaseFn},
     MinMaxResult,
 };
-use std::cmp::Ordering;
+use core::hash::BuildHasher;
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::iter::Iterator;
 use std::ops::{Add, Mul};
+use std::{cmp::Ordering, hash::RandomState};
 
 /// A wrapper to allow for an easy [`into_grouping_map_by`](crate::Itertools::into_grouping_map_by)
 pub type MapForGrouping<I, F> = MapSpecialCase<I, GroupingMapFn<F>>;
@@ -36,18 +37,19 @@ pub(crate) fn new_map_for_grouping<K, I: Iterator, F: FnMut(&I::Item) -> K>(
 }
 
 /// Creates a new `GroupingMap` from `iter`
-pub fn new<I, K, V>(iter: I) -> GroupingMap<I>
+pub fn new<I, K, V, S>(iter: I, hash_builder: S) -> GroupingMap<I, S>
 where
     I: Iterator<Item = (K, V)>,
     K: Hash + Eq,
+    S: BuildHasher,
 {
-    GroupingMap { iter }
+    GroupingMap { iter, hash_builder }
 }
 
 /// `GroupingMapBy` is an intermediate struct for efficient group-and-fold operations.
 ///
 /// See [`GroupingMap`] for more informations.
-pub type GroupingMapBy<I, F> = GroupingMap<MapForGrouping<I, F>>;
+pub type GroupingMapBy<I, F, S = RandomState> = GroupingMap<MapForGrouping<I, F>, S>;
 
 /// `GroupingMap` is an intermediate struct for efficient group-and-fold operations.
 /// It groups elements by their key and at the same time fold each group
@@ -56,14 +58,19 @@ pub type GroupingMapBy<I, F> = GroupingMap<MapForGrouping<I, F>>;
 /// No method on this struct performs temporary allocations.
 #[derive(Clone, Debug)]
 #[must_use = "GroupingMap is lazy and do nothing unless consumed"]
-pub struct GroupingMap<I> {
+pub struct GroupingMap<I, S = RandomState>
+where
+    S: BuildHasher,
+{
     iter: I,
+    hash_builder: S,
 }
 
-impl<I, K, V> GroupingMap<I>
+impl<I, K, V, S> GroupingMap<I, S>
 where
     I: Iterator<Item = (K, V)>,
     K: Hash + Eq,
+    S: BuildHasher,
 {
     /// This is the generic way to perform any operation on a `GroupingMap`.
     /// It's suggested to use this method only to implement custom operations
@@ -105,11 +112,11 @@ where
     /// assert_eq!(lookup[&3], 7);
     /// assert_eq!(lookup.len(), 3);      // The final keys are only 0, 1 and 2
     /// ```
-    pub fn aggregate<FO, R>(self, mut operation: FO) -> HashMap<K, R>
+    pub fn aggregate<FO, R>(self, mut operation: FO) -> HashMap<K, R, S>
     where
         FO: FnMut(Option<R>, &K, V) -> Option<R>,
     {
-        let mut destination_map = HashMap::new();
+        let mut destination_map = HashMap::with_hasher(self.hash_builder);
 
         self.iter.for_each(|(key, val)| {
             let acc = destination_map.remove(&key);
@@ -154,7 +161,7 @@ where
     /// assert_eq!(lookup[&2].acc, 2 + 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn fold_with<FI, FO, R>(self, mut init: FI, mut operation: FO) -> HashMap<K, R>
+    pub fn fold_with<FI, FO, R>(self, mut init: FI, mut operation: FO) -> HashMap<K, R, S>
     where
         FI: FnMut(&K, &V) -> R,
         FO: FnMut(R, &K, V) -> R,
@@ -190,7 +197,7 @@ where
     /// assert_eq!(lookup[&2], 2 + 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn fold<FO, R>(self, init: R, operation: FO) -> HashMap<K, R>
+    pub fn fold<FO, R>(self, init: R, operation: FO) -> HashMap<K, R, S>
     where
         R: Clone,
         FO: FnMut(R, &K, V) -> R,
@@ -225,7 +232,7 @@ where
     /// assert_eq!(lookup[&2], 2 + 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn reduce<FO>(self, mut operation: FO) -> HashMap<K, V>
+    pub fn reduce<FO>(self, mut operation: FO) -> HashMap<K, V, S>
     where
         FO: FnMut(V, &K, V) -> V,
     {
@@ -239,7 +246,7 @@ where
 
     /// See [`.reduce()`](GroupingMap::reduce).
     #[deprecated(note = "Use .reduce() instead", since = "0.13.0")]
-    pub fn fold_first<FO>(self, operation: FO) -> HashMap<K, V>
+    pub fn fold_first<FO>(self, operation: FO) -> HashMap<K, V, S>
     where
         FO: FnMut(V, &K, V) -> V,
     {
@@ -264,11 +271,11 @@ where
     /// assert_eq!(lookup[&2], vec![2, 5].into_iter().collect::<HashSet<_>>());
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn collect<C>(self) -> HashMap<K, C>
+    pub fn collect<C>(self) -> HashMap<K, C, S>
     where
         C: Default + Extend<V>,
     {
-        let mut destination_map = HashMap::new();
+        let mut destination_map = HashMap::with_hasher(self.hash_builder);
 
         self.iter.for_each(|(key, val)| {
             destination_map
@@ -298,7 +305,7 @@ where
     /// assert_eq!(lookup[&2], 8);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn max(self) -> HashMap<K, V>
+    pub fn max(self) -> HashMap<K, V, S>
     where
         V: Ord,
     {
@@ -324,7 +331,7 @@ where
     /// assert_eq!(lookup[&2], 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn max_by<F>(self, mut compare: F) -> HashMap<K, V>
+    pub fn max_by<F>(self, mut compare: F) -> HashMap<K, V, S>
     where
         F: FnMut(&K, &V, &V) -> Ordering,
     {
@@ -353,7 +360,7 @@ where
     /// assert_eq!(lookup[&2], 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn max_by_key<F, CK>(self, mut f: F) -> HashMap<K, V>
+    pub fn max_by_key<F, CK>(self, mut f: F) -> HashMap<K, V, S>
     where
         F: FnMut(&K, &V) -> CK,
         CK: Ord,
@@ -379,7 +386,7 @@ where
     /// assert_eq!(lookup[&2], 5);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn min(self) -> HashMap<K, V>
+    pub fn min(self) -> HashMap<K, V, S>
     where
         V: Ord,
     {
@@ -405,7 +412,7 @@ where
     /// assert_eq!(lookup[&2], 8);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn min_by<F>(self, mut compare: F) -> HashMap<K, V>
+    pub fn min_by<F>(self, mut compare: F) -> HashMap<K, V, S>
     where
         F: FnMut(&K, &V, &V) -> Ordering,
     {
@@ -434,7 +441,7 @@ where
     /// assert_eq!(lookup[&2], 8);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn min_by_key<F, CK>(self, mut f: F) -> HashMap<K, V>
+    pub fn min_by_key<F, CK>(self, mut f: F) -> HashMap<K, V, S>
     where
         F: FnMut(&K, &V) -> CK,
         CK: Ord,
@@ -469,7 +476,7 @@ where
     /// assert_eq!(lookup[&2], OneElement(5));
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn minmax(self) -> HashMap<K, MinMaxResult<V>>
+    pub fn minmax(self) -> HashMap<K, MinMaxResult<V>, S>
     where
         V: Ord,
     {
@@ -499,7 +506,7 @@ where
     /// assert_eq!(lookup[&2], OneElement(5));
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn minmax_by<F>(self, mut compare: F) -> HashMap<K, MinMaxResult<V>>
+    pub fn minmax_by<F>(self, mut compare: F) -> HashMap<K, MinMaxResult<V>, S>
     where
         F: FnMut(&K, &V, &V) -> Ordering,
     {
@@ -550,7 +557,7 @@ where
     /// assert_eq!(lookup[&2], OneElement(5));
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn minmax_by_key<F, CK>(self, mut f: F) -> HashMap<K, MinMaxResult<V>>
+    pub fn minmax_by_key<F, CK>(self, mut f: F) -> HashMap<K, MinMaxResult<V>, S>
     where
         F: FnMut(&K, &V) -> CK,
         CK: Ord,
@@ -577,7 +584,7 @@ where
     /// assert_eq!(lookup[&2], 5 + 8);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn sum(self) -> HashMap<K, V>
+    pub fn sum(self) -> HashMap<K, V, S>
     where
         V: Add<V, Output = V>,
     {
@@ -603,7 +610,7 @@ where
     /// assert_eq!(lookup[&2], 5 * 8);
     /// assert_eq!(lookup.len(), 3);
     /// ```
-    pub fn product(self) -> HashMap<K, V>
+    pub fn product(self) -> HashMap<K, V, S>
     where
         V: Mul<V, Output = V>,
     {
