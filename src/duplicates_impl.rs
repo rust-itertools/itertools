@@ -5,11 +5,11 @@ mod private {
     use core::hash::BuildHasher;
     use std::collections::HashMap;
     use std::fmt;
-    use std::hash::Hash;
+    use std::hash::{Hash, RandomState};
 
     #[derive(Clone)]
     #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-    pub struct DuplicatesBy<I: Iterator, Key, F, S>
+    pub struct DuplicatesBy<I: Iterator, Key, F, S = RandomState>
     where
         S: BuildHasher,
     {
