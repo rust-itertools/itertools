@@ -3874,7 +3874,7 @@ pub trait Itertools: Iterator {
     /// use std::hash::RandomState;
     ///
     /// let data = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
-    /// let lookup: HashMap<u32,Vec<(u32, u32)>> =
+    /// let lookup: HashMap<u32,Vec<(u32, u32)>, RandomState> =
     ///     data.clone().into_iter().into_group_map_by_with_hasher(|a| a.0, RandomState::new());
     ///
     /// assert_eq!(lookup[&0], vec![(0,10), (0,20)]);
