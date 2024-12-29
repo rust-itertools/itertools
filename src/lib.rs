@@ -118,10 +118,8 @@ pub mod structs {
     pub use crate::kmerge_impl::{KMerge, KMergeBy};
     pub use crate::merge_join::{Merge, MergeBy, MergeJoinBy};
     #[cfg(feature = "use_alloc")]
-    pub use crate::multipeek_impl::MultiPeek;
+    pub use crate::multipeek_general::{MultiPeek, PeekNth};
     pub use crate::pad_tail::PadUsing;
-    #[cfg(feature = "use_alloc")]
-    pub use crate::peek_nth::PeekNth;
     pub use crate::peeking_take_while::PeekingTakeWhile;
     #[cfg(feature = "use_alloc")]
     pub use crate::permutations::Permutations;
@@ -208,10 +206,8 @@ mod lazy_buffer;
 mod merge_join;
 mod minmax;
 #[cfg(feature = "use_alloc")]
-mod multipeek_impl;
+mod multipeek_general;
 mod pad_tail;
-#[cfg(feature = "use_alloc")]
-mod peek_nth;
 mod peeking_take_while;
 #[cfg(feature = "use_alloc")]
 mod permutations;
@@ -4416,7 +4412,7 @@ pub trait Itertools: Iterator {
     where
         Self: Sized,
     {
-        multipeek_impl::multipeek(self)
+        multipeek_general::multipeek(self)
     }
 
     /// Collect the items in this iterator and return a `HashMap` which

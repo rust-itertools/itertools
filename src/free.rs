@@ -20,9 +20,7 @@ pub use crate::adaptors::{interleave, put_back};
 pub use crate::kmerge_impl::kmerge;
 pub use crate::merge_join::{merge, merge_join_by};
 #[cfg(feature = "use_alloc")]
-pub use crate::multipeek_impl::multipeek;
-#[cfg(feature = "use_alloc")]
-pub use crate::peek_nth::peek_nth;
+pub use crate::multipeek_general::{multipeek, peek_nth};
 #[cfg(feature = "use_alloc")]
 pub use crate::put_back_n_impl::put_back_n;
 #[cfg(feature = "use_alloc")]

@@ -706,6 +706,20 @@ fn test_multipeek() {
 }
 
 #[test]
+fn test_multipeek_peeknth() {
+    let nums = vec![6, 7, 8, 9, 10];
+
+    let mut mp = multipeek(nums);
+    assert_eq!(mp.peek_nth(2), Some(&8));
+    assert_eq!(mp.peek(), Some(&9));
+    assert_eq!(mp.peek(), Some(&10));
+    mp.reset_peek();
+    assert_eq!(mp.peek_nth(1), Some(&7));
+    assert_eq!(mp.peek_nth(3), Some(&9));
+    assert_eq!(mp.peek_nth(10), None);
+}
+
+#[test]
 fn test_multipeek_reset() {
     let data = [1, 2, 3, 4];
 
