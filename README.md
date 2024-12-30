@@ -8,7 +8,7 @@ How to use with Cargo:
 
 ```toml
 [dependencies]
-itertools = "0.13.0"
+itertools = "0.14.0"
 ```
 
 How to use in your crate:
