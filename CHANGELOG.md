@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.14.0
+
+### Breaking
+- Increased MSRV to 1.63.0 (#960)
+- Removed generic parameter from `cons_tuples` (#988)
+
+### Added
+- Added `array_combinations` (#991)
+- Added `k_smallest_relaxed` and variants (#925)
+- Implemented `DoubleEndedIterator` for `FilterOk` (#948)
+- Implemented `DoubleEndedIterator` for `FilterMapOk` (#950)
+
+### Changed
+- Allow `Q: ?Sized` in `Itertools::contains` (#971)
+- Improved hygiene of `chain!` (#943)
+- Improved `into_group_map_by` documentation (#1000)
+- Improved `tree_reduce` documentation (#955)
+- Improved discoverability of `merge_join_by` (#966)
+- Improved discoverability of `take_while_inclusive` (#972)
+- Improved documentation of `find_or_last` and `find_or_first` (#984)
+- Prevented exponentially large type sizes in `tuple_combinations` (#945)
+- Added `track_caller` attr for `asser_equal` (#976)
+
+### Notable Internal Changes
+- Fixed clippy lints (#956, #987, #1008)
+- Addressed warnings within doctests (#964)
+- CI: Run most tests with miri (#961)
+- CI: Speed up "cargo-semver-checks" action (#938)
+- Changed an instance of `default_features` in `Cargo.toml` to `default-features` (#985)
+
 ## 0.13.0
 
 ### Breaking
