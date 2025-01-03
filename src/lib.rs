@@ -1667,7 +1667,7 @@ pub trait Itertools: Iterator {
     /// ```
     fn tuple_combinations<T>(self) -> TupleCombinations<Self, T>
     where
-        Self: Sized + Clone,
+        Self: Sized,
         Self::Item: Clone,
         T: adaptors::HasCombination<Self>,
     {

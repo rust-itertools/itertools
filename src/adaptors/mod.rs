@@ -629,7 +629,7 @@ pub trait HasCombination<I>: Sized {
 /// Create a new `TupleCombinations` from a clonable iterator.
 pub fn tuple_combinations<T, I>(iter: I) -> TupleCombinations<I, T>
 where
-    I: Iterator + Clone,
+    I: Iterator,
     I::Item: Clone,
     T: HasCombination<I>,
 {
