@@ -1715,7 +1715,7 @@ pub trait Itertools: Iterator {
     #[cfg(feature = "use_alloc")]
     fn array_combinations<const K: usize>(self) -> ArrayCombinations<Self, K>
     where
-        Self: Sized + Clone,
+        Self: Sized,
         Self::Item: Clone,
     {
         combinations::array_combinations(self)
