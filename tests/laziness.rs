@@ -207,6 +207,11 @@ must_use_tests! {
     tuple_combinations3 {
         let _ = Panicking.tuple_combinations::<(_, _, _)>();
     }
+    array_combinations {
+        let _ = Panicking.array_combinations::<0>();
+        let _ = Panicking.array_combinations::<1>();
+        let _ = Panicking.array_combinations::<2>();
+    }
     combinations {
         let _ = Panicking.combinations(0);
         let _ = Panicking.combinations(1);
@@ -216,6 +221,11 @@ must_use_tests! {
         let _ = Panicking.combinations_with_replacement(0);
         let _ = Panicking.combinations_with_replacement(1);
         let _ = Panicking.combinations_with_replacement(2);
+    }
+    array_permutations {
+        let _ = Panicking.array_permutations::<0>();
+        let _ = Panicking.array_permutations::<1>();
+        let _ = Panicking.array_permutations::<2>();
     }
     permutations {
         let _ = Panicking.permutations(0);

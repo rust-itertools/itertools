@@ -124,7 +124,7 @@ pub mod structs {
     pub use crate::peek_nth::PeekNth;
     pub use crate::peeking_take_while::PeekingTakeWhile;
     #[cfg(feature = "use_alloc")]
-    pub use crate::permutations::Permutations;
+    pub use crate::permutations::{ArrayPermutations, Permutations};
     #[cfg(feature = "use_alloc")]
     pub use crate::powerset::Powerset;
     pub use crate::process_results_impl::ProcessResults;
@@ -1790,6 +1790,51 @@ pub trait Itertools: Iterator {
         Self::Item: Clone,
     {
         combinations_with_replacement::combinations_with_replacement(self, k)
+    }
+
+    /// Return an iterator adaptor that iterates over all `K`-permutations of the
+    /// elements from an iterator.
+    ///
+    /// Iterator element type is `[Self::Item; K]`. The iterator
+    /// produces a new array per iteration, and clones the iterator elements.
+    ///
+    /// If `K` is greater than the length of the input iterator, the resultant
+    /// iterator adaptor will be empty.
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let perms = (5..8).array_permutations();
+    /// itertools::assert_equal(perms, vec![
+    ///     [5, 6],
+    ///     [5, 7],
+    ///     [6, 5],
+    ///     [6, 7],
+    ///     [7, 5],
+    ///     [7, 6],
+    /// ]);
+    /// ```
+    ///
+    /// Note: Permutations does not take into account the equality of the iterated values.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let it = vec![2, 2].into_iter().array_permutations();
+    /// itertools::assert_equal(it, vec![
+    ///     [2, 2], // Note: these are the same
+    ///     [2, 2], // Note: these are the same
+    /// ]);
+    /// ```
+    ///
+    /// Note: The source iterator is collected lazily, and will not be
+    /// re-iterated if the permutations adaptor is completed and re-iterated.
+    #[cfg(feature = "use_alloc")]
+    fn array_permutations<const K: usize>(self) -> ArrayPermutations<Self, K>
+    where
+        Self: Sized,
+        Self::Item: Clone,
+    {
+        permutations::array_permutations(self)
     }
 
     /// Return an iterator adaptor that iterates over all k-permutations of the

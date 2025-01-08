@@ -1,4 +1,5 @@
 use alloc::vec::Vec;
+use core::array::from_fn;
 use std::iter::Fuse;
 use std::ops::Index;
 
@@ -62,6 +63,13 @@ where
 
     pub fn get_array<const K: usize>(&self, indices: [usize; K]) -> [I::Item; K] {
         indices.map(|i| self.buffer[i].clone())
+    }
+
+    pub fn get_array_from_fn<const K: usize>(
+        &self,
+        mut f: impl FnMut(usize) -> usize,
+    ) -> [I::Item; K] {
+        from_fn(|i| self.buffer[f(i)].clone())
     }
 }
 

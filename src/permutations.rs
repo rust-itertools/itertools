@@ -1,5 +1,6 @@
 use alloc::boxed::Box;
 use alloc::vec::Vec;
+use core::marker::PhantomData;
 use std::fmt;
 use std::iter::once;
 use std::iter::FusedIterator;
@@ -7,23 +8,32 @@ use std::iter::FusedIterator;
 use super::lazy_buffer::LazyBuffer;
 use crate::size_hint::{self, SizeHint};
 
+/// Iterator for `Vec` valued permutations returned by
+/// [`.permutations()`](crate::Itertools::permutations)
+pub type ArrayPermutations<I, const K: usize> = PermutationsGeneric<I, [usize; K]>;
+/// Iterator for const generic permutations returned by
+/// [`.array_permutations()`](crate::Itertools::array_permutations)
+pub type Permutations<I> = PermutationsGeneric<I, Vec<<I as Iterator>::Item>>;
+
 /// An iterator adaptor that iterates through all the `k`-permutations of the
 /// elements from an iterator.
 ///
-/// See [`.permutations()`](crate::Itertools::permutations) for
+/// See [`.permutations()`](crate::Itertools::permutations) and
+/// [`.array_permutations()`](crate::Itertools::array_permutations) for
 /// more information.
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct Permutations<I: Iterator> {
+pub struct PermutationsGeneric<I: Iterator, Item> {
     vals: LazyBuffer<I>,
     state: PermutationState,
+    _item: PhantomData<Item>,
 }
 
-impl<I> Clone for Permutations<I>
+impl<I, Item> Clone for PermutationsGeneric<I, Item>
 where
     I: Clone + Iterator,
     I::Item: Clone,
 {
-    clone_fields!(vals, state);
+    clone_fields!(vals, state, _item);
 }
 
 #[derive(Clone, Debug)]
@@ -41,7 +51,7 @@ enum PermutationState {
     End,
 }
 
-impl<I> fmt::Debug for Permutations<I>
+impl<I, Item> fmt::Debug for PermutationsGeneric<I, Item>
 where
     I: Iterator + fmt::Debug,
     I::Item: fmt::Debug,
@@ -49,26 +59,36 @@ where
     debug_fmt_fields!(Permutations, vals, state);
 }
 
-pub fn permutations<I: Iterator>(iter: I, k: usize) -> Permutations<I> {
-    Permutations {
+pub fn array_permutations<I: Iterator, const K: usize>(iter: I) -> ArrayPermutations<I, K> {
+    PermutationsGeneric {
         vals: LazyBuffer::new(iter),
-        state: PermutationState::Start { k },
+        state: PermutationState::Start { k: K },
+        _item: PhantomData,
     }
 }
 
-impl<I> Iterator for Permutations<I>
+pub fn permutations<I: Iterator>(iter: I, k: usize) -> Permutations<I> {
+    PermutationsGeneric {
+        vals: LazyBuffer::new(iter),
+        state: PermutationState::Start { k },
+        _item: PhantomData,
+    }
+}
+
+impl<I, Item> Iterator for PermutationsGeneric<I, Item>
 where
     I: Iterator,
     I::Item: Clone,
+    Item: PermItem<I::Item>,
 {
-    type Item = Vec<I::Item>;
+    type Item = Item;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let Self { vals, state } = self;
+        let Self { vals, state, _item } = self;
         match state {
             PermutationState::Start { k: 0 } => {
                 *state = PermutationState::End;
-                Some(Vec::new())
+                Some(Item::extract_start(vals, 0, 0))
             }
             &mut PermutationState::Start { k } => {
                 vals.prefill(k);
@@ -77,14 +97,11 @@ where
                     return None;
                 }
                 *state = PermutationState::Buffered { k, min_n: k };
-                Some(vals[0..k].to_vec())
+                Some(Item::extract_start(vals, k, k - 1))
             }
             PermutationState::Buffered { ref k, min_n } => {
                 if vals.get_next() {
-                    let item = (0..*k - 1)
-                        .chain(once(*min_n))
-                        .map(|i| vals[i].clone())
-                        .collect();
+                    let item = Item::extract_start(vals, *k, *min_n);
                     *min_n += 1;
                     Some(item)
                 } else {
@@ -99,7 +116,7 @@ where
                             return None;
                         }
                     }
-                    let item = vals.get_at(&indices[0..*k]);
+                    let item = Item::extract_from_prefix(vals, &indices[0..*k]);
                     *state = PermutationState::Loaded { indices, cycles };
                     Some(item)
                 }
@@ -110,14 +127,14 @@ where
                     return None;
                 }
                 let k = cycles.len();
-                Some(vals.get_at(&indices[0..k]))
+                Some(Item::extract_from_prefix(vals, &indices[0..k]))
             }
             PermutationState::End => None,
         }
     }
 
     fn count(self) -> usize {
-        let Self { vals, state } = self;
+        let Self { vals, state, _item } = self;
         let n = vals.count();
         state.size_hint_for(n).1.unwrap()
     }
@@ -130,10 +147,11 @@ where
     }
 }
 
-impl<I> FusedIterator for Permutations<I>
+impl<I, Item> FusedIterator for PermutationsGeneric<I, Item>
 where
     I: Iterator,
     I::Item: Clone,
+    Item: PermItem<I::Item>,
 {
 }
 
@@ -182,5 +200,41 @@ impl PermutationState {
             }
             Self::End => (0, Some(0)),
         }
+    }
+}
+
+/// A type that can be picked out from a pool or buffer of items from an inner iterator
+/// and in a generic way given their indices.
+pub trait PermItem<T> {
+    fn extract_start<I: Iterator<Item = T>>(buf: &LazyBuffer<I>, len: usize, last: usize) -> Self;
+
+    fn extract_from_prefix<I: Iterator<Item = T>>(buf: &LazyBuffer<I>, indices: &[usize]) -> Self;
+}
+
+impl<T: Clone, const K: usize> PermItem<T> for [T; K] {
+    fn extract_start<I: Iterator<Item = T>>(buf: &LazyBuffer<I>, len: usize, last: usize) -> Self {
+        assert_eq!(len, K);
+        buf.get_array_from_fn(|i| if i + 1 < len { i } else { last })
+    }
+
+    fn extract_from_prefix<I: Iterator<Item = T>>(buf: &LazyBuffer<I>, indices: &[usize]) -> Self {
+        buf.get_array_from_fn(|i| indices[i])
+    }
+}
+
+impl<T: Clone> PermItem<T> for Vec<T> {
+    fn extract_start<I: Iterator<Item = T>>(buf: &LazyBuffer<I>, len: usize, last: usize) -> Self {
+        if len == 0 {
+            Vec::new()
+        } else {
+            (0..len - 1)
+                .chain(once(last))
+                .map(|i| buf[i].clone())
+                .collect()
+        }
+    }
+
+    fn extract_from_prefix<I: Iterator<Item = T>>(buf: &LazyBuffer<I>, indices: &[usize]) -> Self {
+        buf.get_at(indices)
     }
 }
