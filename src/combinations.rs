@@ -39,22 +39,39 @@ pub struct CombinationsGeneric<I: Iterator, Idx> {
     first: bool,
 }
 
+pub trait MaybeConstUsize {
+    /*TODO const*/fn value(self) -> usize;
+}
+
+pub struct ConstUsize<const N: usize>;
+impl<const N: usize> MaybeConstUsize for ConstUsize<N> {
+    fn value(self) -> usize {
+        N
+    }
+}
+
+impl MaybeConstUsize for usize {
+    fn value(self) -> usize {
+        self
+    }
+}
+
 /// A type holding indices of elements in a pool or buffer of items from an inner iterator
 /// and used to pick out different combinations in a generic way.
 pub trait PoolIndex<T>: BorrowMut<[usize]> {
     type Item;
+    type Length: MaybeConstUsize;
 
     fn extract_item<I: Iterator<Item = T>>(&self, pool: &LazyBuffer<I>) -> Self::Item
     where
         T: Clone;
 
-    fn len(&self) -> usize {
-        self.borrow().len()
-    }
+    fn len(&self) -> Self::Length;
 }
 
 impl<T> PoolIndex<T> for Vec<usize> {
     type Item = Vec<T>;
+    type Length = usize;
 
     fn extract_item<I: Iterator<Item = T>>(&self, pool: &LazyBuffer<I>) -> Vec<T>
     where
@@ -62,16 +79,25 @@ impl<T> PoolIndex<T> for Vec<usize> {
     {
         pool.get_at(self)
     }
+    
+    fn len(&self) -> Self::Length {
+        self.len()
+    }
 }
 
 impl<T, const K: usize> PoolIndex<T> for [usize; K] {
     type Item = [T; K];
+    type Length = ConstUsize<K>;
 
     fn extract_item<I: Iterator<Item = T>>(&self, pool: &LazyBuffer<I>) -> [T; K]
     where
         T: Clone,
     {
         pool.get_array(*self)
+    }
+
+    fn len(&self) -> Self::Length {
+        ConstUsize::<K>
     }
 }
 
@@ -105,7 +131,7 @@ impl<I: Iterator, Idx: PoolIndex<I::Item>> CombinationsGeneric<I, Idx> {
 
     /// Returns the length of a combination produced by this iterator.
     #[inline]
-    pub fn k(&self) -> usize {
+    pub fn k(&self) -> Idx::Length {
         self.indices.len()
     }
 
@@ -136,8 +162,8 @@ impl<I: Iterator, Idx: PoolIndex<I::Item>> CombinationsGeneric<I, Idx> {
     /// Initialises the iterator by filling a buffer with elements from the
     /// iterator. Returns true if there are no combinations, false otherwise.
     fn init(&mut self) -> bool {
-        self.pool.prefill(self.k());
-        let done = self.k() > self.n();
+        self.pool.prefill(self.k().value());
+        let done = self.k().value() > self.n();
         if !done {
             self.first = false;
         }
