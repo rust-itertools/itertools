@@ -67,6 +67,8 @@ pub trait PoolIndex: BorrowMut<[usize]> {
     where
         I::Item: Clone;
 
+    fn from_fn<T, F: Fn(usize)->T>(k: Self::Length, f: F) -> Self::Item<T>;
+
     fn len(&self) -> Self::Length;
 }
 
@@ -79,6 +81,10 @@ impl PoolIndex for Vec<usize> {
         I::Item: Clone
     {
         pool.get_at(self)
+    }
+
+    fn from_fn<T, F: Fn(usize)->T>(k: Self::Length, f: F) -> Self::Item<T> {
+        (0..k).map(f).collect()
     }
     
     fn len(&self) -> Self::Length {
@@ -95,6 +101,10 @@ impl<const K: usize> PoolIndex for [usize; K] {
         I::Item: Clone
     {
         pool.get_array(*self)
+    }
+
+    fn from_fn<T, F: Fn(usize)->T>(_k: Self::Length, f: F) -> Self::Item<T> {
+        std::array::from_fn(f)
     }
 
     fn len(&self) -> Self::Length {

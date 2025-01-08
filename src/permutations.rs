@@ -1,7 +1,6 @@
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 use std::fmt;
-use std::iter::once;
 use std::iter::FusedIterator;
 
 use super::lazy_buffer::LazyBuffer;
@@ -39,7 +38,8 @@ enum PermutationState<Idx: PoolIndex> {
     /// All values from the iterator are known so `n` is known.
     Loaded {
         indices: Box<[usize]>,
-        cycles: Box<[usize]>,
+        cycles: Box<[usize]>, // TODO Should be Idx::Item<usize>
+        k: Idx::Length, // TODO Should be inferred from cycles
     },
     /// No permutation left to generate.
     End,
@@ -66,7 +66,7 @@ where
     I: Iterator,
     I::Item: Clone,
 {
-    type Item = Vec<I::Item>;
+    type Item = Idx::Item<I::Item>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let Self { vals, state } = self;
@@ -82,14 +82,18 @@ where
                     }
                     *state = PermutationState::Buffered { k, min_n: k.value() };
                 }
-                Some(vals[0..k.value()].to_vec())
+                Some(Idx::from_fn(k, |i| vals[i].clone()))
             }
-            PermutationState::Buffered { ref k, min_n } => {
+            PermutationState::Buffered { k, min_n } => {
                 if vals.get_next() {
-                    let item = (0..k.value() - 1)
-                        .chain(once(*min_n))
-                        .map(|i| vals[i].clone())
-                        .collect();
+                    // TODO This is ugly. Maybe working on indices is better?
+                    let item = Idx::from_fn(*k, |i| {
+                        vals[if i==k.value()-1 {
+                            *min_n
+                        } else {
+                            i
+                        }].clone()
+                    });
                     *min_n += 1;
                     Some(item)
                 } else {
@@ -104,18 +108,17 @@ where
                             return None;
                         }
                     }
-                    let item = vals.get_at(&indices[0..k.value()]);
-                    *state = PermutationState::Loaded { indices, cycles };
+                    let item = Idx::from_fn(*k, |i| vals[indices[i]].clone());
+                    *state = PermutationState::Loaded { indices, cycles, k:*k };
                     Some(item)
                 }
             }
-            PermutationState::Loaded { indices, cycles } => {
+            PermutationState::Loaded { indices, cycles, k} => {
                 if advance(indices, cycles) {
                     *state = PermutationState::End;
                     return None;
                 }
-                let k = cycles.len();
-                Some(vals.get_at(&indices[0..k]))
+                Some(Idx::from_fn(*k, |i| vals[indices[i]].clone()))
             }
             PermutationState::End => None,
         }
@@ -178,6 +181,7 @@ impl<Idx: PoolIndex> PermutationState<Idx> {
             Self::Loaded {
                 ref indices,
                 ref cycles,
+                k: _,
             } => {
                 let count = cycles.iter().enumerate().try_fold(0usize, |acc, (i, &c)| {
                     acc.checked_mul(indices.len() - i)
