@@ -39,10 +39,11 @@ pub struct CombinationsGeneric<I: Iterator, Idx> {
     first: bool,
 }
 
-pub trait MaybeConstUsize {
+pub trait MaybeConstUsize : Clone + Copy + std::fmt::Debug {
     /*TODO const*/fn value(self) -> usize;
 }
 
+#[derive(Clone, Copy, Debug)]
 pub struct ConstUsize<const N: usize>;
 impl<const N: usize> MaybeConstUsize for ConstUsize<N> {
     fn value(self) -> usize {
