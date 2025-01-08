@@ -69,7 +69,6 @@ where
             &mut PermutationState::Start { k } => {
                 if k == 0 {
                     *state = PermutationState::End;
-                    Some(Vec::new())
                 } else {
                     vals.prefill(k);
                     if vals.len() != k {
@@ -77,8 +76,8 @@ where
                         return None;
                     }
                     *state = PermutationState::Buffered { k, min_n: k };
-                    Some(vals[0..k].to_vec())
                 }
+                Some(vals[0..k].to_vec())
             }
             PermutationState::Buffered { ref k, min_n } => {
                 if vals.get_next() {
