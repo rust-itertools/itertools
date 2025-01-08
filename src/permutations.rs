@@ -10,7 +10,7 @@ use crate::size_hint::{self, SizeHint};
 
 /// Iterator for `Vec` valued permutations returned by
 /// [`.permutations()`](crate::Itertools::permutations)
-pub type ArrayPermutations<I, const K: usize> = PermutationsGeneric<I, [usize; K]>;
+pub type ArrayPermutations<I, const K: usize> = PermutationsGeneric<I, [<I as Iterator>::Item; K]>;
 /// Iterator for const generic permutations returned by
 /// [`.array_permutations()`](crate::Itertools::array_permutations)
 pub type Permutations<I> = PermutationsGeneric<I, Vec<<I as Iterator>::Item>>;
