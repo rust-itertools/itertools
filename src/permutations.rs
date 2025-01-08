@@ -6,32 +6,36 @@ use std::iter::FusedIterator;
 
 use super::lazy_buffer::LazyBuffer;
 use crate::size_hint::{self, SizeHint};
+use crate::combinations::{MaybeConstUsize, PoolIndex};
+
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+pub struct PermutationsGeneric<I: Iterator, Idx: PoolIndex> {
+    vals: LazyBuffer<I>,
+    state: PermutationState<Idx>,
+}
 
 /// An iterator adaptor that iterates through all the `k`-permutations of the
 /// elements from an iterator.
 ///
 /// See [`.permutations()`](crate::Itertools::permutations) for
 /// more information.
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct Permutations<I: Iterator> {
-    vals: LazyBuffer<I>,
-    state: PermutationState,
-}
+pub type Permutations<I> = PermutationsGeneric<I, Vec<usize>>;
 
-impl<I> Clone for Permutations<I>
+impl<I, Idx> Clone for PermutationsGeneric<I, Idx>
 where
     I: Clone + Iterator,
     I::Item: Clone,
+    Idx: Clone + PoolIndex,
 {
     clone_fields!(vals, state);
 }
 
 #[derive(Clone, Debug)]
-enum PermutationState {
+enum PermutationState<Idx: PoolIndex> {
     /// No permutation generated yet.
-    Start { k: usize },
+    Start { k: Idx::Length },
     /// Values from the iterator are not fully loaded yet so `n` is still unknown.
-    Buffered { k: usize, min_n: usize },
+    Buffered { k: Idx::Length, min_n: usize },
     /// All values from the iterator are known so `n` is known.
     Loaded {
         indices: Box<[usize]>,
@@ -41,12 +45,13 @@ enum PermutationState {
     End,
 }
 
-impl<I> fmt::Debug for Permutations<I>
+impl<I, Idx: PoolIndex> fmt::Debug for PermutationsGeneric<I, Idx>
 where
     I: Iterator + fmt::Debug,
     I::Item: fmt::Debug,
+    Idx: fmt::Debug,
 {
-    debug_fmt_fields!(Permutations, vals, state);
+    debug_fmt_fields!(PermutationsGeneric, vals, state);
 }
 
 pub fn permutations<I: Iterator>(iter: I, k: usize) -> Permutations<I> {
@@ -56,7 +61,7 @@ pub fn permutations<I: Iterator>(iter: I, k: usize) -> Permutations<I> {
     }
 }
 
-impl<I> Iterator for Permutations<I>
+impl<I, Idx: PoolIndex> Iterator for PermutationsGeneric<I, Idx>
 where
     I: Iterator,
     I::Item: Clone,
@@ -67,21 +72,21 @@ where
         let Self { vals, state } = self;
         match state {
             &mut PermutationState::Start { k } => {
-                if k == 0 {
+                if k.value() == 0 {
                     *state = PermutationState::End;
                 } else {
-                    vals.prefill(k);
-                    if vals.len() != k {
+                    vals.prefill(k.value());
+                    if vals.len() != k.value() {
                         *state = PermutationState::End;
                         return None;
                     }
-                    *state = PermutationState::Buffered { k, min_n: k };
+                    *state = PermutationState::Buffered { k, min_n: k.value() };
                 }
-                Some(vals[0..k].to_vec())
+                Some(vals[0..k.value()].to_vec())
             }
             PermutationState::Buffered { ref k, min_n } => {
                 if vals.get_next() {
-                    let item = (0..*k - 1)
+                    let item = (0..k.value() - 1)
                         .chain(once(*min_n))
                         .map(|i| vals[i].clone())
                         .collect();
@@ -89,9 +94,9 @@ where
                     Some(item)
                 } else {
                     let n = *min_n;
-                    let prev_iteration_count = n - *k + 1;
+                    let prev_iteration_count = n - k.value() + 1;
                     let mut indices: Box<[_]> = (0..n).collect();
-                    let mut cycles: Box<[_]> = (n - k..n).rev().collect();
+                    let mut cycles: Box<[_]> = (n - k.value()..n).rev().collect();
                     // Advance the state to the correct point.
                     for _ in 0..prev_iteration_count {
                         if advance(&mut indices, &mut cycles) {
@@ -99,7 +104,7 @@ where
                             return None;
                         }
                     }
-                    let item = vals.get_at(&indices[0..*k]);
+                    let item = vals.get_at(&indices[0..k.value()]);
                     *state = PermutationState::Loaded { indices, cycles };
                     Some(item)
                 }
@@ -130,7 +135,7 @@ where
     }
 }
 
-impl<I> FusedIterator for Permutations<I>
+impl<I, Idx: PoolIndex> FusedIterator for PermutationsGeneric<I, Idx>
 where
     I: Iterator,
     I::Item: Clone,
@@ -155,20 +160,20 @@ fn advance(indices: &mut [usize], cycles: &mut [usize]) -> bool {
     true
 }
 
-impl PermutationState {
+impl<Idx: PoolIndex> PermutationState<Idx> {
     fn size_hint_for(&self, n: usize) -> SizeHint {
         // At the beginning, there are `n!/(n-k)!` items to come.
-        let at_start = |n, k| {
-            debug_assert!(n >= k);
-            let total = (n - k + 1..=n).try_fold(1usize, |acc, i| acc.checked_mul(i));
+        let at_start = |n, k: Idx::Length| {
+            debug_assert!(n >= k.value());
+            let total = (n - k.value() + 1..=n).try_fold(1usize, |acc, i| acc.checked_mul(i));
             (total.unwrap_or(usize::MAX), total)
         };
         match *self {
-            Self::Start { k } if n < k => (0, Some(0)),
+            Self::Start { k } if n < k.value() => (0, Some(0)),
             Self::Start { k } => at_start(n, k),
             Self::Buffered { k, min_n } => {
                 // Same as `Start` minus the previously generated items.
-                size_hint::sub_scalar(at_start(n, k), min_n - k + 1)
+                size_hint::sub_scalar(at_start(n, k), min_n - k.value() + 1)
             }
             Self::Loaded {
                 ref indices,
