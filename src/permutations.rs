@@ -66,18 +66,19 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         let Self { vals, state } = self;
         match state {
-            PermutationState::Start { k: 0 } => {
-                *state = PermutationState::End;
-                Some(Vec::new())
-            }
             &mut PermutationState::Start { k } => {
-                vals.prefill(k);
-                if vals.len() != k {
+                if k == 0 {
                     *state = PermutationState::End;
-                    return None;
+                    Some(Vec::new())
+                } else {
+                    vals.prefill(k);
+                    if vals.len() != k {
+                        *state = PermutationState::End;
+                        return None;
+                    }
+                    *state = PermutationState::Buffered { k, min_n: k };
+                    Some(vals[0..k].to_vec())
                 }
-                *state = PermutationState::Buffered { k, min_n: k };
-                Some(vals[0..k].to_vec())
             }
             PermutationState::Buffered { ref k, min_n } => {
                 if vals.get_next() {
