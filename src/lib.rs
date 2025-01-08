@@ -63,6 +63,7 @@ use alloc::{collections::VecDeque, string::String, vec::Vec};
 pub use either::Either;
 
 use core::borrow::Borrow;
+#[cfg(feature = "use_std")]
 use core::hash::BuildHasher;
 use std::cmp::Ordering;
 #[cfg(feature = "use_std")]
