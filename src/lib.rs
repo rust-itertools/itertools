@@ -1819,10 +1819,10 @@ pub trait Itertools: Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let it = vec![2, 2].into_iter().array_permutations();
+    /// let it = vec![-2, -2].into_iter().array_permutations();
     /// itertools::assert_equal(it, vec![
-    ///     [2, 2], // Note: these are the same
-    ///     [2, 2], // Note: these are the same
+    ///     [-2, -2], // Note: these are the same
+    ///     [-2, -2], // Note: these are the same
     /// ]);
     /// ```
     ///
@@ -1868,10 +1868,10 @@ pub trait Itertools: Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let it = vec![2, 2].into_iter().permutations(2);
+    /// let it = vec![-2, -2].into_iter().permutations(2);
     /// itertools::assert_equal(it, vec![
-    ///     vec![2, 2], // Note: these are the same
-    ///     vec![2, 2], // Note: these are the same
+    ///     vec![-2, -2], // Note: these are the same
+    ///     vec![-2, -2], // Note: these are the same
     /// ]);
     /// ```
     ///
