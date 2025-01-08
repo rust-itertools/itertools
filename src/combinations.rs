@@ -58,24 +58,24 @@ impl MaybeConstUsize for usize {
 
 /// A type holding indices of elements in a pool or buffer of items from an inner iterator
 /// and used to pick out different combinations in a generic way.
-pub trait PoolIndex<T>: BorrowMut<[usize]> {
-    type Item;
+pub trait PoolIndex: BorrowMut<[usize]> {
+    type Item<T>;
     type Length: MaybeConstUsize;
 
-    fn extract_item<I: Iterator<Item = T>>(&self, pool: &LazyBuffer<I>) -> Self::Item
+    fn extract_item<I: Iterator>(&self, pool: &LazyBuffer<I>) -> Self::Item<I::Item>
     where
-        T: Clone;
+        I::Item: Clone;
 
     fn len(&self) -> Self::Length;
 }
 
-impl<T> PoolIndex<T> for Vec<usize> {
-    type Item = Vec<T>;
+impl PoolIndex for Vec<usize> {
+    type Item<T> = Vec<T>;
     type Length = usize;
 
-    fn extract_item<I: Iterator<Item = T>>(&self, pool: &LazyBuffer<I>) -> Vec<T>
+    fn extract_item<I: Iterator>(&self, pool: &LazyBuffer<I>) -> Self::Item<I::Item>
     where
-        T: Clone,
+        I::Item: Clone
     {
         pool.get_at(self)
     }
@@ -85,13 +85,13 @@ impl<T> PoolIndex<T> for Vec<usize> {
     }
 }
 
-impl<T, const K: usize> PoolIndex<T> for [usize; K] {
-    type Item = [T; K];
+impl<const K: usize> PoolIndex for [usize; K] {
+    type Item<T> = [T; K];
     type Length = ConstUsize<K>;
 
-    fn extract_item<I: Iterator<Item = T>>(&self, pool: &LazyBuffer<I>) -> [T; K]
+    fn extract_item<I: Iterator>(&self, pool: &LazyBuffer<I>) -> Self::Item<I::Item>
     where
-        T: Clone,
+        I::Item: Clone
     {
         pool.get_array(*self)
     }
@@ -119,7 +119,7 @@ where
     debug_fmt_fields!(Combinations, indices, pool, first);
 }
 
-impl<I: Iterator, Idx: PoolIndex<I::Item>> CombinationsGeneric<I, Idx> {
+impl<I: Iterator, Idx: PoolIndex> CombinationsGeneric<I, Idx> {
     /// Constructor with arguments the inner iterator and the initial state for the indices.
     fn new(iter: I, indices: Idx) -> Self {
         Self {
@@ -236,9 +236,9 @@ impl<I, Idx> Iterator for CombinationsGeneric<I, Idx>
 where
     I: Iterator,
     I::Item: Clone,
-    Idx: PoolIndex<I::Item>,
+    Idx: PoolIndex,
 {
-    type Item = Idx::Item;
+    type Item = Idx::Item<I::Item>;
     fn next(&mut self) -> Option<Self::Item> {
         let done = if self.first {
             self.init()
@@ -274,7 +274,7 @@ impl<I, Idx> FusedIterator for CombinationsGeneric<I, Idx>
 where
     I: Iterator,
     I::Item: Clone,
-    Idx: PoolIndex<I::Item>,
+    Idx: PoolIndex,
 {
 }
 
