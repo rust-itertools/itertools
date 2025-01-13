@@ -2,7 +2,7 @@ use alloc::boxed::Box;
 use std::fmt;
 use std::iter::FusedIterator;
 
-use super::lazy_buffer::{ArrayOrVecHelper, LazyBuffer, MaybeConstUsize as _};
+use super::lazy_buffer::{ArrayOrVecHelper, LazyBuffer, MaybeConstUsize};
 use crate::size_hint::{self, SizeHint};
 
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]

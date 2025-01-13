@@ -1,7 +1,7 @@
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 use core::borrow::BorrowMut;
-use core::ops::Deref as _;
+use core::ops::Deref;
 use std::iter::Fuse;
 use std::ops::Index;
 

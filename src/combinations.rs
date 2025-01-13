@@ -1,7 +1,7 @@
 use std::fmt;
 use std::iter::FusedIterator;
 
-use super::lazy_buffer::{ArrayOrVecHelper, ConstUsize, LazyBuffer, MaybeConstUsize as _};
+use super::lazy_buffer::{ArrayOrVecHelper, ConstUsize, LazyBuffer, MaybeConstUsize};
 use alloc::vec::Vec;
 
 use crate::adaptors::checked_binomial;
