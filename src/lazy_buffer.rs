@@ -100,8 +100,8 @@ impl MaybeConstUsize for usize {
     }
 }
 
-/// A type holding indices of elements in a pool or buffer of items from an inner iterator
-/// and used to pick out different combinations in a generic way.
+/// A type holding indices, mostly used to pick out different combinations of elements from
+/// a pool or buffer of items from an inner iterator in a generic way.
 pub trait ArrayOrVecHelper: BorrowMut<[usize]> {
     type Item<T>;
     type Length: MaybeConstUsize;
@@ -118,6 +118,7 @@ pub trait ArrayOrVecHelper: BorrowMut<[usize]> {
 
     fn from_fn<F: Fn(usize) -> usize>(k: Self::Length, f: F) -> Self;
 
+    /// Create an array/vec/... of indices from 0 to `len - 1`.
     fn start(len: Self::Length) -> Self
     where
         Self: Sized,
