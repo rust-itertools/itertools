@@ -84,12 +84,12 @@ where
                         min_n: k.value(),
                     };
                 }
-                Some(Idx::from_fn(k, |i| vals[i].clone()))
+                Some(Idx::item_from_fn(k, |i| vals[i].clone()))
             }
             PermutationState::Buffered { k, min_n } => {
                 if vals.get_next() {
                     // TODO This is ugly. Maybe working on indices is better?
-                    let item = Idx::from_fn(*k, |i| {
+                    let item = Idx::item_from_fn(*k, |i| {
                         vals[if i == k.value() - 1 { *min_n } else { i }].clone()
                     });
                     *min_n += 1;
@@ -106,7 +106,7 @@ where
                             return None;
                         }
                     }
-                    let item = Idx::from_fn(*k, |i| vals[indices[i]].clone());
+                    let item = Idx::item_from_fn(*k, |i| vals[indices[i]].clone());
                     *state = PermutationState::Loaded {
                         indices,
                         cycles,
@@ -120,7 +120,7 @@ where
                     *state = PermutationState::End;
                     return None;
                 }
-                Some(Idx::from_fn(*k, |i| vals[indices[i]].clone()))
+                Some(Idx::item_from_fn(*k, |i| vals[indices[i]].clone()))
             }
             PermutationState::End => None,
         }

@@ -108,7 +108,9 @@ pub trait ArrayOrVecHelper: BorrowMut<[usize]> {
     where
         I::Item: Clone;
 
-    fn from_fn<T, F: Fn(usize) -> T>(k: Self::Length, f: F) -> Self::Item<T>;
+    // TODO if only ever used to index into LazyBuffer, specialize to
+    // extract_from_fn(Self::Length, Fn(usize) -> usize, &LazyBuffer) -> Item<T>?
+    fn item_from_fn<T, F: Fn(usize) -> T>(len: Self::Length, f: F) -> Self::Item<T>;
 
     fn len(&self) -> Self::Length;
 }
@@ -124,8 +126,8 @@ impl ArrayOrVecHelper for Vec<usize> {
         pool.get_at(self)
     }
 
-    fn from_fn<T, F: Fn(usize) -> T>(k: Self::Length, f: F) -> Self::Item<T> {
-        (0..k).map(f).collect()
+    fn item_from_fn<T, F: Fn(usize) -> T>(len: Self::Length, f: F) -> Self::Item<T> {
+        (0..len).map(f).collect()
     }
 
     fn len(&self) -> Self::Length {
@@ -144,7 +146,7 @@ impl<const K: usize> ArrayOrVecHelper for [usize; K] {
         pool.get_array(*self)
     }
 
-    fn from_fn<T, F: Fn(usize) -> T>(_k: Self::Length, f: F) -> Self::Item<T> {
+    fn item_from_fn<T, F: Fn(usize) -> T>(_len: Self::Length, f: F) -> Self::Item<T> {
         std::array::from_fn(f)
     }
 
