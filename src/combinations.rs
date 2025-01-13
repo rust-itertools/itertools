@@ -2,7 +2,7 @@ use core::array;
 use std::fmt;
 use std::iter::FusedIterator;
 
-use super::lazy_buffer::{LazyBuffer, PoolIndex};
+use super::lazy_buffer::{LazyBuffer, ArrayOrVecHelper};
 use alloc::vec::Vec;
 
 use crate::adaptors::checked_binomial;
@@ -57,7 +57,7 @@ where
     debug_fmt_fields!(Combinations, indices, pool, first);
 }
 
-impl<I: Iterator, Idx: PoolIndex> CombinationsGeneric<I, Idx> {
+impl<I: Iterator, Idx: ArrayOrVecHelper> CombinationsGeneric<I, Idx> {
     /// Constructor with arguments the inner iterator and the initial state for the indices.
     fn new(iter: I, indices: Idx) -> Self {
         Self {
@@ -174,7 +174,7 @@ impl<I, Idx> Iterator for CombinationsGeneric<I, Idx>
 where
     I: Iterator,
     I::Item: Clone,
-    Idx: PoolIndex,
+    Idx: ArrayOrVecHelper,
 {
     type Item = Idx::Item<I::Item>;
     fn next(&mut self) -> Option<Self::Item> {
@@ -212,7 +212,7 @@ impl<I, Idx> FusedIterator for CombinationsGeneric<I, Idx>
 where
     I: Iterator,
     I::Item: Clone,
-    Idx: PoolIndex,
+    Idx: ArrayOrVecHelper,
 {
 }
 

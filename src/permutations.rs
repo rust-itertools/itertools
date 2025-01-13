@@ -3,11 +3,11 @@ use alloc::vec::Vec;
 use std::fmt;
 use std::iter::FusedIterator;
 
-use super::lazy_buffer::{LazyBuffer, MaybeConstUsize as _, PoolIndex};
+use super::lazy_buffer::{ArrayOrVecHelper, LazyBuffer, MaybeConstUsize as _};
 use crate::size_hint::{self, SizeHint};
 
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct PermutationsGeneric<I: Iterator, Idx: PoolIndex> {
+pub struct PermutationsGeneric<I: Iterator, Idx: ArrayOrVecHelper> {
     vals: LazyBuffer<I>,
     state: PermutationState<Idx>,
 }
@@ -23,13 +23,13 @@ impl<I, Idx> Clone for PermutationsGeneric<I, Idx>
 where
     I: Clone + Iterator,
     I::Item: Clone,
-    Idx: Clone + PoolIndex,
+    Idx: Clone + ArrayOrVecHelper,
 {
     clone_fields!(vals, state);
 }
 
 #[derive(Clone, Debug)]
-enum PermutationState<Idx: PoolIndex> {
+enum PermutationState<Idx: ArrayOrVecHelper> {
     /// No permutation generated yet.
     Start { k: Idx::Length },
     /// Values from the iterator are not fully loaded yet so `n` is still unknown.
@@ -44,7 +44,7 @@ enum PermutationState<Idx: PoolIndex> {
     End,
 }
 
-impl<I, Idx: PoolIndex> fmt::Debug for PermutationsGeneric<I, Idx>
+impl<I, Idx: ArrayOrVecHelper> fmt::Debug for PermutationsGeneric<I, Idx>
 where
     I: Iterator + fmt::Debug,
     I::Item: fmt::Debug,
@@ -60,7 +60,7 @@ pub fn permutations<I: Iterator>(iter: I, k: usize) -> Permutations<I> {
     }
 }
 
-impl<I, Idx: PoolIndex> Iterator for PermutationsGeneric<I, Idx>
+impl<I, Idx: ArrayOrVecHelper> Iterator for PermutationsGeneric<I, Idx>
 where
     I: Iterator,
     I::Item: Clone,
@@ -140,7 +140,7 @@ where
     }
 }
 
-impl<I, Idx: PoolIndex> FusedIterator for PermutationsGeneric<I, Idx>
+impl<I, Idx: ArrayOrVecHelper> FusedIterator for PermutationsGeneric<I, Idx>
 where
     I: Iterator,
     I::Item: Clone,
@@ -165,7 +165,7 @@ fn advance(indices: &mut [usize], cycles: &mut [usize]) -> bool {
     true
 }
 
-impl<Idx: PoolIndex> PermutationState<Idx> {
+impl<Idx: ArrayOrVecHelper> PermutationState<Idx> {
     fn size_hint_for(&self, n: usize) -> SizeHint {
         // At the beginning, there are `n!/(n-k)!` items to come.
         let at_start = |n, k: Idx::Length| {

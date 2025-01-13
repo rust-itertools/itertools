@@ -100,7 +100,7 @@ impl MaybeConstUsize for usize {
 
 /// A type holding indices of elements in a pool or buffer of items from an inner iterator
 /// and used to pick out different combinations in a generic way.
-pub trait PoolIndex: BorrowMut<[usize]> {
+pub trait ArrayOrVecHelper: BorrowMut<[usize]> {
     type Item<T>;
     type Length: MaybeConstUsize;
 
@@ -113,7 +113,7 @@ pub trait PoolIndex: BorrowMut<[usize]> {
     fn len(&self) -> Self::Length;
 }
 
-impl PoolIndex for Vec<usize> {
+impl ArrayOrVecHelper for Vec<usize> {
     type Item<T> = Vec<T>;
     type Length = usize;
 
@@ -133,7 +133,7 @@ impl PoolIndex for Vec<usize> {
     }
 }
 
-impl<const K: usize> PoolIndex for [usize; K] {
+impl<const K: usize> ArrayOrVecHelper for [usize; K] {
     type Item<T> = [T; K];
     type Length = ConstUsize<K>;
 
