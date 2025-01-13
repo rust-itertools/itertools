@@ -113,6 +113,15 @@ pub trait ArrayOrVecHelper: BorrowMut<[usize]> {
     fn item_from_fn<T, F: Fn(usize) -> T>(len: Self::Length, f: F) -> Self::Item<T>;
 
     fn len(&self) -> Self::Length;
+
+    fn from_fn<F: Fn(usize) -> usize>(k: Self::Length, f: F) -> Self;
+
+    fn start(len: Self::Length) -> Self
+    where
+        Self: Sized,
+    {
+        Self::from_fn(len, |i| i)
+    }
 }
 
 impl ArrayOrVecHelper for Vec<usize> {
@@ -133,6 +142,10 @@ impl ArrayOrVecHelper for Vec<usize> {
     fn len(&self) -> Self::Length {
         self.len()
     }
+
+    fn from_fn<F: Fn(usize) -> usize>(k: Self::Length, f: F) -> Self {
+        (0..k).map(f).collect()
+    }
 }
 
 impl<const K: usize> ArrayOrVecHelper for [usize; K] {
@@ -152,5 +165,9 @@ impl<const K: usize> ArrayOrVecHelper for [usize; K] {
 
     fn len(&self) -> Self::Length {
         ConstUsize::<K>
+    }
+
+    fn from_fn<F: Fn(usize) -> usize>(_len: Self::Length, f: F) -> Self {
+        std::array::from_fn(f)
     }
 }
