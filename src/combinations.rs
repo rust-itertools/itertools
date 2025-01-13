@@ -24,7 +24,7 @@ pub fn array_combinations<I: Iterator, const K: usize>(iter: I) -> ArrayCombinat
 where
     I::Item: Clone,
 {
-    ArrayCombinations::new(iter, ArrayOrVecHelper::start(ConstUsize))
+    ArrayCombinations::new(iter, ArrayOrVecHelper::start(ConstUsize::<K>))
 }
 
 /// An iterator to iterate through all the `k`-length combinations in an iterator.
