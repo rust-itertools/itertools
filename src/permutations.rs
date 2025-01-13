@@ -3,9 +3,8 @@ use alloc::vec::Vec;
 use std::fmt;
 use std::iter::FusedIterator;
 
-use super::lazy_buffer::LazyBuffer;
+use super::lazy_buffer::{LazyBuffer, MaybeConstUsize as _, PoolIndex};
 use crate::size_hint::{self, SizeHint};
-use crate::combinations::{MaybeConstUsize, PoolIndex};
 
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct PermutationsGeneric<I: Iterator, Idx: PoolIndex> {
@@ -39,7 +38,7 @@ enum PermutationState<Idx: PoolIndex> {
     Loaded {
         indices: Box<[usize]>,
         cycles: Box<[usize]>, // TODO Should be Idx::Item<usize>
-        k: Idx::Length, // TODO Should be inferred from cycles
+        k: Idx::Length,       // TODO Should be inferred from cycles
     },
     /// No permutation left to generate.
     End,
@@ -80,7 +79,10 @@ where
                         *state = PermutationState::End;
                         return None;
                     }
-                    *state = PermutationState::Buffered { k, min_n: k.value() };
+                    *state = PermutationState::Buffered {
+                        k,
+                        min_n: k.value(),
+                    };
                 }
                 Some(Idx::from_fn(k, |i| vals[i].clone()))
             }
@@ -88,11 +90,7 @@ where
                 if vals.get_next() {
                     // TODO This is ugly. Maybe working on indices is better?
                     let item = Idx::from_fn(*k, |i| {
-                        vals[if i==k.value()-1 {
-                            *min_n
-                        } else {
-                            i
-                        }].clone()
+                        vals[if i == k.value() - 1 { *min_n } else { i }].clone()
                     });
                     *min_n += 1;
                     Some(item)
@@ -109,11 +107,15 @@ where
                         }
                     }
                     let item = Idx::from_fn(*k, |i| vals[indices[i]].clone());
-                    *state = PermutationState::Loaded { indices, cycles, k:*k };
+                    *state = PermutationState::Loaded {
+                        indices,
+                        cycles,
+                        k: *k,
+                    };
                     Some(item)
                 }
             }
-            PermutationState::Loaded { indices, cycles, k} => {
+            PermutationState::Loaded { indices, cycles, k } => {
                 if advance(indices, cycles) {
                     *state = PermutationState::End;
                     return None;

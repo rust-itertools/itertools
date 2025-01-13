@@ -1,4 +1,5 @@
 use alloc::vec::Vec;
+use core::borrow::BorrowMut;
 use std::iter::Fuse;
 use std::ops::Index;
 
@@ -75,5 +76,79 @@ where
 
     fn index(&self, index: J) -> &Self::Output {
         self.buffer.index(index)
+    }
+}
+
+pub trait MaybeConstUsize: Clone + Copy + std::fmt::Debug {
+    /*TODO const*/
+    fn value(self) -> usize;
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct ConstUsize<const N: usize>;
+impl<const N: usize> MaybeConstUsize for ConstUsize<N> {
+    fn value(self) -> usize {
+        N
+    }
+}
+
+impl MaybeConstUsize for usize {
+    fn value(self) -> usize {
+        self
+    }
+}
+
+/// A type holding indices of elements in a pool or buffer of items from an inner iterator
+/// and used to pick out different combinations in a generic way.
+pub trait PoolIndex: BorrowMut<[usize]> {
+    type Item<T>;
+    type Length: MaybeConstUsize;
+
+    fn extract_item<I: Iterator>(&self, pool: &LazyBuffer<I>) -> Self::Item<I::Item>
+    where
+        I::Item: Clone;
+
+    fn from_fn<T, F: Fn(usize) -> T>(k: Self::Length, f: F) -> Self::Item<T>;
+
+    fn len(&self) -> Self::Length;
+}
+
+impl PoolIndex for Vec<usize> {
+    type Item<T> = Vec<T>;
+    type Length = usize;
+
+    fn extract_item<I: Iterator>(&self, pool: &LazyBuffer<I>) -> Self::Item<I::Item>
+    where
+        I::Item: Clone,
+    {
+        pool.get_at(self)
+    }
+
+    fn from_fn<T, F: Fn(usize) -> T>(k: Self::Length, f: F) -> Self::Item<T> {
+        (0..k).map(f).collect()
+    }
+
+    fn len(&self) -> Self::Length {
+        self.len()
+    }
+}
+
+impl<const K: usize> PoolIndex for [usize; K] {
+    type Item<T> = [T; K];
+    type Length = ConstUsize<K>;
+
+    fn extract_item<I: Iterator>(&self, pool: &LazyBuffer<I>) -> Self::Item<I::Item>
+    where
+        I::Item: Clone,
+    {
+        pool.get_array(*self)
+    }
+
+    fn from_fn<T, F: Fn(usize) -> T>(_k: Self::Length, f: F) -> Self::Item<T> {
+        std::array::from_fn(f)
+    }
+
+    fn len(&self) -> Self::Length {
+        ConstUsize::<K>
     }
 }
