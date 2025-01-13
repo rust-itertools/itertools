@@ -1,5 +1,4 @@
 use alloc::boxed::Box;
-use alloc::vec::Vec;
 use std::fmt;
 use std::iter::FusedIterator;
 
@@ -17,7 +16,7 @@ pub struct PermutationsGeneric<I: Iterator, Idx: ArrayOrVecHelper> {
 ///
 /// See [`.permutations()`](crate::Itertools::permutations) for
 /// more information.
-pub type Permutations<I> = PermutationsGeneric<I, Vec<usize>>;
+pub type Permutations<I> = PermutationsGeneric<I, Box<[usize]>>;
 
 impl<I, Idx> Clone for PermutationsGeneric<I, Idx>
 where

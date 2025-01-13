@@ -1,5 +1,7 @@
+use alloc::boxed::Box;
 use alloc::vec::Vec;
 use core::borrow::BorrowMut;
+use core::ops::Deref as _;
 use std::iter::Fuse;
 use std::ops::Index;
 
@@ -141,6 +143,30 @@ impl ArrayOrVecHelper for Vec<usize> {
 
     fn len(&self) -> Self::Length {
         self.len()
+    }
+
+    fn from_fn<F: Fn(usize) -> usize>(k: Self::Length, f: F) -> Self {
+        (0..k).map(f).collect()
+    }
+}
+
+impl ArrayOrVecHelper for Box<[usize]> {
+    type Item<T> = Vec<T>;
+    type Length = usize;
+
+    fn extract_item<I: Iterator>(&self, pool: &LazyBuffer<I>) -> Self::Item<I::Item>
+    where
+        I::Item: Clone,
+    {
+        pool.get_at(self)
+    }
+
+    fn item_from_fn<T, F: Fn(usize) -> T>(len: Self::Length, f: F) -> Self::Item<T> {
+        (0..len).map(f).collect()
+    }
+
+    fn len(&self) -> Self::Length {
+        self.deref().len()
     }
 
     fn from_fn<F: Fn(usize) -> usize>(k: Self::Length, f: F) -> Self {
