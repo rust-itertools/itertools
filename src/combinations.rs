@@ -1,12 +1,10 @@
-use core::array;
 use std::fmt;
 use std::iter::FusedIterator;
 
-use super::lazy_buffer::{LazyBuffer, ArrayOrVecHelper};
+use super::lazy_buffer::{ArrayOrVecHelper, ConstUsize, LazyBuffer, MaybeConstUsize as _};
 use alloc::vec::Vec;
 
 use crate::adaptors::checked_binomial;
-use crate::lazy_buffer::MaybeConstUsize as _;
 
 /// Iterator for `Vec` valued combinations returned by [`.combinations()`](crate::Itertools::combinations)
 pub type Combinations<I> = CombinationsGeneric<I, Vec<usize>>;
@@ -18,7 +16,7 @@ pub fn combinations<I: Iterator>(iter: I, k: usize) -> Combinations<I>
 where
     I::Item: Clone,
 {
-    Combinations::new(iter, (0..k).collect())
+    Combinations::new(iter, ArrayOrVecHelper::start(k))
 }
 
 /// Create a new `ArrayCombinations` from a clonable iterator.
@@ -26,7 +24,7 @@ pub fn array_combinations<I: Iterator, const K: usize>(iter: I) -> ArrayCombinat
 where
     I::Item: Clone,
 {
-    ArrayCombinations::new(iter, array::from_fn(|i| i))
+    ArrayCombinations::new(iter, ArrayOrVecHelper::start(ConstUsize))
 }
 
 /// An iterator to iterate through all the `k`-length combinations in an iterator.
