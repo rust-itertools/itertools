@@ -84,7 +84,9 @@ where
             PermutationState::Buffered { indices, min_n } => {
                 let k = indices.len();
                 if vals.get_next() {
-                    indices.borrow_mut()[k.value() - 1] += 1;
+                    // This could be an unwrap instead of ?, indices.len() should be
+                    // k.value() > 0 to be in this case
+                    *indices.borrow_mut().last_mut()? += 1;
                     debug_assert!(indices
                         .borrow()
                         .iter()
