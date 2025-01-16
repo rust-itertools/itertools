@@ -85,6 +85,11 @@ where
                 let k = indices.len();
                 if vals.get_next() {
                     indices.borrow_mut()[k.value() - 1] += 1;
+                    debug_assert!(indices
+                        .borrow()
+                        .iter()
+                        .copied()
+                        .eq((0..k.value() - 1).chain([*min_n])));
                     *min_n += 1;
                     Some(indices.extract_item(vals))
                 } else {
