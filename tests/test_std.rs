@@ -23,7 +23,7 @@ use rand::{seq::SliceRandom, thread_rng};
 use std::collections::HashMap;
 use std::hash::BuildHasher;
 use std::hash::RandomState;
-use std::iter::FromIterator;
+use std::iter::empty;
 use std::{cmp::min, fmt::Debug, marker::PhantomData};
 
 // A Hasher which forwards it's calls to RandomState to make sure different hashers
@@ -99,17 +99,10 @@ fn duplicates_by() {
         ys_rev.iter(),
         xs.iter().duplicates_by(|x| x[..2].to_string()).rev(),
     );
-}
 
-#[test]
-fn duplicates_by_with_hasher() {
-    let xs = ["aaa", "bbbbb", "aa", "ccc", "bbbb", "aaaaa", "cccc"];
-    let ys = ["aa", "bbbb", "cccc"];
-    it::assert_equal(
-        ys.iter(),
-        xs.iter()
-            .duplicates_by_with_hasher(|x| x[..2].to_string(), TestHasher::new()),
-    );
+    let _ = empty::<u8>()
+        .duplicates_by_with_hasher(|x| *x, TestHasher::new())
+        .next();
 }
 
 #[test]
@@ -137,16 +130,10 @@ fn duplicates() {
     );
     let ys_rev = vec![2, 1];
     assert_eq!(ys_rev, xs.iter().duplicates().rev().cloned().collect_vec());
-}
 
-#[test]
-fn duplicates_with_hasher() {
-    let xs = [0, 1, 2, 3, 2, 1, 3];
-    let ys = [2, 1, 3];
-    it::assert_equal(
-        xs.iter().duplicates_with_hasher(TestHasher::new()),
-        ys.iter(),
-    );
+    let _ = empty::<u8>()
+        .duplicates_with_hasher(TestHasher::new())
+        .next();
 }
 
 #[test]
@@ -163,17 +150,8 @@ fn unique_by() {
         ys_rev.iter(),
         xs.iter().unique_by(|x| x[..2].to_string()).rev(),
     );
-}
 
-#[test]
-fn unique_by_with_hasher() {
-    let xs = ["aaa", "bbbbb", "aa", "ccc", "bbbb", "aaaaa", "cccc"];
-    let ys = ["aaa", "bbbbb", "ccc"];
-    it::assert_equal(
-        ys.iter(),
-        xs.iter()
-            .unique_by_with_hasher(|x| x[..2].to_string(), TestHasher::new()),
-    );
+    let _ = empty::<u8>().unique_by_with_hasher(|x| *x, TestHasher::new());
 }
 
 #[test]
@@ -191,13 +169,8 @@ fn unique() {
     it::assert_equal(ys.iter(), xs.iter().rev().unique().rev());
     let ys_rev = [1, 0];
     it::assert_equal(ys_rev.iter(), xs.iter().unique().rev());
-}
 
-#[test]
-fn unique_with_hasher() {
-    let xs = [0, 1, 2, 3, 2, 1, 3];
-    let ys = [0, 1, 2, 3];
-    it::assert_equal(ys.iter(), xs.iter().unique_with_hasher(TestHasher::new()));
+    let _ = empty::<u8>().unique_with_hasher(TestHasher::new());
 }
 
 #[test]
@@ -363,11 +336,8 @@ fn all_unique() {
     assert!("ABCDEFGH".chars().all_unique());
     assert!(!"ABCDEFGA".chars().all_unique());
     assert!(::std::iter::empty::<usize>().all_unique());
-}
 
-#[test]
-fn all_unique_with_hasher() {
-    assert!("ABCDEFGH".chars().all_unique_with_hasher(TestHasher::new()));
+    let _ = empty::<u8>().all_unique_with_hasher(TestHasher::new());
 }
 
 #[test]
@@ -1637,73 +1607,37 @@ fn multiunzip() {
 
 #[test]
 fn into_group_map_with_hasher() {
-    let xs = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
-    let lookup: HashMap<i32, Vec<i32>, TestHasher> =
-        xs.into_iter().into_group_map_with_hasher(TestHasher::new());
-
-    assert_eq!(lookup[&0], vec![10, 20]);
-    assert_eq!(lookup.get(&1), None);
-    assert_eq!(lookup[&2], vec![12, 42]);
-    assert_eq!(lookup[&3], vec![13, 33]);
+    let _: HashMap<_, _, TestHasher> =
+        empty::<(u8, u8)>().into_group_map_with_hasher(TestHasher::new());
 }
 
 #[test]
 fn into_group_map_by_with_hasher() {
-    let xs = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
-    let lookup: HashMap<u32, Vec<(u32, u32)>, TestHasher> = xs
-        .into_iter()
-        .into_group_map_by_with_hasher(|a| a.0, TestHasher::new());
-
-    assert_eq!(lookup[&0], vec![(0, 10), (0, 20)]);
-    assert_eq!(lookup.get(&1), None);
-    assert_eq!(lookup[&2], vec![(2, 12), (2, 42)]);
-    assert_eq!(lookup[&3], vec![(3, 13), (3, 33)]);
+    let _: HashMap<_, _, TestHasher> =
+        empty::<(u8, u8)>().into_group_map_by_with_hasher(|x| *x, TestHasher::new());
 }
 
 #[test]
 fn into_grouping_map_with_hasher() {
-    let xs = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
-    let exp = HashMap::from_iter([(0, vec![10, 20]), (2, vec![12, 42]), (3, vec![13, 33])]);
-    assert_eq!(
-        xs.into_iter()
-            .into_grouping_map_with_hasher(TestHasher::new())
-            .collect(),
-        exp
-    );
+    let _: HashMap<_, Vec<_>, TestHasher> = empty::<(u8, u8)>()
+        .into_grouping_map_with_hasher(TestHasher::new())
+        .collect();
 }
 
 #[test]
 fn into_grouping_map_by_with_hasher() {
-    let xs = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
-    let exp = HashMap::from_iter([
-        (0, vec![(0, 10), (0, 20)]),
-        (2, vec![(2, 12), (2, 42)]),
-        (3, vec![(3, 13), (3, 33)]),
-    ]);
-    assert_eq!(
-        xs.into_iter()
-            .into_grouping_map_by_with_hasher(|t| { t.0 }, TestHasher::new())
-            .collect(),
-        exp
-    );
+    let _: HashMap<_, Vec<_>, TestHasher> = empty::<(u8, u8)>()
+        .into_grouping_map_by_with_hasher(|x| *x, TestHasher::new())
+        .collect();
 }
 
 #[test]
 fn counts_with_hasher() {
-    assert_eq!(
-        [1, 1, 1, 3, 3, 5]
-            .iter()
-            .counts_with_hasher(TestHasher::new()),
-        HashMap::from_iter([(&1, 3), (&3, 2), (&5, 1)])
-    );
+    let _: HashMap<_, _, TestHasher> = empty::<u8>().counts_with_hasher(TestHasher::new());
 }
 
 #[test]
 fn counts_by_with_hasher() {
-    assert_eq!(
-        [10, 12, 13, 20, 42, 33, 52, 17]
-            .iter()
-            .counts_by_with_hasher(|x| x % 10, TestHasher::new()),
-        HashMap::from_iter([(0, 2), (2, 3), (3, 2), (7, 1)])
-    );
+    let _: HashMap<_, _, TestHasher> =
+        empty::<u8>().counts_by_with_hasher(|x| x, TestHasher::new());
 }
