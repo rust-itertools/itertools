@@ -1263,3 +1263,53 @@ where
     F: FnMut(&mut I::Item),
 {
 }
+
+/// An iterator adapter to transform borrowed items ([`ToOwned`]) into their owned counterparts.
+///
+/// See [`.owned()`](crate::Itertools::owned) for more information.
+#[derive(Clone, Debug)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+pub struct Owned<I> {
+    iter: I,
+}
+
+impl<'a, I, T> Iterator for Owned<I>
+where
+    I: Iterator<Item = &'a T>,
+    T: 'a + ?Sized + ToOwned,
+{
+    type Item = T::Owned;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().map(ToOwned::to_owned)
+    }
+}
+
+impl<'a, I, T> ExactSizeIterator for Owned<I>
+where
+    I: ExactSizeIterator<Item = &'a T>,
+    T: 'a + ?Sized + ToOwned,
+{
+}
+
+impl<'a, I, T> DoubleEndedIterator for Owned<I>
+where
+    I: DoubleEndedIterator<Item = &'a T>,
+    T: 'a + ?Sized + ToOwned,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back().map(ToOwned::to_owned)
+    }
+}
+
+impl<'a, I, T> FusedIterator for Owned<I>
+where
+    I: FusedIterator<Item = &'a T>,
+    T: 'a + ?Sized + ToOwned,
+{
+}
+
+/// Create a new `Owned` iterator.
+pub fn owned<I>(iter: I) -> Owned<I> {
+    Owned { iter }
+}

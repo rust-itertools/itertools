@@ -91,6 +91,8 @@ pub use std::iter as __std_iter;
 pub mod structs {
     #[cfg(feature = "use_alloc")]
     pub use crate::adaptors::MultiProduct;
+    #[cfg(feature = "use_alloc")]
+    pub use crate::adaptors::Owned;
     pub use crate::adaptors::{
         Batching, Coalesce, Dedup, DedupBy, DedupByWithCount, DedupWithCount, FilterMapOk,
         FilterOk, Interleave, InterleaveShortest, MapInto, MapOk, Positions, Product, PutBack,
@@ -4580,6 +4582,21 @@ pub trait Itertools: Iterator {
             (lo, Some(hi)) if lo == hi => Ok(lo),
             _ => Err(sh),
         }
+    }
+
+    /// Create a new iterator that transforms borrowed items of an underlying iterator into their owned counterparts.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// assert_eq!(["Hello", " ", "world!"].iter().owned().collect_vec(), vec!["Hello".to_owned(), " ".to_owned(), "world!".to_owned()]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn owned(self) -> Owned<Self>
+    where
+        Self: Sized,
+    {
+        adaptors::owned(self)
     }
 }
 
