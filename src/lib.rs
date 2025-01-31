@@ -888,7 +888,10 @@ pub trait Itertools: Iterator {
     /// ```rust
     /// use itertools::Itertools;
     ///
-    /// (1i32..42i32).map_into::<f64>().collect_vec();
+    /// assert_eq!(
+    ///     (1i32..4i32).map_into::<f64>().collect_vec(),
+    ///     vec![1f64, 2f64, 3f64]
+    /// );
     /// ```
     fn map_into<R>(self) -> MapInto<Self, R>
     where
