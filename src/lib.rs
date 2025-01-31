@@ -2376,7 +2376,6 @@ pub trait Itertools: Iterator {
     ///
     /// # let _ = do_stuff;
     /// ```
-    #[must_use = "if you really need to exhaust the iterator, consider `.for_each(drop)` instead"]
     fn try_collect<T, U, E>(self) -> Result<U, E>
     where
         Self: Sized + Iterator<Item = Result<T, E>>,
