@@ -20,7 +20,30 @@ use rand::{
     Rng, SeedableRng,
 };
 use rand::{seq::SliceRandom, thread_rng};
+use std::collections::HashMap;
+use std::hash::BuildHasher;
+use std::hash::RandomState;
+use std::iter::empty;
 use std::{cmp::min, fmt::Debug, marker::PhantomData};
+
+// A Hasher which forwards it's calls to RandomState to make sure different hashers
+// are accepted in the various *_with_hasher methods.
+#[derive(Default)]
+struct TestHasher(RandomState);
+
+impl TestHasher {
+    fn new() -> Self {
+        TestHasher(RandomState::new())
+    }
+}
+
+impl BuildHasher for TestHasher {
+    type Hasher = <RandomState as BuildHasher>::Hasher;
+
+    fn build_hasher(&self) -> Self::Hasher {
+        self.0.build_hasher()
+    }
+}
 
 #[test]
 fn product3() {
@@ -76,6 +99,10 @@ fn duplicates_by() {
         ys_rev.iter(),
         xs.iter().duplicates_by(|x| x[..2].to_string()).rev(),
     );
+
+    let _ = empty::<u8>()
+        .duplicates_by_with_hasher(|x| *x, TestHasher::new())
+        .next();
 }
 
 #[test]
@@ -103,6 +130,10 @@ fn duplicates() {
     );
     let ys_rev = vec![2, 1];
     assert_eq!(ys_rev, xs.iter().duplicates().rev().cloned().collect_vec());
+
+    let _ = empty::<u8>()
+        .duplicates_with_hasher(TestHasher::new())
+        .next();
 }
 
 #[test]
@@ -119,6 +150,8 @@ fn unique_by() {
         ys_rev.iter(),
         xs.iter().unique_by(|x| x[..2].to_string()).rev(),
     );
+
+    let _ = empty::<u8>().unique_by_with_hasher(|x| *x, TestHasher::new());
 }
 
 #[test]
@@ -136,6 +169,8 @@ fn unique() {
     it::assert_equal(ys.iter(), xs.iter().rev().unique().rev());
     let ys_rev = [1, 0];
     it::assert_equal(ys_rev.iter(), xs.iter().unique().rev());
+
+    let _ = empty::<u8>().unique_with_hasher(TestHasher::new());
 }
 
 #[test]
@@ -301,6 +336,8 @@ fn all_unique() {
     assert!("ABCDEFGH".chars().all_unique());
     assert!(!"ABCDEFGA".chars().all_unique());
     assert!(::std::iter::empty::<usize>().all_unique());
+
+    let _ = empty::<u8>().all_unique_with_hasher(TestHasher::new());
 }
 
 #[test]
@@ -1566,4 +1603,41 @@ fn multiunzip() {
             vec![11]
         )
     );
+}
+
+#[test]
+fn into_group_map_with_hasher() {
+    let _: HashMap<_, _, TestHasher> =
+        empty::<(u8, u8)>().into_group_map_with_hasher(TestHasher::new());
+}
+
+#[test]
+fn into_group_map_by_with_hasher() {
+    let _: HashMap<_, _, TestHasher> =
+        empty::<(u8, u8)>().into_group_map_by_with_hasher(|x| *x, TestHasher::new());
+}
+
+#[test]
+fn into_grouping_map_with_hasher() {
+    let _: HashMap<_, Vec<_>, TestHasher> = empty::<(u8, u8)>()
+        .into_grouping_map_with_hasher(TestHasher::new())
+        .collect();
+}
+
+#[test]
+fn into_grouping_map_by_with_hasher() {
+    let _: HashMap<_, Vec<_>, TestHasher> = empty::<(u8, u8)>()
+        .into_grouping_map_by_with_hasher(|x| *x, TestHasher::new())
+        .collect();
+}
+
+#[test]
+fn counts_with_hasher() {
+    let _: HashMap<_, _, TestHasher> = empty::<u8>().counts_with_hasher(TestHasher::new());
+}
+
+#[test]
+fn counts_by_with_hasher() {
+    let _: HashMap<_, _, TestHasher> =
+        empty::<u8>().counts_by_with_hasher(|x| x, TestHasher::new());
 }

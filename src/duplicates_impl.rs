@@ -1,31 +1,37 @@
-use std::hash::Hash;
+use core::hash::BuildHasher;
+use std::hash::{Hash, RandomState};
 
 mod private {
+    use core::hash::BuildHasher;
     use std::collections::HashMap;
     use std::fmt;
-    use std::hash::Hash;
+    use std::hash::{Hash, RandomState};
 
     #[derive(Clone)]
     #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-    pub struct DuplicatesBy<I: Iterator, Key, F> {
+    pub struct DuplicatesBy<I: Iterator, Key, F, S = RandomState>
+    where
+        S: BuildHasher,
+    {
         pub(crate) iter: I,
-        pub(crate) meta: Meta<Key, F>,
+        pub(crate) meta: Meta<Key, F, S>,
     }
 
-    impl<I, V, F> fmt::Debug for DuplicatesBy<I, V, F>
+    impl<I, V, F, S> fmt::Debug for DuplicatesBy<I, V, F, S>
     where
         I: Iterator + fmt::Debug,
         V: fmt::Debug + Hash + Eq,
+        S: BuildHasher,
     {
         debug_fmt_fields!(DuplicatesBy, iter, meta.used);
     }
 
-    impl<I: Iterator, Key: Eq + Hash, F> DuplicatesBy<I, Key, F> {
-        pub(crate) fn new(iter: I, key_method: F) -> Self {
+    impl<I: Iterator, Key: Eq + Hash, F, S: BuildHasher> DuplicatesBy<I, Key, F, S> {
+        pub(crate) fn new(iter: I, key_method: F, hash_builder: S) -> Self {
             Self {
                 iter,
                 meta: Meta {
-                    used: HashMap::new(),
+                    used: HashMap::with_hasher(hash_builder),
                     pending: 0,
                     key_method,
                 },
@@ -34,15 +40,16 @@ mod private {
     }
 
     #[derive(Clone)]
-    pub struct Meta<Key, F> {
-        used: HashMap<Key, bool>,
+    pub struct Meta<Key, F, S> {
+        used: HashMap<Key, bool, S>,
         pending: usize,
         key_method: F,
     }
 
-    impl<Key, F> Meta<Key, F>
+    impl<Key, F, S> Meta<Key, F, S>
     where
         Key: Eq + Hash,
+        S: BuildHasher,
     {
         /// Takes an item and returns it back to the caller if it's the second time we see it.
         /// Otherwise the item is consumed and None is returned
@@ -68,11 +75,12 @@ mod private {
         }
     }
 
-    impl<I, Key, F> Iterator for DuplicatesBy<I, Key, F>
+    impl<I, Key, F, S> Iterator for DuplicatesBy<I, Key, F, S>
     where
         I: Iterator,
         Key: Eq + Hash,
         F: KeyMethod<Key, I::Item>,
+        S: BuildHasher,
     {
         type Item = I::Item;
 
@@ -102,11 +110,12 @@ mod private {
         }
     }
 
-    impl<I, Key, F> DoubleEndedIterator for DuplicatesBy<I, Key, F>
+    impl<I, Key, F, S> DoubleEndedIterator for DuplicatesBy<I, Key, F, S>
     where
         I: DoubleEndedIterator,
         Key: Eq + Hash,
         F: KeyMethod<Key, I::Item>,
+        S: BuildHasher,
     {
         fn next_back(&mut self) -> Option<Self::Item> {
             let Self { iter, meta } = self;
@@ -189,28 +198,35 @@ mod private {
 /// An iterator adapter to filter for duplicate elements.
 ///
 /// See [`.duplicates_by()`](crate::Itertools::duplicates_by) for more information.
-pub type DuplicatesBy<I, V, F> = private::DuplicatesBy<I, V, private::ByFn<F>>;
+pub type DuplicatesBy<I, V, F, S = RandomState> = private::DuplicatesBy<I, V, private::ByFn<F>, S>;
 
-/// Create a new `DuplicatesBy` iterator.
-pub fn duplicates_by<I, Key, F>(iter: I, f: F) -> DuplicatesBy<I, Key, F>
+/// Create a new `DuplicatesBy` iterator with a specified hash builder.
+pub fn duplicates_by_with_hasher<I, Key, F, S>(
+    iter: I,
+    f: F,
+    hash_builder: S,
+) -> DuplicatesBy<I, Key, F, S>
 where
     Key: Eq + Hash,
     F: FnMut(&I::Item) -> Key,
     I: Iterator,
+    S: BuildHasher,
 {
-    DuplicatesBy::new(iter, private::ByFn(f))
+    DuplicatesBy::new(iter, private::ByFn(f), hash_builder)
 }
 
 /// An iterator adapter to filter out duplicate elements.
 ///
 /// See [`.duplicates()`](crate::Itertools::duplicates) for more information.
-pub type Duplicates<I> = private::DuplicatesBy<I, <I as Iterator>::Item, private::ById>;
+pub type Duplicates<I, S = RandomState> =
+    private::DuplicatesBy<I, <I as Iterator>::Item, private::ById, S>;
 
-/// Create a new `Duplicates` iterator.
-pub fn duplicates<I>(iter: I) -> Duplicates<I>
+/// Create a new `Duplicates` iterator with a specified hash builder.
+pub fn duplicates_with_hasher<I, S>(iter: I, hash_builder: S) -> Duplicates<I, S>
 where
     I: Iterator,
     I::Item: Eq + Hash,
+    S: BuildHasher,
 {
-    Duplicates::new(iter, private::ById)
+    Duplicates::new(iter, private::ById, hash_builder)
 }
