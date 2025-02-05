@@ -1,5 +1,7 @@
 #![allow(unstable_name_collisions)]
 
+use std::ffi::CString;
+
 use criterion::black_box;
 use criterion::BenchmarkId;
 use itertools::Itertools;
@@ -665,5 +667,11 @@ bench_specializations! {
                 .collect_vec());
         }
         v.iter().copied().flatten_ok()
+    }
+    owned {
+        {
+          let v = black_box((0..1024).map(|_| CString::new("foo bar zoo").unwrap()).collect_vec());
+        }
+        v.iter().map(CString::as_c_str).owned()
     }
 }
