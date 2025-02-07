@@ -1453,9 +1453,7 @@ fn format() {
 
 #[test]
 fn while_some() {
-    let ns = (1..10)
-        .map(|x| if x % 5 != 0 { Some(x) } else { None })
-        .while_some();
+    let ns = (1..10).map(|x| (x % 5 != 0).then_some(x)).while_some();
     it::assert_equal(ns, vec![1, 2, 3, 4]);
 }
 
@@ -1507,7 +1505,7 @@ fn tree_reduce() {
             Some(s.to_string())
         };
         let num_strings = (0..i).map(|x| x.to_string());
-        let actual = num_strings.tree_reduce(|a, b| format!("{} {} x", a, b));
+        let actual = num_strings.tree_reduce(|a, b| format!("{a} {b} x"));
         assert_eq!(actual, expected);
     }
 }
