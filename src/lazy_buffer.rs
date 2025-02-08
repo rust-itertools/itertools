@@ -1,4 +1,7 @@
+use alloc::boxed::Box;
 use alloc::vec::Vec;
+use core::borrow::BorrowMut;
+use core::ops::Deref;
 use std::iter::Fuse;
 use std::ops::Index;
 
@@ -75,5 +78,123 @@ where
 
     fn index(&self, index: J) -> &Self::Output {
         self.buffer.index(index)
+    }
+}
+
+pub trait MaybeConstUsize: Clone + Copy + std::fmt::Debug {
+    /*TODO const*/
+    fn value(self) -> usize;
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct ConstUsize<const N: usize>;
+impl<const N: usize> MaybeConstUsize for ConstUsize<N> {
+    fn value(self) -> usize {
+        N
+    }
+}
+
+impl MaybeConstUsize for usize {
+    fn value(self) -> usize {
+        self
+    }
+}
+
+/// A type holding indices, mostly used to pick out different combinations of elements from
+/// a pool or buffer of items from an inner iterator in a generic way.
+pub trait ArrayOrVecHelper: BorrowMut<[usize]> {
+    type Item<T>;
+    type Length: MaybeConstUsize;
+
+    fn extract_item<I: Iterator>(&self, pool: &LazyBuffer<I>) -> Self::Item<I::Item>
+    where
+        I::Item: Clone;
+
+    // TODO if only ever used to index into LazyBuffer, specialize to
+    // extract_from_fn(Self::Length, Fn(usize) -> usize, &LazyBuffer) -> Item<T>?
+    fn item_from_fn<T, F: Fn(usize) -> T>(len: Self::Length, f: F) -> Self::Item<T>;
+
+    fn len(&self) -> Self::Length;
+
+    fn from_fn<F: Fn(usize) -> usize>(k: Self::Length, f: F) -> Self;
+
+    /// Create an array/vec/... of indices from 0 to `len - 1`.
+    fn start(len: Self::Length) -> Self
+    where
+        Self: Sized,
+    {
+        Self::from_fn(len, |i| i)
+    }
+}
+
+impl ArrayOrVecHelper for Vec<usize> {
+    type Item<T> = Vec<T>;
+    type Length = usize;
+
+    fn extract_item<I: Iterator>(&self, pool: &LazyBuffer<I>) -> Self::Item<I::Item>
+    where
+        I::Item: Clone,
+    {
+        pool.get_at(self)
+    }
+
+    fn item_from_fn<T, F: Fn(usize) -> T>(len: Self::Length, f: F) -> Self::Item<T> {
+        (0..len).map(f).collect()
+    }
+
+    fn len(&self) -> Self::Length {
+        self.len()
+    }
+
+    fn from_fn<F: Fn(usize) -> usize>(k: Self::Length, f: F) -> Self {
+        (0..k).map(f).collect()
+    }
+}
+
+impl ArrayOrVecHelper for Box<[usize]> {
+    type Item<T> = Vec<T>;
+    type Length = usize;
+
+    fn extract_item<I: Iterator>(&self, pool: &LazyBuffer<I>) -> Self::Item<I::Item>
+    where
+        I::Item: Clone,
+    {
+        pool.get_at(self)
+    }
+
+    fn item_from_fn<T, F: Fn(usize) -> T>(len: Self::Length, f: F) -> Self::Item<T> {
+        (0..len).map(f).collect()
+    }
+
+    fn len(&self) -> Self::Length {
+        self.deref().len()
+    }
+
+    fn from_fn<F: Fn(usize) -> usize>(k: Self::Length, f: F) -> Self {
+        (0..k).map(f).collect()
+    }
+}
+
+impl<const K: usize> ArrayOrVecHelper for [usize; K] {
+    type Item<T> = [T; K];
+    type Length = ConstUsize<K>;
+
+    fn extract_item<I: Iterator>(&self, pool: &LazyBuffer<I>) -> Self::Item<I::Item>
+    where
+        I::Item: Clone,
+    {
+        pool.get_array(*self)
+    }
+
+    fn item_from_fn<T, F: Fn(usize) -> T>(_len: Self::Length, f: F) -> Self::Item<T> {
+        std::array::from_fn(f)
+    }
+
+    fn len(&self) -> Self::Length {
+        ConstUsize::<K>
+    }
+
+    fn from_fn<F: Fn(usize) -> usize>(_len: Self::Length, f: F) -> Self {
+        std::array::from_fn(f)
     }
 }

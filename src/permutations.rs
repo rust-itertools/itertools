@@ -1,52 +1,51 @@
 use alloc::boxed::Box;
-use alloc::vec::Vec;
 use std::fmt;
-use std::iter::once;
 use std::iter::FusedIterator;
 
-use super::lazy_buffer::LazyBuffer;
+use super::lazy_buffer::{ArrayOrVecHelper, LazyBuffer, MaybeConstUsize};
 use crate::size_hint::{self, SizeHint};
+
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+pub struct PermutationsGeneric<I: Iterator, Idx: ArrayOrVecHelper> {
+    vals: LazyBuffer<I>,
+    state: PermutationState<Idx>,
+}
 
 /// An iterator adaptor that iterates through all the `k`-permutations of the
 /// elements from an iterator.
 ///
 /// See [`.permutations()`](crate::Itertools::permutations) for
 /// more information.
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct Permutations<I: Iterator> {
-    vals: LazyBuffer<I>,
-    state: PermutationState,
-}
+pub type Permutations<I> = PermutationsGeneric<I, Box<[usize]>>;
 
-impl<I> Clone for Permutations<I>
+impl<I, Idx> Clone for PermutationsGeneric<I, Idx>
 where
     I: Clone + Iterator,
     I::Item: Clone,
+    Idx: Clone + ArrayOrVecHelper,
 {
     clone_fields!(vals, state);
 }
 
 #[derive(Clone, Debug)]
-enum PermutationState {
+enum PermutationState<Idx: ArrayOrVecHelper> {
     /// No permutation generated yet.
-    Start { k: usize },
+    Start { k: Idx::Length },
     /// Values from the iterator are not fully loaded yet so `n` is still unknown.
-    Buffered { k: usize, min_n: usize },
+    Buffered { indices: Idx, min_n: usize },
     /// All values from the iterator are known so `n` is known.
-    Loaded {
-        indices: Box<[usize]>,
-        cycles: Box<[usize]>,
-    },
+    Loaded { indices: Box<[usize]>, cycles: Idx },
     /// No permutation left to generate.
     End,
 }
 
-impl<I> fmt::Debug for Permutations<I>
+impl<I, Idx: ArrayOrVecHelper> fmt::Debug for PermutationsGeneric<I, Idx>
 where
     I: Iterator + fmt::Debug,
     I::Item: fmt::Debug,
+    Idx: fmt::Debug,
 {
-    debug_fmt_fields!(Permutations, vals, state);
+    debug_fmt_fields!(PermutationsGeneric, vals, state);
 }
 
 pub fn permutations<I: Iterator>(iter: I, k: usize) -> Permutations<I> {
@@ -56,61 +55,70 @@ pub fn permutations<I: Iterator>(iter: I, k: usize) -> Permutations<I> {
     }
 }
 
-impl<I> Iterator for Permutations<I>
+impl<I, Idx: ArrayOrVecHelper> Iterator for PermutationsGeneric<I, Idx>
 where
     I: Iterator,
     I::Item: Clone,
 {
-    type Item = Vec<I::Item>;
+    type Item = Idx::Item<I::Item>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let Self { vals, state } = self;
         match state {
-            PermutationState::Start { k: 0 } => {
-                *state = PermutationState::End;
-                Some(Vec::new())
-            }
             &mut PermutationState::Start { k } => {
-                vals.prefill(k);
-                if vals.len() != k {
+                if k.value() == 0 {
                     *state = PermutationState::End;
-                    return None;
+                } else {
+                    vals.prefill(k.value());
+                    if vals.len() != k.value() {
+                        *state = PermutationState::End;
+                        return None;
+                    }
+                    *state = PermutationState::Buffered {
+                        indices: Idx::start(k),
+                        min_n: k.value(),
+                    };
                 }
-                *state = PermutationState::Buffered { k, min_n: k };
-                Some(vals[0..k].to_vec())
+                Some(Idx::item_from_fn(k, |i| vals[i].clone()))
             }
-            PermutationState::Buffered { ref k, min_n } => {
+            PermutationState::Buffered { indices, min_n } => {
+                let k = indices.len();
                 if vals.get_next() {
-                    let item = (0..*k - 1)
-                        .chain(once(*min_n))
-                        .map(|i| vals[i].clone())
-                        .collect();
+                    // This could be an unwrap instead of ?, indices.len() should be
+                    // k.value() > 0 to be in this case
+                    *indices.borrow_mut().last_mut()? += 1;
+                    debug_assert!(indices
+                        .borrow()
+                        .iter()
+                        .copied()
+                        .eq((0..k.value() - 1).chain([*min_n])));
                     *min_n += 1;
-                    Some(item)
+                    Some(indices.extract_item(vals))
                 } else {
                     let n = *min_n;
-                    let prev_iteration_count = n - *k + 1;
+                    let prev_iteration_count = n - k.value() + 1;
                     let mut indices: Box<[_]> = (0..n).collect();
-                    let mut cycles: Box<[_]> = (n - k..n).rev().collect();
+                    let mut cycles = Idx::from_fn(k, |i| n - 1 - i);
                     // Advance the state to the correct point.
                     for _ in 0..prev_iteration_count {
-                        if advance(&mut indices, &mut cycles) {
+                        if advance(&mut indices, cycles.borrow_mut()) {
                             *state = PermutationState::End;
                             return None;
                         }
                     }
-                    let item = vals.get_at(&indices[0..*k]);
+                    let item = Idx::item_from_fn(k, |i| vals[indices[i]].clone());
                     *state = PermutationState::Loaded { indices, cycles };
                     Some(item)
                 }
             }
             PermutationState::Loaded { indices, cycles } => {
-                if advance(indices, cycles) {
+                if advance(indices, cycles.borrow_mut()) {
                     *state = PermutationState::End;
                     return None;
                 }
-                let k = cycles.len();
-                Some(vals.get_at(&indices[0..k]))
+                Some(Idx::item_from_fn(cycles.len(), |i| {
+                    vals[indices[i]].clone()
+                }))
             }
             PermutationState::End => None,
         }
@@ -130,7 +138,7 @@ where
     }
 }
 
-impl<I> FusedIterator for Permutations<I>
+impl<I, Idx: ArrayOrVecHelper> FusedIterator for PermutationsGeneric<I, Idx>
 where
     I: Iterator,
     I::Item: Clone,
@@ -155,29 +163,34 @@ fn advance(indices: &mut [usize], cycles: &mut [usize]) -> bool {
     true
 }
 
-impl PermutationState {
+impl<Idx: ArrayOrVecHelper> PermutationState<Idx> {
     fn size_hint_for(&self, n: usize) -> SizeHint {
         // At the beginning, there are `n!/(n-k)!` items to come.
-        let at_start = |n, k| {
-            debug_assert!(n >= k);
-            let total = (n - k + 1..=n).try_fold(1usize, |acc, i| acc.checked_mul(i));
+        let at_start = |n, k: Idx::Length| {
+            debug_assert!(n >= k.value());
+            let total = (n - k.value() + 1..=n).try_fold(1usize, |acc, i| acc.checked_mul(i));
             (total.unwrap_or(usize::MAX), total)
         };
-        match *self {
-            Self::Start { k } if n < k => (0, Some(0)),
-            Self::Start { k } => at_start(n, k),
-            Self::Buffered { k, min_n } => {
+        match self {
+            Self::Start { k } if n < k.value() => (0, Some(0)),
+            Self::Start { k } => at_start(n, *k),
+            Self::Buffered { indices, min_n } => {
+                let k = indices.len();
                 // Same as `Start` minus the previously generated items.
-                size_hint::sub_scalar(at_start(n, k), min_n - k + 1)
+                size_hint::sub_scalar(at_start(n, k), min_n - k.value() + 1)
             }
             Self::Loaded {
                 ref indices,
                 ref cycles,
             } => {
-                let count = cycles.iter().enumerate().try_fold(0usize, |acc, (i, &c)| {
-                    acc.checked_mul(indices.len() - i)
-                        .and_then(|count| count.checked_add(c))
-                });
+                let count = cycles
+                    .borrow()
+                    .iter()
+                    .enumerate()
+                    .try_fold(0usize, |acc, (i, &c)| {
+                        acc.checked_mul(indices.len() - i)
+                            .and_then(|count| count.checked_add(c))
+                    });
                 (count.unwrap_or(usize::MAX), count)
             }
             Self::End => (0, Some(0)),
