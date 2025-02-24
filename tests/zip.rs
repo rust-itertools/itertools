@@ -54,3 +54,49 @@ fn test_double_ended_zip() {
     assert_eq!(it.next_back(), Some((1, 1)));
     assert_eq!(it.next_back(), None);
 }
+
+#[test]
+/// The purpose of this test is not really to test the iterator mechanics itself, rather that it
+/// compiles and accepts temporary values as inputs, as those would be valid when not used with the
+/// izip! macro and zipped manually via .zip calls
+fn test_izip_with_temporaries() {
+    struct Owned {
+        data: Vec<i32>,
+    }
+
+    impl Owned {
+        fn new(val: i32) -> Self {
+            Self {
+                data: vec![val; 10],
+            }
+        }
+
+        fn as_view(&self) -> View<'_> {
+            View {
+                data: self.data.as_slice(),
+            }
+        }
+    }
+
+    struct View<'a> {
+        data: &'a [i32],
+    }
+
+    impl View<'_> {
+        fn iter(&self) -> impl Iterator<Item = &i32> {
+            self.data.iter()
+        }
+    }
+
+    let a = Owned::new(0);
+    let b = Owned::new(1);
+    let c = Owned::new(2);
+
+    let mut sum = 0;
+
+    for (x, y, z) in itertools::izip!(a.as_view().iter(), b.as_view().iter(), c.as_view().iter()) {
+        sum += x + y + z;
+    }
+
+    assert_eq!(sum, 30);
+}

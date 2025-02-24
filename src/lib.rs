@@ -321,14 +321,27 @@ macro_rules! iproduct {
 macro_rules! izip {
     // @closure creates a tuple-flattening closure for .map() call. usage:
     // @closure partial_pattern => partial_tuple , rest , of , iterators
-    // eg. izip!( @closure ((a, b), c) => (a, b, c) , dd , ee )
+    // eg. izip!( @closure (a, (b, c)) => (a, b, c) , dd , ee )
     ( @closure $p:pat => $tup:expr ) => {
         |$p| $tup
     };
 
     // The "b" identifier is a different identifier on each recursion level thanks to hygiene.
     ( @closure $p:pat => ( $($tup:tt)* ) , $_iter:expr $( , $tail:expr )* ) => {
-        $crate::izip!(@closure ($p, b) => ( $($tup)*, b ) $( , $tail )*)
+        $crate::izip!(@closure (b, $p) => ( b, $($tup)* ) $( , $tail )*)
+    };
+
+    // Inner recursion of the macro without final map adapter, base case
+    ( @ no_map @ $first:expr $(,)?) => {
+        $crate::__std_iter::IntoIterator::into_iter($first)
+    };
+
+    // Inner recursion of the macro without final map adapter, recursive case
+    ( @ no_map @ $first:expr, $($rest:expr),+ $(,)?) => {
+        $crate::__std_iter::Iterator::zip(
+            $crate::__std_iter::IntoIterator::into_iter($first),
+            $crate::izip!(@ no_map @ $($rest),+)
+        )
     };
 
     // unary
@@ -346,16 +359,13 @@ macro_rules! izip {
 
     // n-ary where n > 2
     ( $first:expr $( , $rest:expr )* $(,)* ) => {
-        {
-            let iter = $crate::__std_iter::IntoIterator::into_iter($first);
-            $(
-                let iter = $crate::__std_iter::Iterator::zip(iter, $rest);
-            )*
-            $crate::__std_iter::Iterator::map(
-                iter,
-                $crate::izip!(@closure a => (a) $( , $rest )*)
-            )
-        }
+        $crate::__std_iter::Iterator::map(
+            $crate::__std_iter::Iterator::zip(
+                $crate::__std_iter::IntoIterator::into_iter($first),
+                $crate::izip!(@ no_map @ $($rest),+)
+            ),
+            $crate::izip!(@closure a => (a) $( , $rest )*)
+        )
     };
 }
 
