@@ -13,9 +13,8 @@ pub struct Arrays<I: Iterator, const N: usize> {
 
 impl<I: Iterator, const N: usize> Arrays<I, N> {
     pub(crate) fn new(iter: I) -> Self {
-        const {
-            assert!(N > 0);
-        }
+        assert_positive::<N>();
+
         // TODO should we use iter.fuse() instead? Otherwise remainder may behave strangely
         Self {
             iter,
@@ -85,6 +84,22 @@ impl<I: Iterator, const N: usize> Iterator for Arrays<I, N> {
 }
 
 impl<I: ExactSizeIterator, const N: usize> ExactSizeIterator for Arrays<I, N> {}
+
+/// Effectively assert!(N > 0) post-monomorphization
+fn assert_positive<const N: usize>() {
+    trait StaticAssert<const N: usize> {
+        const ASSERT: bool;
+    }
+
+    impl<const N: usize> StaticAssert<N> for () {
+        const ASSERT: bool = {
+            assert!(N > 0);
+            true
+        };
+    }
+
+    assert!(<() as StaticAssert<N>>::ASSERT);
+}
 
 #[cfg(test)]
 mod tests {
