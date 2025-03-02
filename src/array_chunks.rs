@@ -85,3 +85,34 @@ impl<I: Iterator, const N: usize> Iterator for ArrayChunks<I, N> {
 }
 
 impl<I: ExactSizeIterator, const N: usize> ExactSizeIterator for ArrayChunks<I, N> {}
+
+#[cfg(test)]
+mod tests {
+    use crate::Itertools;
+
+    fn exact_size_helper(it: impl Iterator) {
+        let (lo, hi) = it.size_hint();
+        let count = it.count();
+        assert_eq!(lo, count);
+        assert_eq!(hi, Some(count));
+    }
+
+    #[test]
+    fn exact_size_not_divisible() {
+        let it = (0..10).array_chunks::<3>();
+        exact_size_helper(it);
+    }
+
+    #[test]
+    fn exact_size_after_next() {
+        let mut it = (0..10).array_chunks::<3>();
+        _ = it.next();
+        exact_size_helper(it);
+    }
+
+    #[test]
+    fn exact_size_divisible() {
+        let it = (0..10).array_chunks::<5>();
+        exact_size_helper(it);
+    }
+}
