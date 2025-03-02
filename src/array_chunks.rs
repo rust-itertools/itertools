@@ -83,3 +83,5 @@ impl<I: Iterator, const N: usize> Iterator for ArrayChunks<I, N> {
         }
     }
 }
+
+impl<I: ExactSizeIterator, const N: usize> ExactSizeIterator for ArrayChunks<I, N> {}
