@@ -97,6 +97,8 @@ pub mod structs {
         TakeWhileRef, TupleCombinations, Update, WhileSome,
     };
     #[cfg(feature = "use_alloc")]
+    pub use crate::array_chunks::ArrayChunks;
+    #[cfg(feature = "use_alloc")]
     pub use crate::combinations::{ArrayCombinations, Combinations};
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations_with_replacement::CombinationsWithReplacement;
@@ -171,6 +173,8 @@ pub use crate::unziptuple::{multiunzip, MultiUnzip};
 pub use crate::with_position::Position;
 pub use crate::ziptuple::multizip;
 mod adaptors;
+#[cfg(feature = "use_alloc")]
+mod array_chunks;
 mod either_or_both;
 pub use crate::either_or_both::EitherOrBoth;
 #[doc(hidden)]
@@ -739,6 +743,57 @@ pub trait Itertools: Iterator {
     {
         assert!(size != 0);
         groupbylazy::new_chunks(self, size)
+    }
+
+    /// Return an iterator that groups the items in arrays of const generic size `N`.
+    ///
+    /// Use the method `.remainder()` to access leftover items in case
+    /// the number of items yielded by the original iterator is not a multiple of `N`.
+    ///
+    /// If `N` is 0, the resulting iterator will be equivalent to `repeat([])`, i.e.
+    /// `next()` will always return `Some([])`.
+    ///
+    /// See also the method [`.next_array()`](Itertools::next_array).
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// let mut v = Vec::new();
+    /// for [a, b] in (1..5).array_chunks() {
+    ///     v.push([a, b]);
+    /// }
+    /// assert_eq!(v, vec![[1, 2], [3, 4]]);
+    ///
+    /// let mut it = (1..9).array_chunks();
+    /// assert_eq!(Some([1, 2, 3]), it.next());
+    /// assert_eq!(Some([4, 5, 6]), it.next());
+    /// assert_eq!(None, it.next());
+    /// itertools::assert_equal(it.remainder(), [7,8]);
+    ///
+    /// // this requires a type hint
+    /// let it = (1..7).array_chunks::<3>();
+    /// itertools::assert_equal(it, vec![[1, 2, 3], [4, 5, 6]]);
+    ///
+    /// // you can also specify the complete type
+    /// use itertools::ArrayChunks;
+    /// use std::ops::Range;
+    ///
+    /// let it: ArrayChunks<Range<u32>, 3> = (1..7).array_chunks();
+    /// itertools::assert_equal(it, vec![[1, 2, 3], [4, 5, 6]]);
+    ///
+    /// let mut it = (1..3).array_chunks::<0>();
+    /// assert_eq!(it.next(), Some([]));
+    /// assert_eq!(it.next(), Some([]));
+    /// // and so on for any further calls to `it.next()`
+    /// itertools::assert_equal(it.remainder(), 1..3);
+    /// ```
+    ///
+    /// See also [`Tuples::into_buffer`].
+    #[cfg(feature = "use_alloc")]
+    fn array_chunks<const N: usize>(self) -> ArrayChunks<Self, N>
+    where
+        Self: Sized,
+    {
+        ArrayChunks::new(self)
     }
 
     /// Return an iterator over all contiguous windows producing tuples of
