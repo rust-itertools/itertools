@@ -6,12 +6,12 @@ use crate::next_array::ArrayBuilder;
 ///
 /// See [`.next_array()`](crate::Itertools::next_array) for details.
 #[derive(Debug, Clone)]
-pub struct ArrayChunks<I: Iterator, const N: usize> {
+pub struct Arrays<I: Iterator, const N: usize> {
     iter: I,
     partial: Vec<I::Item>,
 }
 
-impl<I: Iterator, const N: usize> ArrayChunks<I, N> {
+impl<I: Iterator, const N: usize> Arrays<I, N> {
     pub(crate) fn new(iter: I) -> Self {
         const {
             assert!(N > 0);
@@ -36,13 +36,13 @@ impl<I: Iterator, const N: usize> ArrayChunks<I, N> {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let mut it = (1..9).array_chunks();
+    /// let mut it = (1..9).arrays();
     /// assert_eq!(Some([1, 2, 3]), it.next());
     /// assert_eq!(Some([4, 5, 6]), it.next());
     /// assert_eq!(None, it.next());
     /// itertools::assert_equal(it.remainder(), [7,8]);
     ///
-    /// let mut it = (1..9).array_chunks();
+    /// let mut it = (1..9).arrays();
     /// assert_eq!(Some([1, 2, 3]), it.next());
     /// itertools::assert_equal(it.remainder(), 4..9);
     /// ```
@@ -51,7 +51,7 @@ impl<I: Iterator, const N: usize> ArrayChunks<I, N> {
     }
 }
 
-impl<I: Iterator, const N: usize> Iterator for ArrayChunks<I, N> {
+impl<I: Iterator, const N: usize> Iterator for Arrays<I, N> {
     type Item = [I::Item; N];
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -84,7 +84,7 @@ impl<I: Iterator, const N: usize> Iterator for ArrayChunks<I, N> {
     }
 }
 
-impl<I: ExactSizeIterator, const N: usize> ExactSizeIterator for ArrayChunks<I, N> {}
+impl<I: ExactSizeIterator, const N: usize> ExactSizeIterator for Arrays<I, N> {}
 
 #[cfg(test)]
 mod tests {
