@@ -786,8 +786,6 @@ pub trait Itertools: Iterator {
     /// // and so on for any further calls to `it.next()`
     /// itertools::assert_equal(it.remainder(), 1..3);
     /// ```
-    ///
-    /// See also [`Tuples::into_buffer`].
     #[cfg(feature = "use_alloc")]
     fn array_chunks<const N: usize>(self) -> ArrayChunks<Self, N>
     where
