@@ -97,7 +97,7 @@ pub mod structs {
         TakeWhileRef, TupleCombinations, Update, WhileSome,
     };
     #[cfg(feature = "use_alloc")]
-    pub use crate::array_chunks::ArrayChunks;
+    pub use crate::arrays::Arrays;
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations::{ArrayCombinations, Combinations};
     #[cfg(feature = "use_alloc")]
@@ -174,7 +174,7 @@ pub use crate::with_position::Position;
 pub use crate::ziptuple::multizip;
 mod adaptors;
 #[cfg(feature = "use_alloc")]
-mod array_chunks;
+mod arrays;
 mod either_or_both;
 pub use crate::either_or_both::EitherOrBoth;
 #[doc(hidden)]
@@ -757,41 +757,41 @@ pub trait Itertools: Iterator {
     /// ```rust
     /// use itertools::Itertools;
     /// let mut v = Vec::new();
-    /// for [a, b] in (1..5).array_chunks() {
+    /// for [a, b] in (1..5).arrays() {
     ///     v.push([a, b]);
     /// }
     /// assert_eq!(v, vec![[1, 2], [3, 4]]);
     ///
-    /// let mut it = (1..9).array_chunks();
+    /// let mut it = (1..9).arrays();
     /// assert_eq!(Some([1, 2, 3]), it.next());
     /// assert_eq!(Some([4, 5, 6]), it.next());
     /// assert_eq!(None, it.next());
     /// itertools::assert_equal(it.remainder(), [7,8]);
     ///
     /// // this requires a type hint
-    /// let it = (1..7).array_chunks::<3>();
+    /// let it = (1..7).arrays::<3>();
     /// itertools::assert_equal(it, vec![[1, 2, 3], [4, 5, 6]]);
     ///
     /// // you can also specify the complete type
-    /// use itertools::ArrayChunks;
+    /// use itertools::Arrays;
     /// use std::ops::Range;
     ///
-    /// let it: ArrayChunks<Range<u32>, 3> = (1..7).array_chunks();
+    /// let it: Arrays<Range<u32>, 3> = (1..7).arrays();
     /// itertools::assert_equal(it, vec![[1, 2, 3], [4, 5, 6]]);
     /// ```
     ///
     /// ```compile_fail
     /// use itertools::Itertools;
     ///
-    /// let mut it = (1..5).array_chunks::<0>();
+    /// let mut it = (1..5).arrays::<0>();
     /// assert_eq!(Some([]), it.next());
     /// ```
     #[cfg(feature = "use_alloc")]
-    fn array_chunks<const N: usize>(self) -> ArrayChunks<Self, N>
+    fn arrays<const N: usize>(self) -> Arrays<Self, N>
     where
         Self: Sized,
     {
-        ArrayChunks::new(self)
+        Arrays::new(self)
     }
 
     /// Return an iterator over all contiguous windows producing tuples of
