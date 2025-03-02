@@ -13,6 +13,9 @@ pub struct ArrayChunks<I: Iterator, const N: usize> {
 
 impl<I: Iterator, const N: usize> ArrayChunks<I, N> {
     pub(crate) fn new(iter: I) -> Self {
+        const {
+            assert!(N > 0);
+        }
         // TODO should we use iter.fuse() instead? Otherwise remainder may behave strangely
         Self {
             iter,
