@@ -750,12 +750,11 @@ pub trait Itertools: Iterator {
     /// Use the method `.remainder()` to access leftover items in case
     /// the number of items yielded by the original iterator is not a multiple of `N`.
     ///
-    /// If `N` is 0, the resulting iterator will be equivalent to `repeat([])`, i.e.
-    /// `next()` will always return `Some([])`.
+    /// `N == 0` is a compile-time (but post-monomorphization) error.
     ///
     /// See also the method [`.next_array()`](Itertools::next_array).
     ///
-    /// ```
+    /// ```rust
     /// use itertools::Itertools;
     /// let mut v = Vec::new();
     /// for [a, b] in (1..5).array_chunks() {
@@ -779,12 +778,13 @@ pub trait Itertools: Iterator {
     ///
     /// let it: ArrayChunks<Range<u32>, 3> = (1..7).array_chunks();
     /// itertools::assert_equal(it, vec![[1, 2, 3], [4, 5, 6]]);
+    /// ```
     ///
-    /// let mut it = (1..3).array_chunks::<0>();
-    /// assert_eq!(it.next(), Some([]));
-    /// assert_eq!(it.next(), Some([]));
-    /// // and so on for any further calls to `it.next()`
-    /// itertools::assert_equal(it.remainder(), 1..3);
+    /// ```compile_fail
+    /// use itertools::Itertools;
+    ///
+    /// let mut it = (1..5).array_chunks::<0>();
+    /// assert_eq!(Some([]), it.next());
     /// ```
     #[cfg(feature = "use_alloc")]
     fn array_chunks<const N: usize>(self) -> ArrayChunks<Self, N>
