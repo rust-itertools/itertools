@@ -2,6 +2,23 @@ use alloc::vec::Vec;
 
 use crate::next_array::ArrayBuilder;
 
+macro_rules! const_assert_positive {
+    ($N: ty) => {
+        trait StaticAssert<const N: usize> {
+            const ASSERT: bool;
+        }
+
+        impl<const N: usize> StaticAssert<N> for () {
+            const ASSERT: bool = {
+                assert!(N > 0);
+                true
+            };
+        }
+
+        assert!(<() as StaticAssert<N>>::ASSERT);
+    };
+}
+
 /// An iterator that groups the items in arrays of const generic size `N`.
 ///
 /// See [`.next_array()`](crate::Itertools::next_array) for details.
@@ -13,7 +30,7 @@ pub struct Arrays<I: Iterator, const N: usize> {
 
 impl<I: Iterator, const N: usize> Arrays<I, N> {
     pub(crate) fn new(iter: I) -> Self {
-        assert_positive::<N>();
+        const_assert_positive!(N);
 
         // TODO should we use iter.fuse() instead? Otherwise remainder may behave strangely
         Self {
@@ -84,22 +101,6 @@ impl<I: Iterator, const N: usize> Iterator for Arrays<I, N> {
 }
 
 impl<I: ExactSizeIterator, const N: usize> ExactSizeIterator for Arrays<I, N> {}
-
-/// Effectively assert!(N > 0) post-monomorphization
-fn assert_positive<const N: usize>() {
-    trait StaticAssert<const N: usize> {
-        const ASSERT: bool;
-    }
-
-    impl<const N: usize> StaticAssert<N> for () {
-        const ASSERT: bool = {
-            assert!(N > 0);
-            true
-        };
-    }
-
-    assert!(<() as StaticAssert<N>>::ASSERT);
-}
 
 #[cfg(test)]
 mod tests {
