@@ -58,6 +58,21 @@ pub enum Position {
     Only,
 }
 
+impl Position {
+    /// Whether the current element is the first of the iterator,
+    /// regardless of length (includes both [`Position::First`]
+    /// and [`Position::Only`]).
+    pub fn is_first(&self) -> bool {
+        matches!(self, Self::First | Self::Only)
+    }
+    /// Whether the current element is the last of the iterator,
+    /// regardless of length (includes both [`Position::Last`]
+    /// and [`Position::Only`]).
+    pub fn is_last(&self) -> bool {
+        matches!(self, Self::Only | Self::Last)
+    }
+}
+
 impl<I: Iterator> Iterator for WithPosition<I> {
     type Item = (Position, I::Item);
 
