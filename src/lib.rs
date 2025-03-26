@@ -63,6 +63,8 @@ use alloc::{collections::VecDeque, string::String, vec::Vec};
 pub use either::Either;
 
 use core::borrow::Borrow;
+#[cfg(feature = "use_std")]
+use core::hash::BuildHasher;
 use std::cmp::Ordering;
 #[cfg(feature = "use_std")]
 use std::collections::HashMap;
@@ -72,7 +74,7 @@ use std::fmt;
 #[cfg(feature = "use_alloc")]
 use std::fmt::Write;
 #[cfg(feature = "use_std")]
-use std::hash::Hash;
+use std::hash::{Hash, RandomState};
 use std::iter::{once, IntoIterator};
 #[cfg(feature = "use_alloc")]
 type VecDequeIntoIter<T> = alloc::collections::vec_deque::IntoIter<T>;
@@ -1419,7 +1421,33 @@ pub trait Itertools: Iterator {
         Self: Sized,
         Self::Item: Eq + Hash,
     {
-        duplicates_impl::duplicates(self)
+        duplicates_impl::duplicates_with_hasher(self, RandomState::new())
+    }
+
+    /// Return an iterator which yields the same elements as the one returned by
+    /// [.duplicates()](crate::Itertools::duplicates), but uses the specified hash builder to hash
+    /// the elements for comparison.
+    ///
+    /// Warning: `hash_builder` is normally randomly generated, and is designed to allow it's
+    /// users to be resistant to attacks that cause many collisions and very poor performance.
+    /// Setting it manually using this function can expose a DoS attack vector.
+    ///
+    /// ```
+    /// use std::hash::RandomState;
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![10, 20, 30, 20, 40, 10, 50];
+    /// itertools::assert_equal(data.into_iter().duplicates_with_hasher(RandomState::new()),
+    ///                         vec![20,10]);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn duplicates_with_hasher<S>(self, hash_builder: S) -> Duplicates<Self, S>
+    where
+        Self: Sized,
+        Self::Item: Eq + Hash,
+        S: BuildHasher,
+    {
+        duplicates_impl::duplicates_with_hasher(self, hash_builder)
     }
 
     /// Return an iterator adaptor that produces elements that appear more than once during the
@@ -1446,7 +1474,38 @@ pub trait Itertools: Iterator {
         V: Eq + Hash,
         F: FnMut(&Self::Item) -> V,
     {
-        duplicates_impl::duplicates_by(self, f)
+        duplicates_impl::duplicates_by_with_hasher(self, f, RandomState::new())
+    }
+
+    /// Return an iterator which yields the same elements as the one returned by
+    /// [.duplicates_by()](crate::Itertools::duplicates_by), but uses the specified hash builder to
+    /// hash the keys for comparison.
+    ///
+    /// Warning: `hash_builder` is normally randomly generated, and is designed to allow it's
+    /// users to be resistant to attacks that cause many collisions and very poor performance.
+    /// Setting it manually using this function can expose a DoS attack vector.
+    ///
+    /// ```
+    /// use std::hash::RandomState;
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec!["a", "bb", "aa", "c", "ccc"];
+    /// itertools::assert_equal(data.into_iter().duplicates_by_with_hasher(|s| s.len(),RandomState::new()),
+    ///                         vec!["aa", "c"]);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn duplicates_by_with_hasher<V, F, S>(
+        self,
+        f: F,
+        hash_builder: S,
+    ) -> DuplicatesBy<Self, V, F, S>
+    where
+        Self: Sized,
+        V: Eq + Hash,
+        F: FnMut(&Self::Item) -> V,
+        S: BuildHasher,
+    {
+        duplicates_impl::duplicates_by_with_hasher(self, f, hash_builder)
     }
 
     /// Return an iterator adaptor that filters out elements that have
@@ -1473,7 +1532,33 @@ pub trait Itertools: Iterator {
         Self: Sized,
         Self::Item: Clone + Eq + Hash,
     {
-        unique_impl::unique(self)
+        unique_impl::unique_with_hasher(self, RandomState::new())
+    }
+
+    /// Return an iterator which yields the same elements as the one returned by
+    /// [.unique()](crate::Itertools::unique), but uses the specified hash builder to hash the
+    /// elements for comparison.
+    ///
+    /// Warning: `hash_builder` is normally randomly generated, and is designed to allow it's
+    /// users to be resistant to attacks that cause many collisions and very poor performance.
+    /// Setting it manually using this function can expose a DoS attack vector.
+    ///
+    /// ```
+    /// use std::hash::RandomState;
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![10, 20, 30, 20, 40, 10, 50];
+    /// itertools::assert_equal(data.into_iter().unique_with_hasher(RandomState::new()),
+    ///                         vec![10, 20, 30, 40, 50]);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn unique_with_hasher<S>(self, hash_builder: S) -> Unique<Self, S>
+    where
+        Self: Sized,
+        Self::Item: Clone + Eq + Hash,
+        S: BuildHasher,
+    {
+        unique_impl::unique_with_hasher(self, hash_builder)
     }
 
     /// Return an iterator adaptor that filters out elements that have
@@ -1501,7 +1586,34 @@ pub trait Itertools: Iterator {
         V: Eq + Hash,
         F: FnMut(&Self::Item) -> V,
     {
-        unique_impl::unique_by(self, f)
+        unique_impl::unique_by_with_hasher(self, f, RandomState::new())
+    }
+
+    /// Return an iterator which yields the same elements as the one returned by
+    /// [.unique_by()](crate::Itertools::unique_by), but uses the specified hash builder to hash
+    /// the elements for comparison.
+    ///
+    /// Warning: `hash_builder` is normally randomly generated, and is designed to allow it's
+    /// users to be resistant to attacks that cause many collisions and very poor performance.
+    /// Setting it manually using this function can expose a DoS attack vector.
+    ///
+    /// ```
+    /// use std::hash::RandomState;
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec!["a", "bb", "aa", "c", "ccc"];
+    /// itertools::assert_equal(data.into_iter().unique_by_with_hasher(|s| s.len(), RandomState::new()),
+    ///                         vec!["a", "bb", "ccc"]);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn unique_by_with_hasher<V, F, S>(self, f: F, hash_builder: S) -> UniqueBy<Self, V, F, S>
+    where
+        Self: Sized,
+        V: Eq + Hash,
+        F: FnMut(&Self::Item) -> V,
+        S: BuildHasher,
+    {
+        unique_impl::unique_by_with_hasher(self, f, hash_builder)
     }
 
     /// Return an iterator adaptor that borrows from this iterator and
@@ -2279,7 +2391,32 @@ pub trait Itertools: Iterator {
         Self: Sized,
         Self::Item: Eq + Hash,
     {
-        let mut used = HashSet::new();
+        self.all_unique_with_hasher(RandomState::new())
+    }
+
+    /// Check whether all elements are unique (non equal). The specified hash builder is used for
+    /// hashing the elements. See [.all_unique](crate::Itertools::all_unique).
+    ///
+    /// ```
+    /// use std::hash::RandomState;
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![1, 2, 3, 4, 1, 5];
+    /// assert!(!data.iter().all_unique_with_hasher(RandomState::new()));
+    /// assert!(data[0..4].iter().all_unique_with_hasher(RandomState::new()));
+    /// assert!(data[1..6].iter().all_unique_with_hasher(RandomState::new()));
+    ///
+    /// let data : Option<usize> = None;
+    /// assert!(data.into_iter().all_unique_with_hasher(RandomState::new()));
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn all_unique_with_hasher<S>(&mut self, hash_builder: S) -> bool
+    where
+        Self: Sized,
+        Self::Item: Eq + Hash,
+        S: BuildHasher,
+    {
+        let mut used = HashSet::with_hasher(hash_builder);
         self.all(move |elt| used.insert(elt))
     }
 
@@ -3714,7 +3851,36 @@ pub trait Itertools: Iterator {
         Self: Iterator<Item = (K, V)> + Sized,
         K: Hash + Eq,
     {
-        group_map::into_group_map(self)
+        group_map::into_group_map_with_hasher(self, RandomState::new())
+    }
+
+    /// Return a `HashMap` of keys mapped to `Vec`s of values, using the hash builder for hashing.
+    /// See [.into_group_map()](crate::Itertools::into_group_map) for more information.
+    ///
+    /// Warning: `hash_builder` is normally randomly generated, and is designed to allow it's
+    /// users to be resistant to attacks that cause many collisions and very poor performance.
+    /// Setting it manually using this function can expose a DoS attack vector.
+    ///
+    /// ```
+    /// use std::hash::RandomState;
+    /// use itertools::Itertools;
+    ///
+    /// let data = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
+    /// let lookup = data.into_iter().into_group_map_with_hasher(RandomState::new());
+    ///
+    /// assert_eq!(lookup[&0], vec![10, 20]);
+    /// assert_eq!(lookup.get(&1), None);
+    /// assert_eq!(lookup[&2], vec![12, 42]);
+    /// assert_eq!(lookup[&3], vec![13, 33]);
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn into_group_map_with_hasher<K, V, S>(self, hash_builder: S) -> HashMap<K, Vec<V>, S>
+    where
+        Self: Iterator<Item = (K, V)> + Sized,
+        K: Hash + Eq,
+        S: BuildHasher,
+    {
+        group_map::into_group_map_with_hasher(self, hash_builder)
     }
 
     /// Return a `HashMap` of keys mapped to `Vec`s of values. The key is specified
@@ -3751,7 +3917,52 @@ pub trait Itertools: Iterator {
         K: Hash + Eq,
         F: FnMut(&V) -> K,
     {
-        group_map::into_group_map_by(self, f)
+        group_map::into_group_map_by_with_hasher(self, f, RandomState::new())
+    }
+
+    /// Return a `HashMap` of keys mapped to `Vec`s of values, using the hash builder for hashing.
+    /// See [.into_group_map_by()](crate::Itertools::into_group_map_by) for more information.
+    ///
+    /// Warning: `hash_builder` is normally randomly generated, and is designed to allow it's
+    /// users to be resistant to attacks that cause many collisions and very poor performance.
+    /// Setting it manually using this function can expose a DoS attack vector.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use std::collections::HashMap;
+    /// use std::hash::RandomState;
+    ///
+    /// let data = vec![(0, 10), (2, 12), (3, 13), (0, 20), (3, 33), (2, 42)];
+    /// let lookup: HashMap<u32,Vec<(u32, u32)>, RandomState> =
+    ///     data.clone().into_iter().into_group_map_by_with_hasher(|a| a.0, RandomState::new());
+    ///
+    /// assert_eq!(lookup[&0], vec![(0,10), (0,20)]);
+    /// assert_eq!(lookup.get(&1), None);
+    /// assert_eq!(lookup[&2], vec![(2,12), (2,42)]);
+    /// assert_eq!(lookup[&3], vec![(3,13), (3,33)]);
+    ///
+    /// assert_eq!(
+    ///     data.into_iter()
+    ///         .into_group_map_by_with_hasher(|x| x.0, RandomState::new())
+    ///         .into_iter()
+    ///         .map(|(key, values)| (key, values.into_iter().fold(0,|acc, (_,v)| acc + v )))
+    ///         .collect::<HashMap<u32,u32>>()[&0],
+    ///     30,
+    /// );
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn into_group_map_by_with_hasher<K, V, F, S>(
+        self,
+        f: F,
+        hash_builder: S,
+    ) -> HashMap<K, Vec<V>, S>
+    where
+        Self: Iterator<Item = V> + Sized,
+        K: Hash + Eq,
+        F: FnMut(&V) -> K,
+        S: BuildHasher,
+    {
+        group_map::into_group_map_by_with_hasher(self, f, hash_builder)
     }
 
     /// Constructs a `GroupingMap` to be used later with one of the efficient
@@ -3769,7 +3980,21 @@ pub trait Itertools: Iterator {
         Self: Iterator<Item = (K, V)> + Sized,
         K: Hash + Eq,
     {
-        grouping_map::new(self)
+        grouping_map::new(self, RandomState::new())
+    }
+
+    /// Constructs a `GroupingMap` to be used later with one of the efficient
+    /// group-and-fold operations it allows to perform, using the specified hash builder for
+    /// hashing the elements.
+    /// See [.into_grouping_map()](crate::Itertools::into_grouping_map) for more information.
+    #[cfg(feature = "use_std")]
+    fn into_grouping_map_with_hasher<K, V, S>(self, hash_builder: S) -> GroupingMap<Self, S>
+    where
+        Self: Iterator<Item = (K, V)> + Sized,
+        K: Hash + Eq,
+        S: BuildHasher,
+    {
+        grouping_map::new(self, hash_builder)
     }
 
     /// Constructs a `GroupingMap` to be used later with one of the efficient
@@ -3787,7 +4012,32 @@ pub trait Itertools: Iterator {
         K: Hash + Eq,
         F: FnMut(&V) -> K,
     {
-        grouping_map::new(grouping_map::new_map_for_grouping(self, key_mapper))
+        grouping_map::new(
+            grouping_map::new_map_for_grouping(self, key_mapper),
+            RandomState::new(),
+        )
+    }
+
+    /// Constructs a `GroupingMap` to be used later with one of the efficient
+    /// group-and-fold operations it allows to perform, using the specified hash builder for
+    /// hashing the keys.
+    /// See [.into_grouping_map_by()](crate::Itertools::into_grouping_map_by) for more information.
+    #[cfg(feature = "use_std")]
+    fn into_grouping_map_by_with_hasher<K, V, F, S>(
+        self,
+        key_mapper: F,
+        hash_builder: S,
+    ) -> GroupingMapBy<Self, F, S>
+    where
+        Self: Iterator<Item = V> + Sized,
+        K: Hash + Eq,
+        F: FnMut(&V) -> K,
+        S: BuildHasher,
+    {
+        grouping_map::new(
+            grouping_map::new_map_for_grouping(self, key_mapper),
+            hash_builder,
+        )
     }
 
     /// Return all minimum elements of an iterator.
@@ -4497,7 +4747,19 @@ pub trait Itertools: Iterator {
         Self: Sized,
         Self::Item: Eq + Hash,
     {
-        let mut counts = HashMap::new();
+        self.counts_with_hasher(RandomState::new())
+    }
+
+    /// Collect the items in this iterator and return a `HashMap` the same way
+    /// [.counts()](crate::Itertools::counts) does, but use the specified hash builder for hashing.
+    #[cfg(feature = "use_std")]
+    fn counts_with_hasher<S>(self, hash_builder: S) -> HashMap<Self::Item, usize, S>
+    where
+        Self: Sized,
+        Self::Item: Eq + Hash,
+        S: BuildHasher,
+    {
+        let mut counts = HashMap::with_hasher(hash_builder);
         self.for_each(|item| *counts.entry(item).or_default() += 1);
         counts
     }
@@ -4542,7 +4804,20 @@ pub trait Itertools: Iterator {
         K: Eq + Hash,
         F: FnMut(Self::Item) -> K,
     {
-        self.map(f).counts()
+        self.counts_by_with_hasher(f, RandomState::new())
+    }
+
+    /// Collect the items in this iterator and return a `HashMap` the same way
+    /// [.counts_by()](crate::Itertools::counts_by) does, but use the specified hash builder for hashing.
+    #[cfg(feature = "use_std")]
+    fn counts_by_with_hasher<K, F, S>(self, f: F, hash_builder: S) -> HashMap<K, usize, S>
+    where
+        Self: Sized,
+        K: Eq + Hash,
+        F: FnMut(Self::Item) -> K,
+        S: BuildHasher,
+    {
+        self.map(f).counts_with_hasher(hash_builder)
     }
 
     /// Converts an iterator of tuples into a tuple of containers.
