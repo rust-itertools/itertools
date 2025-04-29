@@ -13,10 +13,10 @@ where
     I: Iterator<Item = (K, V)>,
     K: Hash + Eq,
 {
-    let mut lookup = HashMap::new();
+    let mut lookup = HashMap::<K, Vec<V>>::new();
 
     iter.for_each(|(key, val)| {
-        lookup.entry(key).or_insert_with(Vec::new).push(val);
+        lookup.entry(key).or_default().push(val);
     });
 
     lookup
