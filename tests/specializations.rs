@@ -503,7 +503,10 @@ quickcheck! {
             }
 
             check_results_specialized!(it, |i| i.count());
-            check_results_specialized!(it, |i| i.last());
+            check_results_specialized!(it, |i| {
+                #[allow(clippy::double_ended_iterator_last)]
+                i.last()
+            });
             check_results_specialized!(it, |i| i.collect::<Vec<_>>());
             check_results_specialized!(it, |i| i.rev().collect::<Vec<_>>());
             check_results_specialized!(it, |i| {

@@ -450,7 +450,13 @@ quickcheck! {
         }
         assert_eq!(answer, actual);
 
-        assert_eq!(answer.into_iter().last(), a.multi_cartesian_product().last());
+        assert_eq!(
+            {
+                #[allow(clippy::double_ended_iterator_last)]
+                answer.into_iter().last()
+            },
+            a.multi_cartesian_product().last()
+        );
     }
 
     fn correct_empty_multi_product() -> () {
