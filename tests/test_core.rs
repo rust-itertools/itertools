@@ -281,6 +281,7 @@ fn count_clones() {
         let f = Foo { n: Cell::new(0) };
         let it = it::repeat_n(f, n);
         // drain it
+        #[allow(clippy::double_ended_iterator_last)]
         let last = it.last();
         if n == 0 {
             assert_eq!(last, None);
