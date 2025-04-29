@@ -3991,8 +3991,8 @@ pub trait Itertools: Iterator {
     /// - `NoElements` if the iterator is empty.
     /// - `OneElement(x)` if the iterator has exactly one element.
     /// - `MinMax(x, y)` is returned otherwise, where `x <= y`. Two
-    ///    values are equal if and only if there is more than one
-    ///    element in the iterator and all elements are equal.
+    ///   values are equal if and only if there is more than one
+    ///   element in the iterator and all elements are equal.
     ///
     /// On an iterator of length `n`, `minmax` does `1.5 * n` comparisons,
     /// and so is faster than calling `min` and `max` separately which does
@@ -4251,9 +4251,9 @@ pub trait Itertools: Iterator {
     /// - `NoElements` if the iterator is empty.
     /// - `OneElement(xpos)` if the iterator has exactly one element.
     /// - `MinMax(xpos, ypos)` is returned otherwise, where the
-    ///    element at `xpos` ≤ the element at `ypos`. While the
-    ///    referenced elements themselves may be equal, `xpos` cannot
-    ///    be equal to `ypos`.
+    ///   element at `xpos` ≤ the element at `ypos`. While the
+    ///   referenced elements themselves may be equal, `xpos` cannot
+    ///   be equal to `ypos`.
     ///
     /// On an iterator of length `n`, `position_minmax` does `1.5 * n`
     /// comparisons, and so is faster than calling `position_min` and
