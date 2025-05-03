@@ -1,9 +1,7 @@
-use core::array;
-use core::borrow::BorrowMut;
 use std::fmt;
 use std::iter::FusedIterator;
 
-use super::lazy_buffer::LazyBuffer;
+use super::lazy_buffer::{ArrayOrVecHelper, ConstUsize, LazyBuffer, MaybeConstUsize};
 use alloc::vec::Vec;
 
 use crate::adaptors::checked_binomial;
@@ -18,7 +16,7 @@ pub fn combinations<I: Iterator>(iter: I, k: usize) -> Combinations<I>
 where
     I::Item: Clone,
 {
-    Combinations::new(iter, (0..k).collect())
+    Combinations::new(iter, ArrayOrVecHelper::start(k))
 }
 
 /// Create a new `ArrayCombinations` from a clonable iterator.
@@ -26,7 +24,7 @@ pub fn array_combinations<I: Iterator, const K: usize>(iter: I) -> ArrayCombinat
 where
     I::Item: Clone,
 {
-    ArrayCombinations::new(iter, array::from_fn(|i| i))
+    ArrayCombinations::new(iter, ArrayOrVecHelper::start(ConstUsize::<K>))
 }
 
 /// An iterator to iterate through all the `k`-length combinations in an iterator.
@@ -37,42 +35,6 @@ pub struct CombinationsGeneric<I: Iterator, Idx> {
     indices: Idx,
     pool: LazyBuffer<I>,
     first: bool,
-}
-
-/// A type holding indices of elements in a pool or buffer of items from an inner iterator
-/// and used to pick out different combinations in a generic way.
-pub trait PoolIndex<T>: BorrowMut<[usize]> {
-    type Item;
-
-    fn extract_item<I: Iterator<Item = T>>(&self, pool: &LazyBuffer<I>) -> Self::Item
-    where
-        T: Clone;
-
-    fn len(&self) -> usize {
-        self.borrow().len()
-    }
-}
-
-impl<T> PoolIndex<T> for Vec<usize> {
-    type Item = Vec<T>;
-
-    fn extract_item<I: Iterator<Item = T>>(&self, pool: &LazyBuffer<I>) -> Vec<T>
-    where
-        T: Clone,
-    {
-        pool.get_at(self)
-    }
-}
-
-impl<T, const K: usize> PoolIndex<T> for [usize; K] {
-    type Item = [T; K];
-
-    fn extract_item<I: Iterator<Item = T>>(&self, pool: &LazyBuffer<I>) -> [T; K]
-    where
-        T: Clone,
-    {
-        pool.get_array(*self)
-    }
 }
 
 impl<I, Idx> Clone for CombinationsGeneric<I, Idx>
@@ -93,7 +55,7 @@ where
     debug_fmt_fields!(Combinations, indices, pool, first);
 }
 
-impl<I: Iterator, Idx: PoolIndex<I::Item>> CombinationsGeneric<I, Idx> {
+impl<I: Iterator, Idx: ArrayOrVecHelper> CombinationsGeneric<I, Idx> {
     /// Constructor with arguments the inner iterator and the initial state for the indices.
     fn new(iter: I, indices: Idx) -> Self {
         Self {
@@ -105,7 +67,7 @@ impl<I: Iterator, Idx: PoolIndex<I::Item>> CombinationsGeneric<I, Idx> {
 
     /// Returns the length of a combination produced by this iterator.
     #[inline]
-    pub fn k(&self) -> usize {
+    pub fn k(&self) -> Idx::Length {
         self.indices.len()
     }
 
@@ -136,8 +98,8 @@ impl<I: Iterator, Idx: PoolIndex<I::Item>> CombinationsGeneric<I, Idx> {
     /// Initialises the iterator by filling a buffer with elements from the
     /// iterator. Returns true if there are no combinations, false otherwise.
     fn init(&mut self) -> bool {
-        self.pool.prefill(self.k());
-        let done = self.k() > self.n();
+        self.pool.prefill(self.k().value());
+        let done = self.k().value() > self.n();
         if !done {
             self.first = false;
         }
@@ -210,9 +172,9 @@ impl<I, Idx> Iterator for CombinationsGeneric<I, Idx>
 where
     I: Iterator,
     I::Item: Clone,
-    Idx: PoolIndex<I::Item>,
+    Idx: ArrayOrVecHelper,
 {
-    type Item = Idx::Item;
+    type Item = Idx::Item<I::Item>;
     fn next(&mut self) -> Option<Self::Item> {
         let done = if self.first {
             self.init()
@@ -248,7 +210,7 @@ impl<I, Idx> FusedIterator for CombinationsGeneric<I, Idx>
 where
     I: Iterator,
     I::Item: Clone,
-    Idx: PoolIndex<I::Item>,
+    Idx: ArrayOrVecHelper,
 {
 }
 
