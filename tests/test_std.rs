@@ -20,6 +20,7 @@ use rand::{
     Rng, SeedableRng,
 };
 use rand::{seq::SliceRandom, thread_rng};
+use std::ffi::CString;
 use std::{cmp::min, fmt::Debug, marker::PhantomData};
 
 #[test]
@@ -1566,4 +1567,17 @@ fn multiunzip() {
             vec![11]
         )
     );
+}
+
+#[test]
+fn owned() {
+    let owned = [
+        CString::new("foo").unwrap(),
+        CString::new("bar").unwrap(),
+        CString::new("").unwrap(),
+        CString::new("zoo").unwrap(),
+    ];
+    let borrowed = owned.iter().map(CString::as_c_str);
+    let iter = borrowed.owned();
+    assert_eq!(iter.collect_array(), Some(owned));
 }
