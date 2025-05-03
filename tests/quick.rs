@@ -1856,7 +1856,7 @@ quickcheck! {
 
     fn fused_interleave_shortest(a: Iter<i16>, b: Iter<i16>) -> bool
     {
-        !is_fused(a.clone().interleave_shortest(b.clone())) &&
+        is_fused(a.clone().interleave_shortest(b.clone())) &&
         is_fused(a.fuse().interleave_shortest(b.fuse()))
     }
 
