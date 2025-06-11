@@ -96,6 +96,7 @@ pub mod structs {
         FilterOk, Interleave, InterleaveShortest, MapInto, MapOk, Positions, Product, PutBack,
         TakeWhileRef, TupleCombinations, Update, WhileSome,
     };
+    pub use crate::all_equal_value_err::AllEqualValueError;
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations::{ArrayCombinations, Combinations};
     #[cfg(feature = "use_alloc")]
@@ -177,6 +178,7 @@ pub use crate::either_or_both::EitherOrBoth;
 pub mod free;
 #[doc(inline)]
 pub use crate::free::*;
+mod all_equal_value_err;
 #[cfg(feature = "use_alloc")]
 mod combinations;
 #[cfg(feature = "use_alloc")]
@@ -2232,27 +2234,27 @@ pub trait Itertools: Iterator {
     /// two non-equal elements found.
     ///
     /// ```
-    /// use itertools::Itertools;
+    /// use itertools::{Itertools, AllEqualValueError};
     ///
     /// let data = vec![1, 1, 1, 2, 2, 3, 3, 3, 4, 5, 5];
-    /// assert_eq!(data.iter().all_equal_value(), Err(Some((&1, &2))));
+    /// assert_eq!(data.iter().all_equal_value(), Err(AllEqualValueError(Some([&1, &2]))));
     /// assert_eq!(data[0..3].iter().all_equal_value(), Ok(&1));
     /// assert_eq!(data[3..5].iter().all_equal_value(), Ok(&2));
     /// assert_eq!(data[5..8].iter().all_equal_value(), Ok(&3));
     ///
     /// let data : Option<usize> = None;
-    /// assert_eq!(data.into_iter().all_equal_value(), Err(None));
+    /// assert_eq!(data.into_iter().all_equal_value(), Err(AllEqualValueError(None)));
     /// ```
     #[allow(clippy::type_complexity)]
-    fn all_equal_value(&mut self) -> Result<Self::Item, Option<(Self::Item, Self::Item)>>
+    fn all_equal_value(&mut self) -> Result<Self::Item, AllEqualValueError<Self::Item>>
     where
         Self: Sized,
         Self::Item: PartialEq,
     {
-        let first = self.next().ok_or(None)?;
+        let first = self.next().ok_or(AllEqualValueError(None))?;
         let other = self.find(|x| x != &first);
         if let Some(other) = other {
-            Err(Some((first, other)))
+            Err(AllEqualValueError(Some([first, other])))
         } else {
             Ok(first)
         }
