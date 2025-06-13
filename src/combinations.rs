@@ -1,3 +1,4 @@
+use alloc::boxed::Box;
 use core::array;
 use core::borrow::BorrowMut;
 use std::fmt;
@@ -52,7 +53,16 @@ pub trait PoolIndex<T>: BorrowMut<[usize]> {
         self.borrow().len()
     }
 }
+impl<T> PoolIndex<T> for Box<[usize]> {
+    type Item = Vec<T>;
 
+    fn extract_item<I: Iterator<Item = T>>(&self, pool: &LazyBuffer<I>) -> Vec<T>
+    where
+        T: Clone,
+    {
+        pool.get_at(self)
+    }
+}
 impl<T> PoolIndex<T> for Vec<usize> {
     type Item = Vec<T>;
 

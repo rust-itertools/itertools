@@ -1838,6 +1838,11 @@ quickcheck! {
         is_fused(a.combinations_with_replacement(3))
     }
 
+    fn fused_array_combination_with_replacement(a: Iter<i16>) -> bool
+    {
+        is_fused(a.clone().array_combinations_with_replacement::<1>()) &&
+        is_fused(a.array_combinations_with_replacement::<3>())
+    }
     fn fused_tuple_combination(a: Iter<i16>) -> bool
     {
         is_fused(a.clone().fuse().tuple_combinations::<(_,)>()) &&

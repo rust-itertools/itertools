@@ -217,6 +217,11 @@ must_use_tests! {
         let _ = Panicking.combinations_with_replacement(1);
         let _ = Panicking.combinations_with_replacement(2);
     }
+    array_combinations_with_replacement {
+        let _ = Panicking.array_combinations_with_replacement::<0>();
+        let _ = Panicking.array_combinations_with_replacement::<1>();
+        let _ = Panicking.array_combinations_with_replacement::<2>();
+    }
     permutations {
         let _ = Panicking.permutations(0);
         let _ = Panicking.permutations(1);
