@@ -24,6 +24,10 @@ where
 
 /// Iterator for `Box<[I]>` valued combinations_with_replacement returned by [`.combinations_with_replacement()`](crate::Itertools::combinations_with_replacement)
 pub type CombinationsWithReplacement<I> = CombinationsWithReplacementGeneric<I, Box<[usize]>>;
+/// Iterator for const generic combinations_with_replacement returned by [`.array_combinations_with_replacement()`](crate::Itertools::array_combinations_with_replacement)
+pub type ArrayCombinationsWithReplacement<I, const K: usize> =
+    CombinationsWithReplacementGeneric<I, [usize; K]>;
+
 impl<I, Idx> fmt::Debug for CombinationsWithReplacementGeneric<I, Idx>
 where
     I: Iterator + fmt::Debug,
@@ -33,6 +37,15 @@ where
     debug_fmt_fields!(CombinationsWithReplacementGeneric, indices, pool, first);
 }
 
+/// Create a new `ArrayCombinationsWithReplacement`` from a clonable iterator.
+pub fn array_combinations_with_replacement<I: Iterator, const K: usize>(
+    iter: I,
+) -> ArrayCombinationsWithReplacement<I, K>
+where
+    I::Item: Clone,
+{
+    ArrayCombinationsWithReplacement::new(iter, [0; K])
+}
 /// Create a new `CombinationsWithReplacement` from a clonable iterator.
 pub fn combinations_with_replacement<I>(iter: I, k: usize) -> CombinationsWithReplacement<I>
 where

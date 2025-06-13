@@ -153,6 +153,8 @@ pub mod traits {
     pub use crate::tuple_impl::HomogeneousTuple;
 }
 
+#[cfg(feature = "use_alloc")]
+use crate::combinations_with_replacement::ArrayCombinationsWithReplacement;
 pub use crate::concat_impl::concat;
 pub use crate::cons_tuples_impl::cons_tuples;
 pub use crate::diff::diff_with;
@@ -1804,7 +1806,35 @@ pub trait Itertools: Iterator {
     {
         combinations_with_replacement::combinations_with_replacement(self, k)
     }
-
+    /// Return an iterator that iterates over the `k`-length combinations of
+    /// the elements from an iterator, with replacement.
+    ///
+    /// Iterator element type is [Self::Item; K]. The iterator produces a new
+    /// array per iteration, and clones the iterator elements.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let it = (1..4).array_combinations_with_replacement::<2>();
+    /// itertools::assert_equal(it, vec![
+    ///     [1, 1],
+    ///     [1, 2],
+    ///     [1, 3],
+    ///     [2, 2],
+    ///     [2, 3],
+    ///     [3, 3],
+    /// ]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn array_combinations_with_replacement<const K: usize>(
+        self,
+    ) -> ArrayCombinationsWithReplacement<Self, K>
+    where
+        Self: Sized,
+        Self::Item: Clone,
+    {
+        combinations_with_replacement::array_combinations_with_replacement(self)
+    }
     /// Return an iterator adaptor that iterates over all k-permutations of the
     /// elements from an iterator.
     ///
