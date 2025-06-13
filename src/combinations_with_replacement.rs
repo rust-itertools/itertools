@@ -115,7 +115,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         if self.first {
             // In empty edge cases, stop iterating immediately
-            if !((&self.indices).borrow().is_empty() || self.pool.get_next()) {
+            if !(self.indices.borrow().is_empty() || self.pool.get_next()) {
                 return None;
             }
             self.first = false;
@@ -128,7 +128,7 @@ where
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
         if self.first {
             // In empty edge cases, stop iterating immediately
-            if !((&self.indices).borrow().is_empty() || self.pool.get_next()) {
+            if !(self.indices.borrow().is_empty() || self.pool.get_next()) {
                 return None;
             }
             self.first = false;
