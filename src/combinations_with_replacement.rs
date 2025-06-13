@@ -1,4 +1,3 @@
-#[cfg(feature = "use_alloc")]
 use alloc::boxed::Box;
 use std::fmt;
 use std::iter::FusedIterator;
@@ -22,7 +21,6 @@ where
     first: bool,
 }
 
-#[cfg(feature = "use_alloc")]
 /// Iterator for `Box<[I]>` valued combinations_with_replacement returned by [`.combinations_with_replacement()`](crate::Itertools::combinations_with_replacement)
 pub type CombinationsWithReplacement<I> = CombinationsWithReplacementGeneric<I, Box<[usize]>>;
 /// Iterator for const generic combinations_with_replacement returned by [`.array_combinations_with_replacement()`](crate::Itertools::array_combinations_with_replacement)
@@ -47,7 +45,6 @@ where
 {
     ArrayCombinationsWithReplacement::new(iter, [0; K])
 }
-#[cfg(feature = "use_alloc")]
 /// Create a new `CombinationsWithReplacement` from a clonable iterator.
 pub fn combinations_with_replacement<I>(iter: I, k: usize) -> CombinationsWithReplacement<I>
 where

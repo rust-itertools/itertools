@@ -1,4 +1,3 @@
-#[cfg(feature = "use_alloc")]
 use alloc::boxed::Box;
 use core::array;
 use core::borrow::BorrowMut;
@@ -54,7 +53,6 @@ pub trait PoolIndex<T>: BorrowMut<[usize]> {
         self.borrow().len()
     }
 }
-#[cfg(feature = "use_alloc")]
 impl<T> PoolIndex<T> for Box<[usize]> {
     type Item = Vec<T>;
 
