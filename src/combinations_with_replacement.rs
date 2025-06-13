@@ -1,5 +1,4 @@
 use alloc::boxed::Box;
-use core::array;
 use std::fmt;
 use std::iter::FusedIterator;
 
@@ -113,9 +112,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         if self.first {
             // In empty edge cases, stop iterating immediately
-            if !(core::borrow::Borrow::<[usize]>::borrow(&self.indices).is_empty()
-                || self.pool.get_next())
-            {
+            if !((&self.indices).borrow().is_empty() || self.pool.get_next()) {
                 return None;
             }
             self.first = false;
@@ -128,9 +125,7 @@ where
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
         if self.first {
             // In empty edge cases, stop iterating immediately
-            if !(core::borrow::Borrow::<[usize]>::borrow(&self.indices).is_empty()
-                || self.pool.get_next())
-            {
+            if !((&self.indices).borrow().is_empty() || self.pool.get_next()) {
                 return None;
             }
             self.first = false;
