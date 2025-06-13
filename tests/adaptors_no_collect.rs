@@ -49,3 +49,7 @@ fn combinations_no_collect() {
 fn combinations_with_replacement_no_collect() {
     no_collect_test(|iter| iter.combinations_with_replacement(5))
 }
+#[test]
+fn array_combinations_with_replacement_no_collect() {
+    no_collect_test(|iter| iter.array_combinations_with_replacement::<5>())
+}

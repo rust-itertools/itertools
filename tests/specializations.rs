@@ -299,6 +299,16 @@ quickcheck! {
         TestResult::passed()
     }
 
+    fn array_combinations_with_replacement(a: Vec<u8>) -> TestResult {
+        if a.len() > 10 {
+            return TestResult::discard();
+        }
+        test_specializations(&a.iter().array_combinations_with_replacement::<1>());
+        test_specializations(&a.iter().array_combinations_with_replacement::<2>());
+        test_specializations(&a.iter().array_combinations_with_replacement::<3>());
+
+        TestResult::passed()
+    }
     fn permutations(a: Vec<u8>, n: u8) -> TestResult {
         if n > 3 || a.len() > 8 {
             return TestResult::discard();
