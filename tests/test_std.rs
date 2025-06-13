@@ -1257,6 +1257,30 @@ fn combinations_with_replacement_range_count() {
 }
 
 #[test]
+#[cfg(not(miri))]
+fn array_combinations_with_replacement() {
+    // Pool smaller than n
+    it::assert_equal(
+        (0..1).array_combinations_with_replacement::<2>(),
+        vec![[0, 0]],
+    );
+    // Pool larger than n
+    it::assert_equal(
+        (0..3).array_combinations_with_replacement::<2>(),
+        vec![[0, 0], [0, 1], [0, 2], [1, 1], [1, 2], [2, 2]],
+    );
+    // Zero size
+    it::assert_equal((0..3).array_combinations_with_replacement::<0>(), vec![[]]);
+    // Zero size on empty pool
+    it::assert_equal((0..0).array_combinations_with_replacement::<0>(), vec![[]]);
+    // Empty pool
+    it::assert_equal(
+        (0..0).array_combinations_with_replacement::<2>(),
+        vec![] as Vec<[_; 2]>,
+    );
+}
+
+#[test]
 fn powerset() {
     it::assert_equal((0..0).powerset(), vec![vec![]]);
     it::assert_equal((0..1).powerset(), vec![vec![], vec![0]]);
