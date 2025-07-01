@@ -110,8 +110,10 @@ where
 {
 }
 
+#[derive(Debug)]
 pub struct NoCount;
 
+#[derive(Debug)]
 pub struct WithCount;
 
 pub trait CountItem<T> {
