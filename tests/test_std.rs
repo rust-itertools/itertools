@@ -1035,6 +1035,48 @@ fn chunks() {
 }
 
 #[test]
+fn chunks_len() {
+    const TEST_CHUNK_SIZE: usize = 2;
+
+    // test `<Chunks as Iterator>::size_hint`
+    // (buffer, len of chunks)
+    [
+        (vec![], (0, Some(0))),
+        (vec![1], (1, Some(1))),
+        (vec![1, 2], (1, Some(1))),
+        (vec![1, 2, 3], (2, Some(2))),
+        (vec![1, 2, 3, 4], (2, Some(2))),
+    ]
+    .iter()
+    .for_each(|(buf, expected_hint)| {
+        assert_eq!(
+            buf.into_iter()
+                .chunks(TEST_CHUNK_SIZE)
+                .into_iter()
+                .size_hint(),
+            *expected_hint
+        )
+    });
+
+    // test `<Chunks as ExactSizeIterator>::len`
+    // (buffer, len of chunks)
+    [
+        (vec![], 0),
+        (vec![1], 1),
+        (vec![1, 2], 1),
+        (vec![1, 2, 3], 2),
+        (vec![1, 2, 3, 4], 2),
+    ]
+    .iter()
+    .for_each(|(buf, expected_len)| {
+        assert_eq!(
+            buf.into_iter().chunks(TEST_CHUNK_SIZE).into_iter().len(),
+            *expected_len
+        )
+    });
+}
+
+#[test]
 fn concat_empty() {
     let data: Vec<Vec<()>> = Vec::new();
     assert_eq!(data.into_iter().concat(), Vec::new())

@@ -57,6 +57,21 @@ pub fn mul_scalar(sh: SizeHint, x: usize) -> SizeHint {
     (low, hi)
 }
 
+/// Correct ceiling division by `x` with a `SizeHint`.
+#[inline]
+#[track_caller]
+pub fn div_ceil_scalar(sh: SizeHint, x: usize) -> SizeHint {
+    let (low, hi) = sh;
+    let (dlow, dhi) = (low / x, hi.map(|hi| hi / x));
+    let (rlow, rhi) = (low % x, hi.map(|hi| hi % x));
+
+    let low = if rlow > 0 { dlow + 1 } else { dlow };
+    let hi = dhi
+        .and_then(|dhi| rhi.map(|rhi| (dhi, rhi)))
+        .map(|(dhi, rhi)| if rhi > 0 { dhi + 1 } else { dhi });
+    (low, hi)
+}
+
 /// Return the maximum
 #[inline]
 pub fn max(a: SizeHint, b: SizeHint) -> SizeHint {
@@ -91,4 +106,11 @@ fn mul_size_hints() {
     assert_eq!(mul((3, Some(4)), (3, Some(4))), (9, Some(16)));
     assert_eq!(mul((3, Some(4)), (usize::MAX, None)), (usize::MAX, None));
     assert_eq!(mul((3, None), (0, Some(0))), (0, Some(0)));
+}
+
+#[test]
+fn div_ceil_size_scalar() {
+    assert_eq!(div_ceil_scalar((3, Some(4)), 2), (2, Some(2)));
+    assert_eq!(div_ceil_scalar((3, Some(4)), usize::MAX), (1, Some(1)));
+    assert_eq!(div_ceil_scalar((3, None), 2), (2, None));
 }

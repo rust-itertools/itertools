@@ -1,6 +1,8 @@
 use alloc::vec::{self, Vec};
 use std::cell::{Cell, RefCell};
 
+use crate::size_hint;
+
 /// A trait to unify `FnMut` for `ChunkBy` with the chunk key in `IntoChunks`
 trait KeyFunction<A> {
     type Key;
@@ -526,6 +528,27 @@ where
     }
 }
 
+impl<I> IntoChunks<I>
+where
+    I: ExactSizeIterator,
+{
+    fn len(&self) -> usize {
+        // chunk_size cannot be null as it is checked in `Itertools::chunks`
+        let chunk_size = self.inner.borrow().key.size;
+        debug_assert!(chunk_size != 0);
+
+        let iter_len = self.inner.borrow().iter.len();
+        // TODO: MSRV of itertools is 1.63 when `uint::div_ceil` was stabilized in 1.73
+        let d = iter_len / chunk_size;
+        let r = iter_len % chunk_size;
+        if r > 0 {
+            d + 1
+        } else {
+            d
+        }
+    }
+}
+
 impl<'a, I> IntoIterator for &'a IntoChunks<I>
 where
     I: Iterator,
@@ -572,11 +595,30 @@ where
             first: Some(elt),
         })
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        // chunk_size cannot be null as it is checked in `Itertools::chunks`
+        let chunk_size = self.parent.inner.borrow().key.size;
+        debug_assert!(chunk_size != 0);
+
+        size_hint::div_ceil_scalar(self.parent.inner.borrow().iter.size_hint(), chunk_size)
+    }
+}
+
+impl<'a, I> ExactSizeIterator for Chunks<'a, I>
+where
+    I: ExactSizeIterator + std::fmt::Debug,
+    I::Item: 'a + std::fmt::Debug,
+{
+    fn len(&self) -> usize {
+        self.parent.len()
+    }
 }
 
 /// An iterator for the elements in a single chunk.
 ///
 /// Iterator element type is `I::Item`.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct Chunk<'a, I>
 where
     I: Iterator + 'a,
