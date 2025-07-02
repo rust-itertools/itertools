@@ -607,8 +607,8 @@ where
 
 impl<'a, I> ExactSizeIterator for Chunks<'a, I>
 where
-    I: ExactSizeIterator + std::fmt::Debug,
-    I::Item: 'a + std::fmt::Debug,
+    I: ExactSizeIterator,
+    I::Item: 'a,
 {
     fn len(&self) -> usize {
         self.parent.len()
