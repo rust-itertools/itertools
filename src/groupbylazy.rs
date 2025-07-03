@@ -652,4 +652,49 @@ where
         }
         self.parent.step(self.index)
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let inner = self.parent.inner.borrow();
+        let (low, hi) = inner.iter.size_hint();
+        // we add 1 because when generating `Chunk` from `<Chunks as Iterator>::next`
+        // a step is taken forward and one element is stored in `first`
+        let (low, hi) = (low, hi.map(|hi| hi + 1));
+        let chunk_size = inner.key.size;
+
+        let retrieve_hint = |hint| {
+            // after each chunk `remaining_lan` will get smaller by `chunk_size`
+            if hint >= chunk_size {
+                // chunk is full
+                chunk_size
+            } else {
+                // last chunk which is not full
+                hint % chunk_size
+            }
+        };
+
+        (retrieve_hint(low), hi.map(retrieve_hint))
+    }
+}
+
+impl<'a, I> ExactSizeIterator for Chunk<'a, I>
+where
+    I: ExactSizeIterator,
+    I::Item: 'a,
+{
+    fn len(&self) -> usize {
+        let inner = self.parent.inner.borrow();
+        // we add 1 because when generating `Chunk` from `<Chunks as Iterator>::next`
+        // a step is taken forward and one element is stored in `first`
+        let remaining_len = inner.iter.len() + 1;
+        let chunk_size = inner.key.size;
+
+        // after each chunk `remaining_lan` will get smaller by `chunk_size`
+        if remaining_len >= chunk_size {
+            // chunk is full
+            chunk_size
+        } else {
+            // last chunk which is not full
+            remaining_len % chunk_size
+        }
+    }
 }

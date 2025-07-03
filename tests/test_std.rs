@@ -1074,6 +1074,68 @@ fn chunks_len() {
             *expected_len
         )
     });
+
+    // test `<Chunk as ExactSizeIterator>::size_hint`
+    // (buffer, len of every chunk)
+    [
+        (vec![], vec![]),
+        (vec![1], vec![1]),
+        (vec![1, 2], vec![2]),
+        (vec![1, 2, 3], vec![2, 1]),
+        (vec![1, 2, 3, 4], vec![2, 2]),
+    ]
+    .iter()
+    .for_each(|(buf, expected_lens)| {
+        assert_eq!(
+            buf.iter().chunks(TEST_CHUNK_SIZE).into_iter().len(),
+            expected_lens.len()
+        );
+
+        buf.into_iter()
+            .chunks(TEST_CHUNK_SIZE)
+            .into_iter()
+            .zip(expected_lens)
+            .for_each(|(chunk, &expected_len)| {
+                assert_eq!(
+                    chunk.len(),
+                    expected_len,
+                    "chunk={:?} expected_len={:?}",
+                    chunk.collect::<Vec<_>>(),
+                    expected_len
+                )
+            });
+    });
+
+    // test `<Chunk as ExactSizeIterator>::len`
+    // (buffer, len of every chunk)
+    [
+        (vec![], vec![]),
+        (vec![1], vec![1]),
+        (vec![1, 2], vec![2]),
+        (vec![1, 2, 3], vec![2, 1]),
+        (vec![1, 2, 3, 4], vec![2, 2]),
+    ]
+    .iter()
+    .for_each(|(buf, expected_lens)| {
+        assert_eq!(
+            buf.iter().chunks(TEST_CHUNK_SIZE).into_iter().len(),
+            expected_lens.len()
+        );
+
+        buf.into_iter()
+            .chunks(TEST_CHUNK_SIZE)
+            .into_iter()
+            .zip(expected_lens)
+            .for_each(|(chunk, &expected_len)| {
+                assert_eq!(
+                    chunk.len(),
+                    expected_len,
+                    "chunk={:?} expected_len={:?}",
+                    chunk.collect::<Vec<_>>(),
+                    expected_len
+                )
+            });
+    });
 }
 
 #[test]
