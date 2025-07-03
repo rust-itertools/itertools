@@ -1,4 +1,5 @@
 #![warn(missing_docs, clippy::default_numeric_fallback)]
+#![warn(missing_debug_implementations)]
 #![crate_name = "itertools"]
 #![cfg_attr(not(feature = "use_std"), no_std)]
 #![doc(test(attr(deny(warnings), allow(deprecated, unstable_name_collisions))))]
