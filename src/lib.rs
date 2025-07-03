@@ -2428,6 +2428,33 @@ pub trait Itertools: Iterator {
         self.collect()
     }
 
+    /// `.try_unzip()` is more convenient way of writing
+    /// `.collect::<Result<(_, _), _>>()`
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// # fn main() -> Result<(), core::num::ParseIntError> {
+    /// let (x_values, y_values): (Vec<_>, Vec<_>) = "1,2:3,4:5,6"
+    ///     .split(':')
+    ///     .filter_map(|s| s.split_once(','))
+    ///     .map(|(x, y)| Ok::<_, core::num::ParseIntError>((x.parse::<u32>()?, y.parse::<u32>()?)))
+    ///     .try_unzip()?;
+    ///
+    /// assert_eq!(x_values, &[1, 3, 5]);
+    /// assert_eq!(y_values, &[2, 4, 6]);
+    /// # Ok(())
+    /// # }
+    /// ```
+    fn try_unzip<A, B, FromA, FromB, E>(self) -> Result<(FromA, FromB), E>
+    where
+        FromA: Default + Extend<A>,
+        FromB: Default + Extend<B>,
+        Self: Sized + Iterator<Item = Result<(A, B), E>>,
+    {
+        self.collect()
+    }
+
     /// Assign to each reference in `self` from the `from` iterator,
     /// stopping at the shortest of the two iterators.
     ///
