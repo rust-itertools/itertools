@@ -651,7 +651,9 @@ where
             size_hint::div_ceil_scalar(inner.iter.size_hint(), chunk_size)
         } else {
             // inner iter has already been used and its length is < original length
-            // so we need to return result of floor division
+            // so we need to return result of floor division because of `IntoChunks::step`
+            // impl which consumes only 1 element on first `next` and then `chunk_size`
+            // every nedxt time
             size_hint::div_scalar(inner.iter.size_hint(), chunk_size)
         }
     }
