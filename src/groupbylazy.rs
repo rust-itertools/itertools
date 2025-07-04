@@ -2,6 +2,8 @@ use alloc::vec::{self, Vec};
 use std::cell::{Cell, RefCell};
 use std::fmt::Debug;
 
+use crate::size_hint;
+
 /// A trait to unify `FnMut` for `ChunkBy` with the chunk key in `IntoChunks`
 trait KeyFunction<A> {
     type Key;
@@ -637,11 +639,37 @@ where
             first: Some(elt),
         })
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let inner = self.parent.inner.borrow();
+        // chunk_size cannot be null as it is checked in `Itertools::chunks`
+        let chunk_size = inner.key.size;
+        debug_assert!(chunk_size != 0);
+
+        if self.parent.index.get() == 0 {
+            // inner iter has not been used yet
+            size_hint::div_ceil_scalar(inner.iter.size_hint(), chunk_size)
+        } else {
+            // inner iter has already been used and its length is < original length
+            // so we need to return result of floor division because of `IntoChunks::step`
+            // impl which consumes only 1 element on first `next` and then `chunk_size`
+            // every nedxt time
+            size_hint::div_scalar(inner.iter.size_hint(), chunk_size)
+        }
+    }
+}
+
+impl<'a, I> ExactSizeIterator for Chunks<'a, I>
+where
+    I: ExactSizeIterator,
+    I::Item: 'a,
+{
 }
 
 /// An iterator for the elements in a single chunk.
 ///
 /// Iterator element type is `I::Item`.
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 #[derive(Debug)]
 pub struct Chunk<'a, I>
 where
