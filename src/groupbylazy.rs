@@ -651,8 +651,7 @@ where
             size_hint::div_ceil_scalar(inner.iter.size_hint(), chunk_size)
         } else {
             // inner iter has already been used and its length is < original length
-            // so we need to return `div_ceil_scalar` - 1 but due to `GroupInnner::step_current`
-            // logic we need to cover chunk_size * n case to avoid overflow
+            // so we need to return result of floor division
             size_hint::div_scalar(inner.iter.size_hint(), chunk_size)
         }
     }
