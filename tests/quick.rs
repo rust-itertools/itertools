@@ -1116,6 +1116,24 @@ quickcheck! {
     }
 }
 
+quickcheck! {
+    fn chunks_exact_size(a: Vec<u8>, size: u8) -> bool {
+        let mut size = size;
+        if size == 0 {
+            size += 1;
+        }
+        exact_size(a.into_iter().chunks(size as usize).into_iter())
+    }
+
+    fn chunks_correct_size_hint(a: Vec<u8>, size: u8) -> bool {
+        let mut size = size;
+        if size == 0 {
+            size += 1;
+        }
+        correct_size_hint(a.into_iter().chunks(size as usize).into_iter())
+    }
+}
+
 // tuple iterators
 quickcheck! {
     fn equal_circular_tuple_windows_1(a: Vec<u8>) -> bool {

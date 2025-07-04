@@ -72,6 +72,13 @@ pub fn div_ceil_scalar(sh: SizeHint, x: usize) -> SizeHint {
     (low, hi)
 }
 
+/// Correct division by `x` with a `SizeHint`.
+#[inline]
+#[track_caller]
+pub fn div_scalar((low, hi): SizeHint, x: usize) -> SizeHint {
+    (low.saturating_div(x), hi.map(|hi| hi.saturating_div(x)))
+}
+
 /// Return the maximum
 #[inline]
 pub fn max(a: SizeHint, b: SizeHint) -> SizeHint {
@@ -110,7 +117,16 @@ fn mul_size_hints() {
 
 #[test]
 fn div_ceil_size_scalar() {
-    assert_eq!(div_ceil_scalar((3, Some(4)), 2), (2, Some(2)));
-    assert_eq!(div_ceil_scalar((3, Some(4)), usize::MAX), (1, Some(1)));
-    assert_eq!(div_ceil_scalar((3, None), 2), (2, None));
+    assert_eq!(div_ceil_scalar((4, Some(4)), 2), (2, Some(2)));
+    assert_eq!(div_ceil_scalar((3, Some(3)), 2), (2, Some(2)));
+    assert_eq!(div_ceil_scalar((4, Some(4)), usize::MAX), (1, Some(1)));
+    assert_eq!(div_ceil_scalar((4, None), 2), (2, None));
+}
+
+#[test]
+fn div_size_scalar() {
+    assert_eq!(div_scalar((4, Some(4)), 2), (2, Some(2)));
+    assert_eq!(div_scalar((3, Some(3)), 2), (1, Some(1)));
+    assert_eq!(div_scalar((4, Some(4)), usize::MAX), (0, Some(0)));
+    assert_eq!(div_scalar((4, None), 2), (2, None));
 }

@@ -585,27 +585,6 @@ where
     }
 }
 
-impl<I> IntoChunks<I>
-where
-    I: ExactSizeIterator,
-{
-    fn len(&self) -> usize {
-        // chunk_size cannot be null as it is checked in `Itertools::chunks`
-        let chunk_size = self.inner.borrow().key.size;
-        debug_assert!(chunk_size != 0);
-
-        let iter_len = self.inner.borrow().iter.len();
-        // TODO: MSRV of itertools is 1.63 when `uint::div_ceil` was stabilized in 1.73
-        let d = iter_len / chunk_size;
-        let r = iter_len % chunk_size;
-        if r > 0 {
-            d + 1
-        } else {
-            d
-        }
-    }
-}
-
 impl<'a, I> IntoIterator for &'a IntoChunks<I>
 where
     I: Iterator,
@@ -662,11 +641,19 @@ where
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
+        let inner = self.parent.inner.borrow();
         // chunk_size cannot be null as it is checked in `Itertools::chunks`
-        let chunk_size = self.parent.inner.borrow().key.size;
+        let chunk_size = inner.key.size;
         debug_assert!(chunk_size != 0);
 
-        size_hint::div_ceil_scalar(self.parent.inner.borrow().iter.size_hint(), chunk_size)
+        match self.parent.index.get() {
+            // inner iter has not been used yet
+            0 => size_hint::div_ceil_scalar(inner.iter.size_hint(), chunk_size),
+            // inner iter has already been used and its length is < original_length - 1
+            // so we need to return `div_ceil_scalar` - 1 but due to `GroupInnner::step_current`
+            // logic we need to cover chunk_size * n case to avoid overflow
+            _ => size_hint::div_scalar(inner.iter.size_hint(), chunk_size),
+        }
     }
 }
 
@@ -675,9 +662,6 @@ where
     I: ExactSizeIterator,
     I::Item: 'a,
 {
-    fn len(&self) -> usize {
-        self.parent.len()
-    }
 }
 
 /// An iterator for the elements in a single chunk.
@@ -717,50 +701,5 @@ where
             return elt;
         }
         self.parent.step(self.index)
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let inner = self.parent.inner.borrow();
-        let (low, hi) = inner.iter.size_hint();
-        // we add 1 because when generating `Chunk` from `<Chunks as Iterator>::next`
-        // a step is taken forward and one element is stored in `first`
-        let (low, hi) = (low, hi.map(|hi| hi + 1));
-        let chunk_size = inner.key.size;
-
-        let retrieve_hint = |hint| {
-            // after each chunk `remaining_lan` will get smaller by `chunk_size`
-            if hint >= chunk_size {
-                // chunk is full
-                chunk_size
-            } else {
-                // last chunk which is not full
-                hint % chunk_size
-            }
-        };
-
-        (retrieve_hint(low), hi.map(retrieve_hint))
-    }
-}
-
-impl<'a, I> ExactSizeIterator for Chunk<'a, I>
-where
-    I: ExactSizeIterator,
-    I::Item: 'a,
-{
-    fn len(&self) -> usize {
-        let inner = self.parent.inner.borrow();
-        // we add 1 because when generating `Chunk` from `<Chunks as Iterator>::next`
-        // a step is taken forward and one element is stored in `first`
-        let remaining_len = inner.iter.len() + 1;
-        let chunk_size = inner.key.size;
-
-        // after each chunk `remaining_lan` will get smaller by `chunk_size`
-        if remaining_len >= chunk_size {
-            // chunk is full
-            chunk_size
-        } else {
-            // last chunk which is not full
-            remaining_len % chunk_size
-        }
     }
 }
