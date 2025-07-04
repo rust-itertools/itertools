@@ -646,13 +646,14 @@ where
         let chunk_size = inner.key.size;
         debug_assert!(chunk_size != 0);
 
-        match self.parent.index.get() {
+        if self.parent.index.get() == 0 {
             // inner iter has not been used yet
-            0 => size_hint::div_ceil_scalar(inner.iter.size_hint(), chunk_size),
-            // inner iter has already been used and its length is < original_length - 1
+            size_hint::div_ceil_scalar(inner.iter.size_hint(), chunk_size)
+        } else {
+            // inner iter has already been used and its length is < original length
             // so we need to return `div_ceil_scalar` - 1 but due to `GroupInnner::step_current`
             // logic we need to cover chunk_size * n case to avoid overflow
-            _ => size_hint::div_scalar(inner.iter.size_hint(), chunk_size),
+            size_hint::div_scalar(inner.iter.size_hint(), chunk_size)
         }
     }
 }
