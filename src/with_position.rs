@@ -45,17 +45,34 @@ where
 /// The first component of the value yielded by `WithPosition`.
 /// Indicates the position of this element in the iterator results.
 ///
+/// When handling the [first](Position::is_first) or [last](Position::is_last) position,
+/// remember to consider the special case of [`Position::Only`].
+///
 /// See [`.with_position()`](crate::Itertools::with_position) for more information.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Position {
-    /// This is the first element.
+    /// This is the first element, and there is more than one element.
     First,
     /// This is neither the first nor the last element.
     Middle,
-    /// This is the last element.
+    /// This is the last element, and there was more than one element.
     Last,
     /// This is the only element.
+    ///
+    /// Makes [`.is_first()`](Position::is_first) and [`.is_last()`](Position::is_last) true at the same time.
     Only,
+}
+
+impl Position {
+    /// Unlike `position == First`, it's also true for [`Position::Only`]
+    pub fn is_first(self) -> bool {
+        self == Self::First || self == Self::Only
+    }
+
+    /// Unlike `position == Last`, it's also true for [`Position::Only`]
+    pub fn is_last(self) -> bool {
+        self == Self::Last || self == Self::Only
+    }
 }
 
 impl<I: Iterator> Iterator for WithPosition<I> {

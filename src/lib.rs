@@ -1948,7 +1948,7 @@ pub trait Itertools: Iterator {
     }
 
     /// Return an iterator adaptor that combines each element with a `Position` to
-    /// ease special-case handling of the first or last elements.
+    /// ease special-case handling of the first, last, or [singular](Position::Only) elements.
     ///
     /// Iterator element type is
     /// [`(Position, Self::Item)`](Position)
