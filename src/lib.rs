@@ -1945,8 +1945,8 @@ pub trait Itertools: Iterator {
         pad_tail::pad_using(self, min, f)
     }
 
-    /// Return an iterator adaptor that combines each element with a `Position` to
-    /// ease special-case handling of the first, last, or [singular](Position::Only) elements.
+    /// Return an iterator adaptor that combines each element with a `Position`
+    /// to ease special-case handling of the first or last elements.
     ///
     /// Iterator element type is
     /// [`(Position, Self::Item)`](Position)
@@ -1955,14 +1955,21 @@ pub trait Itertools: Iterator {
     /// use itertools::{Itertools, Position};
     ///
     /// let it = (0..4).with_position();
-    /// itertools::assert_equal(it,
-    ///                         vec![(Position::First, 0),
-    ///                              (Position::Middle, 1),
-    ///                              (Position::Middle, 2),
-    ///                              (Position::Last, 3)]);
+    /// itertools::assert_equal(
+    ///     it,
+    ///     vec![
+    ///          (Position { is_first: true, is_last: false }, 0),
+    ///          (Position { is_first: false, is_last: false }, 1),
+    ///          (Position { is_first: false, is_last: false }, 2),
+    ///          (Position { is_first: false, is_last: true }, 3),
+    ///     ],
+    /// );
     ///
     /// let it = (0..1).with_position();
-    /// itertools::assert_equal(it, vec![(Position::Only, 0)]);
+    /// itertools::assert_equal(
+    ///     it,
+    ///     vec![(Position { is_first: true, is_last: true }, 0)],
+    /// );
     /// ```
     fn with_position(self) -> WithPosition<Self>
     where
