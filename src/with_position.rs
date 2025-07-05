@@ -45,14 +45,17 @@ where
 /// The first component of the value yielded by `WithPosition`.
 /// Indicates the position of this element in the iterator results.
 ///
+/// When handling the first or last position,
+/// remember to consider the special case of [`Position::Only`].
+///
 /// See [`.with_position()`](crate::Itertools::with_position) for more information.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Position {
-    /// This is the first element.
+    /// This is the first element, and there is more than one element.
     First,
     /// This is neither the first nor the last element.
     Middle,
-    /// This is the last element.
+    /// This is the last element, and there was more than one element.
     Last,
     /// This is the only element.
     Only,
