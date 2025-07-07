@@ -2476,10 +2476,10 @@ pub trait Itertools: Iterator {
                 // estimate lower bound of capacity needed
                 let (lower, _) = self.size_hint();
                 let mut result = String::with_capacity(sep.len() * lower);
-                write!(&mut result, "{}", first_elt).unwrap();
+                write!(&mut result, "{first_elt}").unwrap();
                 self.for_each(|elt| {
                     result.push_str(sep);
-                    write!(&mut result, "{}", elt).unwrap();
+                    write!(&mut result, "{elt}").unwrap();
                 });
                 result
             }

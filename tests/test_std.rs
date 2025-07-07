@@ -1531,7 +1531,7 @@ fn tree_reduce() {
             Some(s.to_string())
         };
         let num_strings = (0..i).map(|x| x.to_string());
-        let actual = num_strings.tree_reduce(|a, b| format!("{} {} x", a, b));
+        let actual = num_strings.tree_reduce(|a, b| format!("{a} {b} x"));
         assert_eq!(actual, expected);
     }
 }

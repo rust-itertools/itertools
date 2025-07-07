@@ -275,8 +275,7 @@ where
         let actual_count = total_actual_count - i;
         if actual_count != returned_count {
             println!(
-                "Total iterations: {} True count: {} returned count: {}",
-                i, actual_count, returned_count
+                "Total iterations: {i} True count: {actual_count} returned count: {returned_count}"
             );
 
             return false;
