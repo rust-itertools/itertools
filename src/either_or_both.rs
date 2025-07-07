@@ -421,7 +421,7 @@ impl<A, B> EitherOrBoth<A, B> {
     /// // Inserting a second value.
     /// let mut either = Left("what's");
     /// assert_eq!(*either.insert_right(9 + 10), 21 - 2);
-    /// assert_eq!(either, Both("what's", 9+10));
+    /// assert_eq!(either, Both("what's", 9 + 10));
     /// ```
     pub fn insert_right(&mut self, val: B) -> &mut B {
         match self {

@@ -119,7 +119,7 @@ where
 /// for (a, b) in zip(&[1, 2, 3, 4, 5], &['a', 'b', 'c']) {
 ///     result.push((*a, *b));
 /// }
-/// assert_eq!(result, vec![(1, 'a'),(2, 'b'),(3, 'c')]);
+/// assert_eq!(result, vec![(1, 'a'), (2, 'b'), (3, 'c')]);
 /// ```
 #[deprecated(
     note = "Use [std::iter::zip](https://doc.rust-lang.org/std/iter/fn.zip.html) instead",
@@ -141,7 +141,7 @@ where
 /// ```
 /// use itertools::chain;
 ///
-/// let mut result:Vec<i32> = Vec::new();
+/// let mut result: Vec<i32> = Vec::new();
 ///
 /// for element in chain(&[1, 2, 3], &[4]) {
 ///     result.push(*element);
@@ -284,8 +284,8 @@ where
 /// [`IntoIterator`] enabled version of [`Itertools::sorted`].
 ///
 /// ```
-/// use itertools::sorted;
 /// use itertools::assert_equal;
+/// use itertools::sorted;
 ///
 /// assert_equal(sorted("rust".chars()), "rstu".chars());
 /// ```
@@ -304,8 +304,8 @@ where
 /// [`IntoIterator`] enabled version of [`Itertools::sorted_unstable`].
 ///
 /// ```
-/// use itertools::sorted_unstable;
 /// use itertools::assert_equal;
+/// use itertools::sorted_unstable;
 ///
 /// assert_equal(sorted_unstable("rust".chars()), "rstu".chars());
 /// ```
