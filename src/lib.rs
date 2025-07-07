@@ -384,8 +384,8 @@ macro_rules! izip {
 ///
 /// Empty invocations of `chain!` expand to an invocation of [`std::iter::empty`]:
 /// ```
-/// use std::iter;
 /// use itertools::chain;
+/// use std::iter;
 ///
 /// let _: iter::Empty<()> = chain!();
 /// let _: iter::Empty<i8> = chain!();
@@ -393,8 +393,8 @@ macro_rules! izip {
 ///
 /// Invocations of `chain!` with one argument expand to [`arg.into_iter()`](IntoIterator):
 /// ```
-/// use std::ops::Range;
 /// use itertools::chain;
+/// use std::ops::Range;
 /// let _: <Range<_> as IntoIterator>::IntoIter = chain!(2..6,); // trailing comma optional!
 /// let _:     <&[_] as IntoIterator>::IntoIter = chain!(&[2, 3, 4]);
 /// ```
@@ -402,11 +402,11 @@ macro_rules! izip {
 /// Invocations of `chain!` with multiple arguments [`.into_iter()`](IntoIterator) each
 /// argument, and then [`chain`] them together:
 /// ```
-/// use std::{iter::*, slice};
 /// use itertools::{assert_equal, chain};
+/// use std::{iter::*, slice};
 ///
 /// // e.g., this:
-/// let with_macro:  Chain<Chain<Once<_>, Take<Repeat<_>>>, slice::Iter<_>> =
+/// let with_macro: Chain<Chain<Once<_>, Take<Repeat<_>>>, slice::Iter<_>> =
 ///     chain![once(&0), repeat(&1).take(2), &[2, 3, 5],];
 ///
 /// // ...is equivalent to this:
@@ -653,7 +653,6 @@ pub trait Itertools: Iterator {
     ///
     /// itertools::assert_equal(pit, vec![(0, 1), (2, 3)]);
     /// ```
-    ///
     fn batching<B, F>(self, f: F) -> Batching<Self, F>
     where
         F: FnMut(&mut Self) -> Option<B>,
@@ -1100,8 +1099,8 @@ pub trait Itertools: Iterator {
     ///   and remove both `i` and `j` from their respective source iterators
     ///
     /// ```
+    /// use itertools::EitherOrBoth::{Both, Left, Right};
     /// use itertools::Itertools;
-    /// use itertools::EitherOrBoth::{Left, Right, Both};
     ///
     /// let a = vec![0, 2, 4, 6, 1].into_iter();
     /// let b = (0..10).step_by(3);
@@ -1129,8 +1128,8 @@ pub trait Itertools: Iterator {
     /// "less" than the second argument.
     ///
     /// ```
-    /// use itertools::Itertools;
     /// use itertools::Either::{Left, Right};
+    /// use itertools::Itertools;
     ///
     /// let a = vec![0, 2, 4, 6, 1].into_iter();
     /// let b = (0..10).step_by(3);
@@ -1543,7 +1542,6 @@ pub trait Itertools: Iterator {
     ///                            .collect::<String>();
     /// assert_eq!(decimals, "0123456789");
     /// assert_eq!(hexadecimals.next(), Some('a'));
-    ///
     /// ```
     fn take_while_ref<F>(&mut self, accept: F) -> TakeWhileRef<Self, F>
     where
@@ -1633,8 +1631,8 @@ pub trait Itertools: Iterator {
     /// // List all hexadecimal digits
     /// itertools::assert_equal(
     ///     (0..).map(|i| std::char::from_digit(i, 16)).while_some(),
-    ///     "0123456789abcdef".chars());
-    ///
+    ///     "0123456789abcdef".chars(),
+    /// );
     /// ```
     fn while_some<A>(self) -> WhileSome<Self>
     where
@@ -1930,13 +1928,13 @@ pub trait Itertools: Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let it = (0..5).pad_using(10, |i| 2*i);
+    /// let it = (0..5).pad_using(10, |i| 2 * i);
     /// itertools::assert_equal(it, vec![0, 1, 2, 3, 4, 10, 12, 14, 16, 18]);
     ///
-    /// let it = (0..10).pad_using(5, |i| 2*i);
+    /// let it = (0..10).pad_using(5, |i| 2 * i);
     /// itertools::assert_equal(it, vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     ///
-    /// let it = (0..5).pad_using(10, |i| 2*i).rev();
+    /// let it = (0..5).pad_using(10, |i| 2 * i).rev();
     /// itertools::assert_equal(it, vec![18, 16, 14, 12, 10, 4, 3, 2, 1, 0]);
     /// ```
     fn pad_using<F>(self, min: usize, f: F) -> PadUsing<Self, F>
@@ -2243,7 +2241,7 @@ pub trait Itertools: Iterator {
     /// assert!(data[3..5].iter().all_equal());
     /// assert!(data[5..8].iter().all_equal());
     ///
-    /// let data : Option<usize> = None;
+    /// let data: Option<usize> = None;
     /// assert!(data.into_iter().all_equal());
     /// ```
     fn all_equal(&mut self) -> bool
@@ -2271,7 +2269,7 @@ pub trait Itertools: Iterator {
     /// assert_eq!(data[3..5].iter().all_equal_value(), Ok(&2));
     /// assert_eq!(data[5..8].iter().all_equal_value(), Ok(&3));
     ///
-    /// let data : Option<usize> = None;
+    /// let data: Option<usize> = None;
     /// assert_eq!(data.into_iter().all_equal_value(), Err(None));
     /// ```
     #[allow(clippy::type_complexity)]
@@ -2301,7 +2299,7 @@ pub trait Itertools: Iterator {
     /// assert!(data[0..4].iter().all_unique());
     /// assert!(data[1..6].iter().all_unique());
     ///
-    /// let data : Option<usize> = None;
+    /// let data: Option<usize> = None;
     /// assert!(data.into_iter().all_unique());
     /// ```
     #[cfg(feature = "use_std")]
@@ -2403,8 +2401,8 @@ pub trait Itertools: Iterator {
     /// # Example
     ///
     /// ```
-    /// use std::{fs, io};
     /// use itertools::Itertools;
+    /// use std::{fs, io};
     ///
     /// fn process_dir_entries(entries: &[fs::DirEntry]) {
     ///     // ...
@@ -2576,8 +2574,8 @@ pub trait Itertools: Iterator {
     /// this effectively results in *((0 + 1) + 2) + 3*
     ///
     /// ```
-    /// use std::ops::Add;
     /// use itertools::Itertools;
+    /// use std::ops::Add;
     ///
     /// let values = [1, 2, -2, -1, 2, 1];
     /// assert_eq!(
@@ -2616,8 +2614,8 @@ pub trait Itertools: Iterator {
     /// This is the `Option` equivalent to [`fold_ok`](Itertools::fold_ok).
     ///
     /// ```
-    /// use std::ops::Add;
     /// use itertools::Itertools;
+    /// use std::ops::Add;
     ///
     /// let mut values = vec![Some(1), Some(2), Some(-2)].into_iter();
     /// assert_eq!(values.fold_options(5, Add::add), Some(5 + 1 + 2 - 2));
@@ -2832,8 +2830,8 @@ pub trait Itertools: Iterator {
     /// early exit via short-circuiting.
     ///
     /// ```
-    /// use itertools::Itertools;
     /// use itertools::FoldWhile::{Continue, Done};
+    /// use itertools::Itertools;
     ///
     /// let numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     ///
@@ -3662,7 +3660,7 @@ pub trait Itertools: Iterator {
     /// have a distinct type.
     ///
     /// ```
-    /// use itertools::{Itertools, Either};
+    /// use itertools::{Either, Itertools};
     ///
     /// let successes_and_failures = vec![Ok(1), Err(false), Err(true), Ok(2)];
     ///
@@ -3761,17 +3759,17 @@ pub trait Itertools: Iterator {
     /// let lookup: HashMap<u32,Vec<(u32, u32)>> =
     ///     data.clone().into_iter().into_group_map_by(|a| a.0);
     ///
-    /// assert_eq!(lookup[&0], vec![(0,10), (0,20)]);
+    /// assert_eq!(lookup[&0], vec![(0, 10), (0, 20)]);
     /// assert_eq!(lookup.get(&1), None);
-    /// assert_eq!(lookup[&2], vec![(2,12), (2,42)]);
-    /// assert_eq!(lookup[&3], vec![(3,13), (3,33)]);
+    /// assert_eq!(lookup[&2], vec![(2, 12), (2, 42)]);
+    /// assert_eq!(lookup[&3], vec![(3, 13), (3, 33)]);
     ///
     /// assert_eq!(
     ///     data.into_iter()
     ///         .into_group_map_by(|x| x.0)
     ///         .into_iter()
-    ///         .map(|(key, values)| (key, values.into_iter().fold(0,|acc, (_,v)| acc + v )))
-    ///         .collect::<HashMap<u32,u32>>()[&0],
+    ///         .map(|(key, values)| (key, values.into_iter().fold(0, |acc, (_, v)| acc + v)))
+    ///         .collect::<HashMap<u32, u32>>()[&0],
     ///     30,
     /// );
     /// ```
@@ -4033,7 +4031,7 @@ pub trait Itertools: Iterator {
     ///
     /// ```
     /// use itertools::Itertools;
-    /// use itertools::MinMaxResult::{NoElements, OneElement, MinMax};
+    /// use itertools::MinMaxResult::{MinMax, NoElements, OneElement};
     ///
     /// let a: [i32; 0] = [];
     /// assert_eq!(a.iter().minmax(), NoElements);
@@ -4302,7 +4300,7 @@ pub trait Itertools: Iterator {
     ///
     /// ```
     /// use itertools::Itertools;
-    /// use itertools::MinMaxResult::{NoElements, OneElement, MinMax};
+    /// use itertools::MinMaxResult::{MinMax, NoElements, OneElement};
     ///
     /// let a: [i32; 0] = [];
     /// assert_eq!(a.iter().position_minmax(), NoElements);
@@ -4347,7 +4345,7 @@ pub trait Itertools: Iterator {
     ///
     /// ```
     /// use itertools::Itertools;
-    /// use itertools::MinMaxResult::{NoElements, OneElement, MinMax};
+    /// use itertools::MinMaxResult::{MinMax, NoElements, OneElement};
     ///
     /// let a: [i32; 0] = [];
     /// assert_eq!(a.iter().position_minmax_by_key(|x| x.abs()), NoElements);
@@ -4392,7 +4390,7 @@ pub trait Itertools: Iterator {
     ///
     /// ```
     /// use itertools::Itertools;
-    /// use itertools::MinMaxResult::{NoElements, OneElement, MinMax};
+    /// use itertools::MinMaxResult::{MinMax, NoElements, OneElement};
     ///
     /// let a: [i32; 0] = [];
     /// assert_eq!(a.iter().position_minmax_by(|x, y| x.cmp(y)), NoElements);
@@ -4541,9 +4539,9 @@ pub trait Itertools: Iterator {
     /// ```
     /// # use itertools::Itertools;
     /// struct Character {
-    ///   first_name: &'static str,
+    ///     first_name: &'static str,
     ///   # #[allow(dead_code)]
-    ///   last_name:  &'static str,
+    ///     last_name: &'static str,
     /// }
     ///
     /// let characters =

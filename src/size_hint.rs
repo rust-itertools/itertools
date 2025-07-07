@@ -1,5 +1,4 @@
 //! Arithmetic on `Iterator.size_hint()` values.
-//!
 
 use std::cmp;
 

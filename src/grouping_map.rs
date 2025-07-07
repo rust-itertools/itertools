@@ -139,7 +139,7 @@ where
     ///
     /// #[derive(Debug, Default)]
     /// struct Accumulator {
-    ///   acc: usize,
+    ///     acc: usize,
     /// }
     ///
     /// let lookup = (1..=7)
@@ -458,7 +458,7 @@ where
     ///
     /// ```
     /// use itertools::Itertools;
-    /// use itertools::MinMaxResult::{OneElement, MinMax};
+    /// use itertools::MinMaxResult::{MinMax, OneElement};
     ///
     /// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()
     ///     .into_grouping_map_by(|&n| n % 3)
@@ -488,7 +488,7 @@ where
     ///
     /// ```
     /// use itertools::Itertools;
-    /// use itertools::MinMaxResult::{OneElement, MinMax};
+    /// use itertools::MinMaxResult::{MinMax, OneElement};
     ///
     /// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()
     ///     .into_grouping_map_by(|&n| n % 3)
@@ -539,7 +539,7 @@ where
     ///
     /// ```
     /// use itertools::Itertools;
-    /// use itertools::MinMaxResult::{OneElement, MinMax};
+    /// use itertools::MinMaxResult::{MinMax, OneElement};
     ///
     /// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()
     ///     .into_grouping_map_by(|&n| n % 3)
