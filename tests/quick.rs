@@ -1391,6 +1391,16 @@ quickcheck! {
 }
 
 quickcheck! {
+    fn exactly_one_count(a: Vec<i32>) -> TestResult {
+        let ret = a.iter().cloned().exactly_one();
+        match a.len() {
+            1 => TestResult::passed(),
+            len => TestResult::from_bool(len == ret.unwrap_err().count()),
+        }
+    }
+}
+
+quickcheck! {
     fn at_most_one_i32(a: Vec<i32>) -> TestResult {
         let ret = a.iter().cloned().at_most_one();
         match a.len() {
