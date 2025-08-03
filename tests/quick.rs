@@ -1401,6 +1401,16 @@ quickcheck! {
 }
 
 quickcheck! {
+    fn exactly_one_double_ended(a: Vec<i32>) -> TestResult {
+        let ret = a.iter().copied().exactly_one();
+        match a.len() {
+            1 => TestResult::passed(),
+            _ => TestResult::from_bool(a.iter().rev().copied().eq(ret.unwrap_err().rev())),
+        }
+    }
+}
+
+quickcheck! {
     fn at_most_one_i32(a: Vec<i32>) -> TestResult {
         let ret = a.iter().cloned().at_most_one();
         match a.len() {
