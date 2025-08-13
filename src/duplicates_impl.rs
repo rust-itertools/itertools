@@ -1,6 +1,9 @@
 use std::hash::Hash;
 
 mod private {
+    #[cfg(feature = "hashbrown")]
+    use hashbrown::HashMap;
+    #[cfg(not(feature = "hashbrown"))]
     use std::collections::HashMap;
     use std::fmt;
     use std::hash::Hash;

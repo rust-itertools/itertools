@@ -2,7 +2,10 @@ use crate::{
     adaptors::map::{MapSpecialCase, MapSpecialCaseFn},
     MinMaxResult,
 };
+#[cfg(feature = "hashbrown")]
+use hashbrown::HashMap;
 use std::cmp::Ordering;
+#[cfg(not(feature = "hashbrown"))]
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::iter::Iterator;
