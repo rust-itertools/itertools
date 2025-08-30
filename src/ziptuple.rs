@@ -13,7 +13,7 @@ pub struct Zip<T> {
 /// implement [`IntoIterator`]) and yields elements
 /// until any of the subiterators yields `None`.
 ///
-/// The iterator element type is a tuple like like `(A, B, ..., E)` where `A` to `E` are the
+/// The iterator element type is a tuple like `(A, B, ..., E)` where `A` to `E` are the
 /// element types of the subiterator.
 ///
 /// **Note:** The result of this function is a value of a named type (`Zip<(I, J,
