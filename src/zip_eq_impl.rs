@@ -63,3 +63,19 @@ where
     J: ExactSizeIterator,
 {
 }
+
+impl<I, J> DoubleEndedIterator for ZipEq<I, J>
+where
+    I: DoubleEndedIterator,
+    J: DoubleEndedIterator,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        match (self.a.next_back(), self.b.next_back()) {
+            (None, None) => None,
+            (Some(a), Some(b)) => Some((a, b)),
+            (None, Some(_)) | (Some(_), None) => {
+                panic!("itertools: .zip_eq() reached end of one iterator before the other")
+            }
+        }
+    }
+}

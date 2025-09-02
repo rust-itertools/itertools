@@ -587,6 +587,13 @@ quickcheck! {
         TestResult::passed() // won't come here
     }
 
+    fn zip_eq_rev(a: Vec<i32>, b: Vec<i32>) -> bool {
+        let len = std::cmp::min(a.len(), b.len());
+        let a = &a[..len];
+        let b = &b[..len];
+        itertools::equal(zip_eq(a, b).rev(), zip(a, b).rev())
+    }
+
     fn equal_positions(a: Vec<i32>) -> bool {
         let with_pos = a.iter().positions(|v| v % 2 == 0);
         let without = a.iter().enumerate().filter(|(_, v)| *v % 2 == 0).map(|(i, _)| i);
