@@ -73,7 +73,7 @@ use std::fmt;
 #[cfg(feature = "use_alloc")]
 use std::fmt::Write;
 #[cfg(feature = "use_std")]
-use std::hash::Hash;
+use std::hash::{BuildHasher, Hash, RandomState};
 use std::iter::{once, IntoIterator};
 #[cfg(feature = "use_alloc")]
 type VecDequeIntoIter<T> = alloc::collections::vec_deque::IntoIter<T>;
@@ -3800,12 +3800,32 @@ pub trait Itertools: Iterator {
     /// See [`GroupingMap`] for more informations
     /// on what operations are available.
     #[cfg(feature = "use_std")]
-    fn into_grouping_map<K, V>(self) -> GroupingMap<Self>
+    fn into_grouping_map<K, V>(self) -> GroupingMap<Self, RandomState>
     where
         Self: Iterator<Item = (K, V)> + Sized,
         K: Hash + Eq,
     {
         grouping_map::new(self)
+    }
+
+    /// Constructs a `GroupingMap`, which will use the given hash builder to
+    /// hash keys, to be used later with one of the efficient group-and-fold
+    /// operations it allows to perform.
+    ///
+    /// The input iterator must yield item in the form of `(K, V)` where the
+    /// value of type `K` will be used as key to identify the groups and the
+    /// value of type `V` as value for the folding operation.
+    ///
+    /// See [`GroupingMap`] for more informations
+    /// on what operations are available.
+    #[cfg(feature = "use_std")]
+    fn into_grouping_map_with_hasher<K, V, S>(self, hash_builder: S) -> GroupingMap<Self, S>
+    where
+        Self: Iterator<Item = (K, V)> + Sized,
+        K: Hash + Eq,
+        S: BuildHasher,
+    {
+        grouping_map::with_hasher(self, hash_builder)
     }
 
     /// Constructs a `GroupingMap` to be used later with one of the efficient
@@ -3817,13 +3837,40 @@ pub trait Itertools: Iterator {
     /// See [`GroupingMap`] for more informations
     /// on what operations are available.
     #[cfg(feature = "use_std")]
-    fn into_grouping_map_by<K, V, F>(self, key_mapper: F) -> GroupingMapBy<Self, F>
+    fn into_grouping_map_by<K, V, F>(self, key_mapper: F) -> GroupingMapBy<Self, F, RandomState>
     where
         Self: Iterator<Item = V> + Sized,
         K: Hash + Eq,
         F: FnMut(&V) -> K,
     {
         grouping_map::new(grouping_map::new_map_for_grouping(self, key_mapper))
+    }
+
+    /// Constructs a `GroupingMap`, which will use the given hash builder to
+    /// hash keys, to be used later with one of the efficient group-and-fold
+    /// operations it allows to perform.
+    ///
+    /// The values from this iterator will be used as values for the folding operation
+    /// while the keys will be obtained from the values by calling `key_mapper`.
+    ///
+    /// See [`GroupingMap`] for more informations
+    /// on what operations are available.
+    #[cfg(feature = "use_std")]
+    fn into_grouping_map_by_with_hasher<K, V, F, S>(
+        self,
+        key_mapper: F,
+        hash_builder: S,
+    ) -> GroupingMapBy<Self, F, S>
+    where
+        Self: Iterator<Item = V> + Sized,
+        K: Hash + Eq,
+        F: FnMut(&V) -> K,
+        S: BuildHasher,
+    {
+        grouping_map::with_hasher(
+            grouping_map::new_map_for_grouping(self, key_mapper),
+            hash_builder,
+        )
     }
 
     /// Return all minimum elements of an iterator.
