@@ -2496,8 +2496,6 @@ pub trait Itertools: Iterator {
     /// All elements are formatted (any formatting trait)
     /// with `sep` inserted between each element.
     ///
-    /// **Panics** if the formatter helper is formatted more than once.
-    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -2505,6 +2503,26 @@ pub trait Itertools: Iterator {
     /// assert_eq!(
     ///     format!("{:.2}", data.iter().format(", ")),
     ///            "1.10, 2.72, -3.00");
+    /// ```
+    ///
+    /// # Panics
+    /// When the formatter helper is formatted more than once.
+    ///
+    /// <div class="warning">This can happen unexpectedly and be hard to debug if used in
+    /// <i>macros of some logging frameworks</i> like <code>tracing</code>!</div>
+    ///
+    /// ```should_panic
+    /// # macro_rules! tracing_info {
+    /// #     ($s:literal, $arg0:expr) => {
+    /// #         let arg = $arg0;
+    /// #         let _1 = format!($s, arg);
+    /// #         let _2 = format!($s, arg);
+    /// #     };
+    /// # }
+    /// use itertools::Itertools;
+    ///
+    /// let data = [1.1, 2.71828, -3.];
+    /// tracing_info!("values: {:.2}", data.iter().format(", "));
     /// ```
     fn format(self, sep: &str) -> Format<Self>
     where
@@ -2524,8 +2542,6 @@ pub trait Itertools: Iterator {
     /// Using `&format_args!(...)` is the most versatile way to apply custom
     /// element formatting. The callback can be called multiple times if needed.
     ///
-    /// **Panics** if the formatter helper is formatted more than once.
-    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -2542,8 +2558,27 @@ pub trait Itertools: Iterator {
     ///                              });
     /// assert_eq!(format!("{}", matrix_formatter),
     ///            "1, 2, 3\n4, 5, 6");
+    /// ```
     ///
+    /// # Panics
+    /// When the formatter helper is formatted more than once.
     ///
+    /// <div class="warning">This can happen unexpectedly and be hard to debug if used in
+    /// <i>macros of some logging frameworks</i> like <code>tracing</code>!</div>
+    ///
+    /// ```should_panic
+    /// # macro_rules! tracing_info {
+    /// #     ($s:literal, $arg0:expr) => {
+    /// #         let arg = $arg0;
+    /// #         let _1 = format!($s, arg);
+    /// #         let _2 = format!($s, arg);
+    /// #     };
+    /// # }
+    /// use itertools::Itertools;
+    ///
+    /// let data = [1.1, 2.71828, -3.];
+    /// let data_formatter = data.iter().format_with(", ", |elt, f| f(&format_args!("{:.2}", elt)));
+    /// tracing_info!("values: {:.2}", data_formatter);
     /// ```
     fn format_with<F>(self, sep: &str, format: F) -> FormatWith<Self, F>
     where
