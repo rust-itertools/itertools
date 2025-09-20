@@ -3701,6 +3701,77 @@ pub trait Itertools: Iterator {
         (left, right)
     }
 
+    /// Collect all iterator elements into one of two partitions.
+    /// Unlike [`Iterator::partition`], when predicate returns true for the first time,
+    /// it collects this element and all rest elements into `B`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let nums = vec![0, 1, 2, 3, 4, 5];
+    ///
+    /// let (a, b): (Vec<_>, Vec<_>) = nums.into_iter().split(|n| *n == 3);
+    ///
+    /// assert_eq!(a, [0, 1, 2]);
+    /// assert_eq!(b, [3, 4, 5]);
+    /// ```
+    fn split<A, B, P>(mut self, mut predicate: P) -> (A, B)
+    where
+        Self: Sized,
+        P: FnMut(&Self::Item) -> bool,
+        A: Default + Extend<Self::Item>,
+        B: Default + Extend<Self::Item>,
+    {
+        let mut collect_a = A::default();
+        let mut collect_b = B::default();
+
+        while let Some(elem) = self.next() {
+            if predicate(&elem) {
+                collect_b.extend(once(elem));
+                break;
+            }
+            collect_a.extend(once(elem));
+        }
+        collect_b.extend(self);
+
+        (collect_a, collect_b)
+    }
+
+    /// Collect all iterator elements into one of two partitions.
+    /// Unlike [`Itertools::split`], when predicate returns true, the element is collected into `A`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let nums = vec![0, 1, 2, 3, 4, 5];
+    ///
+    /// let (a, b): (Vec<_>, Vec<_>) = nums.into_iter().split_inclusive(|n| *n == 3);
+    ///
+    /// assert_eq!(a, [0, 1, 2, 3]);
+    /// assert_eq!(b, [4, 5]);
+    /// ```
+    fn split_inclusive<A, B, P>(mut self, mut predicate: P) -> (A, B)
+    where
+        Self: Sized,
+        P: FnMut(&Self::Item) -> bool,
+        A: Default + Extend<Self::Item>,
+        B: Default + Extend<Self::Item>,
+    {
+        let mut collect_a = A::default();
+        let mut collect_b = B::default();
+
+        while let Some(elem) = self.next() {
+            let is_split_point = predicate(&elem);
+            collect_a.extend(once(elem));
+            if is_split_point {
+                break;
+            }
+        }
+        collect_b.extend(self);
+
+        (collect_a, collect_b)
+    }
+
     /// Partition a sequence of `Result`s into one list of all the `Ok` elements
     /// and another list of all the `Err` elements.
     ///
