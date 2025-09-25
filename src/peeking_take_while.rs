@@ -126,7 +126,7 @@ where
 }
 
 /// Create a `PeekingTakeWhile`
-pub fn peeking_take_while<I, F>(iter: &mut I, f: F) -> PeekingTakeWhile<I, F>
+pub fn peeking_take_while<I, F>(iter: &mut I, f: F) -> PeekingTakeWhile<'_, I, F>
 where
     I: Iterator,
 {
