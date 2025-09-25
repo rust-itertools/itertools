@@ -96,9 +96,15 @@ where
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         let additional = self.additional_len();
         if additional > 0 {
-            write!(f, "got at least 2 elements when exactly one was expected")
+            write!(
+                f,
+                "got at least 2 elements when exactly one or at most one was expected"
+            )
         } else {
-            write!(f, "got zero elements when exactly one was expected")
+            write!(
+                f,
+                "got zero elements when exactly one or at most one was expected"
+            )
         }
     }
 }
