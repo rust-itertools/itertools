@@ -98,8 +98,10 @@ impl<T> PeekingNext for ::alloc::vec::IntoIter<T> {
     where
         F: FnOnce(&Self::Item) -> bool,
     {
-        self.as_slice().iter().peeking_next(|it| accept(*it))?;
-        self.next()
+        match accept(self.as_slice().first()?) {
+            true => self.next(),
+            false => None,
+        }
     }
 }
 
