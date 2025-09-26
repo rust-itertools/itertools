@@ -653,6 +653,20 @@ where
     first: Option<I::Item>,
 }
 
+impl<'a, I> Clone for Chunk<'a, I>
+where
+    I: Iterator,
+    I::Item: 'a + Clone,
+{
+    fn clone(&self) -> Self {
+        Self {
+            parent: self.parent,
+            index: self.index,
+            first: self.first.clone(),
+        }
+    }
+}
+
 impl<'a, I> Drop for Chunk<'a, I>
 where
     I: Iterator,
