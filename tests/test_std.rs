@@ -443,13 +443,13 @@ fn kmerge_empty() {
 
 #[test]
 fn kmerge_size_hint() {
-    let its = (0..5).map(|_| (0..10));
+    let its = (0..5).map(|_| 0..10);
     assert_eq!(its.kmerge().size_hint(), (50, Some(50)));
 }
 
 #[test]
 fn kmerge_empty_size_hint() {
-    let its = (0..5).map(|_| (0..0));
+    let its = (0..5).map(|_| 0..0);
     assert_eq!(its.kmerge().size_hint(), (0, Some(0)));
 }
 
