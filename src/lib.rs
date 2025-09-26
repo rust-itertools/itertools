@@ -1518,7 +1518,7 @@ pub trait Itertools: Iterator {
     ///
     /// See also [`.take_while_ref()`](Itertools::take_while_ref)
     /// which is a similar adaptor.
-    fn peeking_take_while<F>(&mut self, accept: F) -> PeekingTakeWhile<Self, F>
+    fn peeking_take_while<F>(&mut self, accept: F) -> PeekingTakeWhile<'_, Self, F>
     where
         Self: Sized + PeekingNext,
         F: FnMut(&Self::Item) -> bool,
@@ -1543,7 +1543,7 @@ pub trait Itertools: Iterator {
     /// assert_eq!(decimals, "0123456789");
     /// assert_eq!(hexadecimals.next(), Some('a'));
     /// ```
-    fn take_while_ref<F>(&mut self, accept: F) -> TakeWhileRef<Self, F>
+    fn take_while_ref<F>(&mut self, accept: F) -> TakeWhileRef<'_, Self, F>
     where
         Self: Clone,
         F: FnMut(&Self::Item) -> bool,
@@ -2506,7 +2506,7 @@ pub trait Itertools: Iterator {
     ///     format!("{:.2}", data.iter().format(", ")),
     ///            "1.10, 2.72, -3.00");
     /// ```
-    fn format(self, sep: &str) -> Format<Self>
+    fn format(self, sep: &str) -> Format<'_, Self>
     where
         Self: Sized,
     {
@@ -2545,7 +2545,7 @@ pub trait Itertools: Iterator {
     ///
     ///
     /// ```
-    fn format_with<F>(self, sep: &str, format: F) -> FormatWith<Self, F>
+    fn format_with<F>(self, sep: &str, format: F) -> FormatWith<'_, Self, F>
     where
         Self: Sized,
         F: FnMut(Self::Item, &mut dyn FnMut(&dyn fmt::Display) -> fmt::Result) -> fmt::Result,
