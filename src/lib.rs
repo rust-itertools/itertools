@@ -4071,17 +4071,17 @@ pub trait Itertools: Iterator {
     /// use itertools::Itertools;
     /// use itertools::MinMaxResult::{MinMax, NoElements, OneElement};
     ///
-    /// let a: [i32; 0] = [];
+    /// let a: [(i32, char); 0] = [];
     /// assert_eq!(a.iter().minmax(), NoElements);
     ///
-    /// let a = [1];
-    /// assert_eq!(a.iter().minmax(), OneElement(&1));
+    /// let a = [(1, 'a')];
+    /// assert_eq!(a.iter().minmax(), OneElement(&(1, 'a')));
     ///
-    /// let a = [1, 2, 3, 4, 5];
-    /// assert_eq!(a.iter().minmax(), MinMax(&1, &5));
+    /// let a = [(0, 'a'), (1, 'b')];
+    /// assert_eq!(a.iter().minmax(), MinMax(&(0, 'a'), &(1, 'b')));
     ///
-    /// let a = [1, 1, 1, 1];
-    /// assert_eq!(a.iter().minmax(), MinMax(&1, &1));
+    /// let a = [(1, 'a'), (1, 'b'), (1, 'c')];
+    /// assert_eq!(a.iter().minmax(), MinMax(&(1, 'a'), &(1, 'c')));
     /// ```
     ///
     /// The elements can be floats but no particular result is guaranteed
@@ -4111,19 +4111,19 @@ pub trait Itertools: Iterator {
     /// use itertools::Itertools;
     /// use itertools::MinMaxResult::{MinMax, NoElements, OneElement};
     ///
-    /// let abs_key = |x: &&i32| x.abs();
+    /// let cmp_key = |x: &&(i32, char)| x.0;
     ///
-    /// let a: [i32; 0] = [];
-    /// assert_eq!(a.iter().minmax_by_key(abs_key), NoElements);
+    /// let a: [(i32, char); 0] = [];
+    /// assert_eq!(a.iter().minmax_by_key(cmp_key), NoElements);
     ///
-    /// let a = [1];
-    /// assert_eq!(a.iter().minmax_by_key(abs_key), OneElement(&1));
+    /// let a = [(1, 'a')];
+    /// assert_eq!(a.iter().minmax_by_key(cmp_key), OneElement(&(1, 'a')));
     ///
-    /// let a = [-2, -1, 0, 1, 2];
-    /// assert_eq!(a.iter().minmax_by_key(abs_key), MinMax(&0, &2));
+    /// let a = [(0, 'a'), (1, 'b')];
+    /// assert_eq!(a.iter().minmax_by_key(cmp_key), MinMax(&(0, 'a'), &(1, 'b')));
     ///
-    /// let a = [1, 1, 1, 1];
-    /// assert_eq!(a.iter().minmax_by_key(abs_key), MinMax(&1, &1));
+    /// let a = [(1, 'a'), (1, 'b'), (1, 'c')];
+    /// assert_eq!(a.iter().minmax_by_key(cmp_key), MinMax(&(1, 'a'), &(1, 'c')));
     /// ```
     fn minmax_by_key<K, F>(self, key: F) -> MinMaxResult<Self::Item>
     where
@@ -4149,19 +4149,19 @@ pub trait Itertools: Iterator {
     /// use itertools::Itertools;
     /// use itertools::MinMaxResult::{MinMax, NoElements, OneElement};
     ///
-    /// let abs_cmp = |x: &&i32, y: &&i32| x.abs().cmp(&y.abs());
+    /// let abs_cmp = |x: &&(i32, char), y: &&(i32, char)| x.0.cmp(&y.0);
     ///
-    /// let a: [i32; 0] = [];
-    /// assert_eq!(a.iter().minmax_by(&abs_cmp), NoElements);
+    /// let a: [(i32, char); 0] = [];
+    /// assert_eq!(a.iter().minmax_by(abs_cmp), NoElements);
     ///
-    /// let a = [1];
-    /// assert_eq!(a.iter().minmax_by(&abs_cmp), OneElement(&1));
+    /// let a = [(1, 'a')];
+    /// assert_eq!(a.iter().minmax_by(abs_cmp), OneElement(&(1, 'a')));
     ///
-    /// let a = [-2, -1, 0, 1, 2];
-    /// assert_eq!(a.iter().minmax_by(&abs_cmp), MinMax(&0, &2));
+    /// let a = [(0, 'a'), (1, 'b')];
+    /// assert_eq!(a.iter().minmax_by(abs_cmp), MinMax(&(0, 'a'), &(1, 'b')));
     ///
-    /// let a = [1, 1, 1, 1];
-    /// assert_eq!(a.iter().minmax_by(&abs_cmp), MinMax(&1, &1));
+    /// let a = [(1, 'a'), (1, 'b'), (1, 'c')];
+    /// assert_eq!(a.iter().minmax_by(abs_cmp), MinMax(&(1, 'a'), &(1, 'c')));
     /// ```
     fn minmax_by<F>(self, mut compare: F) -> MinMaxResult<Self::Item>
     where
