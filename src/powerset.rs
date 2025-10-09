@@ -31,7 +31,7 @@ where
     debug_fmt_fields!(Powerset, combs);
 }
 
-/// Create a new `Powerset` from a clonable iterator.
+/// Create a new `Powerset` from a cloneable iterator.
 pub fn powerset<I>(src: I) -> Powerset<I>
 where
     I: Iterator,

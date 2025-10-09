@@ -622,6 +622,28 @@ pub trait Itertools: Iterator {
     ///
     /// **Panics** if the iterators reach an end and they are not of equal
     /// lengths.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let a = [1, 2];
+    /// let b = [3, 4];
+    ///
+    /// let zipped: Vec<_> = a.into_iter().zip_eq(b.into_iter()).collect();
+    ///
+    /// assert_eq!(zipped, vec![(1, 3), (2, 4)]);
+    /// ```
+    ///
+    /// ```should_panic
+    /// use itertools::Itertools;
+    ///
+    /// let a = [1, 2];
+    /// let b = [3, 4, 5];
+    /// // This example panics because the iterators are not of equal length.
+    /// let _zipped: Vec<_> = a.iter().zip_eq(b.iter()).collect();
+    /// ```
     #[inline]
     fn zip_eq<J>(self, other: J) -> ZipEq<Self, J::IntoIter>
     where
@@ -731,6 +753,8 @@ pub trait Itertools: Iterator {
     ///
     /// **Panics** if `size` is 0.
     ///
+    /// # Examples
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -743,6 +767,13 @@ pub trait Itertools: Iterator {
     ///     // Check that the sum of each chunk is 4.
     ///     assert_eq!(4, chunk.sum());
     /// }
+    /// ```
+    ///
+    /// ```should_panic
+    /// use itertools::Itertools;
+    /// let data = vec![1, 2, 3];
+    /// // Panics because chunk size is 0.
+    /// let _chunks = data.into_iter().chunks(0);
     /// ```
     #[cfg(feature = "use_alloc")]
     fn chunks(self, size: usize) -> IntoChunks<Self>
@@ -872,7 +903,7 @@ pub trait Itertools: Iterator {
     /// Split into an iterator pair that both yield all elements from
     /// the original iterator.
     ///
-    /// **Note:** If the iterator is clonable, prefer using that instead
+    /// **Note:** If the iterator is cloneable, prefer using that instead
     /// of using this method. Cloning is likely to be more efficient.
     ///
     /// Iterator element type is `Self::Item`.
@@ -1003,7 +1034,7 @@ pub trait Itertools: Iterator {
     /// as long as the original iterator produces `Ok` values.
     ///
     /// If the original iterable produces an error at any point, the adapted
-    /// iterator ends and it will return the error iself.
+    /// iterator ends and it will return the error itself.
     ///
     /// Otherwise, the return value from the closure is returned wrapped
     /// inside `Ok`.
@@ -1601,11 +1632,11 @@ pub trait Itertools: Iterator {
     /// #[derive(Debug, PartialEq)]
     /// struct NoCloneImpl(i32);
     ///
-    /// let non_clonable_items: Vec<_> = vec![1, 2, 3, 4, 5]
+    /// let non_cloneable_items: Vec<_> = vec![1, 2, 3, 4, 5]
     ///     .into_iter()
     ///     .map(NoCloneImpl)
     ///     .collect();
-    /// let filtered: Vec<_> = non_clonable_items
+    /// let filtered: Vec<_> = non_cloneable_items
     ///     .into_iter()
     ///     .take_while_inclusive(|n| n.0 % 3 != 0)
     ///     .collect();
@@ -3797,7 +3828,7 @@ pub trait Itertools: Iterator {
     /// value of type `K` will be used as key to identify the groups and the
     /// value of type `V` as value for the folding operation.
     ///
-    /// See [`GroupingMap`] for more informations
+    /// See [`GroupingMap`] for more information
     /// on what operations are available.
     #[cfg(feature = "use_std")]
     fn into_grouping_map<K, V>(self) -> GroupingMap<Self>
@@ -3814,7 +3845,7 @@ pub trait Itertools: Iterator {
     /// The values from this iterator will be used as values for the folding operation
     /// while the keys will be obtained from the values by calling `key_mapper`.
     ///
-    /// See [`GroupingMap`] for more informations
+    /// See [`GroupingMap`] for more information
     /// on what operations are available.
     #[cfg(feature = "use_std")]
     fn into_grouping_map_by<K, V, F>(self, key_mapper: F) -> GroupingMapBy<Self, F>
@@ -4334,7 +4365,7 @@ pub trait Itertools: Iterator {
         }
     }
 
-    /// Return the postions of the minimum and maximum elements of an
+    /// Return the positions of the minimum and maximum elements of an
     /// iterator, as determined by the specified function.
     ///
     /// The return value is a variant of [`MinMaxResult`] like for
@@ -4382,7 +4413,7 @@ pub trait Itertools: Iterator {
         }
     }
 
-    /// Return the postions of the minimum and maximum elements of an
+    /// Return the positions of the minimum and maximum elements of an
     /// iterator, as determined by the specified comparison function.
     ///
     /// The return value is a variant of [`MinMaxResult`] like for
