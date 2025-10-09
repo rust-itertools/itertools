@@ -97,7 +97,7 @@ where
     }
 }
 
-/// An iterator adaptor that merges an abitrary number of base iterators in ascending order.
+/// An iterator adaptor that merges an arbitrary number of base iterators in ascending order.
 /// If all base iterators are sorted (ascending), the result is sorted.
 ///
 /// Iterator element type is `I::Item`.
@@ -146,7 +146,7 @@ where
     kmerge_by(iterable, KMergeByLt)
 }
 
-/// An iterator adaptor that merges an abitrary number of base iterators
+/// An iterator adaptor that merges an arbitrary number of base iterators
 /// according to an ordering function.
 ///
 /// Iterator element type is `I::Item`.

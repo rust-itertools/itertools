@@ -36,7 +36,7 @@ where
     debug_fmt_fields!(CombinationsWithReplacementGeneric, indices, pool, first);
 }
 
-/// Create a new `ArrayCombinationsWithReplacement`` from a clonable iterator.
+/// Create a new `ArrayCombinationsWithReplacement`` from a cloneable iterator.
 pub fn array_combinations_with_replacement<I: Iterator, const K: usize>(
     iter: I,
 ) -> ArrayCombinationsWithReplacement<I, K>
@@ -45,7 +45,7 @@ where
 {
     ArrayCombinationsWithReplacement::new(iter, [0; K])
 }
-/// Create a new `CombinationsWithReplacement` from a clonable iterator.
+/// Create a new `CombinationsWithReplacement` from a cloneable iterator.
 pub fn combinations_with_replacement<I>(iter: I, k: usize) -> CombinationsWithReplacement<I>
 where
     I: Iterator,

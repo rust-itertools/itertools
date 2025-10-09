@@ -522,7 +522,7 @@ where
     debug_fmt_fields!(TakeWhileRef, iter);
 }
 
-/// Create a new `TakeWhileRef` from a reference to clonable iterator.
+/// Create a new `TakeWhileRef` from a reference to cloneable iterator.
 pub fn take_while_ref<I, F>(iter: &mut I, f: F) -> TakeWhileRef<'_, I, F>
 where
     I: Iterator + Clone,
@@ -626,7 +626,7 @@ pub trait HasCombination<I>: Sized {
     type Combination: From<I> + Iterator<Item = Self>;
 }
 
-/// Create a new `TupleCombinations` from a clonable iterator.
+/// Create a new `TupleCombinations` from a cloneable iterator.
 pub fn tuple_combinations<T, I>(iter: I) -> TupleCombinations<I, T>
 where
     I: Iterator,
