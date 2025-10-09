@@ -4105,6 +4105,26 @@ pub trait Itertools: Iterator {
     ///
     /// The keys can be floats but no particular result is guaranteed
     /// if a key is NaN.
+    ///
+    /// # Examples
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{MinMax, NoElements, OneElement};
+    ///
+    /// let abs_key = |x: &&i32| x.abs();
+    ///
+    /// let a: [i32; 0] = [];
+    /// assert_eq!(a.iter().minmax_by_key(abs_key), NoElements);
+    ///
+    /// let a = [1];
+    /// assert_eq!(a.iter().minmax_by_key(abs_key), OneElement(&1));
+    ///
+    /// let a = [-2, -1, 0, 1, 2];
+    /// assert_eq!(a.iter().minmax_by_key(abs_key), MinMax(&0, &2));
+    ///
+    /// let a = [1, 1, 1, 1];
+    /// assert_eq!(a.iter().minmax_by_key(abs_key), MinMax(&1, &1));
+    /// ```
     fn minmax_by_key<K, F>(self, key: F) -> MinMaxResult<Self::Item>
     where
         Self: Sized,
@@ -4122,6 +4142,27 @@ pub trait Itertools: Iterator {
     /// For the minimum, the first minimal element is returned.  For the maximum,
     /// the last maximal element wins.  This matches the behavior of the standard
     /// [`Iterator::min`] and [`Iterator::max`] methods.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{MinMax, NoElements, OneElement};
+    ///
+    /// let abs_cmp = |x: &&i32, y: &&i32| x.abs().cmp(&y.abs());
+    ///
+    /// let a: [i32; 0] = [];
+    /// assert_eq!(a.iter().minmax_by(&abs_cmp), NoElements);
+    ///
+    /// let a = [1];
+    /// assert_eq!(a.iter().minmax_by(&abs_cmp), OneElement(&1));
+    ///
+    /// let a = [-2, -1, 0, 1, 2];
+    /// assert_eq!(a.iter().minmax_by(&abs_cmp), MinMax(&0, &2));
+    ///
+    /// let a = [1, 1, 1, 1];
+    /// assert_eq!(a.iter().minmax_by(&abs_cmp), MinMax(&1, &1));
+    /// ```
     fn minmax_by<F>(self, mut compare: F) -> MinMaxResult<Self::Item>
     where
         Self: Sized,
