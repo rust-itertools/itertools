@@ -4071,6 +4071,23 @@ pub trait Itertools: Iterator {
     /// use itertools::Itertools;
     /// use itertools::MinMaxResult::{MinMax, NoElements, OneElement};
     ///
+    /// let a: [i32; 0] = [];
+    /// assert_eq!(a.iter().minmax(), NoElements);
+    ///
+    /// let a = [1];
+    /// assert_eq!(a.iter().minmax(), OneElement(&1));
+    ///
+    /// let a = [1, 2, 3, 4, 5];
+    /// assert_eq!(a.iter().minmax(), MinMax(&1, &5));
+    ///
+    /// let a = [1, 1, 1, 1];
+    /// assert_eq!(a.iter().minmax(), MinMax(&1, &1));
+    /// ```
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{MinMax, NoElements, OneElement};
+    ///
     /// let a: [(i32, char); 0] = [];
     /// assert_eq!(a.iter().minmax(), NoElements);
     ///
@@ -4107,6 +4124,7 @@ pub trait Itertools: Iterator {
     /// if a key is NaN.
     ///
     /// # Examples
+    ///
     /// ```
     /// use itertools::Itertools;
     /// use itertools::MinMaxResult::{MinMax, NoElements, OneElement};
@@ -4149,19 +4167,19 @@ pub trait Itertools: Iterator {
     /// use itertools::Itertools;
     /// use itertools::MinMaxResult::{MinMax, NoElements, OneElement};
     ///
-    /// let abs_cmp = |x: &&(i32, char), y: &&(i32, char)| x.0.cmp(&y.0);
+    /// let first_item_cmp = |x: &&(i32, char), y: &&(i32, char)| x.0.cmp(&y.0);
     ///
     /// let a: [(i32, char); 0] = [];
-    /// assert_eq!(a.iter().minmax_by(abs_cmp), NoElements);
+    /// assert_eq!(a.iter().minmax_by(first_item_cmp), NoElements);
     ///
     /// let a = [(1, 'a')];
-    /// assert_eq!(a.iter().minmax_by(abs_cmp), OneElement(&(1, 'a')));
+    /// assert_eq!(a.iter().minmax_by(first_item_cmp), OneElement(&(1, 'a')));
     ///
     /// let a = [(0, 'a'), (1, 'b')];
-    /// assert_eq!(a.iter().minmax_by(abs_cmp), MinMax(&(0, 'a'), &(1, 'b')));
+    /// assert_eq!(a.iter().minmax_by(first_item_cmp), MinMax(&(0, 'a'), &(1, 'b')));
     ///
     /// let a = [(1, 'a'), (1, 'b'), (1, 'c')];
-    /// assert_eq!(a.iter().minmax_by(abs_cmp), MinMax(&(1, 'a'), &(1, 'c')));
+    /// assert_eq!(a.iter().minmax_by(first_item_cmp), MinMax(&(1, 'a'), &(1, 'c')));
     /// ```
     fn minmax_by<F>(self, mut compare: F) -> MinMaxResult<Self::Item>
     where
