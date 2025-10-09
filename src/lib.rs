@@ -628,12 +628,12 @@ pub trait Itertools: Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let a = [1, 2];
-    /// let b = [3, 4];
+    /// let a = vec![1, 2];
+    /// let b = vec![3, 4];
     ///
     /// let zipped: Vec<_> = a.into_iter().zip_eq(b.into_iter()).collect();
     ///
-    /// assert_eq!(zipped, vec![(1, 3), (2, 4)]);
+    /// itertools::assert_equal(zipped, vec![(1, 3), (2, 4)]);
     /// ```
     ///
     /// ```should_panic
