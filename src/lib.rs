@@ -435,6 +435,47 @@ macro_rules! chain {
     };
 }
 
+#[macro_export]
+/// Create an iterator over the given values.
+///
+/// # Examples
+///
+/// ```
+/// use itertools::iter_of;
+///
+/// let mut iter = iter_of!(1, 2, 4);
+///
+/// assert_eq!(iter.next(), Some(1));
+/// assert_eq!(iter.next(), Some(2));
+/// assert_eq!(iter.next(), Some(4));
+/// assert_eq!(iter.next(), None);
+/// ```
+///
+/// ```
+/// use itertools::{Itertools, iter_of};
+///
+/// let a = iter_of!("stop", "drop");
+/// let b = iter_of!("and roll");
+/// let s = a.chain(b).join(", ");
+///
+/// assert_eq!(s, "stop, drop, and roll");
+/// ```
+///
+/// Just a quick way to create an iterator.
+/// ```
+/// use itertools::iter_of;
+///
+/// let a = vec![42, 100, -3].into_iter();
+/// let b = iter_of!(42, 100, -3);
+///
+/// assert!(a.eq(b));
+/// ```
+macro_rules! iter_of {
+    ($($item:expr),*) => {
+        std::array::IntoIter::new([$($item, )*])
+    };
+}
+
 /// An [`Iterator`] blanket implementation that provides extra adaptors and
 /// methods.
 ///
