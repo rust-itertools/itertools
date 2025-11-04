@@ -992,7 +992,7 @@ fn transpose_result<T, E>(result: Result<Option<T>, E>) -> Option<Result<T, E>> 
     }
 }
 
-/// Create a new `FilterOk` iterator.
+/// Create a new `FilterMapOk` iterator.
 pub fn filter_map_ok<I, F, T, U, E>(iter: I, f: F) -> FilterMapOk<I, F>
 where
     I: Iterator<Item = Result<T, E>>,
