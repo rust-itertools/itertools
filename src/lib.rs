@@ -91,7 +91,10 @@ pub use std::iter as __std_iter;
 /// The concrete iterator types.
 pub mod structs {
     #[cfg(feature = "use_alloc")]
-    pub use crate::adaptors::MultiProduct;
+    pub use crate::{
+        cartesian_power::{CartesianPower, Indices as CartesianPowerIndices},
+        adaptors::MultiProduct
+    };
     pub use crate::adaptors::{
         Batching, Coalesce, Dedup, DedupBy, DedupByWithCount, DedupWithCount, FilterMapOk,
         FilterOk, Interleave, InterleaveShortest, MapInto, MapOk, Positions, Product, PutBack,
@@ -180,6 +183,8 @@ pub use crate::either_or_both::EitherOrBoth;
 pub mod free;
 #[doc(inline)]
 pub use crate::free::*;
+#[cfg(feature = "use_alloc")]
+mod cartesian_power;
 #[cfg(feature = "use_alloc")]
 mod combinations;
 #[cfg(feature = "use_alloc")]
@@ -1256,6 +1261,66 @@ pub trait Itertools: Iterator {
         J::IntoIter: Clone,
     {
         adaptors::cartesian_product(self, other.into_iter())
+    }
+
+    /// Return an iterator adaptor that iterates over the given cartesian power of
+    /// the element yielded by `self`.
+    ///
+    /// Iterator element type is a collection `Vec<Self::Item>` of size `pow`.
+    /// The collection is a fresh vector
+    /// allocated on every `.next()` call
+    /// and populated with `Self::Item::clone`
+    /// until the cartesian power is exhausted.
+    /// The underlying iterator is only consumed once,
+    /// and all its yielded items are stored within the adaptor for future cloning.
+    ///
+    /// If this is too much allocation for you,
+    /// you may try the underlying streaming
+    /// [`CartesianPowerIndices`] instead.
+    ///
+    /// The resulting iterator is "cycling",
+    /// meaning that, after the last `.next()` call has yielded `None`,
+    /// you can call `.next()` again to resume iteration from the start,
+    /// as many times as needed.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut it = "abc".chars().cartesian_power(2);
+    /// assert_eq!(it.next(), Some(vec!['a', 'a']));
+    /// assert_eq!(it.next(), Some(vec!['a', 'b']));
+    /// assert_eq!(it.next(), Some(vec!['a', 'c'])); // Underlying a"abc".chars()` consumed.
+    /// assert_eq!(it.next(), Some(vec!['b', 'a']));
+    /// assert_eq!(it.next(), Some(vec!['b', 'b']));
+    /// assert_eq!(it.next(), Some(vec!['b', 'c']));
+    /// assert_eq!(it.next(), Some(vec!['c', 'a']));
+    /// assert_eq!(it.next(), Some(vec!['c', 'b']));
+    /// assert_eq!(it.next(), Some(vec!['c', 'c']));
+    /// assert_eq!(it.next(), None);                 // Cartesian product exhausted.
+    /// assert_eq!(it.next(), Some(vec!['a', 'a'])); // Cycle: start over, *ad libitum*.
+    /// assert_eq!(it.next(), Some(vec!['a', 'b']));
+    /// // ...
+    ///
+    /// let mut it = "ab".chars().cartesian_power(3);
+    /// assert_eq!(it.next(), Some(vec!['a', 'a', 'a']));
+    /// assert_eq!(it.next(), Some(vec!['a', 'a', 'b']));
+    /// assert_eq!(it.next(), Some(vec!['a', 'b', 'a']));
+    /// assert_eq!(it.next(), Some(vec!['a', 'b', 'b']));
+    /// assert_eq!(it.next(), Some(vec!['b', 'a', 'a']));
+    /// assert_eq!(it.next(), Some(vec!['b', 'a', 'b']));
+    /// assert_eq!(it.next(), Some(vec!['b', 'b', 'a']));
+    /// assert_eq!(it.next(), Some(vec!['b', 'b', 'b']));
+    /// assert_eq!(it.next(), None);
+    /// assert_eq!(it.next(), Some(vec!['a', 'a', 'a']));
+    /// assert_eq!(it.next(), Some(vec!['a', 'a', 'b']));
+    /// // ...
+    /// ```
+    fn cartesian_power(self, pow: u32) -> CartesianPower<Self>
+    where
+        Self: Sized,
+        Self::Item: Clone,
+    {
+        CartesianPower::new(self, pow)
     }
 
     /// Return an iterator adaptor that iterates over the cartesian product of
