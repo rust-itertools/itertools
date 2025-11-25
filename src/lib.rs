@@ -143,6 +143,7 @@ pub mod structs {
     #[cfg(feature = "use_std")]
     pub use crate::unique_impl::{Unique, UniqueBy};
     pub use crate::with_position::WithPosition;
+    pub use crate::with_prev::WithPrev;
     pub use crate::zip_eq_impl::ZipEq;
     pub use crate::zip_longest::ZipLongest;
     pub use crate::ziptuple::Zip;
@@ -237,6 +238,7 @@ mod tuple_impl;
 mod unique_impl;
 mod unziptuple;
 mod with_position;
+mod with_prev;
 mod zip_eq_impl;
 mod zip_longest;
 mod ziptuple;
@@ -2007,6 +2009,26 @@ pub trait Itertools: Iterator {
         Self: Sized,
     {
         with_position::with_position(self)
+    }
+
+    /// Return an iterator adaptor that combines each element except the first with
+    /// a clone of the previous.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let it = (0..4).with_prev();
+    /// itertools::assert_equal(it,
+    ///                         vec![(None, 0),
+    ///                              (Some(0), 1),
+    ///                              (Some(1), 2),
+    ///                              (Some(2), 3)]);
+    /// ```
+    fn with_prev(self) -> WithPrev<Self>
+    where
+        Self: Sized,
+    {
+        with_prev::with_prev(self)
     }
 
     /// Return an iterator adaptor that yields the indices of all elements
