@@ -59,7 +59,7 @@ where
 
 /// `GroupingMapBy` is an intermediate struct for efficient group-and-fold operations.
 ///
-/// See [`GroupingMap`] for more informations.
+/// See [`GroupingMap`] for more information.
 pub type GroupingMapBy<I, F, S> = GroupingMap<MapForGrouping<I, F>, S>;
 
 /// `GroupingMap` is an intermediate struct for efficient group-and-fold operations.

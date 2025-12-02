@@ -467,7 +467,7 @@ impl<T> EitherOrBoth<T, T> {
     /// Return either value of left, right, or apply a function `f` to both values if both are present.
     /// The input function has to return the same type as both Right and Left carry.
     ///
-    /// This function can be used to preferrably extract the left resp. right value,
+    /// This function can be used to preferably extract the left resp. right value,
     /// but fall back to the other (i.e. right resp. left) if the preferred one is not present.
     ///
     /// # Examples

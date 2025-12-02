@@ -522,8 +522,8 @@ where
     debug_fmt_fields!(TakeWhileRef, iter);
 }
 
-/// Create a new `TakeWhileRef` from a reference to clonable iterator.
-pub fn take_while_ref<I, F>(iter: &mut I, f: F) -> TakeWhileRef<I, F>
+/// Create a new `TakeWhileRef` from a reference to cloneable iterator.
+pub fn take_while_ref<I, F>(iter: &mut I, f: F) -> TakeWhileRef<'_, I, F>
 where
     I: Iterator + Clone,
 {
@@ -626,7 +626,7 @@ pub trait HasCombination<I>: Sized {
     type Combination: From<I> + Iterator<Item = Self>;
 }
 
-/// Create a new `TupleCombinations` from a clonable iterator.
+/// Create a new `TupleCombinations` from a cloneable iterator.
 pub fn tuple_combinations<T, I>(iter: I) -> TupleCombinations<I, T>
 where
     I: Iterator,
@@ -992,7 +992,7 @@ fn transpose_result<T, E>(result: Result<Option<T>, E>) -> Option<Result<T, E>> 
     }
 }
 
-/// Create a new `FilterOk` iterator.
+/// Create a new `FilterMapOk` iterator.
 pub fn filter_map_ok<I, F, T, U, E>(iter: I, f: F) -> FilterMapOk<I, F>
 where
     I: Iterator<Item = Result<T, E>>,
