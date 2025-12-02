@@ -80,7 +80,7 @@ where
     while child + 1 < heap.len() {
         // pick the smaller of the two children
         // use arithmetic to avoid an unpredictable branch
-        child += less_than(&heap[child + 1], &heap[child]) as usize;
+        child += usize::from(less_than(&heap[child + 1], &heap[child]));
 
         // sift down is done if we are already in order
         if !less_than(&heap[child], &heap[pos]) {

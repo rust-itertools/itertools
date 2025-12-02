@@ -68,7 +68,7 @@ where
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (low, hi) = self.iter.size_hint();
-        ((low > 0 && self.used.is_empty()) as usize, hi)
+        (usize::from(low > 0 && self.used.is_empty()), hi)
     }
 
     fn count(self) -> usize {
@@ -119,7 +119,7 @@ where
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (low, hi) = self.iter.iter.size_hint();
-        ((low > 0 && self.iter.used.is_empty()) as usize, hi)
+        (usize::from(low > 0 && self.iter.used.is_empty()), hi)
     }
 
     fn count(self) -> usize {
