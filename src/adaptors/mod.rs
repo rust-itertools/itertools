@@ -300,11 +300,11 @@ where
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         // Not ExactSizeIterator because size may be larger than usize
-        size_hint::add_scalar(self.iter.size_hint(), self.top.is_some() as usize)
+        size_hint::add_scalar(self.iter.size_hint(), usize::from(self.top.is_some()))
     }
 
     fn count(self) -> usize {
-        self.iter.count() + (self.top.is_some() as usize)
+        self.iter.count() + usize::from(self.top.is_some())
     }
 
     fn last(self) -> Option<Self::Item> {

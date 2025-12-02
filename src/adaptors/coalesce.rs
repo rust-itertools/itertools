@@ -74,9 +74,9 @@ where
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (low, hi) = size_hint::add_scalar(
             self.iter.size_hint(),
-            matches!(self.last, Some(Some(_))) as usize,
+            usize::from(matches!(self.last, Some(Some(_)))),
         );
-        ((low > 0) as usize, hi)
+        (usize::from(low > 0), hi)
     }
 
     fn fold<Acc, FnAcc>(self, acc: Acc, mut fn_acc: FnAcc) -> Acc

@@ -1064,7 +1064,7 @@ quickcheck! {
 
         let tup1 = |(_, b)| b;
         for &(ord, consume_now) in &order {
-            let iter = &mut [&mut chunks1, &mut chunks2][ord as usize];
+            let iter = &mut [&mut chunks1, &mut chunks2][usize::from(ord)];
             match iter.next() {
                 Some((_, gr)) => if consume_now {
                     for og in old_chunks.drain(..) {
@@ -1422,9 +1422,9 @@ quickcheck! {
     }
 
     fn correct_grouping_map_by_aggregate_modulo_key(a: Vec<u8>, modulo: u8) -> () {
-        let modulo = if modulo < 2 { 2 } else { modulo } as u64; // Avoid `% 0`
+        let modulo = u64::from(if modulo < 2 { 2 } else { modulo }); // Avoid `% 0`
         let lookup = a.iter()
-            .map(|&b| b as u64) // Avoid overflows
+            .map(|&b| u64::from(b)) // Avoid overflows
             .into_grouping_map_by(|i| i % modulo)
             .aggregate(|acc, &key, val| {
                 assert!(val % modulo == key);
@@ -1436,7 +1436,7 @@ quickcheck! {
             });
 
         let group_map_lookup = a.iter()
-            .map(|&b| b as u64)
+            .map(|&b| u64::from(b))
             .map(|i| (i % modulo, i))
             .into_group_map()
             .into_iter()
@@ -1456,7 +1456,7 @@ quickcheck! {
             assert_eq!(
                 lookup.get(&m).copied(),
                 a.iter()
-                    .map(|&b| b as u64)
+                    .map(|&b| u64::from(b))
                     .filter(|&val| val % modulo == m)
                     .fold(None, |acc, val| {
                         if val % (modulo - 1) == 0 {
@@ -1475,8 +1475,8 @@ quickcheck! {
             acc: u64,
         }
 
-        let modulo = if modulo == 0 { 1 } else { modulo } as u64; // Avoid `% 0`
-        let lookup = a.iter().map(|&b| b as u64) // Avoid overflows
+        let modulo = u64::from(if modulo == 0 { 1 } else { modulo }); // Avoid `% 0`
+        let lookup = a.iter().map(|&b| u64::from(b)) // Avoid overflows
             .into_grouping_map_by(|i| i % modulo)
             .fold_with(|_key, _val| Default::default(), |Accumulator { acc }, &key, val| {
                 assert!(val % modulo == key);
@@ -1485,7 +1485,7 @@ quickcheck! {
             });
 
         let group_map_lookup = a.iter()
-            .map(|&b| b as u64)
+            .map(|&b| u64::from(b))
             .map(|i| (i % modulo, i))
             .into_group_map()
             .into_iter()
@@ -1494,13 +1494,13 @@ quickcheck! {
         assert_eq!(lookup, group_map_lookup);
 
         for (&key, &Accumulator { acc: sum }) in lookup.iter() {
-            assert_eq!(sum, a.iter().map(|&b| b as u64).filter(|&val| val % modulo == key).sum::<u64>());
+            assert_eq!(sum, a.iter().map(|&b| u64::from(b)).filter(|&val| val % modulo == key).sum::<u64>());
         }
     }
 
     fn correct_grouping_map_by_fold_modulo_key(a: Vec<u8>, modulo: u8) -> () {
-        let modulo = if modulo == 0 { 1 } else { modulo } as u64; // Avoid `% 0`
-        let lookup = a.iter().map(|&b| b as u64) // Avoid overflows
+        let modulo = u64::from(if modulo == 0 { 1 } else { modulo }); // Avoid `% 0`
+        let lookup = a.iter().map(|&b| u64::from(b)) // Avoid overflows
             .into_grouping_map_by(|i| i % modulo)
             .fold(0u64, |acc, &key, val| {
                 assert!(val % modulo == key);
@@ -1508,7 +1508,7 @@ quickcheck! {
             });
 
         let group_map_lookup = a.iter()
-            .map(|&b| b as u64)
+            .map(|&b| u64::from(b))
             .map(|i| (i % modulo, i))
             .into_group_map()
             .into_iter()
@@ -1517,13 +1517,13 @@ quickcheck! {
         assert_eq!(lookup, group_map_lookup);
 
         for (&key, &sum) in lookup.iter() {
-            assert_eq!(sum, a.iter().map(|&b| b as u64).filter(|&val| val % modulo == key).sum::<u64>());
+            assert_eq!(sum, a.iter().map(|&b| u64::from(b)).filter(|&val| val % modulo == key).sum::<u64>());
         }
     }
 
     fn correct_grouping_map_by_reduce_modulo_key(a: Vec<u8>, modulo: u8) -> () {
-        let modulo = if modulo == 0 { 1 } else { modulo } as u64; // Avoid `% 0`
-        let lookup = a.iter().map(|&b| b as u64) // Avoid overflows
+        let modulo = u64::from(if modulo == 0 { 1 } else { modulo }); // Avoid `% 0`
+        let lookup = a.iter().map(|&b| u64::from(b)) // Avoid overflows
             .into_grouping_map_by(|i| i % modulo)
             .reduce(|acc, &key, val| {
                 assert!(val % modulo == key);
@@ -1531,7 +1531,7 @@ quickcheck! {
             });
 
         let group_map_lookup = a.iter()
-            .map(|&b| b as u64)
+            .map(|&b| u64::from(b))
             .map(|i| (i % modulo, i))
             .into_group_map()
             .into_iter()
@@ -1540,7 +1540,7 @@ quickcheck! {
         assert_eq!(lookup, group_map_lookup);
 
         for (&key, &sum) in lookup.iter() {
-            assert_eq!(sum, a.iter().map(|&b| b as u64).filter(|&val| val % modulo == key).sum::<u64>());
+            assert_eq!(sum, a.iter().map(|&b| u64::from(b)).filter(|&val| val % modulo == key).sum::<u64>());
         }
     }
 
@@ -1706,12 +1706,12 @@ quickcheck! {
     }
 
     fn correct_grouping_map_by_sum_modulo_key(a: Vec<u8>, modulo: u8) -> () {
-        let modulo = if modulo == 0 { 1 } else { modulo } as u64; // Avoid `% 0`
-        let lookup = a.iter().map(|&b| b as u64) // Avoid overflows
+        let modulo = u64::from(if modulo == 0 { 1 } else { modulo }); // Avoid `% 0`
+        let lookup = a.iter().map(|&b| u64::from(b)) // Avoid overflows
             .into_grouping_map_by(|i| i % modulo)
             .sum();
 
-        let group_map_lookup = a.iter().map(|&b| b as u64)
+        let group_map_lookup = a.iter().map(|&b| u64::from(b))
             .map(|i| (i % modulo, i))
             .into_group_map()
             .into_iter()
@@ -1720,17 +1720,17 @@ quickcheck! {
         assert_eq!(lookup, group_map_lookup);
 
         for (&key, &sum) in lookup.iter() {
-            assert_eq!(sum, a.iter().map(|&b| b as u64).filter(|&val| val % modulo == key).sum::<u64>());
+            assert_eq!(sum, a.iter().map(|&b| u64::from(b)).filter(|&val| val % modulo == key).sum::<u64>());
         }
     }
 
     fn correct_grouping_map_by_product_modulo_key(a: Vec<u8>, modulo: u8) -> () {
-        let modulo = Wrapping(if modulo == 0 { 1 } else { modulo } as u64); // Avoid `% 0`
-        let lookup = a.iter().map(|&b| Wrapping(b as u64)) // Avoid overflows
+        let modulo = Wrapping(u64::from(if modulo == 0 { 1 } else { modulo })); // Avoid `% 0`
+        let lookup = a.iter().map(|&b| Wrapping(u64::from(b))) // Avoid overflows
             .into_grouping_map_by(|i| i % modulo)
             .product();
 
-        let group_map_lookup = a.iter().map(|&b| Wrapping(b as u64))
+        let group_map_lookup = a.iter().map(|&b| Wrapping(u64::from(b)))
             .map(|i| (i % modulo, i))
             .into_group_map()
             .into_iter()
@@ -1742,7 +1742,7 @@ quickcheck! {
             assert_eq!(
                 prod,
                 a.iter()
-                    .map(|&b| Wrapping(b as u64))
+                    .map(|&b| Wrapping(u64::from(b)))
                     .filter(|&val| val % modulo == key)
                     .product::<Wrapping<u64>>()
             );
