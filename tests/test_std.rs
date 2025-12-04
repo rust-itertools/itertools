@@ -1477,9 +1477,7 @@ fn format() {
 
 #[test]
 fn while_some() {
-    let ns = (1..10)
-        .map(|x| if x % 5 != 0 { Some(x) } else { None })
-        .while_some();
+    let ns = (1..10).map(|x| (x % 5 != 0).then_some(x)).while_some();
     it::assert_equal(ns, vec![1, 2, 3, 4]);
 }
 
