@@ -127,6 +127,8 @@ pub mod structs {
     #[cfg(feature = "use_alloc")]
     pub use crate::permutations::Permutations;
     #[cfg(feature = "use_alloc")]
+    pub use crate::multiset_permutations::MultisetPermutations;
+    #[cfg(feature = "use_alloc")]
     pub use crate::powerset::Powerset;
     pub use crate::process_results_impl::ProcessResults;
     #[cfg(feature = "use_alloc")]
@@ -219,6 +221,8 @@ mod peek_nth;
 mod peeking_take_while;
 #[cfg(feature = "use_alloc")]
 mod permutations;
+#[cfg(feature = "use_alloc")]
+mod multiset_permutations;
 #[cfg(feature = "use_alloc")]
 mod powerset;
 mod process_results_impl;
@@ -1912,6 +1916,55 @@ pub trait Itertools: Iterator {
         Self::Item: Clone,
     {
         permutations::permutations(self, k)
+    }
+
+    /// Return an iterator adaptor that iterates over all unique multiset permutations 
+    /// of the elements from an iterator.
+    /// 
+    /// Iterator element type is `Vec<Self::Item>` with equal length to the source iterator. 
+    /// The iterator produces a new Vec per iteration, and clones the iterator elements.
+    /// 
+    /// 
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let mut it = vec![1, 4, 2, 1].into_iter().multiset_permutations();
+    /// assert_eq!(it.next(), Some(vec![4, 2, 1, 1]));
+    /// assert_eq!(it.next(), Some(vec![1, 4, 2, 1]));
+    /// assert_eq!(it.next(), Some(vec![4, 1, 2, 1]));
+    /// assert_eq!(it.next(), Some(vec![1, 4, 1, 2]));
+    /// assert_eq!(it.next(), Some(vec![1, 1, 4, 2]));
+    /// assert_eq!(it.next(), Some(vec![4, 1, 1, 2]));
+    /// assert_eq!(it.next(), Some(vec![2, 4, 1, 1]));
+    /// assert_eq!(it.next(), Some(vec![1, 2, 4, 1]));
+    /// assert_eq!(it.next(), Some(vec![2, 1, 4, 1]));
+    /// assert_eq!(it.next(), Some(vec![1, 2, 1, 4]));
+    /// assert_eq!(it.next(), Some(vec![1, 1, 2, 4]));
+    /// assert_eq!(it.next(), Some(vec![2, 1, 1, 4]));
+    /// assert_eq!(it.next(), None);
+    /// ```
+    /// 
+    /// If the source iterator is empty, the resultant iterator adaptor 
+    /// will only contain an empty vector.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::MultisetPermutations;
+    /// 
+    /// let mut it: MultisetPermutations<i32> = vec![].into_iter().multiset_permutations();
+    /// assert_eq!(it.next(), Some(vec![]));
+    /// assert_eq!(it.next(), None);
+    /// ```
+    /// 
+    /// Note: The source iterator is collected completely
+    #[cfg(feature = "use_alloc")]
+    fn multiset_permutations(self) -> MultisetPermutations<Self::Item>
+    where
+        Self: Sized,
+        Self::Item: Ord,
+    {
+        multiset_permutations::multiset_permutations(self)
     }
 
     /// Return an iterator that iterates through the powerset of the elements from an
