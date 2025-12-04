@@ -145,6 +145,8 @@ pub mod structs {
     pub use crate::with_position::WithPosition;
     pub use crate::zip_eq_impl::ZipEq;
     pub use crate::zip_longest::ZipLongest;
+    pub use crate::zip_squash::ZipSquash;
+    pub use crate::zip_stretch::ZipStretch;
     pub use crate::ziptuple::Zip;
 }
 
@@ -239,6 +241,8 @@ mod unziptuple;
 mod with_position;
 mod zip_eq_impl;
 mod zip_longest;
+mod zip_squash;
+mod zip_stretch;
 mod ziptuple;
 
 #[macro_export]
@@ -4721,10 +4725,61 @@ pub trait Itertools: Iterator {
             _ => Err(sh),
         }
     }
+
+    /// Create an iterator which iterates over both this and the specified
+    /// iterator simultaneously, yielding pairs of elements.
+    ///
+    /// Similar to [`Iterator::zip`] except elements are evenly sampled from
+    /// the longest iterator.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// let a = vec![1, 2];
+    /// let b = vec![1, 2, 3];
+    ///
+    /// let it = a.into_iter().zip_squash(b.into_iter());
+    /// itertools::assert_equal(it, vec![(1, 1), (2, 2)]);
+    /// ```
+    #[inline]
+    fn zip_squash<J>(self, other: J) -> ZipSquash<Self, J::IntoIter>
+    where
+        J: IntoIterator,
+        <J as IntoIterator>::IntoIter: ExactSizeIterator,
+        Self: ExactSizeIterator + Sized,
+    {
+        zip_squash::zip_squash(self, other)
+    }
+    /// Create an iterator which iterates over both this and the specified
+    /// iterator simultaneously, yielding pairs of elements.
+    ///
+    /// Always yielding the first and last elements of both iterators by cloning
+    /// elements in the shortest iterator.
+    ///
+    /// Similar to [`Itertools::zip_longest`] except elements in the shortest
+    /// iterator are evenly spread.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// let a = vec![1, 2];
+    /// let b = vec![1, 2, 3];
+    ///
+    /// let it = a.into_iter().zip_stretch(b.into_iter());
+    /// itertools::assert_equal(it, vec![(1, 1), (1, 2), (2, 3)]);
+    /// ```
+    #[inline]
+    fn zip_stretch<J>(self, other: J) -> ZipStretch<Self, J::IntoIter>
+    where
+        J: IntoIterator,
+        <J as IntoIterator>::IntoIter: ExactSizeIterator,
+        <<J as IntoIterator>::IntoIter as IntoIterator>::Item: Clone,
+        Self: ExactSizeIterator + Sized,
+        <Self as Iterator>::Item: Clone,
+    {
+        zip_stretch::zip_stretch(self, other)
+    }
 }
 
 impl<T> Itertools for T where T: Iterator + ?Sized {}
-
 /// Return `true` if both iterables produce equal sequences
 /// (elements pairwise equal and sequences of the same length),
 /// `false` otherwise.
