@@ -10,10 +10,9 @@ use std::iter::{Fuse, FusedIterator};
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct PadUsing<I, F> {
     iter: Fuse<I>,
-    min: usize,
-    pos: usize,
-    back: usize,
-    total_len: usize,
+    elements_from_next: usize,
+    elements_from_next_back: usize,
+    elements_required: usize,
     filler: F,
 }
 
@@ -21,21 +20,26 @@ impl<I, F> std::fmt::Debug for PadUsing<I, F>
 where
     I: std::fmt::Debug,
 {
-    debug_fmt_fields!(PadUsing, iter, min, pos, back, total_len);
+    debug_fmt_fields!(
+        PadUsing,
+        iter,
+        elements_from_next,
+        elements_from_next_back,
+        elements_required
+    );
 }
 
 /// Create a new `PadUsing` iterator.
-pub fn pad_using<I, F>(iter: I, min: usize, filler: F) -> PadUsing<I, F>
+pub fn pad_using<I, F>(iter: I, elements_required: usize, filler: F) -> PadUsing<I, F>
 where
     I: Iterator,
     F: FnMut(usize) -> I::Item,
 {
     PadUsing {
         iter: iter.fuse(),
-        min,
-        pos: 0,
-        back: 0,
-        total_len: min,
+        elements_from_next: 0,
+        elements_from_next_back: 0,
+        elements_required,
         filler,
     }
 }
@@ -51,16 +55,16 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         match self.iter.next() {
             None => {
-                if self.pos + self.back < self.total_len {
-                    let e = Some((self.filler)(self.pos));
-                    self.pos += 1;
+                if self.elements_from_next + self.elements_from_next_back < self.elements_required {
+                    let e = Some((self.filler)(self.elements_from_next));
+                    self.elements_from_next += 1;
                     e
                 } else {
                     None
                 }
             }
             e => {
-                self.pos += 1;
+                self.elements_from_next += 1;
                 e
             }
         }
@@ -68,13 +72,19 @@ where
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (iter_lower, iter_upper) = self.iter.size_hint();
-        let consumed = self.pos.saturating_add(self.back);
+        let consumed = self
+            .elements_from_next
+            .saturating_add(self.elements_from_next_back);
 
-        let total_lower = iter_lower.saturating_add(self.pos).max(self.min);
+        let total_lower = iter_lower
+            .saturating_add(self.elements_from_next)
+            .max(self.elements_required);
         let lower_bound = total_lower.saturating_sub(consumed);
 
         let upper_bound = iter_upper.map(|iter_upper| {
-            let total_upper = iter_upper.saturating_add(self.pos).max(self.min);
+            let total_upper = iter_upper
+                .saturating_add(self.elements_from_next)
+                .max(self.elements_required);
             total_upper.saturating_sub(consumed)
         });
 
@@ -85,12 +95,12 @@ where
     where
         G: FnMut(B, Self::Item) -> B,
     {
-        let mut pos = self.pos;
+        let mut pos = self.elements_from_next;
         init = self.iter.fold(init, |acc, item| {
             pos += 1;
             f(acc, item)
         });
-        (pos..self.min).map(self.filler).fold(init, f)
+        (pos..self.elements_required).map(self.filler).fold(init, f)
     }
 }
 
@@ -100,25 +110,23 @@ where
     F: FnMut(usize) -> I::Item,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
-        let current_iter_len = self.iter.len();
-        let original_iter_len = current_iter_len.saturating_add(self.pos);
-        if self.total_len < original_iter_len {
-            self.total_len = original_iter_len;
-        }
+        let total_consumed = self.elements_from_next + self.elements_from_next_back;
 
-        if self.pos + self.back >= self.total_len {
+        if self.iter.len() == 0 && total_consumed >= self.elements_required {
             return None;
         }
 
-        let padding_count = self.total_len.saturating_sub(current_iter_len + self.pos);
+        let elements_remaining = self.elements_required.saturating_sub(total_consumed);
+        self.elements_from_next_back += 1;
 
-        if self.back < padding_count {
-            let idx = self.total_len - self.back - 1;
-            self.back += 1;
-            Some((self.filler)(idx))
+        if self.iter.len() < elements_remaining {
+            Some((self.filler)(
+                self.elements_required - self.elements_from_next_back,
+            ))
         } else {
-            self.back += 1;
-            self.iter.next_back()
+            let e = self.iter.next_back();
+            assert!(e.is_some());
+            e
         }
     }
 
@@ -128,20 +136,19 @@ where
     {
         let PadUsing {
             iter,
-            min: _,
-            pos,
-            back,
-            mut total_len,
+            elements_from_next,
+            elements_from_next_back,
+            mut elements_required,
             filler,
         } = self;
         let iter_len = iter.len();
-        let original_iter_len = iter_len.saturating_add(pos);
-        if total_len < original_iter_len {
-            total_len = original_iter_len;
+        let original_iter_len = iter_len.saturating_add(elements_from_next);
+        if elements_required < original_iter_len {
+            elements_required = original_iter_len;
         }
 
-        let start_idx = iter_len + pos;
-        let end_idx = total_len - back;
+        let start_idx = iter_len + elements_from_next;
+        let end_idx = elements_required - elements_from_next_back;
 
         init = (start_idx..end_idx).rev().map(filler).fold(init, &mut f);
 
