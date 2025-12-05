@@ -53,40 +53,32 @@ where
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        match self.iter.next() {
-            None => {
-                if self.elements_from_next + self.elements_from_next_back < self.elements_required {
-                    let e = Some((self.filler)(self.elements_from_next));
-                    self.elements_from_next += 1;
-                    e
-                } else {
-                    None
-                }
-            }
-            e => {
-                self.elements_from_next += 1;
-                e
-            }
+        let total_consumed = self.elements_from_next + self.elements_from_next_back;
+
+        if total_consumed >= self.elements_required {
+            self.iter.next()
+        } else if let Some(e) = self.iter.next() {
+            self.elements_from_next += 1;
+            Some(e)
+        } else {
+            let e = (self.filler)(self.elements_from_next);
+            self.elements_from_next += 1;
+            Some(e)
         }
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let (iter_lower, iter_upper) = self.iter.size_hint();
-        let consumed = self
-            .elements_from_next
-            .saturating_add(self.elements_from_next_back);
+        let total_consumed = self.elements_from_next + self.elements_from_next_back;
 
-        let total_lower = iter_lower
-            .saturating_add(self.elements_from_next)
-            .max(self.elements_required);
-        let lower_bound = total_lower.saturating_sub(consumed);
+        if total_consumed >= self.elements_required {
+            return self.iter.size_hint();
+        }
 
-        let upper_bound = iter_upper.map(|iter_upper| {
-            let total_upper = iter_upper
-                .saturating_add(self.elements_from_next)
-                .max(self.elements_required);
-            total_upper.saturating_sub(consumed)
-        });
+        let elements_remaining = self.elements_required - total_consumed;
+        let (low, high) = self.iter.size_hint();
+
+        let lower_bound = low.max(elements_remaining);
+        let upper_bound = high.map(|h| h.max(elements_remaining));
 
         (lower_bound, upper_bound)
     }
@@ -112,11 +104,11 @@ where
     fn next_back(&mut self) -> Option<Self::Item> {
         let total_consumed = self.elements_from_next + self.elements_from_next_back;
 
-        if self.iter.len() == 0 && total_consumed >= self.elements_required {
-            return None;
+        if total_consumed >= self.elements_required {
+            return self.iter.next_back();
         }
 
-        let elements_remaining = self.elements_required.saturating_sub(total_consumed);
+        let elements_remaining = self.elements_required - total_consumed;
         self.elements_from_next_back += 1;
 
         if self.iter.len() < elements_remaining {
@@ -124,9 +116,7 @@ where
                 self.elements_required - self.elements_from_next_back,
             ))
         } else {
-            let e = self.iter.next_back();
-            assert!(e.is_some());
-            e
+            self.iter.next_back()
         }
     }
 
@@ -134,25 +124,13 @@ where
     where
         G: FnMut(B, Self::Item) -> B,
     {
-        let PadUsing {
-            iter,
-            elements_from_next,
-            elements_from_next_back,
-            mut elements_required,
-            filler,
-        } = self;
-        let iter_len = iter.len();
-        let original_iter_len = iter_len.saturating_add(elements_from_next);
-        if elements_required < original_iter_len {
-            elements_required = original_iter_len;
-        }
+        let start = self.iter.len() + self.elements_from_next;
+        let remaining = self.elements_required.max(start);
+        let end = remaining - self.elements_from_next_back;
 
-        let start_idx = iter_len + elements_from_next;
-        let end_idx = elements_required - elements_from_next_back;
+        init = (start..end).rev().map(self.filler).fold(init, &mut f);
 
-        init = (start_idx..end_idx).rev().map(filler).fold(init, &mut f);
-
-        iter.rfold(init, f)
+        self.iter.rfold(init, f)
     }
 }
 
