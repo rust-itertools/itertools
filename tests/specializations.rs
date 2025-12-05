@@ -131,6 +131,25 @@ where
     for n in 0..size + 2 {
         check_specialized!(it, |mut i| i.nth_back(n));
     }
+
+    let mut fwd = it.clone();
+    let mut bwd = it.clone();
+
+    for _ in fwd.by_ref() {}
+
+    assert_eq!(
+        fwd.next_back(),
+        None,
+        "iterator leaks elements after consuming forwards"
+    );
+
+    while bwd.next_back().is_some() {}
+
+    assert_eq!(
+        bwd.next(),
+        None,
+        "iterator leaks elements after consuming backwards"
+    );
 }
 
 quickcheck! {

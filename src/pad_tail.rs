@@ -1,4 +1,3 @@
-use crate::size_hint;
 use std::iter::{Fuse, FusedIterator};
 
 /// An iterator adaptor that pads a sequence to a minimum length by filling
@@ -13,6 +12,8 @@ pub struct PadUsing<I, F> {
     iter: Fuse<I>,
     min: usize,
     pos: usize,
+    back: usize,
+    total_len: usize,
     filler: F,
 }
 
@@ -20,7 +21,7 @@ impl<I, F> std::fmt::Debug for PadUsing<I, F>
 where
     I: std::fmt::Debug,
 {
-    debug_fmt_fields!(PadUsing, iter, min, pos);
+    debug_fmt_fields!(PadUsing, iter, min, pos, back, total_len);
 }
 
 /// Create a new `PadUsing` iterator.
@@ -33,6 +34,8 @@ where
         iter: iter.fuse(),
         min,
         pos: 0,
+        back: 0,
+        total_len: min,
         filler,
     }
 }
@@ -48,7 +51,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         match self.iter.next() {
             None => {
-                if self.pos < self.min {
+                if self.pos + self.back < self.total_len {
                     let e = Some((self.filler)(self.pos));
                     self.pos += 1;
                     e
@@ -64,8 +67,18 @@ where
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let tail = self.min.saturating_sub(self.pos);
-        size_hint::max(self.iter.size_hint(), (tail, Some(tail)))
+        let (iter_lower, iter_upper) = self.iter.size_hint();
+        let consumed = self.pos.saturating_add(self.back);
+
+        let total_lower = iter_lower.saturating_add(self.pos).max(self.min);
+        let lower_bound = total_lower.saturating_sub(consumed);
+
+        let upper_bound = iter_upper.map(|iter_upper| {
+            let total_upper = iter_upper.saturating_add(self.pos).max(self.min);
+            total_upper.saturating_sub(consumed)
+        });
+
+        (lower_bound, upper_bound)
     }
 
     fn fold<B, G>(self, mut init: B, mut f: G) -> B
@@ -87,14 +100,25 @@ where
     F: FnMut(usize) -> I::Item,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.min == 0 {
-            self.iter.next_back()
-        } else if self.iter.len() >= self.min {
-            self.min -= 1;
-            self.iter.next_back()
+        let current_iter_len = self.iter.len();
+        let original_iter_len = current_iter_len.saturating_add(self.pos);
+        if self.total_len < original_iter_len {
+            self.total_len = original_iter_len;
+        }
+
+        if self.pos + self.back >= self.total_len {
+            return None;
+        }
+
+        let padding_count = self.total_len.saturating_sub(current_iter_len + self.pos);
+
+        if self.back < padding_count {
+            let idx = self.total_len - self.back - 1;
+            self.back += 1;
+            Some((self.filler)(idx))
         } else {
-            self.min -= 1;
-            Some((self.filler)(self.min))
+            self.back += 1;
+            self.iter.next_back()
         }
     }
 
@@ -102,10 +126,26 @@ where
     where
         G: FnMut(B, Self::Item) -> B,
     {
-        init = (self.iter.len()..self.min)
-            .map(self.filler)
-            .rfold(init, &mut f);
-        self.iter.rfold(init, f)
+        let PadUsing {
+            iter,
+            min: _,
+            pos,
+            back,
+            mut total_len,
+            filler,
+        } = self;
+        let iter_len = iter.len();
+        let original_iter_len = iter_len.saturating_add(pos);
+        if total_len < original_iter_len {
+            total_len = original_iter_len;
+        }
+
+        let start_idx = iter_len + pos;
+        let end_idx = total_len - back;
+
+        init = (start_idx..end_idx).rev().map(filler).fold(init, &mut f);
+
+        iter.rfold(init, f)
     }
 }
 
