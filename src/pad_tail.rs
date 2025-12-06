@@ -87,12 +87,15 @@ where
     where
         G: FnMut(B, Self::Item) -> B,
     {
-        let mut pos = self.elements_from_next;
+        let mut start = self.elements_from_next;
         init = self.iter.fold(init, |acc, item| {
-            pos += 1;
+            start += 1;
             f(acc, item)
         });
-        (pos..self.elements_required).map(self.filler).fold(init, f)
+
+        let end = self.elements_required - self.elements_from_next_back;
+
+        (start..end).map(self.filler).fold(init, f)
     }
 }
 
