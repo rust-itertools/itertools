@@ -119,6 +119,15 @@ where
         }
     }
     check_specialized!(it, |i| {
+        let mut parameters_from_fold = vec![];
+        let fold_result = i.fold(vec![], |mut acc, v: I::Item| {
+            parameters_from_fold.push((acc.clone(), v.clone()));
+            acc.push(v);
+            acc
+        });
+        (parameters_from_fold, fold_result)
+    });
+    check_specialized!(it, |i| {
         let mut parameters_from_rfold = vec![];
         let rfold_result = i.rfold(vec![], |mut acc, v: I::Item| {
             parameters_from_rfold.push((acc.clone(), v.clone()));
@@ -131,6 +140,25 @@ where
     for n in 0..size + 2 {
         check_specialized!(it, |mut i| i.nth_back(n));
     }
+
+    let mut fwd = it.clone();
+    let mut bwd = it.clone();
+
+    for _ in fwd.by_ref() {}
+
+    assert_eq!(
+        fwd.next_back(),
+        None,
+        "iterator leaks elements after consuming forwards"
+    );
+
+    while bwd.next_back().is_some() {}
+
+    assert_eq!(
+        bwd.next(),
+        None,
+        "iterator leaks elements after consuming backwards"
+    );
 }
 
 quickcheck! {

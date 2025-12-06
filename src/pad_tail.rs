@@ -1,4 +1,3 @@
-use crate::size_hint;
 use std::iter::{Fuse, FusedIterator};
 
 /// An iterator adaptor that pads a sequence to a minimum length by filling
@@ -11,8 +10,9 @@ use std::iter::{Fuse, FusedIterator};
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct PadUsing<I, F> {
     iter: Fuse<I>,
-    min: usize,
-    pos: usize,
+    elements_from_next: usize,
+    elements_from_next_back: usize,
+    elements_required: usize,
     filler: F,
 }
 
@@ -20,19 +20,26 @@ impl<I, F> std::fmt::Debug for PadUsing<I, F>
 where
     I: std::fmt::Debug,
 {
-    debug_fmt_fields!(PadUsing, iter, min, pos);
+    debug_fmt_fields!(
+        PadUsing,
+        iter,
+        elements_from_next,
+        elements_from_next_back,
+        elements_required
+    );
 }
 
 /// Create a new `PadUsing` iterator.
-pub fn pad_using<I, F>(iter: I, min: usize, filler: F) -> PadUsing<I, F>
+pub fn pad_using<I, F>(iter: I, elements_required: usize, filler: F) -> PadUsing<I, F>
 where
     I: Iterator,
     F: FnMut(usize) -> I::Item,
 {
     PadUsing {
         iter: iter.fuse(),
-        min,
-        pos: 0,
+        elements_from_next: 0,
+        elements_from_next_back: 0,
+        elements_required,
         filler,
     }
 }
@@ -46,38 +53,49 @@ where
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        match self.iter.next() {
-            None => {
-                if self.pos < self.min {
-                    let e = Some((self.filler)(self.pos));
-                    self.pos += 1;
-                    e
-                } else {
-                    None
-                }
-            }
-            e => {
-                self.pos += 1;
-                e
-            }
+        let total_consumed = self.elements_from_next + self.elements_from_next_back;
+
+        if total_consumed >= self.elements_required {
+            self.iter.next()
+        } else if let Some(e) = self.iter.next() {
+            self.elements_from_next += 1;
+            Some(e)
+        } else {
+            let e = (self.filler)(self.elements_from_next);
+            self.elements_from_next += 1;
+            Some(e)
         }
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let tail = self.min.saturating_sub(self.pos);
-        size_hint::max(self.iter.size_hint(), (tail, Some(tail)))
+        let total_consumed = self.elements_from_next + self.elements_from_next_back;
+
+        if total_consumed >= self.elements_required {
+            return self.iter.size_hint();
+        }
+
+        let elements_remaining = self.elements_required - total_consumed;
+        let (low, high) = self.iter.size_hint();
+
+        let lower_bound = low.max(elements_remaining);
+        let upper_bound = high.map(|h| h.max(elements_remaining));
+
+        (lower_bound, upper_bound)
     }
 
     fn fold<B, G>(self, mut init: B, mut f: G) -> B
     where
         G: FnMut(B, Self::Item) -> B,
     {
-        let mut pos = self.pos;
+        let mut start = self.elements_from_next;
         init = self.iter.fold(init, |acc, item| {
-            pos += 1;
+            start += 1;
             f(acc, item)
         });
-        (pos..self.min).map(self.filler).fold(init, f)
+
+        let end = self.elements_required - self.elements_from_next_back;
+
+        (start..end).map(self.filler).fold(init, f)
     }
 }
 
@@ -87,14 +105,21 @@ where
     F: FnMut(usize) -> I::Item,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.min == 0 {
-            self.iter.next_back()
-        } else if self.iter.len() >= self.min {
-            self.min -= 1;
-            self.iter.next_back()
+        let total_consumed = self.elements_from_next + self.elements_from_next_back;
+
+        if total_consumed >= self.elements_required {
+            return self.iter.next_back();
+        }
+
+        let elements_remaining = self.elements_required - total_consumed;
+        self.elements_from_next_back += 1;
+
+        if self.iter.len() < elements_remaining {
+            Some((self.filler)(
+                self.elements_required - self.elements_from_next_back,
+            ))
         } else {
-            self.min -= 1;
-            Some((self.filler)(self.min))
+            self.iter.next_back()
         }
     }
 
@@ -102,9 +127,12 @@ where
     where
         G: FnMut(B, Self::Item) -> B,
     {
-        init = (self.iter.len()..self.min)
-            .map(self.filler)
-            .rfold(init, &mut f);
+        let start = self.iter.len() + self.elements_from_next;
+        let remaining = self.elements_required.max(start);
+        let end = remaining - self.elements_from_next_back;
+
+        init = (start..end).rev().map(self.filler).fold(init, &mut f);
+
         self.iter.rfold(init, f)
     }
 }
