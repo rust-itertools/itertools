@@ -119,6 +119,15 @@ where
         }
     }
     check_specialized!(it, |i| {
+        let mut parameters_from_fold = vec![];
+        let fold_result = i.fold(vec![], |mut acc, v: I::Item| {
+            parameters_from_fold.push((acc.clone(), v.clone()));
+            acc.push(v);
+            acc
+        });
+        (parameters_from_fold, fold_result)
+    });
+    check_specialized!(it, |i| {
         let mut parameters_from_rfold = vec![];
         let rfold_result = i.rfold(vec![], |mut acc, v: I::Item| {
             parameters_from_rfold.push((acc.clone(), v.clone()));
