@@ -9,6 +9,7 @@ use crate::it::multipeek;
 use crate::it::multizip;
 use crate::it::peek_nth;
 use crate::it::repeat_n;
+use crate::it::AllEqualValueError;
 use crate::it::ExactlyOneError;
 use crate::it::FoldWhile;
 use crate::it::Itertools;
@@ -282,14 +283,17 @@ fn all_equal() {
 
 #[test]
 fn all_equal_value() {
-    assert_eq!("".chars().all_equal_value(), Err(None));
+    assert_eq!("".chars().all_equal_value(), Err(AllEqualValueError(None)));
     assert_eq!("A".chars().all_equal_value(), Ok('A'));
-    assert_eq!("AABBCCC".chars().all_equal_value(), Err(Some(('A', 'B'))));
+    assert_eq!(
+        "AABBCCC".chars().all_equal_value(),
+        Err(AllEqualValueError(Some(['A', 'B'])))
+    );
     assert_eq!("AAAAAAA".chars().all_equal_value(), Ok('A'));
     {
         let mut it = [1, 2, 3].iter().copied();
         let result = it.all_equal_value();
-        assert_eq!(result, Err(Some((1, 2))));
+        assert_eq!(result, Err(AllEqualValueError(Some([1, 2]))));
         let remaining = it.next();
         assert_eq!(remaining, Some(3));
         assert!(it.next().is_none());
