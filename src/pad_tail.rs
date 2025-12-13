@@ -51,7 +51,6 @@ where
 {
     type Item = I::Item;
 
-    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         let total_consumed = self.elements_from_next + self.elements_from_next_back;
 
@@ -82,21 +81,6 @@ where
 
         (lower_bound, upper_bound)
     }
-
-    fn fold<B, G>(self, mut init: B, mut f: G) -> B
-    where
-        G: FnMut(B, Self::Item) -> B,
-    {
-        let mut start = self.elements_from_next;
-        init = self.iter.fold(init, |acc, item| {
-            start += 1;
-            f(acc, item)
-        });
-
-        let end = self.elements_required - self.elements_from_next_back;
-
-        (start..end).map(self.filler).fold(init, f)
-    }
 }
 
 impl<I, F> DoubleEndedIterator for PadUsing<I, F>
@@ -111,29 +95,14 @@ where
             return self.iter.next_back();
         }
 
-        let elements_remaining = self.elements_required - total_consumed;
+        let index_from_back = self.elements_required - self.elements_from_next_back - 1;
         self.elements_from_next_back += 1;
 
-        if self.iter.len() < elements_remaining {
-            Some((self.filler)(
-                self.elements_required - self.elements_from_next_back,
-            ))
+        if index_from_back >= self.iter.len() {
+            Some((self.filler)(index_from_back))
         } else {
             self.iter.next_back()
         }
-    }
-
-    fn rfold<B, G>(self, mut init: B, mut f: G) -> B
-    where
-        G: FnMut(B, Self::Item) -> B,
-    {
-        let start = self.iter.len() + self.elements_from_next;
-        let remaining = self.elements_required.max(start);
-        let end = remaining - self.elements_from_next_back;
-
-        init = (start..end).rev().map(self.filler).fold(init, &mut f);
-
-        self.iter.rfold(init, f)
     }
 }
 

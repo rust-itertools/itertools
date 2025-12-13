@@ -144,7 +144,7 @@ where
     let mut fwd = it.clone();
     let mut bwd = it.clone();
 
-    for _ in fwd.by_ref() {}
+    while fwd.next().is_some() {}
 
     assert_eq!(
         fwd.next_back(),
