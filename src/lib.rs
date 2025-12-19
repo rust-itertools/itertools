@@ -123,6 +123,7 @@ pub mod structs {
     pub use crate::pad_tail::PadUsing;
     #[cfg(feature = "use_alloc")]
     pub use crate::peek_nth::PeekNth;
+    pub use crate::peeking_map_while::PeekingMapWhile;
     pub use crate::peeking_take_while::PeekingTakeWhile;
     #[cfg(feature = "use_alloc")]
     pub use crate::permutations::Permutations;
@@ -163,6 +164,7 @@ pub use crate::diff::Diff;
 #[cfg(feature = "use_alloc")]
 pub use crate::kmerge_impl::kmerge_by;
 pub use crate::minmax::MinMaxResult;
+pub use crate::peeking_map_while::PeekingMapNext;
 pub use crate::peeking_take_while::PeekingNext;
 pub use crate::process_results_impl::process_results;
 pub use crate::repeatn::repeat_n;
@@ -216,6 +218,7 @@ mod next_array;
 mod pad_tail;
 #[cfg(feature = "use_alloc")]
 mod peek_nth;
+mod peeking_map_while;
 mod peeking_take_while;
 #[cfg(feature = "use_alloc")]
 mod permutations;
@@ -1540,8 +1543,8 @@ pub trait Itertools: Iterator {
     /// Return an iterator adaptor that borrows from this iterator and
     /// takes items while the closure `accept` returns `true`.
     ///
-    /// This adaptor can only be used on iterators that implement `PeekingNext`
-    /// like `.peekable()`, `put_back` and a few other collection iterators.
+    /// This adaptor can only be used on iterators that implement [`PeekingNext`]
+    /// like [`Peekable`](core::iter::Peekable), [`PutBack`] and a few other collection iterators.
     ///
     /// The last and rejected element (first `false`) is still available when
     /// `peeking_take_while` is done.
@@ -1557,10 +1560,20 @@ pub trait Itertools: Iterator {
         peeking_take_while::peeking_take_while(self, accept)
     }
 
-    /// Return an iterator adaptor that borrows from a `Clone`-able iterator
+    /// Return an iterator adaptor thar borrows from this iterator and takes items while the closure returns [`Either::Left`].
+    /// If it returns [`Either::Right`] then that value is put back into the iterator (which is implementation dependent) and the iterator returns none
+    fn peeking_map_while<F, O>(&mut self, accept: F) -> PeekingMapWhile<'_, Self, F>
+    where
+        Self: Sized + PeekingMapNext,
+        F: FnMut(Self::Item) -> Either<O, Self::Item>,
+    {
+        peeking_map_while::PeekingMapWhile { iter: self, accept }
+    }
+
+    /// Return an iterator adaptor that borrows from a [`Clone`]-able iterator
     /// to only pick off elements while the predicate `accept` returns `true`.
     ///
-    /// It uses the `Clone` trait to restore the original iterator so that the
+    /// It uses the [`Clone`] trait to restore the original iterator so that the
     /// last and rejected element (first `false`) is still available when
     /// `take_while_ref` is done.
     ///
