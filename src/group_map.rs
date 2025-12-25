@@ -1,5 +1,9 @@
-#![cfg(feature = "use_std")]
+#![cfg(any(feature = "use_std", feature = "hashbrown"))]
 
+use alloc::vec::Vec;
+#[cfg(feature = "hashbrown")]
+use hashbrown::HashMap;
+#[cfg(not(feature = "hashbrown"))]
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::iter::Iterator;

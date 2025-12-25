@@ -24,6 +24,10 @@ test = false
 
 [dependencies]
 either = { version = "1.0", default-features = false }
+hashbrown = { version = "0.15", optional = true, default-features = false, features = [
+    "alloc",
+    "default-hasher",
+] }
 
 [dev-dependencies]
 rand = "0.7"
@@ -36,6 +40,7 @@ quickcheck = { version = "0.9", default-features = false }
 default = ["use_std"]
 use_std = ["use_alloc", "either/use_std"]
 use_alloc = []
+hashbrown = ["dep:hashbrown", "use_alloc"]
 
 [profile]
 bench = { debug = true }
