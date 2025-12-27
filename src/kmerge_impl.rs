@@ -80,7 +80,7 @@ where
     while child + 1 < heap.len() {
         // pick the smaller of the two children
         // use arithmetic to avoid an unpredictable branch
-        child += less_than(&heap[child + 1], &heap[child]) as usize;
+        child += usize::from(less_than(&heap[child + 1], &heap[child]));
 
         // sift down is done if we are already in order
         if !less_than(&heap[child], &heap[pos]) {
@@ -97,7 +97,7 @@ where
     }
 }
 
-/// An iterator adaptor that merges an abitrary number of base iterators in ascending order.
+/// An iterator adaptor that merges an arbitrary number of base iterators in ascending order.
 /// If all base iterators are sorted (ascending), the result is sorted.
 ///
 /// Iterator element type is `I::Item`.
@@ -146,7 +146,7 @@ where
     kmerge_by(iterable, KMergeByLt)
 }
 
-/// An iterator adaptor that merges an abitrary number of base iterators
+/// An iterator adaptor that merges an arbitrary number of base iterators
 /// according to an ordering function.
 ///
 /// Iterator element type is `I::Item`.

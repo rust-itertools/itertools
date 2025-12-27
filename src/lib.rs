@@ -622,6 +622,28 @@ pub trait Itertools: Iterator {
     ///
     /// **Panics** if the iterators reach an end and they are not of equal
     /// lengths.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let a = vec![1, 2];
+    /// let b = vec![3, 4];
+    ///
+    /// let zipped: Vec<_> = a.into_iter().zip_eq(b.into_iter()).collect();
+    ///
+    /// itertools::assert_equal(zipped, vec![(1, 3), (2, 4)]);
+    /// ```
+    ///
+    /// ```should_panic
+    /// use itertools::Itertools;
+    ///
+    /// let a = [1, 2];
+    /// let b = [3, 4, 5];
+    /// // This example panics because the iterators are not of equal length.
+    /// let _zipped: Vec<_> = a.iter().zip_eq(b.iter()).collect();
+    /// ```
     #[inline]
     fn zip_eq<J>(self, other: J) -> ZipEq<Self, J::IntoIter>
     where
@@ -731,6 +753,8 @@ pub trait Itertools: Iterator {
     ///
     /// **Panics** if `size` is 0.
     ///
+    /// # Examples
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -743,6 +767,13 @@ pub trait Itertools: Iterator {
     ///     // Check that the sum of each chunk is 4.
     ///     assert_eq!(4, chunk.sum());
     /// }
+    /// ```
+    ///
+    /// ```should_panic
+    /// use itertools::Itertools;
+    /// let data = vec![1, 2, 3];
+    /// // Panics because chunk size is 0.
+    /// let _chunks = data.into_iter().chunks(0);
     /// ```
     #[cfg(feature = "use_alloc")]
     fn chunks(self, size: usize) -> IntoChunks<Self>
@@ -872,7 +903,7 @@ pub trait Itertools: Iterator {
     /// Split into an iterator pair that both yield all elements from
     /// the original iterator.
     ///
-    /// **Note:** If the iterator is clonable, prefer using that instead
+    /// **Note:** If the iterator is cloneable, prefer using that instead
     /// of using this method. Cloning is likely to be more efficient.
     ///
     /// Iterator element type is `Self::Item`.
@@ -1003,7 +1034,7 @@ pub trait Itertools: Iterator {
     /// as long as the original iterator produces `Ok` values.
     ///
     /// If the original iterable produces an error at any point, the adapted
-    /// iterator ends and it will return the error iself.
+    /// iterator ends and it will return the error itself.
     ///
     /// Otherwise, the return value from the closure is returned wrapped
     /// inside `Ok`.
@@ -1518,7 +1549,7 @@ pub trait Itertools: Iterator {
     ///
     /// See also [`.take_while_ref()`](Itertools::take_while_ref)
     /// which is a similar adaptor.
-    fn peeking_take_while<F>(&mut self, accept: F) -> PeekingTakeWhile<Self, F>
+    fn peeking_take_while<F>(&mut self, accept: F) -> PeekingTakeWhile<'_, Self, F>
     where
         Self: Sized + PeekingNext,
         F: FnMut(&Self::Item) -> bool,
@@ -1543,7 +1574,7 @@ pub trait Itertools: Iterator {
     /// assert_eq!(decimals, "0123456789");
     /// assert_eq!(hexadecimals.next(), Some('a'));
     /// ```
-    fn take_while_ref<F>(&mut self, accept: F) -> TakeWhileRef<Self, F>
+    fn take_while_ref<F>(&mut self, accept: F) -> TakeWhileRef<'_, Self, F>
     where
         Self: Clone,
         F: FnMut(&Self::Item) -> bool,
@@ -1601,11 +1632,11 @@ pub trait Itertools: Iterator {
     /// #[derive(Debug, PartialEq)]
     /// struct NoCloneImpl(i32);
     ///
-    /// let non_clonable_items: Vec<_> = vec![1, 2, 3, 4, 5]
+    /// let non_cloneable_items: Vec<_> = vec![1, 2, 3, 4, 5]
     ///     .into_iter()
     ///     .map(NoCloneImpl)
     ///     .collect();
-    /// let filtered: Vec<_> = non_clonable_items
+    /// let filtered: Vec<_> = non_cloneable_items
     ///     .into_iter()
     ///     .take_while_inclusive(|n| n.0 % 3 != 0)
     ///     .collect();
@@ -2506,7 +2537,7 @@ pub trait Itertools: Iterator {
     ///     format!("{:.2}", data.iter().format(", ")),
     ///            "1.10, 2.72, -3.00");
     /// ```
-    fn format(self, sep: &str) -> Format<Self>
+    fn format(self, sep: &str) -> Format<'_, Self>
     where
         Self: Sized,
     {
@@ -2545,7 +2576,7 @@ pub trait Itertools: Iterator {
     ///
     ///
     /// ```
-    fn format_with<F>(self, sep: &str, format: F) -> FormatWith<Self, F>
+    fn format_with<F>(self, sep: &str, format: F) -> FormatWith<'_, Self, F>
     where
         Self: Sized,
         F: FnMut(Self::Item, &mut dyn FnMut(&dyn fmt::Display) -> fmt::Result) -> fmt::Result,
@@ -3797,7 +3828,7 @@ pub trait Itertools: Iterator {
     /// value of type `K` will be used as key to identify the groups and the
     /// value of type `V` as value for the folding operation.
     ///
-    /// See [`GroupingMap`] for more informations
+    /// See [`GroupingMap`] for more information
     /// on what operations are available.
     #[cfg(feature = "use_std")]
     fn into_grouping_map<K, V>(self) -> GroupingMap<Self>
@@ -3814,7 +3845,7 @@ pub trait Itertools: Iterator {
     /// The values from this iterator will be used as values for the folding operation
     /// while the keys will be obtained from the values by calling `key_mapper`.
     ///
-    /// See [`GroupingMap`] for more informations
+    /// See [`GroupingMap`] for more information
     /// on what operations are available.
     #[cfg(feature = "use_std")]
     fn into_grouping_map_by<K, V, F>(self, key_mapper: F) -> GroupingMapBy<Self, F>
@@ -4053,6 +4084,23 @@ pub trait Itertools: Iterator {
     /// assert_eq!(a.iter().minmax(), MinMax(&1, &1));
     /// ```
     ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{MinMax, NoElements, OneElement};
+    ///
+    /// let a: [(i32, char); 0] = [];
+    /// assert_eq!(a.iter().minmax(), NoElements);
+    ///
+    /// let a = [(1, 'a')];
+    /// assert_eq!(a.iter().minmax(), OneElement(&(1, 'a')));
+    ///
+    /// let a = [(0, 'a'), (1, 'b')];
+    /// assert_eq!(a.iter().minmax(), MinMax(&(0, 'a'), &(1, 'b')));
+    ///
+    /// let a = [(1, 'a'), (1, 'b'), (1, 'c')];
+    /// assert_eq!(a.iter().minmax(), MinMax(&(1, 'a'), &(1, 'c')));
+    /// ```
+    ///
     /// The elements can be floats but no particular result is guaranteed
     /// if an element is NaN.
     fn minmax(self) -> MinMaxResult<Self::Item>
@@ -4074,6 +4122,27 @@ pub trait Itertools: Iterator {
     ///
     /// The keys can be floats but no particular result is guaranteed
     /// if a key is NaN.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{MinMax, NoElements, OneElement};
+    ///
+    /// let cmp_key = |x: &&(i32, char)| x.0;
+    ///
+    /// let a: [(i32, char); 0] = [];
+    /// assert_eq!(a.iter().minmax_by_key(cmp_key), NoElements);
+    ///
+    /// let a = [(1, 'a')];
+    /// assert_eq!(a.iter().minmax_by_key(cmp_key), OneElement(&(1, 'a')));
+    ///
+    /// let a = [(0, 'a'), (1, 'b')];
+    /// assert_eq!(a.iter().minmax_by_key(cmp_key), MinMax(&(0, 'a'), &(1, 'b')));
+    ///
+    /// let a = [(1, 'a'), (1, 'b'), (1, 'c')];
+    /// assert_eq!(a.iter().minmax_by_key(cmp_key), MinMax(&(1, 'a'), &(1, 'c')));
+    /// ```
     fn minmax_by_key<K, F>(self, key: F) -> MinMaxResult<Self::Item>
     where
         Self: Sized,
@@ -4091,6 +4160,27 @@ pub trait Itertools: Iterator {
     /// For the minimum, the first minimal element is returned.  For the maximum,
     /// the last maximal element wins.  This matches the behavior of the standard
     /// [`Iterator::min`] and [`Iterator::max`] methods.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{MinMax, NoElements, OneElement};
+    ///
+    /// let first_item_cmp = |x: &&(i32, char), y: &&(i32, char)| x.0.cmp(&y.0);
+    ///
+    /// let a: [(i32, char); 0] = [];
+    /// assert_eq!(a.iter().minmax_by(first_item_cmp), NoElements);
+    ///
+    /// let a = [(1, 'a')];
+    /// assert_eq!(a.iter().minmax_by(first_item_cmp), OneElement(&(1, 'a')));
+    ///
+    /// let a = [(0, 'a'), (1, 'b')];
+    /// assert_eq!(a.iter().minmax_by(first_item_cmp), MinMax(&(0, 'a'), &(1, 'b')));
+    ///
+    /// let a = [(1, 'a'), (1, 'b'), (1, 'c')];
+    /// assert_eq!(a.iter().minmax_by(first_item_cmp), MinMax(&(1, 'a'), &(1, 'c')));
+    /// ```
     fn minmax_by<F>(self, mut compare: F) -> MinMaxResult<Self::Item>
     where
         Self: Sized,
@@ -4334,7 +4424,7 @@ pub trait Itertools: Iterator {
         }
     }
 
-    /// Return the postions of the minimum and maximum elements of an
+    /// Return the positions of the minimum and maximum elements of an
     /// iterator, as determined by the specified function.
     ///
     /// The return value is a variant of [`MinMaxResult`] like for
@@ -4382,7 +4472,7 @@ pub trait Itertools: Iterator {
         }
     }
 
-    /// Return the postions of the minimum and maximum elements of an
+    /// Return the positions of the minimum and maximum elements of an
     /// iterator, as determined by the specified comparison function.
     ///
     /// The return value is a variant of [`MinMaxResult`] like for

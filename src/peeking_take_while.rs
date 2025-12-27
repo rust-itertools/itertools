@@ -92,6 +92,57 @@ where
     }
 }
 
+#[cfg(feature = "use_alloc")]
+impl<T> PeekingNext for ::alloc::vec::IntoIter<T> {
+    fn peeking_next<F>(&mut self, accept: F) -> Option<Self::Item>
+    where
+        F: FnOnce(&Self::Item) -> bool,
+    {
+        match accept(self.as_slice().first()?) {
+            true => self.next(),
+            false => None,
+        }
+    }
+}
+
+#[cfg(feature = "use_alloc")]
+impl<'a, T> PeekingNext for ::alloc::vec::Drain<'a, T> {
+    fn peeking_next<F>(&mut self, accept: F) -> Option<Self::Item>
+    where
+        F: FnOnce(&Self::Item) -> bool,
+    {
+        match accept(self.as_slice().first()?) {
+            true => self.next(),
+            false => None,
+        }
+    }
+}
+
+#[cfg(feature = "use_alloc")]
+impl<'a> PeekingNext for ::alloc::string::Drain<'a> {
+    fn peeking_next<F>(&mut self, accept: F) -> Option<Self::Item>
+    where
+        F: FnOnce(&Self::Item) -> bool,
+    {
+        match accept(&self.as_str().chars().next()?) {
+            true => self.next(),
+            false => None,
+        }
+    }
+}
+
+impl<T, const N: usize> PeekingNext for ::core::array::IntoIter<T, N> {
+    fn peeking_next<F>(&mut self, accept: F) -> Option<Self::Item>
+    where
+        F: FnOnce(&Self::Item) -> bool,
+    {
+        match accept(self.as_slice().first()?) {
+            true => self.next(),
+            false => None,
+        }
+    }
+}
+
 impl<T: Clone> PeekingNext for RepeatN<T> {
     fn peeking_next<F>(&mut self, accept: F) -> Option<Self::Item>
     where
@@ -126,7 +177,7 @@ where
 }
 
 /// Create a `PeekingTakeWhile`
-pub fn peeking_take_while<I, F>(iter: &mut I, f: F) -> PeekingTakeWhile<I, F>
+pub fn peeking_take_while<I, F>(iter: &mut I, f: F) -> PeekingTakeWhile<'_, I, F>
 where
     I: Iterator,
 {
@@ -191,10 +242,32 @@ peeking_next_by_clone! { ['a] ::std::str::Bytes<'a> }
 peeking_next_by_clone! { ['a, T] ::std::option::Iter<'a, T> }
 peeking_next_by_clone! { ['a, T] ::std::result::Iter<'a, T> }
 peeking_next_by_clone! { [T] ::std::iter::Empty<T> }
+
 #[cfg(feature = "use_alloc")]
 peeking_next_by_clone! { ['a, T] alloc::collections::linked_list::Iter<'a, T> }
 #[cfg(feature = "use_alloc")]
 peeking_next_by_clone! { ['a, T] alloc::collections::vec_deque::Iter<'a, T> }
+
+#[cfg(feature = "use_alloc")]
+peeking_next_by_clone! { ['a, K, V] alloc::collections::btree_map::Iter<'a, K, V> }
+#[cfg(feature = "use_alloc")]
+peeking_next_by_clone! { ['a, K, V] alloc::collections::btree_map::Keys<'a, K, V> }
+#[cfg(feature = "use_alloc")]
+peeking_next_by_clone! { ['a, K, V] alloc::collections::btree_map::Values<'a, K, V> }
+
+#[cfg(feature = "use_alloc")]
+peeking_next_by_clone! { ['a, T] alloc::collections::btree_set::Iter<'a, T> }
+#[cfg(feature = "use_alloc")]
+peeking_next_by_clone! { ['a, T] alloc::collections::binary_heap::Iter<'a, T> }
+
+#[cfg(feature = "use_std")]
+peeking_next_by_clone! { ['a, K, V] std::collections::hash_map::Iter<'a, K, V> }
+#[cfg(feature = "use_std")]
+peeking_next_by_clone! { ['a, K, V] std::collections::hash_map::Keys<'a, K, V> }
+#[cfg(feature = "use_std")]
+peeking_next_by_clone! { ['a, K, V] std::collections::hash_map::Values<'a, K, V> }
+#[cfg(feature = "use_std")]
+peeking_next_by_clone! { ['a, T] std::collections::hash_set::Iter<'a, T> }
 
 // cloning a Rev has no extra overhead; peekable and put backs are never DEI.
 peeking_next_by_clone! { [I: Clone + PeekingNext + DoubleEndedIterator]

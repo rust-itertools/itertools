@@ -443,13 +443,13 @@ fn kmerge_empty() {
 
 #[test]
 fn kmerge_size_hint() {
-    let its = (0..5).map(|_| (0..10));
+    let its = (0..5).map(|_| 0..10);
     assert_eq!(its.kmerge().size_hint(), (50, Some(50)));
 }
 
 #[test]
 fn kmerge_empty_size_hint() {
-    let its = (0..5).map(|_| (0..0));
+    let its = (0..5).map(|_| 0..0);
     assert_eq!(its.kmerge().size_hint(), (0, Some(0)));
 }
 
@@ -496,7 +496,7 @@ qc::quickcheck! {
     fn k_smallest_range(n: i64, m: u16, k: u16) -> () {
         // u16 is used to constrain k and m to 0..2¹⁶,
         //  otherwise the test could use too much memory.
-        let (k, m) = (k as usize, m as u64);
+        let (k, m) = (k as usize, u64::from(m));
 
         let mut v: Vec<_> = (n..n.saturating_add(m as _)).collect();
         // Generate a random permutation of n..n+m
@@ -532,7 +532,7 @@ qc::quickcheck! {
     fn k_smallest_relaxed_range(n: i64, m: u16, k: u16) -> () {
         // u16 is used to constrain k and m to 0..2¹⁶,
         //  otherwise the test could use too much memory.
-        let (k, m) = (k as usize, m as u64);
+        let (k, m) = (k as usize, u64::from(m));
 
         let mut v: Vec<_> = (n..n.saturating_add(m as _)).collect();
         // Generate a random permutation of n..n+m
