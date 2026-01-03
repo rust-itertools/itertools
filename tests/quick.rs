@@ -999,6 +999,45 @@ quickcheck! {
 }
 
 quickcheck! {
+    fn pad_using_next_next_back(v: Vec<i8>) -> () {
+        let only_oks = v.into_iter().map(Ok).collect::<Vec<_>>();
+        for elements_required in 0..128 {
+            let mut oks_then_errs_vector = only_oks.clone();
+            while oks_then_errs_vector.len() < elements_required {
+                oks_then_errs_vector.push(Err(oks_then_errs_vector.len()));
+            }
+            let oks_then_errs_pad_using = only_oks.iter().copied().pad_using(elements_required, Err);
+            assert_eq!(
+                oks_then_errs_pad_using.clone().collect::<Vec<_>>(),
+                oks_then_errs_vector
+            );
+            // Check next, next_back (https://github.com/rust-itertools/itertools/issues/1065)
+            let mut iter_check = oks_then_errs_vector.into_iter();
+            let mut iter_real = oks_then_errs_pad_using;
+            let mut rng = rand::thread_rng();
+            loop {
+                let next_or_next_back = if rng.gen_bool(0.5) {
+                    let element_next_check = iter_check.next();
+                    let element_next_real = iter_real.next();
+                    assert_eq!(element_next_check, element_next_real);
+                    element_next_real
+                } else {
+                    let element_next_back_check = iter_check.next_back();
+                    let element_next_back_real = iter_real.next_back();
+                    assert_eq!(element_next_back_check, element_next_back_real);
+                    element_next_back_real
+                };
+                if next_or_next_back.is_none() {
+                    assert!(iter_real.next().is_none());
+                    assert!(iter_real.next_back().is_none());
+                    break;
+                }
+            }
+        }
+    }
+}
+
+quickcheck! {
     fn size_powerset(it: Iter<u8, Exact>) -> bool {
         // Powerset cardinality gets large very quickly, limit input to keep test fast.
         correct_size_hint(it.take(12).powerset())
