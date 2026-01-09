@@ -116,6 +116,23 @@ where
         })
     }
 
+    fn fold<B, F>(mut self, init: B, mut f: F) -> B
+    where
+        Self: Sized,
+        F: FnMut(B, Self::Item) -> B,
+    {
+        let UniqueBy { iter, used, .. } = &mut self.iter;
+        iter.fold(init, |mut acc, v| {
+            if let Entry::Vacant(e) = used.entry(v) {
+                let elt = e.key().clone();
+                e.insert(());
+                acc = f(acc, elt);
+            }
+
+            acc
+        })
+    }
+
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (low, hi) = self.iter.iter.size_hint();
