@@ -143,6 +143,7 @@ pub mod structs {
     #[cfg(feature = "use_std")]
     pub use crate::unique_impl::{Unique, UniqueBy};
     pub use crate::with_position::WithPosition;
+    pub use crate::zip_clones::ZipClones;
     pub use crate::zip_eq_impl::ZipEq;
     pub use crate::zip_longest::ZipLongest;
     pub use crate::ziptuple::Zip;
@@ -237,6 +238,7 @@ mod tuple_impl;
 mod unique_impl;
 mod unziptuple;
 mod with_position;
+mod zip_clones;
 mod zip_eq_impl;
 mod zip_longest;
 mod ziptuple;
@@ -651,6 +653,43 @@ pub trait Itertools: Iterator {
         Self: Sized,
     {
         zip_eq(self, other)
+    }
+
+    /// Create an iterator which iterates over this iterator paired with clones of a given value.
+    ///
+    /// If the iterator has `n` elements, the zipped value will be cloned `n-1` times. This function
+    /// is useful when the zipped value is expensive to clone and you want to avoid cloning it `n` times,
+    /// using the trivial following code:
+    /// ```rust
+    /// let it = [0, 1, 2, 3, 4].iter();
+    /// let zipped = "expensive-to-clone".to_string();
+    /// for a in it {
+    ///     let b = zipped.clone();
+    ///     // do something that consumes the expensive zipped value
+    ///     drop((a, b));
+    /// }
+    /// ```
+    /// Instead, you can use `zip_clones`:
+    /// ```rust
+    /// use itertools::Itertools;
+    /// let it = [0, 1, 2, 3, 4].iter();
+    /// let zipped = "expensive-to-clone".to_string();
+    /// for (a, b) in it.zip_clones(zipped) {
+    ///     // do something that consumes the expensive zipped value
+    ///     drop((a, b));
+    /// }
+    /// ```
+    ///
+    /// The [`repeat_n()`](crate::repeat_n) function can be used to create from a zipped value
+    /// an iterator that also clones the value `n-1` times, but it require to know the number of
+    /// elements in the iterator in advance.
+    #[inline]
+    fn zip_clones<T>(self, zipped: T) -> ZipClones<Self, T>
+    where
+        Self: Sized,
+        T: Clone,
+    {
+        zip_clones::zip_clones(self, zipped)
     }
 
     /// A “meta iterator adaptor”. Its closure receives a reference to the
