@@ -681,7 +681,7 @@ quickcheck! {
             assert_eq!(perm.len(), k);
 
             let all_items_valid = perm.iter().all(|p| vals.contains(p));
-            assert!(all_items_valid, "perm contains value not from input: {:?}", perm);
+            assert!(all_items_valid, "perm contains value not from input: {perm:?}");
 
             // Check that all perm items are distinct
             let distinct_len = {
@@ -691,7 +691,7 @@ quickcheck! {
             assert_eq!(perm.len(), distinct_len);
 
             // Check that the perm is new
-            assert!(actual.insert(perm.clone()), "perm already encountered: {:?}", perm);
+            assert!(actual.insert(perm.clone()), "perm already encountered: {perm:?}");
         }
     }
 
@@ -717,8 +717,7 @@ quickcheck! {
         for next_perm in perms {
             assert!(
                 next_perm > curr_perm,
-                "next perm isn't greater-than current; next_perm={:?} curr_perm={:?} n={}",
-                next_perm, curr_perm, n
+                "next perm isn't greater-than current; next_perm={next_perm:?} curr_perm={curr_perm:?} n={n}"
             );
 
             curr_perm = next_perm;
@@ -1933,7 +1932,7 @@ quickcheck! {
     fn fused_filter_map_ok(a: Iter<i16>) -> bool
     {
         is_fused(a.map(|x| if x % 2 == 0 {Ok(x)} else {Err(x)} )
-                 .filter_map_ok(|x| if x % 3 == 0 {Some(x / 3)} else {None})
+                 .filter_map_ok(|x| (x % 3 == 0).then_some(x / 3))
                  .fuse())
     }
 

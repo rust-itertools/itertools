@@ -122,13 +122,7 @@ must_use_tests! {
         let _ = Panicking.map(Ok::<u8, ()>).filter_ok(|x| x % 2 == 0);
     }
     filter_map_ok {
-        let _ = Panicking.map(Ok::<u8, ()>).filter_map_ok(|x| {
-            if x % 2 == 0 {
-                Some(x + 1)
-            } else {
-                None
-            }
-        });
+        let _ = Panicking.map(Ok::<u8, ()>).filter_map_ok(|x| (x % 2 == 0).then_some(x + 1));
     }
     flatten_ok {
         let _ = Panicking.map(|x| Ok::<_, ()>([x])).flatten_ok();
