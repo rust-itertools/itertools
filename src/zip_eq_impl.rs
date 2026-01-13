@@ -42,6 +42,7 @@ where
 {
     type Item = (I::Item, J::Item);
 
+    #[track_caller]
     fn next(&mut self) -> Option<Self::Item> {
         match (self.a.next(), self.b.next()) {
             (None, None) => None,
