@@ -1,5 +1,7 @@
-use std::collections::hash_map::Entry;
-use std::collections::HashMap;
+#[cfg(feature = "hashbrown")]
+use hashbrown::{hash_map::Entry, HashMap};
+#[cfg(not(feature = "hashbrown"))]
+use std::collections::{hash_map::Entry, HashMap};
 use std::fmt;
 use std::hash::Hash;
 use std::iter::FusedIterator;
