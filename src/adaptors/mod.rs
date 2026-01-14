@@ -125,8 +125,8 @@ where
     I: Iterator,
     J: Iterator<Item = I::Item>,
 {
-    i: I,
-    j: J,
+    i: Fuse<I>,
+    j: Fuse<J>,
     next_coming_from_j: bool,
 }
 
@@ -137,8 +137,8 @@ where
     J: Iterator<Item = I::Item>,
 {
     InterleaveShortest {
-        i,
-        j,
+        i: i.fuse(),
+        j: j.fuse(),
         next_coming_from_j: false,
     }
 }
@@ -229,8 +229,8 @@ where
 
 impl<I, J> FusedIterator for InterleaveShortest<I, J>
 where
-    I: FusedIterator,
-    J: FusedIterator<Item = I::Item>,
+    I: Iterator,
+    J: Iterator<Item = I::Item>,
 {
 }
 
