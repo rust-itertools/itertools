@@ -65,6 +65,26 @@ where
         iter.find(|v| used.insert(f(v), ()).is_none())
     }
 
+    fn fold<B, G>(self, init: B, mut f: G) -> B
+    where
+        Self: Sized,
+        G: FnMut(B, Self::Item) -> B,
+    {
+        let Self {
+            iter,
+            mut used,
+            f: mut key,
+        } = self;
+
+        iter.fold(init, |mut acc, v| {
+            if used.insert(key(&v), ()).is_none() {
+                acc = f(acc, v);
+            };
+
+            acc
+        })
+    }
+
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (low, hi) = self.iter.size_hint();
