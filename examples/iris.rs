@@ -99,8 +99,8 @@ fn main() {
     let n = 30; // plot size
     let mut plot = vec![' '; n * n];
 
-    // using Itertools::tuple_combinations
-    for (a, b) in (0..4).tuple_combinations() {
+    // using Itertools::array_combinations
+    for [a, b] in (0..4).array_combinations() {
         println!("Column {a} vs {b}:");
 
         // Clear plot
