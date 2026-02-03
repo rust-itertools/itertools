@@ -255,6 +255,7 @@ quickcheck! {
         test_double_ended_specializations(&it);
     }
 
+    #[allow(deprecated)]
     fn tuple_combinations(v: Vec<u8>) -> TestResult {
         if v.len() > 10 {
             return TestResult::discard();
