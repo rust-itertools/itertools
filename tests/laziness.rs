@@ -196,16 +196,28 @@ must_use_tests! {
     while_some {
         let _ = Panicking.map(Some).while_some();
     }
+    #[allow(deprecated)]
     tuple_combinations1 {
         let _ = Panicking.tuple_combinations::<(_,)>();
     }
+    #[allow(deprecated)]
     #[should_panic]
     tuple_combinations2 {
         let _ = Panicking.tuple_combinations::<(_, _)>();
     }
+    #[allow(deprecated)]
     #[should_panic]
     tuple_combinations3 {
         let _ = Panicking.tuple_combinations::<(_, _, _)>();
+    }
+    array_combinations1 {
+        let _ = Panicking.array_combinations::<1>();
+    }
+    array_combinations2 {
+        let _ = Panicking.array_combinations::<2>();
+    }
+    array_combinations3 {
+        let _ = Panicking.array_combinations::<3>();
     }
     combinations {
         let _ = Panicking.combinations(0);
