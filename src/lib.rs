@@ -1710,6 +1710,7 @@ pub trait Itertools: Iterator {
     /// let it: TupleCombinations<Range<u32>, (u32, u32, u32)> = (1..5).tuple_combinations();
     /// itertools::assert_equal(it, vec![(1, 2, 3), (1, 2, 4), (1, 3, 4), (2, 3, 4)]);
     /// ```
+    #[deprecated(note = "Use .array_combinations() instead", since = "0.15.0")]
     fn tuple_combinations<T>(self) -> TupleCombinations<Self, T>
     where
         Self: Sized,

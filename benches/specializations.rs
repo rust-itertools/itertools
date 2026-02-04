@@ -355,29 +355,29 @@ bench_specializations! {
         }
         v.iter().copied().update(|x| *x *= 7)
     }
-    tuple_combinations1 {
+    array_combinations1 {
         {
             let v = black_box(vec![0; 1024]);
         }
-        v.iter().tuple_combinations::<(_,)>()
+        v.iter().array_combinations::<1>()
     }
-    tuple_combinations2 {
+    array_combinations2 {
         {
             let v = black_box(vec![0; 64]);
         }
-        v.iter().tuple_combinations::<(_, _)>()
+        v.iter().array_combinations::<2>()
     }
-    tuple_combinations3 {
+    array_combinations3 {
         {
             let v = black_box(vec![0; 64]);
         }
-        v.iter().tuple_combinations::<(_, _, _)>()
+        v.iter().array_combinations::<3>()
     }
-    tuple_combinations4 {
+    array_combinations4 {
         {
             let v = black_box(vec![0; 64]);
         }
-        v.iter().tuple_combinations::<(_, _, _, _)>()
+        v.iter().array_combinations::<4>()
     }
     intersperse {
         {
