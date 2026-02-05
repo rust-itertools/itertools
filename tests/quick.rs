@@ -1300,6 +1300,48 @@ quickcheck! {
     }
 }
 
+// array iterators
+quickcheck! {
+    fn equal_circular_array_windows_0(a: Vec<u8>) -> bool {
+        let x = a.iter().map(|_| [&0u8; 0] );
+        let y = a.iter().circular_array_windows::<0>();
+        assert_eq!(a.len(), y.len());
+        itertools::assert_equal(x,y);
+        true
+    }
+
+    fn equal_circular_array_windows_1(a: Vec<u8>) -> bool {
+        let x = a.iter().map(|e| [e] );
+        let y = a.iter().circular_array_windows::<1>();
+        assert_eq!(a.len(), y.len());
+        itertools::assert_equal(x,y);
+        true
+    }
+
+    fn equal_circular_array_windows_2(a: Vec<u8>) -> bool {
+        let x = (0..a.len()).map(|start_idx| [
+            &a[start_idx],
+            &a[(start_idx + 1) % a.len()],
+        ]);
+        let y = a.iter().circular_array_windows::<2>();
+        assert_eq!(a.len(), y.len());
+        itertools::assert_equal(x,y);
+        true
+    }
+
+    fn equal_circular_array_windows_3(a: Vec<u8>) -> bool {
+        let x = (0..a.len()).map(|start_idx| [
+            &a[start_idx],
+            &a[(start_idx + 1) % a.len()],
+            &a[(start_idx + 2) % a.len()],
+        ]);
+        let y = a.iter().circular_array_windows::<3>();
+        assert_eq!(a.len(), y.len());
+        itertools::assert_equal(x,y);
+        true
+    }
+}
+
 // with_position
 quickcheck! {
     fn with_position_exact_size_1(a: Vec<u8>) -> bool {

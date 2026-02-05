@@ -97,6 +97,7 @@ pub mod structs {
         FilterOk, Interleave, InterleaveShortest, MapInto, MapOk, Positions, Product, PutBack,
         TakeWhileRef, TupleCombinations, Update, WhileSome,
     };
+    pub use crate::array_impl::CircularArrayWindows;
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations::{ArrayCombinations, Combinations};
     #[cfg(feature = "use_alloc")]
@@ -174,6 +175,7 @@ pub use crate::unziptuple::{multiunzip, MultiUnzip};
 pub use crate::with_position::Position;
 pub use crate::ziptuple::multizip;
 mod adaptors;
+mod array_impl;
 mod either_or_both;
 pub use crate::either_or_both::EitherOrBoth;
 #[doc(hidden)]
@@ -898,6 +900,38 @@ pub trait Itertools: Iterator {
         T: traits::HomogeneousTuple,
     {
         tuple_impl::tuples(self)
+    }
+
+    /// Return an iterator over all windows, wrapping back to the first
+    /// elements when the window would otherwise exceed the length of the
+    /// iterator, producing arrays of size `N`.
+    ///
+    /// `circular_array_windows` clones the iterator elements so that
+    /// they can be part of successive windows, this makes it most
+    /// suited for iterators of references and other values that are
+    /// cheap to copy.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// let mut v = Vec::new();
+    /// for [a, b] in (1..5).circular_array_windows() {
+    ///     v.push([a, b]);
+    /// }
+    /// assert_eq!(v, vec![[1, 2], [2, 3], [3, 4], [4, 1]]);
+    ///
+    /// let mut it = (1..5).circular_array_windows();
+    /// assert_eq!(Some([1, 2, 3]), it.next());
+    /// assert_eq!(Some([2, 3, 4]), it.next());
+    /// assert_eq!(Some([3, 4, 1]), it.next());
+    /// assert_eq!(Some([4, 1, 2]), it.next());
+    /// assert_eq!(None, it.next());
+    /// ```
+    fn circular_array_windows<const N: usize>(self) -> CircularArrayWindows<Self, N>
+    where
+        Self: Sized,
+        Self::Item: Clone,
+    {
+        array_impl::circular_array_windows(self)
     }
 
     /// Split into an iterator pair that both yield all elements from
