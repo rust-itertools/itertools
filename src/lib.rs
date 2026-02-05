@@ -97,6 +97,7 @@ pub mod structs {
         FilterOk, Interleave, InterleaveShortest, MapInto, MapOk, Positions, Product, PutBack,
         TakeWhileRef, TupleCombinations, Update, WhileSome,
     };
+    pub use crate::array_impl::{ArrayWindows, CircularArrayWindows};
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations::{ArrayCombinations, Combinations};
     #[cfg(feature = "use_alloc")]
@@ -174,6 +175,7 @@ pub use crate::unziptuple::{multiunzip, MultiUnzip};
 pub use crate::with_position::Position;
 pub use crate::ziptuple::multizip;
 mod adaptors;
+mod array_impl;
 mod either_or_both;
 pub use crate::either_or_both::EitherOrBoth;
 #[doc(hidden)]
@@ -898,6 +900,121 @@ pub trait Itertools: Iterator {
         T: traits::HomogeneousTuple,
     {
         tuple_impl::tuples(self)
+    }
+
+    /// Return an iterator over all contiguous windows, producing
+    /// arrays of size `N`.
+    ///
+    /// `array_windows` clones the iterator elements so that they can be
+    /// part of successive windows. This makes it most suited for iterators
+    /// of references and other values that are cheap to copy.
+    ///
+    /// If the input iterator contains fewer than `N` items, no
+    /// windows are returned. Otherwise, if the input iterator
+    /// contains `k` items, exactly `k+N-1` windows are returned.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // Three-element windows from the items [1, 2, 3, 4, 5].
+    /// itertools::assert_equal(
+    ///     (1..6).array_windows::<3>(),
+    ///     vec![[1, 2, 3], [2, 3, 4], [3, 4, 5]]
+    /// );
+    ///
+    /// // When the input list is shorter than the window size, no windows
+    /// // are returned at all.
+    /// let mut windows = (1..6).array_windows::<10>();
+    /// assert_eq!(None, windows.next());
+    ///
+    /// // In some cases you don't have to specify the window size
+    /// // explicitly with a type hint, because Rust can infer it
+    /// for [a, b, c] in (1..6).array_windows() {
+    ///     println!("{a} {b} {c}");
+    /// }
+    ///
+    /// // You can also specify the complete type.
+    /// use itertools::ArrayWindows;
+    /// use std::ops::Range;
+    ///
+    /// let it: ArrayWindows<Range<u32>, 3> = (1..6).array_windows();
+    /// itertools::assert_equal(it, vec![[1, 2, 3], [2, 3, 4], [3, 4, 5]]);
+    /// ```
+    fn array_windows<const N: usize>(self) -> ArrayWindows<Self, N>
+    where
+        Self: Sized,
+        Self::Item: Clone,
+    {
+        array_impl::array_windows(self)
+    }
+
+    /// Return an iterator over all windows, wrapping back to the first
+    /// elements when the window would otherwise exceed the length of the
+    /// iterator, producing arrays of size `N`.
+    ///
+    /// `circular_array_windows` clones the iterator elements so that
+    /// they can be part of successive windows, this makes it most
+    /// suited for iterators of references and other values that are
+    /// cheap to copy.
+    ///
+    /// One window is returned per element of the input iterator. This
+    /// is true even if the input contains fewer elements than the
+    /// window size. In that situation, input elements are repeated
+    /// within each window. The results are as if the input had been
+    /// treated as a cyclic list, and a window of `N` items had been
+    /// returned for every starting point in the cycle.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // Three-element windows from [1, 2, 3, 4, 5], with two of
+    /// // them wrapping round from 5 to 1.
+    /// itertools::assert_equal(
+    ///     (1..6).circular_array_windows::<3>(),
+    ///     vec![[1, 2, 3], [2, 3, 4], [3, 4, 5], [4, 5, 1], [5, 1, 2]]
+    /// );
+    ///
+    /// // If the input is shorter than the window size, input
+    /// // items are repeated even within the same window.
+    /// itertools::assert_equal(
+    ///     (1..3).circular_array_windows::<5>(),
+    ///     vec![[1, 2, 1, 2, 1], [2, 1, 2, 1, 2]]
+    /// );
+    ///
+    /// // If the input contains only one item, the returned window
+    /// // repeats it N times.
+    /// let once = std::iter::once(1);
+    /// itertools::assert_equal(
+    ///     once.circular_array_windows::<3>(),
+    ///     vec![[1, 1, 1]]
+    /// );
+    ///
+    /// // If the input is empty, no windows are returned at all.
+    /// let empty = std::iter::empty::<i32>();
+    /// let mut windows = empty.circular_array_windows::<5>();
+    /// assert_eq!(None, windows.next());
+    ///
+    /// // In some cases you don't have to specify the window size
+    /// // explicitly with a type hint, because Rust can infer it.
+    /// for [a, b, c] in (1..10).circular_array_windows() {
+    ///     println!("{a} {b} {c}");
+    /// }
+    ///
+    /// // You can also specify the complete type.
+    /// use itertools::CircularArrayWindows;
+    /// use std::ops::Range;
+    ///
+    /// let it: CircularArrayWindows<Range<u32>, 2> =
+    ///     (1..6).circular_array_windows();
+    /// itertools::assert_equal(
+    ///     it, vec![[1, 2], [2, 3], [3, 4], [4, 5], [5, 1]]);
+    /// ```
+    fn circular_array_windows<const N: usize>(self) -> CircularArrayWindows<Self, N>
+    where
+        Self: Sized,
+        Self::Item: Clone,
+    {
+        array_impl::circular_array_windows(self)
     }
 
     /// Split into an iterator pair that both yield all elements from
