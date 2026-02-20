@@ -320,6 +320,11 @@ fn circular_array_windows() {
         ]
     );
 
+    // For zero-length output windows, we preserve the invariant that
+    // output length = input length, and return the same number of
+    // zero-length windows as there were input items, as if we were
+    // returning a zero-length window for every possible starting
+    // position in the cyclic input list.
     assert_eq!(
         vec0.iter()
             .copied()

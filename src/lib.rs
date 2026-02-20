@@ -913,6 +913,9 @@ pub trait Itertools: Iterator {
     /// windows are returned. Otherwise, if the input iterator
     /// contains `k` items, exactly `k+N-1` windows are returned.
     ///
+    /// (This formula still applies when `N==0`, and means that `k+1`
+    /// zero-length windows are returned for `k` input items.)
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -926,6 +929,10 @@ pub trait Itertools: Iterator {
     /// // are returned at all.
     /// let mut windows = (1..6).array_windows::<10>();
     /// assert_eq!(None, windows.next());
+    ///
+    /// // When the window size is zero, one more window is returned
+    /// // than there are items.
+    /// itertools::assert_equal((1..6).array_windows::<0>(), vec![[]; 6]);
     ///
     /// // In some cases you don't have to specify the window size
     /// // explicitly with a type hint, because Rust can infer it
@@ -957,6 +964,9 @@ pub trait Itertools: Iterator {
     /// treated as a cyclic list, and a window of `N` items had been
     /// returned for every starting point in the cycle.
     ///
+    /// (If the window size is zero, the function _still_ returns one
+    /// empty window per element of the input iterator.)
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -986,6 +996,17 @@ pub trait Itertools: Iterator {
     /// let empty = std::iter::empty::<i32>();
     /// let mut windows = empty.circular_array_windows::<5>();
     /// assert_eq!(None, windows.next());
+    ///
+    /// // If the input is empty, no windows are returned at all.
+    /// let empty = std::iter::empty::<i32>();
+    /// let mut windows = empty.circular_array_windows::<5>();
+    /// assert_eq!(None, windows.next());
+    ///
+    /// // One window is returned per item, even if the windows are empty.
+    /// itertools::assert_equal(
+    ///     (1..6).circular_array_windows::<0>(),
+    ///     vec![[]; 5]
+    /// );
     ///
     /// // In some cases you don't have to specify the window size
     /// // explicitly with a type hint, because Rust can infer it.
