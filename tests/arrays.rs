@@ -167,70 +167,70 @@ fn array_windows_equal_tuple_windows() {
                 .iter()
                 .tuple_windows::<(_,)>()
                 .map(Into::<[_; 1]>::into),
-            slice.iter().array_windows::<1>()
+            slice.iter().array_windows::<1>(),
         );
         itertools::assert_equal(
             slice
                 .iter()
-                .tuple_windows::<(_, _,)>()
+                .tuple_windows::<(_, _)>()
                 .map(Into::<[_; 2]>::into),
-            slice.iter().array_windows::<2>()
+            slice.iter().array_windows::<2>(),
         );
         itertools::assert_equal(
             slice
                 .iter()
-                .tuple_windows::<(_, _, _,)>()
+                .tuple_windows::<(_, _, _)>()
                 .map(Into::<[_; 3]>::into),
-            slice.iter().array_windows::<3>()
+            slice.iter().array_windows::<3>(),
         );
         itertools::assert_equal(
             slice
                 .iter()
-                .tuple_windows::<(_, _, _, _,)>()
+                .tuple_windows::<(_, _, _, _)>()
                 .map(Into::<[_; 4]>::into),
-            slice.iter().array_windows::<4>()
+            slice.iter().array_windows::<4>(),
         );
         itertools::assert_equal(
             slice
                 .iter()
-                .tuple_windows::<(_, _, _, _, _,)>()
+                .tuple_windows::<(_, _, _, _, _)>()
                 .map(Into::<[_; 5]>::into),
-            slice.iter().array_windows::<5>()
+            slice.iter().array_windows::<5>(),
         );
         itertools::assert_equal(
             slice
                 .iter()
-                .tuple_windows::<(_, _, _, _, _, _,)>()
+                .tuple_windows::<(_, _, _, _, _, _)>()
                 .map(Into::<[_; 6]>::into),
-            slice.iter().array_windows::<6>()
+            slice.iter().array_windows::<6>(),
         );
         itertools::assert_equal(
             slice
                 .iter()
-                .tuple_windows::<(_, _, _, _, _, _, _,)>()
+                .tuple_windows::<(_, _, _, _, _, _, _)>()
                 .map(Into::<[_; 7]>::into),
-            slice.iter().array_windows::<7>()
+            slice.iter().array_windows::<7>(),
         );
         itertools::assert_equal(
             slice
                 .iter()
-                .tuple_windows::<(_, _, _, _, _, _, _, _,)>()
+                .tuple_windows::<(_, _, _, _, _, _, _, _)>()
                 .map(Into::<[_; 8]>::into),
-            slice.iter().array_windows::<8>()
+            slice.iter().array_windows::<8>(),
         );
         itertools::assert_equal(
             slice
                 .iter()
-                .tuple_windows::<(_, _, _, _, _, _, _, _, _,)>()
+                .tuple_windows::<(_, _, _, _, _, _, _, _, _)>()
                 .map(Into::<[_; 9]>::into),
-            slice.iter().array_windows::<9>()
+            slice.iter().array_windows::<9>(),
         );
         itertools::assert_equal(
             slice
                 .iter()
-                .tuple_windows::<(_, _, _, _, _, _, _, _, _, _,)>()
+                .tuple_windows::<(_, _, _, _, _, _, _, _, _, _)>()
                 .map(Into::<[_; 10]>::into),
-            slice.iter().array_windows::<10>()
+            slice.iter().array_windows::<10>(),
         );
     }
     for i in 0..100 {
@@ -411,70 +411,70 @@ fn circular_array_windows_equal_circular_tuple_windows() {
                 .iter()
                 .circular_tuple_windows::<(_,)>()
                 .map(Into::<[_; 1]>::into),
-            slice.iter().circular_array_windows::<1>()
+            slice.iter().circular_array_windows::<1>(),
         );
         itertools::assert_equal(
             slice
                 .iter()
-                .circular_tuple_windows::<(_, _,)>()
+                .circular_tuple_windows::<(_, _)>()
                 .map(Into::<[_; 2]>::into),
-            slice.iter().circular_array_windows::<2>()
+            slice.iter().circular_array_windows::<2>(),
         );
         itertools::assert_equal(
             slice
                 .iter()
-                .circular_tuple_windows::<(_, _, _,)>()
+                .circular_tuple_windows::<(_, _, _)>()
                 .map(Into::<[_; 3]>::into),
-            slice.iter().circular_array_windows::<3>()
+            slice.iter().circular_array_windows::<3>(),
         );
         itertools::assert_equal(
             slice
                 .iter()
-                .circular_tuple_windows::<(_, _, _, _,)>()
+                .circular_tuple_windows::<(_, _, _, _)>()
                 .map(Into::<[_; 4]>::into),
-            slice.iter().circular_array_windows::<4>()
+            slice.iter().circular_array_windows::<4>(),
         );
         itertools::assert_equal(
             slice
                 .iter()
-                .circular_tuple_windows::<(_, _, _, _, _,)>()
+                .circular_tuple_windows::<(_, _, _, _, _)>()
                 .map(Into::<[_; 5]>::into),
-            slice.iter().circular_array_windows::<5>()
+            slice.iter().circular_array_windows::<5>(),
         );
         itertools::assert_equal(
             slice
                 .iter()
-                .circular_tuple_windows::<(_, _, _, _, _, _,)>()
+                .circular_tuple_windows::<(_, _, _, _, _, _)>()
                 .map(Into::<[_; 6]>::into),
-            slice.iter().circular_array_windows::<6>()
+            slice.iter().circular_array_windows::<6>(),
         );
         itertools::assert_equal(
             slice
                 .iter()
-                .circular_tuple_windows::<(_, _, _, _, _, _, _,)>()
+                .circular_tuple_windows::<(_, _, _, _, _, _, _)>()
                 .map(Into::<[_; 7]>::into),
-            slice.iter().circular_array_windows::<7>()
+            slice.iter().circular_array_windows::<7>(),
         );
         itertools::assert_equal(
             slice
                 .iter()
-                .circular_tuple_windows::<(_, _, _, _, _, _, _, _,)>()
+                .circular_tuple_windows::<(_, _, _, _, _, _, _, _)>()
                 .map(Into::<[_; 8]>::into),
-            slice.iter().circular_array_windows::<8>()
+            slice.iter().circular_array_windows::<8>(),
         );
         itertools::assert_equal(
             slice
                 .iter()
-                .circular_tuple_windows::<(_, _, _, _, _, _, _, _, _,)>()
+                .circular_tuple_windows::<(_, _, _, _, _, _, _, _, _)>()
                 .map(Into::<[_; 9]>::into),
-            slice.iter().circular_array_windows::<9>()
+            slice.iter().circular_array_windows::<9>(),
         );
         itertools::assert_equal(
             slice
                 .iter()
-                .circular_tuple_windows::<(_, _, _, _, _, _, _, _, _, _,)>()
+                .circular_tuple_windows::<(_, _, _, _, _, _, _, _, _, _)>()
                 .map(Into::<[_; 10]>::into),
-            slice.iter().circular_array_windows::<10>()
+            slice.iter().circular_array_windows::<10>(),
         );
     }
     for i in 0..100 {
