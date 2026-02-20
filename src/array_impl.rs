@@ -59,7 +59,7 @@ where
                 }
                 Some(buf) => {
                     let inner = ArrayWindowsInner {
-                        window: buf.clone(),
+                        window: buf,
                         window_start: 0,
                     };
                     let window = inner.make_window();
@@ -194,11 +194,9 @@ where
                 let item = if let Some(item) = self.iter.next() {
                     // Read from the input iterator.
                     item
-                } else if N == 0 {
-                    return None;
                 } else {
                     assert!(N == 0 || inner.prefix_pos < N);
-                    if inner.prefix_pos + 1 == N {
+                    if N == 0 || inner.prefix_pos + 1 == N {
                         // The input iterator has run out, and we've
                         // emitted as many windows as we read items,
                         // so we've finished.
@@ -209,9 +207,7 @@ where
                     item
                 };
 
-                if N > 0 {
-                    inner.arraywin.add_to_buffer(item);
-                }
+                inner.arraywin.add_to_buffer(item);
                 Some(inner.arraywin.make_window())
             }
         }

@@ -104,6 +104,12 @@ must_use_tests! {
         let _ = Panicking.circular_tuple_windows::<(_, _)>();
         let _ = Panicking.circular_tuple_windows::<(_, _, _)>();
     }
+    array_windows {
+        let _ = Panicking.array_windows::<0>();
+        let _ = Panicking.array_windows::<1>();
+        let _ = Panicking.array_windows::<2>();
+        let _ = Panicking.array_windows::<3>();
+    }
     circular_array_windows {
         let _ = Panicking.circular_array_windows::<0>();
         let _ = Panicking.circular_array_windows::<1>();

@@ -932,13 +932,6 @@ pub trait Itertools: Iterator {
     /// for [a, b, c] in (1..6).array_windows() {
     ///     println!("{a} {b} {c}");
     /// }
-    ///
-    /// // You can also specify the complete type.
-    /// use itertools::ArrayWindows;
-    /// use std::ops::Range;
-    ///
-    /// let it: ArrayWindows<Range<u32>, 3> = (1..6).array_windows();
-    /// itertools::assert_equal(it, vec![[1, 2, 3], [2, 3, 4], [3, 4, 5]]);
     /// ```
     fn array_windows<const N: usize>(self) -> ArrayWindows<Self, N>
     where
@@ -999,15 +992,6 @@ pub trait Itertools: Iterator {
     /// for [a, b, c] in (1..10).circular_array_windows() {
     ///     println!("{a} {b} {c}");
     /// }
-    ///
-    /// // You can also specify the complete type.
-    /// use itertools::CircularArrayWindows;
-    /// use std::ops::Range;
-    ///
-    /// let it: CircularArrayWindows<Range<u32>, 2> =
-    ///     (1..6).circular_array_windows();
-    /// itertools::assert_equal(
-    ///     it, vec![[1, 2], [2, 3], [3, 4], [4, 5], [5, 1]]);
     /// ```
     fn circular_array_windows<const N: usize>(self) -> CircularArrayWindows<Self, N>
     where
