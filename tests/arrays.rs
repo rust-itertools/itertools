@@ -157,61 +157,85 @@ fn array_windows() {
             .collect::<Vec<_>>(),
         Vec::<[i32; 7]>::new()
     );
+}
 
-    // Check that array_windows agrees with tuple_windows
-    assert_eq!(
-        vec4.iter().copied().array_windows().collect::<Vec<_>>(),
-        vec4.iter()
-            .copied()
-            .tuple_windows()
-            .map(|(a,)| [a])
-            .collect::<Vec<_>>(),
-    );
-
-    assert_eq!(
-        vec4.iter().copied().array_windows().collect::<Vec<_>>(),
-        vec4.iter()
-            .copied()
-            .tuple_windows()
-            .map(|(a, b)| [a, b])
-            .collect::<Vec<_>>(),
-    );
-
-    assert_eq!(
-        vec4.iter().copied().array_windows().collect::<Vec<_>>(),
-        vec4.iter()
-            .copied()
-            .tuple_windows()
-            .map(|(a, b, c, d, e, f, g)| [a, b, c, d, e, f, g])
-            .collect::<Vec<_>>(),
-    );
-
-    assert_eq!(
-        vec2.iter().copied().array_windows().collect::<Vec<_>>(),
-        vec2.iter()
-            .copied()
-            .tuple_windows()
-            .map(|(a, b, c, d, e, f, g)| [a, b, c, d, e, f, g])
-            .collect::<Vec<_>>(),
-    );
-
-    assert_eq!(
-        vec1.iter().copied().array_windows().collect::<Vec<_>>(),
-        vec1.iter()
-            .copied()
-            .tuple_windows()
-            .map(|(a, b, c, d, e, f, g)| [a, b, c, d, e, f, g])
-            .collect::<Vec<_>>(),
-    );
-
-    assert_eq!(
-        vec0.iter().copied().array_windows().collect::<Vec<_>>(),
-        vec0.iter()
-            .copied()
-            .tuple_windows()
-            .map(|(a, b, c, d, e, f, g)| [a, b, c, d, e, f, g])
-            .collect::<Vec<_>>(),
-    );
+#[test]
+fn array_windows_equal_tuple_windows() {
+    fn internal(slice: &[usize]) {
+        itertools::assert_equal(
+            slice
+                .iter()
+                .tuple_windows::<(_,)>()
+                .map(Into::<[_; 1]>::into),
+            slice.iter().array_windows::<1>()
+        );
+        itertools::assert_equal(
+            slice
+                .iter()
+                .tuple_windows::<(_, _,)>()
+                .map(Into::<[_; 2]>::into),
+            slice.iter().array_windows::<2>()
+        );
+        itertools::assert_equal(
+            slice
+                .iter()
+                .tuple_windows::<(_, _, _,)>()
+                .map(Into::<[_; 3]>::into),
+            slice.iter().array_windows::<3>()
+        );
+        itertools::assert_equal(
+            slice
+                .iter()
+                .tuple_windows::<(_, _, _, _,)>()
+                .map(Into::<[_; 4]>::into),
+            slice.iter().array_windows::<4>()
+        );
+        itertools::assert_equal(
+            slice
+                .iter()
+                .tuple_windows::<(_, _, _, _, _,)>()
+                .map(Into::<[_; 5]>::into),
+            slice.iter().array_windows::<5>()
+        );
+        itertools::assert_equal(
+            slice
+                .iter()
+                .tuple_windows::<(_, _, _, _, _, _,)>()
+                .map(Into::<[_; 6]>::into),
+            slice.iter().array_windows::<6>()
+        );
+        itertools::assert_equal(
+            slice
+                .iter()
+                .tuple_windows::<(_, _, _, _, _, _, _,)>()
+                .map(Into::<[_; 7]>::into),
+            slice.iter().array_windows::<7>()
+        );
+        itertools::assert_equal(
+            slice
+                .iter()
+                .tuple_windows::<(_, _, _, _, _, _, _, _,)>()
+                .map(Into::<[_; 8]>::into),
+            slice.iter().array_windows::<8>()
+        );
+        itertools::assert_equal(
+            slice
+                .iter()
+                .tuple_windows::<(_, _, _, _, _, _, _, _, _,)>()
+                .map(Into::<[_; 9]>::into),
+            slice.iter().array_windows::<9>()
+        );
+        itertools::assert_equal(
+            slice
+                .iter()
+                .tuple_windows::<(_, _, _, _, _, _, _, _, _, _,)>()
+                .map(Into::<[_; 10]>::into),
+            slice.iter().array_windows::<10>()
+        );
+    }
+    for i in 0..100 {
+        internal(&(0..i).collect::<Vec<_>>());
+    }
 }
 
 #[test]
@@ -372,77 +396,83 @@ fn circular_array_windows() {
             [4, 1, 2, 3, 4, 1, 2],
         ]
     );
+}
 
-    // Check that circular_array_windows agrees with circular_tuple_windows
-    assert_eq!(
-        vec4.iter()
-            .copied()
-            .circular_array_windows()
-            .collect::<Vec<_>>(),
-        vec4.iter()
-            .copied()
-            .circular_tuple_windows()
-            .map(|(a,)| [a])
-            .collect::<Vec<_>>(),
-    );
-
-    assert_eq!(
-        vec4.iter()
-            .copied()
-            .circular_array_windows()
-            .collect::<Vec<_>>(),
-        vec4.iter()
-            .copied()
-            .circular_tuple_windows()
-            .map(|(a, b)| [a, b])
-            .collect::<Vec<_>>(),
-    );
-
-    assert_eq!(
-        vec4.iter()
-            .copied()
-            .circular_array_windows()
-            .collect::<Vec<_>>(),
-        vec4.iter()
-            .copied()
-            .circular_tuple_windows()
-            .map(|(a, b, c, d, e, f, g)| [a, b, c, d, e, f, g])
-            .collect::<Vec<_>>(),
-    );
-
-    assert_eq!(
-        vec2.iter()
-            .copied()
-            .circular_array_windows()
-            .collect::<Vec<_>>(),
-        vec2.iter()
-            .copied()
-            .circular_tuple_windows()
-            .map(|(a, b, c, d, e, f, g)| [a, b, c, d, e, f, g])
-            .collect::<Vec<_>>(),
-    );
-
-    assert_eq!(
-        vec1.iter()
-            .copied()
-            .circular_array_windows()
-            .collect::<Vec<_>>(),
-        vec1.iter()
-            .copied()
-            .circular_tuple_windows()
-            .map(|(a, b, c, d, e, f, g)| [a, b, c, d, e, f, g])
-            .collect::<Vec<_>>(),
-    );
-
-    assert_eq!(
-        vec0.iter()
-            .copied()
-            .circular_array_windows()
-            .collect::<Vec<_>>(),
-        vec0.iter()
-            .copied()
-            .circular_tuple_windows()
-            .map(|(a, b, c, d, e, f, g)| [a, b, c, d, e, f, g])
-            .collect::<Vec<_>>(),
-    );
+#[test]
+fn circular_array_windows_equal_circular_tuple_windows() {
+    fn internal(slice: &[usize]) {
+        itertools::assert_equal(
+            slice
+                .iter()
+                .circular_tuple_windows::<(_,)>()
+                .map(Into::<[_; 1]>::into),
+            slice.iter().circular_array_windows::<1>()
+        );
+        itertools::assert_equal(
+            slice
+                .iter()
+                .circular_tuple_windows::<(_, _,)>()
+                .map(Into::<[_; 2]>::into),
+            slice.iter().circular_array_windows::<2>()
+        );
+        itertools::assert_equal(
+            slice
+                .iter()
+                .circular_tuple_windows::<(_, _, _,)>()
+                .map(Into::<[_; 3]>::into),
+            slice.iter().circular_array_windows::<3>()
+        );
+        itertools::assert_equal(
+            slice
+                .iter()
+                .circular_tuple_windows::<(_, _, _, _,)>()
+                .map(Into::<[_; 4]>::into),
+            slice.iter().circular_array_windows::<4>()
+        );
+        itertools::assert_equal(
+            slice
+                .iter()
+                .circular_tuple_windows::<(_, _, _, _, _,)>()
+                .map(Into::<[_; 5]>::into),
+            slice.iter().circular_array_windows::<5>()
+        );
+        itertools::assert_equal(
+            slice
+                .iter()
+                .circular_tuple_windows::<(_, _, _, _, _, _,)>()
+                .map(Into::<[_; 6]>::into),
+            slice.iter().circular_array_windows::<6>()
+        );
+        itertools::assert_equal(
+            slice
+                .iter()
+                .circular_tuple_windows::<(_, _, _, _, _, _, _,)>()
+                .map(Into::<[_; 7]>::into),
+            slice.iter().circular_array_windows::<7>()
+        );
+        itertools::assert_equal(
+            slice
+                .iter()
+                .circular_tuple_windows::<(_, _, _, _, _, _, _, _,)>()
+                .map(Into::<[_; 8]>::into),
+            slice.iter().circular_array_windows::<8>()
+        );
+        itertools::assert_equal(
+            slice
+                .iter()
+                .circular_tuple_windows::<(_, _, _, _, _, _, _, _, _,)>()
+                .map(Into::<[_; 9]>::into),
+            slice.iter().circular_array_windows::<9>()
+        );
+        itertools::assert_equal(
+            slice
+                .iter()
+                .circular_tuple_windows::<(_, _, _, _, _, _, _, _, _, _,)>()
+                .map(Into::<[_; 10]>::into),
+            slice.iter().circular_array_windows::<10>()
+        );
+    }
+    for i in 0..100 {
+        internal(&(0..i).collect::<Vec<_>>());
+    }
 }
