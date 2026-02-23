@@ -106,6 +106,7 @@ pub mod structs {
     #[cfg(feature = "use_std")]
     pub use crate::duplicates_impl::{Duplicates, DuplicatesBy};
     pub use crate::exactly_one_err::ExactlyOneError;
+    pub use crate::flat_map_ok::FlatMapOk;
     pub use crate::flatten_ok::FlattenOk;
     pub use crate::format::{Format, FormatWith};
     #[allow(deprecated)]
@@ -194,6 +195,7 @@ mod duplicates_impl;
 mod exactly_one_err;
 #[cfg(feature = "use_alloc")]
 mod extrema_set;
+mod flat_map_ok;
 mod flatten_ok;
 mod format;
 #[cfg(feature = "use_alloc")]
@@ -1146,6 +1148,28 @@ pub trait Itertools: Iterator {
         T: IntoIterator,
     {
         flatten_ok::flatten_ok(self)
+    }
+
+    /// Return an iterator adaptor that applies a function to every `Result::Ok`
+    /// value and flattens the resulting iterator. `Result::Err` values are
+    /// unchanged.
+    ///
+    /// This is equivalent to `.map_ok(f).flatten_ok()`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let input = vec![Ok(0i32), Err(false), Ok(3i32)];
+    /// let it = input.into_iter().flat_map_ok(|i| 0..i);
+    /// itertools::assert_equal(it, vec![Err(false), Ok(0), Ok(1), Ok(2)]);
+    /// ```
+    fn flat_map_ok<F, T, U, E>(self, f: F) -> FlatMapOk<Self, F, T, U, E>
+    where
+        Self: Iterator<Item = Result<T, E>> + Sized,
+        F: FnMut(T) -> U,
+        U: IntoIterator,
+    {
+        flat_map_ok::flat_map_ok(self, f)
     }
 
     /// “Lift” a function of the values of the current iterator so as to process
