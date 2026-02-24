@@ -13,15 +13,7 @@ fn ok_data() -> IntoIter<Result<i32, bool>> {
 fn flat_map_ok_mixed_forward() {
     assert_equal(
         mix_data().flat_map_ok(|i| 0..i),
-        vec![
-            Ok(0),
-            Ok(1),
-            Err(false),
-            Ok(0),
-            Ok(1),
-            Ok(2),
-            Err(true),
-        ],
+        vec![Ok(0), Ok(1), Err(false), Ok(0), Ok(1), Ok(2), Err(true)],
     );
 }
 
@@ -29,15 +21,7 @@ fn flat_map_ok_mixed_forward() {
 fn flat_map_ok_mixed_reverse() {
     assert_equal(
         mix_data().flat_map_ok(|i| 0..i).rev(),
-        vec![
-            Err(true),
-            Ok(2),
-            Ok(1),
-            Ok(0),
-            Err(false),
-            Ok(1),
-            Ok(0),
-        ],
+        vec![Err(true), Ok(2), Ok(1), Ok(0), Err(false), Ok(1), Ok(0)],
     );
 }
 
@@ -76,10 +60,7 @@ fn flat_map_ok_collect_ok_reverse() {
 fn flat_map_ok_empty_results() {
     // When the mapping function returns an empty iterator for some Ok values
     let data: Vec<Result<i32, bool>> = vec![Ok(0), Ok(2), Ok(0)];
-    assert_equal(
-        data.into_iter().flat_map_ok(|i| 0..i),
-        vec![Ok(0), Ok(1)],
-    );
+    assert_equal(data.into_iter().flat_map_ok(|i| 0..i), vec![Ok(0), Ok(1)]);
 }
 
 #[test]
