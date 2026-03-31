@@ -12,9 +12,10 @@
 - Add `array_combinations_with_replacement` (#1033)
 - Implement `Debug` for remaining public types (#1038)
 - Specialize `ExactlyOneError::count` (#1046)
-- Implement `PeekingNext` for more types (#1073)
+- Implement `PeekingNext` for more types, in particular `vec::IntoIter` (#1059, #1073)
 - Fix `PadUsing::next_back` (#1082)
 - Introduce `[circular_]array_windows`, deprecate `tuple_windows` (#1086)
+- Deprecate `tuple_combinations` (replaced by `array_combinations`) (#1085)
 
 ### Notable Internal Changes
 - Make `into_group_map` code more idiomatic (#1027)
