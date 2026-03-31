@@ -2,25 +2,23 @@
 
 ## 0.15.0
 
+### Breaking
+- Restructure `Position` as struct instead of enum (#1042, #1043)
+
 ### Changed
 - Remove `Clone` bounds from `tuple_combinations` and `array_combinations`(#1011)
 - `must_use` for `collect_vec` (#1009)
 - Make `izip!` temporary friendly (#1021)
 - Add `array_combinations_with_replacement` (#1033)
 - Implement `Debug` for remaining public types (#1038)
-- Improve `ExactlyOneError` (#1046, #1049)
-- Improve documentation for `multizip` (#1053)
+- Specialize `ExactlyOneError::count` (#1046)
 - Implement `PeekingNext` for more types (#1073)
-- Improve documentation
-- Fix `PadUsing::next_back` (#1065)
+- Fix `PadUsing::next_back` (#1082)
 - Introduce `[circular_]array_windows`, deprecate `tuple_windows` (#1086)
-
-### Breaking
-- Improve `Position` (#1042, #1043)
 
 ### Notable Internal Changes
 - Make `into_group_map` code more idiomatic (#1027)
-- Fix clippy lints (#1076)
+- Fix clippy lints (#1017, #1029, #1076)
 
 ## 0.14.0
 
