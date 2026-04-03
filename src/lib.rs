@@ -1304,7 +1304,7 @@ pub trait Itertools: Iterator {
     }
 
     /// Return an iterator adaptor that flattens an iterator of iterators by
-    /// merging them in ascending order.
+    /// merging them in ascending order. Duplicates are preserved.
     ///
     /// If all base iterators are sorted (ascending), the result is sorted.
     ///
@@ -1313,11 +1313,12 @@ pub trait Itertools: Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let a = (0..6).step_by(3);
-    /// let b = (1..6).step_by(3);
-    /// let c = (2..6).step_by(3);
+    /// let a = (0..6).step_by(3); // [0, 3]
+    /// let b = (1..6).step_by(2); // [1, 3, 5 ]
+    /// let c = (2..6).step_by(3); // [2, 5]
+    ///
     /// let it = vec![a, b, c].into_iter().kmerge();
-    /// itertools::assert_equal(it, vec![0, 1, 2, 3, 4, 5]);
+    /// itertools::assert_equal(it, vec![0, 1, 2, 3, 3, 5, 5]);
     /// ```
     #[cfg(feature = "use_alloc")]
     fn kmerge(self) -> KMerge<<Self::Item as IntoIterator>::IntoIter>
