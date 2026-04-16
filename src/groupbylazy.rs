@@ -197,13 +197,12 @@ where
 
         while let Some(elt) = self.next_element() {
             let key = self.key.call_mut(&elt);
-            match self.current_key.take() {
-                Some(old_key) if old_key != key => {
+            if let Some(old_key) = self.current_key.take() {
+                if old_key != key {
                     self.current_key = Some(key);
                     first_elt = Some(elt);
                     break;
                 }
-                _ => {}
             }
             self.current_key = Some(key);
             if self.top_group != self.dropped_group {
@@ -246,14 +245,13 @@ where
             None => None,
             Some(elt) => {
                 let key = self.key.call_mut(&elt);
-                match self.current_key.take() {
-                    Some(old_key) if old_key != key => {
+                if let Some(old_key) = self.current_key.take() {
+                    if old_key != key {
                         self.current_key = Some(key);
                         self.current_elt = Some(elt);
                         self.top_group += 1;
                         return None;
                     }
-                    _ => {}
                 }
                 self.current_key = Some(key);
                 Some(elt)
