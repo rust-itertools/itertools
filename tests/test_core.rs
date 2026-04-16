@@ -22,10 +22,8 @@ use itertools as it;
 fn get_esi_then_esi<I: ExactSizeIterator + Clone>(it: I) {
     fn is_esi(_: impl ExactSizeIterator) {}
     is_esi(it.clone().get(1..4));
-    is_esi(it.clone().get(1..=4));
     is_esi(it.clone().get(1..));
     is_esi(it.clone().get(..4));
-    is_esi(it.clone().get(..=4));
     is_esi(it.get(..));
 }
 
@@ -33,10 +31,8 @@ fn get_esi_then_esi<I: ExactSizeIterator + Clone>(it: I) {
 fn get_dei_esi_then_dei_esi<I: DoubleEndedIterator + ExactSizeIterator + Clone>(it: I) {
     fn is_dei_esi(_: impl DoubleEndedIterator + ExactSizeIterator) {}
     is_dei_esi(it.clone().get(1..4));
-    is_dei_esi(it.clone().get(1..=4));
     is_dei_esi(it.clone().get(1..));
     is_dei_esi(it.clone().get(..4));
-    is_dei_esi(it.clone().get(..=4));
     is_dei_esi(it.get(..));
 }
 
@@ -48,9 +44,19 @@ fn get_1_max() {
 }
 
 #[test]
-#[should_panic]
 fn get_full_range_inclusive() {
-    let _it = (0..5).get(0..=usize::MAX);
+    let mut it = (0..5).get(0..=usize::MAX);
+    assert_eq!((5, Some(5)), it.size_hint());
+    assert_eq!(it.next(), Some(0));
+    assert_eq!(it.next_back(), Some(4));
+    assert_eq!((3, Some(3)), it.size_hint());
+    assert_eq!(it.next(), Some(1));
+    assert_eq!(it.next(), Some(2));
+    assert_eq!(it.next(), Some(3));
+    assert_eq!(it.next(), None);
+
+    let it = iter::repeat(0).get(0..=usize::MAX);
+    assert_eq!((usize::MAX, None), it.size_hint());
 }
 
 #[test]
