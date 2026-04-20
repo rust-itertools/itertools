@@ -50,7 +50,9 @@
 //!
 //! ## Rust Version
 //!
-//! This version of itertools requires Rust 1.63.0 or later.
+//! This version of itertools requires Rust
+#![doc = env!("CARGO_PKG_RUST_VERSION")]
+//! or later.
 
 #[cfg(not(feature = "use_std"))]
 extern crate core as std;
@@ -3030,7 +3032,7 @@ pub trait Itertools: Iterator {
         Self: Sized,
         F: FnMut(B, Self::Item) -> FoldWhile<B>,
     {
-        use Result::{Err as Break, Ok as Continue};
+        use std::ops::ControlFlow::{Break, Continue};
 
         let result = self.try_fold(
             init,
@@ -4898,13 +4900,7 @@ where
                     (Some(a), Some(b)) => a == b,
                     _ => false,
                 };
-                assert!(
-                    equal,
-                    "Failed assertion {a:?} == {b:?} for iteration {i}",
-                    i = i,
-                    a = a,
-                    b = b
-                );
+                assert!(equal, "Failed assertion {a:?} == {b:?} for iteration {i}");
                 i += 1;
             }
         }
