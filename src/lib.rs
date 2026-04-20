@@ -47,6 +47,13 @@
 //!   - Enabled by default.
 //!   - Enables any item that depend on allocations (like `chunk_by`,
 //!     `kmerge`, `join` and many more).
+//! - `hashbrown`
+//!   - Disabled by default.
+//!   - Enables `use_alloc` and uses `hashbrown::HashMap` instead of
+//!     `std::collections::HashMap` to enable some items that depend on hash maps
+//!     without `use_std`. It is also possible to use this feature together with
+//!     `use_std` if you prefer `hashbrown::HashMap` (for example, because of the
+//!     different default hasher).
 //!
 //! ## Rust Version
 //!
@@ -64,15 +71,15 @@ use alloc::{collections::VecDeque, string::String, vec::Vec};
 pub use either::Either;
 
 use core::borrow::Borrow;
+#[cfg(feature = "hashbrown")]
+use hashbrown::{HashMap, HashSet};
 use std::cmp::Ordering;
-#[cfg(feature = "use_std")]
-use std::collections::HashMap;
-#[cfg(feature = "use_std")]
-use std::collections::HashSet;
+#[cfg(all(feature = "use_std", not(feature = "hashbrown")))]
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 #[cfg(feature = "use_alloc")]
 use std::fmt::Write;
-#[cfg(feature = "use_std")]
+#[cfg(any(feature = "use_std", feature = "hashbrown"))]
 use std::hash::Hash;
 use std::iter::{once, IntoIterator};
 #[cfg(feature = "use_alloc")]
@@ -103,7 +110,7 @@ pub mod structs {
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations_with_replacement::CombinationsWithReplacement;
     pub use crate::cons_tuples_impl::ConsTuples;
-    #[cfg(feature = "use_std")]
+    #[cfg(any(feature = "use_std", feature = "hashbrown"))]
     pub use crate::duplicates_impl::{Duplicates, DuplicatesBy};
     pub use crate::exactly_one_err::ExactlyOneError;
     pub use crate::flatten_ok::FlattenOk;
@@ -113,7 +120,7 @@ pub mod structs {
     pub use crate::groupbylazy::GroupBy;
     #[cfg(feature = "use_alloc")]
     pub use crate::groupbylazy::{Chunk, ChunkBy, Chunks, Group, Groups, IntoChunks};
-    #[cfg(feature = "use_std")]
+    #[cfg(any(feature = "use_std", feature = "hashbrown"))]
     pub use crate::grouping_map::{GroupingMap, GroupingMapBy};
     pub use crate::intersperse::{Intersperse, IntersperseWith};
     #[cfg(feature = "use_alloc")]
@@ -141,7 +148,7 @@ pub mod structs {
     #[cfg(feature = "use_alloc")]
     pub use crate::tee::Tee;
     pub use crate::tuple_impl::{CircularTupleWindows, TupleBuffer, TupleWindows, Tuples};
-    #[cfg(feature = "use_std")]
+    #[cfg(any(feature = "use_std", feature = "hashbrown"))]
     pub use crate::unique_impl::{Unique, UniqueBy};
     pub use crate::with_position::WithPosition;
     pub use crate::zip_eq_impl::ZipEq;
@@ -189,18 +196,18 @@ mod combinations_with_replacement;
 mod concat_impl;
 mod cons_tuples_impl;
 mod diff;
-#[cfg(feature = "use_std")]
+#[cfg(any(feature = "use_std", feature = "hashbrown"))]
 mod duplicates_impl;
 mod exactly_one_err;
 #[cfg(feature = "use_alloc")]
 mod extrema_set;
 mod flatten_ok;
 mod format;
-#[cfg(feature = "use_alloc")]
+#[cfg(any(feature = "use_std", feature = "hashbrown"))]
 mod group_map;
 #[cfg(feature = "use_alloc")]
 mod groupbylazy;
-#[cfg(feature = "use_std")]
+#[cfg(any(feature = "use_std", feature = "hashbrown"))]
 mod grouping_map;
 mod intersperse;
 mod iter_index;
@@ -235,7 +242,7 @@ mod take_while_inclusive;
 #[cfg(feature = "use_alloc")]
 mod tee;
 mod tuple_impl;
-#[cfg(feature = "use_std")]
+#[cfg(any(feature = "use_std", feature = "hashbrown"))]
 mod unique_impl;
 mod unziptuple;
 mod with_position;
@@ -1569,7 +1576,7 @@ pub trait Itertools: Iterator {
     /// itertools::assert_equal(data.into_iter().duplicates(),
     ///                         vec![20, 10]);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(any(feature = "use_std", feature = "hashbrown"))]
     fn duplicates(self) -> Duplicates<Self>
     where
         Self: Sized,
@@ -1595,7 +1602,7 @@ pub trait Itertools: Iterator {
     /// itertools::assert_equal(data.into_iter().duplicates_by(|s| s.len()),
     ///                         vec!["aa", "c"]);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(any(feature = "use_std", feature = "hashbrown"))]
     fn duplicates_by<V, F>(self, f: F) -> DuplicatesBy<Self, V, F>
     where
         Self: Sized,
@@ -1623,7 +1630,7 @@ pub trait Itertools: Iterator {
     /// itertools::assert_equal(data.into_iter().unique(),
     ///                         vec![10, 20, 30, 40, 50]);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(any(feature = "use_std", feature = "hashbrown"))]
     fn unique(self) -> Unique<Self>
     where
         Self: Sized,
@@ -1650,7 +1657,7 @@ pub trait Itertools: Iterator {
     /// itertools::assert_equal(data.into_iter().unique_by(|s| s.len()),
     ///                         vec!["a", "bb", "ccc"]);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(any(feature = "use_std", feature = "hashbrown"))]
     fn unique_by<V, F>(self, f: F) -> UniqueBy<Self, V, F>
     where
         Self: Sized,
@@ -2464,7 +2471,7 @@ pub trait Itertools: Iterator {
     /// let data: Option<usize> = None;
     /// assert!(data.into_iter().all_unique());
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(any(feature = "use_std", feature = "hashbrown"))]
     fn all_unique(&mut self) -> bool
     where
         Self: Sized,
@@ -3899,7 +3906,7 @@ pub trait Itertools: Iterator {
     /// assert_eq!(lookup[&2], vec![12, 42]);
     /// assert_eq!(lookup[&3], vec![13, 33]);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(any(feature = "use_std", feature = "hashbrown"))]
     fn into_group_map<K, V>(self) -> HashMap<K, Vec<V>>
     where
         Self: Iterator<Item = (K, V)> + Sized,
@@ -3935,7 +3942,7 @@ pub trait Itertools: Iterator {
     ///     30,
     /// );
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(any(feature = "use_std", feature = "hashbrown"))]
     fn into_group_map_by<K, V, F>(self, f: F) -> HashMap<K, Vec<V>>
     where
         Self: Iterator<Item = V> + Sized,
@@ -3954,7 +3961,7 @@ pub trait Itertools: Iterator {
     ///
     /// See [`GroupingMap`] for more information
     /// on what operations are available.
-    #[cfg(feature = "use_std")]
+    #[cfg(any(feature = "use_std", feature = "hashbrown"))]
     fn into_grouping_map<K, V>(self) -> GroupingMap<Self>
     where
         Self: Iterator<Item = (K, V)> + Sized,
@@ -3971,7 +3978,7 @@ pub trait Itertools: Iterator {
     ///
     /// See [`GroupingMap`] for more information
     /// on what operations are available.
-    #[cfg(feature = "use_std")]
+    #[cfg(any(feature = "use_std", feature = "hashbrown"))]
     fn into_grouping_map_by<K, V, F>(self, key_mapper: F) -> GroupingMapBy<Self, F>
     where
         Self: Iterator<Item = V> + Sized,
@@ -4741,7 +4748,7 @@ pub trait Itertools: Iterator {
     /// assert_eq!(counts[&5], 1);
     /// assert_eq!(counts.get(&0), None);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(any(feature = "use_std", feature = "hashbrown"))]
     fn counts(self) -> HashMap<Self::Item, usize>
     where
         Self: Sized,
@@ -4785,7 +4792,7 @@ pub trait Itertools: Iterator {
     /// assert_eq!(first_name_frequency["James"], 4);
     /// assert_eq!(first_name_frequency.contains_key("Asha"), false);
     /// ```
-    #[cfg(feature = "use_std")]
+    #[cfg(any(feature = "use_std", feature = "hashbrown"))]
     fn counts_by<K, F>(self, f: F) -> HashMap<K, usize>
     where
         Self: Sized,
