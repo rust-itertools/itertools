@@ -1,7 +1,9 @@
+#[cfg(feature = "use_alloc")]
+use alloc::vec::Vec;
 use core::mem::{self, MaybeUninit};
 
 /// An array of at most `N` elements.
-struct ArrayBuilder<T, const N: usize> {
+pub(crate) struct ArrayBuilder<T, const N: usize> {
     /// The (possibly uninitialized) elements of the `ArrayBuilder`.
     ///
     /// # Safety
@@ -85,6 +87,23 @@ impl<T, const N: usize> ArrayBuilder<T, N> {
         } else {
             None
         }
+    }
+
+    #[cfg(feature = "use_alloc")]
+    pub(crate) fn into_vec(mut self) -> Vec<T> {
+        let len = self.len;
+        // SAFETY: Decreasing the value of `self.len` cannot violate the
+        // safety invariant on `self.arr`.
+        self.len = 0;
+        (0..len)
+            .map(|i| {
+                // SAFETY: Since `self.len` is 0, `self.arr` may safely contain
+                // uninitialized elements.
+                let item = mem::replace(&mut self.arr[i], MaybeUninit::uninit());
+                // SAFETY: we know that item is valid since i < len
+                unsafe { item.assume_init() }
+            })
+            .collect()
     }
 }
 
