@@ -522,7 +522,7 @@ where
     }
 }
 
-/// `ChunkLazy` is the storage for a lazy chunking operation.
+/// `IntoChunks` is the storage for a lazy chunking operation.
 ///
 /// `IntoChunks` behaves just like `ChunkBy`: it is iterable, and
 /// it only buffers if several chunk iterators are alive at the same time.
