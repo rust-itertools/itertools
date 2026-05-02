@@ -7,6 +7,7 @@
 
 ### Added
 - Add `*_with_hasher` adaptors (#1007)
+
 ### Changed
 - Remove `Clone` bounds from `tuple_combinations` and `array_combinations`(#1011)
 - `must_use` for `collect_vec` (#1009)
