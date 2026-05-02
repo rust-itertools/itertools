@@ -21,7 +21,7 @@
 
 ### Notable Internal Changes
 - Make `into_group_map` code more idiomatic (#1027)
-- Fix clippy lints (#1017, #1029, #1076)
+- Fix clippy lints (#1017, #1029, #1076, #1099)
 
 ## 0.14.0
 
