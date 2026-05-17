@@ -83,6 +83,14 @@ fn interleave_shortest() {
     let i1 = ::std::iter::repeat(1);
     let it = v0.into_iter().interleave_shortest(i1);
     assert_eq!(it.size_hint(), (6, Some(6)));
+
+    // Issue #1068: combined lower bound used to overflow when both halves
+    // reported saturating lower bounds, panicking in debug builds.
+    let i0 = ::std::iter::repeat(0).take(usize::MAX);
+    let i1 = ::std::iter::repeat(1);
+    let it = i0.interleave_shortest(i1);
+    let (lower, _) = it.size_hint();
+    assert_eq!(lower, usize::MAX);
 }
 
 #[test]
