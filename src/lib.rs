@@ -5122,6 +5122,97 @@ pub trait Itertools: Iterator {
             _ => Err(sh),
         }
     }
+
+    /// Removes a prefix from the iterator, returning the rest.
+    ///
+    /// If `self` begins with all the items yielded by `prefix` (in order), this
+    /// returns `Ok` of the iterator advanced past that prefix. Otherwise it
+    /// returns `Err(StripPrefixError { .. })` exposing the partially-consumed
+    /// iterator, the remaining prefix, and the items that failed to match, so
+    /// callers can recover progress made before the mismatch.
+    ///
+    /// See [`strip_prefix_by`](Itertools::strip_prefix_by) for a variant
+    /// taking an explicit equality predicate.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let ok = (1..6).strip_prefix([1, 2]).map(Itertools::collect_vec).ok();
+    /// assert_eq!(ok, Some(vec![3, 4, 5]));
+    /// assert!((1..6).strip_prefix([1, 9]).is_err());
+    /// let empty = (1..6).strip_prefix(std::iter::empty::<i32>()).map(Itertools::collect_vec).ok();
+    /// assert_eq!(empty, Some(vec![1, 2, 3, 4, 5]));
+    /// ```
+    fn strip_prefix<Prefix>(
+        self,
+        prefix: Prefix,
+    ) -> Result<Self, StripPrefixError<Self, Prefix::IntoIter, Self::Item>>
+    where
+        Self: Sized,
+        Prefix: IntoIterator,
+        Self::Item: PartialEq<Prefix::Item>,
+    {
+        self.strip_prefix_by(prefix, |a, b| a == b)
+    }
+
+    /// Removes a prefix from the iterator using `eq` to compare items.
+    ///
+    /// If `self` begins with all the items yielded by `prefix` (in order, as
+    /// judged by `eq`), this returns `Ok` of the iterator advanced past that
+    /// prefix. Otherwise it returns `Err(StripPrefixError { .. })`, allowing
+    /// the prefix items to have a different type than `Self::Item`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let path = ["home", "user", "file"];
+    /// let stripped = path.iter().strip_prefix_by(["home", "user"], |a, b| **a == *b);
+    /// assert_eq!(stripped.map(Itertools::collect_vec).ok(), Some(vec![&"file"]));
+    /// ```
+    fn strip_prefix_by<Prefix, F>(
+        mut self,
+        prefix: Prefix,
+        mut eq: F,
+    ) -> Result<Self, StripPrefixError<Self, Prefix::IntoIter, Self::Item>>
+    where
+        Self: Sized,
+        Prefix: IntoIterator,
+        F: FnMut(&Self::Item, &Prefix::Item) -> bool,
+    {
+        let mut prefix = prefix.into_iter();
+        while let Some(wanted) = prefix.next() {
+            match self.next() {
+                Some(got) if eq(&got, &wanted) => continue,
+                got => {
+                    return Err(StripPrefixError {
+                        iterator: self,
+                        prefix,
+                        mismatch: (got, wanted),
+                    });
+                }
+            }
+        }
+        Ok(self)
+    }
+}
+
+/// The error returned by [`Itertools::strip_prefix`] and
+/// [`Itertools::strip_prefix_by`] when the iterator does not start with the
+/// requested prefix.
+///
+/// All fields are public so callers can recover the partially-consumed
+/// iterators and the mismatched items.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StripPrefixError<I, Prefix: Iterator, T> {
+    /// The remainder of the original iterator, advanced past the matched
+    /// prefix items but stopped at the position of the mismatch.
+    pub iterator: I,
+    /// The remainder of the prefix iterator, starting just after the prefix
+    /// item that failed to match.
+    pub prefix: Prefix,
+    /// The pair of items that failed to compare equal. The first element is
+    /// `None` if `iterator` was exhausted before the prefix was fully matched.
+    pub mismatch: (Option<T>, Prefix::Item),
 }
 
 impl<T> Itertools for T where T: Iterator + ?Sized {}

@@ -2098,4 +2098,42 @@ quickcheck! {
         itertools::equal(v.iter().tail(n), result)
             && itertools::equal(v.iter().filter(|_| true).tail(n), result)
     }
+
+    fn strip_prefix_matches_str(haystack: String, needle: String) -> bool {
+        let expected = haystack.strip_prefix(&needle);
+        let got: Option<String> = haystack
+            .chars()
+            .strip_prefix(needle.chars())
+            .ok()
+            .map(Iterator::collect);
+        got.as_deref() == expected
+    }
+
+    fn strip_prefix_by_matches_strip_prefix(v: Vec<i32>, n: u8) -> bool {
+        let prefix: Vec<i32> = v.iter().take(n as usize).copied().collect();
+        let by_eq = v.iter().strip_prefix_by(&prefix, |a, b| **a == **b).ok();
+        let plain = v.iter().strip_prefix(prefix.iter()).ok();
+        match (by_eq, plain) {
+            (Some(a), Some(b)) => itertools::equal(a, b),
+            (None, None) => true,
+            _ => false,
+        }
+    }
+}
+
+#[test]
+fn strip_prefix_error_exposes_mismatch_and_remainders() {
+    let err = (1..6)
+        .strip_prefix([1, 2, 9, 4])
+        .expect_err("third item mismatches");
+    assert_eq!(err.mismatch, (Some(3), 9));
+    assert_eq!(err.prefix.collect_vec(), vec![4]);
+    assert_eq!(err.iterator.collect_vec(), vec![4, 5]);
+}
+
+#[test]
+fn strip_prefix_error_signals_self_exhausted() {
+    let err = (1..3).strip_prefix([1, 2, 3]).expect_err("self exhausted");
+    assert_eq!(err.mismatch, (None, 3));
+    assert!(err.iterator.collect_vec().is_empty());
 }
