@@ -28,6 +28,8 @@ pub use crate::put_back_n_impl::put_back_n;
 #[cfg(feature = "use_alloc")]
 pub use crate::rciter_impl::rciter;
 pub use crate::zip_eq_impl::zip_eq;
+pub use crate::zip_squash::zip_squash;
+pub use crate::zip_stretch::zip_stretch;
 
 /// Iterate `iterable` with a particular value inserted between each element.
 ///
