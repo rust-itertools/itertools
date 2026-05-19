@@ -4,6 +4,7 @@
 
 ### Breaking
 - Restructure `Position` as struct instead of enum (#1042, #1043)
+- Canonicalize `all_equal_value`'s error type (#1032)
 
 ### Added
 - Add `*_with_hasher` adaptors (#1007)
