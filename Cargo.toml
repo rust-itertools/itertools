@@ -13,7 +13,7 @@ description = "Extra iterator adaptors, iterator methods, free functions, and ma
 keywords = ["iterator", "data-structure", "zip", "product"]
 categories = ["algorithms", "rust-patterns", "no-std", "no-std::no-alloc"]
 
-edition = "2018"
+edition = "2021"
 
 # When bumping, please resolve all `#[allow(clippy::*)]` that are newly resolvable.
 rust-version = "1.63.0"

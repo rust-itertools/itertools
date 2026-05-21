@@ -16,6 +16,7 @@ use crate::size_hint::{self, SizeHint};
 use std::fmt;
 use std::iter::{Enumerate, FromIterator, Fuse, FusedIterator};
 use std::marker::PhantomData;
+use std::ops::ControlFlow;
 
 /// An iterator adaptor that alternates elements from two iterators until both
 /// run out.
@@ -93,13 +94,13 @@ where
         let res = i.try_fold(init, |mut acc, x| {
             acc = f(acc, x);
             match j.next() {
-                Some(y) => Ok(f(acc, y)),
-                None => Err(acc),
+                Some(y) => ControlFlow::Continue(f(acc, y)),
+                None => ControlFlow::Break(acc),
             }
         });
         match res {
-            Ok(acc) => j.fold(acc, f),
-            Err(acc) => i.fold(acc, f),
+            ControlFlow::Continue(acc) => j.fold(acc, f),
+            ControlFlow::Break(acc) => i.fold(acc, f),
         }
     }
 }
@@ -216,14 +217,12 @@ where
         let res = i.try_fold(init, |mut acc, x| {
             acc = f(acc, x);
             match j.next() {
-                Some(y) => Ok(f(acc, y)),
-                None => Err(acc),
+                Some(y) => ControlFlow::Continue(f(acc, y)),
+                None => ControlFlow::Break(acc),
             }
         });
-        match res {
-            Ok(val) => val,
-            Err(val) => val,
-        }
+        let (ControlFlow::Continue(val) | ControlFlow::Break(val)) = res;
+        val
     }
 }
 
@@ -595,14 +594,11 @@ where
         F: FnMut(B, Self::Item) -> B,
     {
         let res = self.iter.try_fold(acc, |acc, item| match item {
-            Some(item) => Ok(f(acc, item)),
-            None => Err(acc),
+            Some(item) => ControlFlow::Continue(f(acc, item)),
+            None => ControlFlow::Break(acc),
         });
-
-        match res {
-            Ok(val) => val,
-            Err(val) => val,
-        }
+        let (ControlFlow::Continue(val) | ControlFlow::Break(val)) = res;
+        val
     }
 }
 
