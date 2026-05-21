@@ -8,6 +8,7 @@
 
 ### Added
 - Add `*_with_hasher` adaptors (#1007)
+- Add strip_prefix and strip_prefix_by methods (#1104)
 
 ### Changed
 - Remove `Clone` bounds from `tuple_combinations` and `array_combinations`(#1011)
