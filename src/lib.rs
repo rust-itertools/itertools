@@ -5180,19 +5180,17 @@ pub trait Itertools: Iterator {
         F: FnMut(&Self::Item, &Prefix::Item) -> bool,
     {
         let mut prefix = prefix.into_iter();
-        while let Some(wanted) = prefix.next() {
-            match self.next() {
-                Some(got) if eq(&got, &wanted) => continue,
-                got => {
-                    return Err(StripPrefixError {
-                        iterator: self,
-                        prefix,
-                        mismatch: (got, wanted),
-                    });
-                }
-            }
+        match prefix.by_ref().try_for_each(|wanted| match self.next() {
+            Some(got) if eq(&got, &wanted) => Ok(()),
+            got => Err((got, wanted)),
+        }) {
+            Ok(()) => Ok(self),
+            Err(mismatch) => Err(StripPrefixError {
+                iterator: self,
+                prefix,
+                mismatch,
+            }),
         }
-        Ok(self)
     }
 }
 
@@ -5202,7 +5200,7 @@ pub trait Itertools: Iterator {
 ///
 /// All fields are public so callers can recover the partially-consumed
 /// iterators and the mismatched items.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub struct StripPrefixError<I, Prefix: Iterator, T> {
     /// The remainder of the original iterator, advanced past the matched
     /// prefix items but stopped at the position of the mismatch.
