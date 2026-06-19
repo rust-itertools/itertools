@@ -177,7 +177,7 @@ where
         let (curr_lower, curr_upper) = curr_hint;
         let (next_lower, next_upper) = next_hint;
         let lower = if curr_lower > next_lower {
-            next_lower.saturating_mul(2) + 1
+            next_lower.saturating_mul(2).saturating_add(1)
         } else {
             curr_lower.saturating_mul(2)
         };
