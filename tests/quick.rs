@@ -1986,6 +1986,12 @@ quickcheck! {
         is_fused(a.fuse().interleave_shortest(b.fuse()))
     }
 
+    fn fused_take_while_inclusive(a: Iter<i16>) -> bool
+    {
+        !is_fused(a.clone().take_while_inclusive(|_| true)) &&
+        is_fused(a.fuse().take_while_inclusive(|_| true))
+    }
+
     fn fused_product(a: Iter<i16>, b: Iter<i16>) -> bool
     {
         is_fused(a.fuse().cartesian_product(b.fuse()))
