@@ -797,15 +797,12 @@ pub trait Itertools: Iterator {
     /// part of successive windows, this makes it most suited for iterators
     /// of references and other values that are cheap to copy.
     ///
+    /// This is a generalization `pairwise`, which iterates over tuples of
+    /// size 2.
+    ///
     /// ```
     /// use itertools::Itertools;
     /// let mut v = Vec::new();
-    ///
-    /// // pairwise iteration
-    /// for (a, b) in (1..5).tuple_windows() {
-    ///     v.push((a, b));
-    /// }
-    /// assert_eq!(v, vec![(1, 2), (2, 3), (3, 4)]);
     ///
     /// let mut it = (1..5).tuple_windows();
     /// assert_eq!(Some((1, 2, 3)), it.next());
