@@ -832,6 +832,24 @@ pub trait Itertools: Iterator {
         tuple_impl::tuple_windows(self)
     }
 
+    /// Alias for `tuple_windows` when iterating over two elements at once.
+    /// ```
+    /// use itertools::Itertools;
+    /// let mut v = Vec::new();
+    ///
+    /// for (a, b) in (1..5).pairwise() {
+    ///     v.push((a, b));
+    /// }
+    /// assert_eq!(v, vec![(1, 2), (2, 3), (3, 4)]);
+    /// ```
+    fn pairwise(self) -> TupleWindows<Self, (Self::Item, Self::Item)>
+    where
+        Self: Sized + Iterator,
+        Self::Item: Clone,
+    {
+        tuple_impl::tuple_windows(self)
+    }
+
     /// Return an iterator over all windows, wrapping back to the first
     /// elements when the window would otherwise exceed the length of the
     /// iterator, producing tuples of a specific size (up to 12).
