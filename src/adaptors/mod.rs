@@ -176,8 +176,14 @@ where
         };
         let (curr_lower, curr_upper) = curr_hint;
         let (next_lower, next_upper) = next_hint;
+        fn size_hint_mul_scalar(sh: SizeHint, x: usize) -> SizeHint {
+            let (mut low, mut hi) = sh;
+            low = low.saturating_mul(x);
+            hi = hi.and_then(|elt| elt.checked_mul(x));
+            (low, hi)
+        }
         let (combined_lower, combined_upper) =
-            size_hint::mul_scalar(size_hint::min(curr_hint, next_hint), 2);
+            size_hint_mul_scalar(size_hint::min(curr_hint, next_hint), 2);
         let lower = if curr_lower > next_lower {
             combined_lower + 1
         } else {
