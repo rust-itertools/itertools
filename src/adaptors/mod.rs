@@ -182,19 +182,18 @@ where
             curr_lower.saturating_mul(2)
         };
         let upper = {
-            let (extra_elem, size_hint_min_upper) = match (curr_upper, next_upper) {
+            let (extra_elem, combined_upper) = match (curr_upper, next_upper) {
                 (Some(curr_max), Some(next_max)) => {
                     if curr_max > next_max {
-                        (true, Some(next_max))
+                        (true, next_max.checked_mul(2))
                     } else {
-                        (false, Some(curr_max))
+                        (false, curr_max.checked_mul(2))
                     }
                 }
-                (Some(curr_max), None) => (false, Some(curr_max)),
-                (None, Some(next_max)) => (true, Some(next_max)),
+                (Some(curr_max), None) => (false, curr_max.checked_mul(2)),
+                (None, Some(next_max)) => (true, next_max.checked_mul(2)),
                 (None, None) => (false, None),
             };
-            let combined_upper = size_hint_min_upper.and_then(|elt| elt.checked_mul(2));
             if extra_elem {
                 combined_upper.and_then(|x| x.checked_add(1))
             } else {
