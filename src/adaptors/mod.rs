@@ -181,24 +181,17 @@ where
         } else {
             curr_lower.saturating_mul(2)
         };
-        let upper = {
-            let (extra_elem, combined_upper) = match (curr_upper, next_upper) {
-                (Some(curr_max), Some(next_max)) => {
-                    if curr_max > next_max {
-                        (true, next_max.checked_mul(2))
-                    } else {
-                        (false, curr_max.checked_mul(2))
-                    }
+        let upper = match (curr_upper, next_upper) {
+            (Some(curr_max), Some(next_max)) => {
+                if curr_max > next_max {
+                    next_max.checked_mul(2).and_then(|x| x.checked_add(1))
+                } else {
+                    curr_max.checked_mul(2)
                 }
-                (Some(curr_max), None) => (false, curr_max.checked_mul(2)),
-                (None, Some(next_max)) => (true, next_max.checked_mul(2)),
-                (None, None) => (false, None),
-            };
-            if extra_elem {
-                combined_upper.and_then(|x| x.checked_add(1))
-            } else {
-                combined_upper
             }
+            (Some(curr_max), None) => curr_max.checked_mul(2),
+            (None, Some(next_max)) => next_max.checked_mul(2).and_then(|x| x.checked_add(1)),
+            (None, None) => None,
         };
         (lower, upper)
     }
