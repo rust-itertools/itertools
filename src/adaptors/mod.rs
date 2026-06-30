@@ -182,14 +182,13 @@ where
             curr_lower.saturating_mul(2)
         };
         let upper = {
-            let extra_elem = match (curr_upper, next_upper) {
-                (_, None) => false,
-                (None, Some(_)) => true,
-                (Some(curr_max), Some(next_max)) => curr_max > next_max,
-            };
-            let size_hint_min_upper = match (curr_upper, next_upper) {
-                (Some(u1), Some(u2)) => Some(std::cmp::min(u1, u2)),
-                _ => curr_upper.or(next_upper),
+            let (extra_elem, size_hint_min_upper) = match (curr_upper, next_upper) {
+                (Some(curr_max), Some(next_max)) => {
+                    (curr_max > next_max, Some(std::cmp::min(curr_max, next_max)))
+                }
+                (Some(curr_max), None) => (false, Some(curr_max)),
+                (None, Some(next_max)) => (true, Some(next_max)),
+                (None, None) => (false, None),
             };
             let combined_upper = size_hint_min_upper.and_then(|elt| elt.checked_mul(2));
             if extra_elem {
