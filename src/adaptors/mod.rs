@@ -177,12 +177,7 @@ where
         let (curr_lower, curr_upper) = curr_hint;
         let (next_lower, next_upper) = next_hint;
         let size_hint_min_lower = std::cmp::min(curr_lower, next_lower);
-        let size_hint_min_upper = match (curr_upper, next_upper) {
-            (Some(u1), Some(u2)) => Some(std::cmp::min(u1, u2)),
-            _ => curr_upper.or(next_upper),
-        };
         let combined_lower = size_hint_min_lower.saturating_mul(2);
-        let combined_upper = size_hint_min_upper.and_then(|elt| elt.checked_mul(2));
         let lower = if curr_lower > next_lower {
             combined_lower + 1
         } else {
@@ -194,6 +189,11 @@ where
                 (None, Some(_)) => true,
                 (Some(curr_max), Some(next_max)) => curr_max > next_max,
             };
+            let size_hint_min_upper = match (curr_upper, next_upper) {
+                (Some(u1), Some(u2)) => Some(std::cmp::min(u1, u2)),
+                _ => curr_upper.or(next_upper),
+            };
+            let combined_upper = size_hint_min_upper.and_then(|elt| elt.checked_mul(2));
             if extra_elem {
                 combined_upper.and_then(|x| x.checked_add(1))
             } else {
