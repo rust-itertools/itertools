@@ -184,13 +184,12 @@ where
             };
             (lower, upper)
         };
-        fn size_hint_mul_scalar(sh: SizeHint, x: usize) -> SizeHint {
-            let (mut low, mut hi) = sh;
-            low = low.saturating_mul(x);
-            hi = hi.and_then(|elt| elt.checked_mul(x));
+        let (combined_lower, combined_upper) = {
+            let (mut low, mut hi) = size_hint_min;
+            low = low.saturating_mul(2);
+            hi = hi.and_then(|elt| elt.checked_mul(2));
             (low, hi)
-        }
-        let (combined_lower, combined_upper) = size_hint_mul_scalar(size_hint_min, 2);
+        };
         let lower = if curr_lower > next_lower {
             combined_lower + 1
         } else {
