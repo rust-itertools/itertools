@@ -176,20 +176,13 @@ where
         };
         let (curr_lower, curr_upper) = curr_hint;
         let (next_lower, next_upper) = next_hint;
-        let size_hint_min = {
-            let lower = std::cmp::min(curr_lower, next_lower);
-            let upper = match (curr_upper, next_upper) {
-                (Some(u1), Some(u2)) => Some(std::cmp::min(u1, u2)),
-                _ => curr_upper.or(next_upper),
-            };
-            (lower, upper)
+        let size_hint_min_lower = std::cmp::min(curr_lower, next_lower);
+        let size_hint_min_upper = match (curr_upper, next_upper) {
+            (Some(u1), Some(u2)) => Some(std::cmp::min(u1, u2)),
+            _ => curr_upper.or(next_upper),
         };
-        let (combined_lower, combined_upper) = {
-            let (mut low, mut hi) = size_hint_min;
-            low = low.saturating_mul(2);
-            hi = hi.and_then(|elt| elt.checked_mul(2));
-            (low, hi)
-        };
+        let combined_lower = size_hint_min_lower.saturating_mul(2);
+        let combined_upper = size_hint_min_upper.and_then(|elt| elt.checked_mul(2));
         let lower = if curr_lower > next_lower {
             combined_lower + 1
         } else {
