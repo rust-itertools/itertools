@@ -184,7 +184,11 @@ where
         let upper = {
             let (extra_elem, size_hint_min_upper) = match (curr_upper, next_upper) {
                 (Some(curr_max), Some(next_max)) => {
-                    (curr_max > next_max, Some(std::cmp::min(curr_max, next_max)))
+                    if curr_max > next_max {
+                        (true, Some(next_max))
+                    } else {
+                        (false, Some(curr_max))
+                    }
                 }
                 (Some(curr_max), None) => (false, Some(curr_max)),
                 (None, Some(next_max)) => (true, Some(next_max)),
