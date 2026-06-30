@@ -176,24 +176,21 @@ where
         };
         let (curr_lower, curr_upper) = curr_hint;
         let (next_lower, next_upper) = next_hint;
-        pub fn size_hint_min(a: SizeHint, b: SizeHint) -> SizeHint {
-            let (a_lower, a_upper) = a;
-            let (b_lower, b_upper) = b;
-            let lower = std::cmp::min(a_lower, b_lower);
-            let upper = match (a_upper, b_upper) {
+        let size_hint_min = {
+            let lower = std::cmp::min(curr_lower, next_lower);
+            let upper = match (curr_upper, next_upper) {
                 (Some(u1), Some(u2)) => Some(std::cmp::min(u1, u2)),
-                _ => a_upper.or(b_upper),
+                _ => curr_upper.or(next_upper),
             };
             (lower, upper)
-        }
+        };
         fn size_hint_mul_scalar(sh: SizeHint, x: usize) -> SizeHint {
             let (mut low, mut hi) = sh;
             low = low.saturating_mul(x);
             hi = hi.and_then(|elt| elt.checked_mul(x));
             (low, hi)
         }
-        let (combined_lower, combined_upper) =
-            size_hint_mul_scalar(size_hint_min(curr_hint, next_hint), 2);
+        let (combined_lower, combined_upper) = size_hint_mul_scalar(size_hint_min, 2);
         let lower = if curr_lower > next_lower {
             combined_lower + 1
         } else {
