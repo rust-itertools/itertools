@@ -176,12 +176,10 @@ where
         };
         let (curr_lower, curr_upper) = curr_hint;
         let (next_lower, next_upper) = next_hint;
-        let size_hint_min_lower = std::cmp::min(curr_lower, next_lower);
-        let combined_lower = size_hint_min_lower.saturating_mul(2);
         let lower = if curr_lower > next_lower {
-            combined_lower + 1
+            next_lower.saturating_mul(2) + 1
         } else {
-            combined_lower
+            curr_lower.saturating_mul(2)
         };
         let upper = {
             let extra_elem = match (curr_upper, next_upper) {
