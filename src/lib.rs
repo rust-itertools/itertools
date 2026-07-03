@@ -1586,7 +1586,7 @@ pub trait Itertools: Iterator {
     /// [.duplicates()](crate::Itertools::duplicates), but uses the specified hash builder to hash
     /// the elements for comparison.
     ///
-    /// Warning: `hash_builder` is normally randomly generated, and is designed to allow it's
+    /// Warning: `hash_builder` is normally randomly generated, and is designed to allow its
     /// users to be resistant to attacks that cause many collisions and very poor performance.
     /// Setting it manually using this function can expose a DoS attack vector.
     ///
