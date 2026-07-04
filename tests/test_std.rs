@@ -87,6 +87,16 @@ fn interleave_shortest() {
 }
 
 #[test]
+fn interleave_shortest_size_hint_does_not_overflow() {
+    // The combined lower bound can exceed `usize::MAX`, which used to overflow
+    // when computing `size_hint`. It should saturate instead of panicking.
+    let i = ::std::iter::repeat(0u8).take(usize::MAX);
+    let j = ::std::iter::repeat(0u8).take(usize::MAX - 1);
+    let it = i.interleave_shortest(j);
+    assert_eq!(it.size_hint(), (usize::MAX, None));
+}
+
+#[test]
 fn duplicates_by() {
     let xs = ["aaa", "bbbbb", "aa", "ccc", "bbbb", "aaaaa", "cccc"];
     let ys = ["aa", "bbbb", "cccc"];
