@@ -745,6 +745,22 @@ quickcheck! {
 
         assert_eq!(expected, actual);
     }
+
+    fn correct_multiset_permutations(a: usize, b: usize, c: usize, d: usize) -> () {
+        let n1 = a % 2;
+        let n2 = b % 4;
+        let n3 = c % 2;
+        let n4 = d % 5;
+        let mut vec = vec![0; n1];
+        vec.append(&mut vec![1; n2]);
+        vec.append(&mut vec![2; n3]);
+        vec.append(&mut vec![3; n4]);
+        let n = vec.len();
+        let unique_permutations = vec.iter().permutations(n).unique().sorted().collect_vec();
+        let multiset_permutations = vec.iter().multiset_permutations().sorted().collect_vec();
+        assert_eq!(unique_permutations, multiset_permutations);
+    }
+
 }
 
 quickcheck! {
