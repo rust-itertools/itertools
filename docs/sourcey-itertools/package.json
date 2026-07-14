@@ -1,0 +1,13 @@
+{
+  "name": "itertools-sourcey-docs",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Reproducible Sourcey Rust API documentation for itertools.",
+  "scripts": {
+    "snapshot": "node scripts/snapshot-rustdoc.mjs",
+    "build": "sourcey build -o site"
+  },
+  "dependencies": {
+    "sourcey": "3.6.5"
+  }
+}

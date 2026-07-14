@@ -1,0 +1,12 @@
+# itertools Rust API
+
+> The concrete iterator types.
+
+## Rust API
+
+- [itertools::structs](/rohitmulani63-ops/itertools/docs/sourcey-rust-api/docs/sourcey-itertools/site/rust-api/pkg-itertools-itertools-structs.html): The concrete iterator types.
+- [itertools::traits](/rohitmulani63-ops/itertools/docs/sourcey-rust-api/docs/sourcey-itertools/site/rust-api/pkg-itertools-itertools-traits.html): Traits helpful for using certain `Itertools` methods in generic contexts.
+- [itertools](/rohitmulani63-ops/itertools/docs/sourcey-rust-api/docs/sourcey-itertools/site/rust-api/pkg-itertools-itertools.html): Extra iterator adaptors, functions and macros.
+- [itertools](/rohitmulani63-ops/itertools/docs/sourcey-rust-api/docs/sourcey-itertools/site/rust-api/pkg-itertools.html): Rust API for itertools (2848 items across 3 modules).
+- [Doctests](/rohitmulani63-ops/itertools/docs/sourcey-rust-api/docs/sourcey-itertools/site/rust-api/doctests.html): Aggregated doctests across the workspace.
+- [Rust API](/rohitmulani63-ops/itertools/docs/sourcey-rust-api/docs/sourcey-itertools/site/rust-api.html): Rust API across 1 crate.

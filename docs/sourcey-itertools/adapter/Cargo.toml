@@ -1,0 +1,20 @@
+[package]
+name = "itertools"
+version = "0.15.0"
+edition = "2018"
+publish = false
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/rust-itertools/itertools"
+description = "Extra iterator adaptors, iterator methods, free functions, and macros."
+
+[lib]
+name = "itertools"
+path = "../../../src/lib.rs"
+
+[dependencies]
+either = { version = "1.0", default-features = false }
+
+[features]
+default = ["use_std"]
+use_std = ["use_alloc", "either/use_std"]
+use_alloc = []
