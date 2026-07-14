@@ -143,6 +143,8 @@ pub mod structs {
     pub use crate::take_while_inclusive::TakeWhileInclusive;
     #[cfg(feature = "use_alloc")]
     pub use crate::tee::Tee;
+    #[cfg(feature = "use_std")]
+    pub use crate::timed::TimedIterator;
     pub use crate::tuple_impl::{CircularTupleWindows, TupleBuffer, TupleWindows, Tuples};
     #[cfg(feature = "use_std")]
     pub use crate::unique_impl::{Unique, UniqueBy};
@@ -238,6 +240,8 @@ mod sources;
 mod take_while_inclusive;
 #[cfg(feature = "use_alloc")]
 mod tee;
+#[cfg(feature = "use_std")]
+mod timed;
 mod tuple_impl;
 #[cfg(feature = "use_std")]
 mod unique_impl;
@@ -5191,6 +5195,62 @@ pub trait Itertools: Iterator {
                 mismatch,
             }),
         }
+    }
+
+    /// Computes the duration of each call to `next()` and yields it alongside
+    /// each element. The first time the input iterator returns None from
+    /// `next()`, the duration is also computed and returned. This has two
+    /// consequences:
+    /// - The Item type of the timed iterator contains an extra option, i.e.
+    ///   the `Item` associated type is `(Option<I::Item>, Duration)`.
+    /// - For finite iterators, the timed iterator always yields one more
+    ///   element than the input iterator. Since this makes the iterator
+    ///   longer, we don't implement the `ExactSizeIterator` trait even if
+    ///   the input iterator does.
+    /// 
+    /// Note that this iterator implicitly assumes that its input is fused
+    /// (see [`std::iter::FusedIterator`] for details). Once the consumed
+    /// iterator's `next()` method returns `None`, it is never called again.
+    /// In most cases, the input iterator is then unretrievable (unless
+    /// `(&mut iter).timed()` or `Itertools::timed(&mut iter)` is called
+    /// explicitly). In this case, if the TimedIterator is exhausted, the
+    /// underlying iterator could be accessible and would be in the state
+    /// right after returning `None` for the first time.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// use std::{thread, time::Duration};
+    /// 
+    /// struct YieldsOnce {
+    ///     yielded_yet: bool
+    /// }
+    /// impl Iterator for YieldsOnce {
+    ///     type Item = ();
+    ///     fn next(&mut self) -> Option<()> {
+    ///         if self.yielded_yet {
+    ///             thread::sleep(Duration::from_micros(2));
+    ///             None
+    ///         } else {
+    ///             thread::sleep(Duration::from_micros(1));
+    ///             self.yielded_yet = true;
+    ///             Some(())
+    ///         }
+    ///     }
+    /// }
+    /// let iter = YieldsOnce{yielded_yet: false};
+    /// let iter = iter.timed();
+    /// let results: Vec<(Option<()>, Duration)> = iter.collect();
+    /// assert_eq!(results.len(), 2);
+    /// let (first_value, first_duration) = results[0];
+    /// assert_eq!(first_value, Some(()));
+    /// assert!(first_duration >= Duration::from_micros(1));
+    /// let (second_value, second_duration) = results[1];
+    /// assert_eq!(second_value, None);
+    /// assert!(second_duration >= Duration::from_micros(2));
+    /// ```
+    #[cfg(feature = "use_std")]
+    fn timed(self) -> TimedIterator<Self> where Self: Sized {
+        TimedIterator::new(self)
     }
 }
 

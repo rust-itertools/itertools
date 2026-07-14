@@ -25,6 +25,8 @@ use std::collections::HashMap;
 use std::hash::BuildHasher;
 use std::hash::RandomState;
 use std::iter::empty;
+use std::thread;
+use std::time::Duration;
 use std::{cmp::min, fmt::Debug, marker::PhantomData};
 
 // A Hasher which forwards it's calls to RandomState to make sure different hashers
@@ -1674,4 +1676,126 @@ fn counts_with_hasher() {
 fn counts_by_with_hasher() {
     let _: HashMap<_, _, TestHasher> =
         empty::<u8>().counts_by_with_hasher(|x| x, TestHasher::new());
+}
+
+#[test]
+fn timed_empty() {
+    struct EmptyIterator;
+    impl Iterator for EmptyIterator {
+        type Item = ();
+        fn next(&mut self) -> Option<Self::Item> {
+            thread::sleep(Duration::from_micros(1));
+            None
+        }
+        fn size_hint(&self) -> (usize, Option<usize>) {
+            (0, Some(0))
+        }
+    }
+    let mut iter = EmptyIterator.timed();
+    assert_eq!(iter.size_hint(), (1, Some(1)));
+    let (item, duration) = iter.next().unwrap();
+    assert_eq!(item, None);
+    assert!(duration.as_micros() >= 1);
+    assert_eq!(iter.size_hint(), (0, Some(0)));
+    assert_eq!(iter.next(), None);
+    assert_eq!(iter.size_hint(), (0, Some(0)));
+}
+
+#[test]
+fn timed_infinite() {
+    struct InfiniteIterator(usize);
+    impl Iterator for InfiniteIterator {
+        type Item = usize;
+        fn next(&mut self) -> Option<Self::Item> {
+            thread::sleep(Duration::from_micros(1));
+            let result = Some(self.0);
+            self.0 += 1;
+            result
+        }
+        fn size_hint(&self) -> (usize, Option<usize>) {
+            (usize::MAX, None)
+        }
+    }
+    let mut iter = InfiniteIterator(0).timed();
+    for cur in 0..100 {
+        assert_eq!(iter.size_hint(), (usize::MAX, None));
+        let (item, duration) = iter.next().unwrap();
+        assert_eq!(item.unwrap(), cur);
+        assert!(duration.as_micros() >= 1);
+    }
+}
+
+#[test]
+fn timed_finite() {
+    struct MockIterator(usize);
+    impl Iterator for MockIterator {
+        type Item = usize;
+        fn next(&mut self) -> Option<Self::Item> {
+            match self.0 {
+                0 => {
+                    thread::sleep(Duration::from_micros(10));
+                    None
+                },
+                _ => {
+                    thread::sleep(Duration::from_micros(self.0 as u64));
+                    self.0 -= 1;
+                    Some(self.0)
+                }
+            }
+        }
+        fn size_hint(&self) -> (usize, Option<usize>) {
+            (self.0, Some(self.0))
+        }
+    }
+    let mut iter = MockIterator(4).timed();
+    for cur in (0..4).rev() {
+        assert_eq!(iter.size_hint(), (cur + 2, Some(cur + 2)));
+        let (item, duration) = iter.next().unwrap();
+        assert_eq!(item.unwrap(), cur);
+        assert!(duration >= Duration::from_micros((cur as u64) + 1));
+    }
+    assert_eq!(iter.size_hint(), (1, Some(1)));
+    let (item, duration) = iter.next().unwrap();
+    assert!(item.is_none());
+    assert!(duration >= Duration::from_micros(10));
+    assert!(iter.next().is_none());
+}
+
+#[test]
+fn timed_unfused_iterator() {
+    struct MockIterator(usize);
+    impl Iterator for MockIterator {
+        type Item = usize;
+        fn next(&mut self) -> Option<Self::Item> {
+            let result = if (self.0 % 2) == 0 {
+                thread::sleep(Duration::from_micros(2));
+                None
+            } else {
+                thread::sleep(Duration::from_micros(1));
+                Some(self.0)
+            };
+            if self.0 != 0 {
+                self.0 -= 1;
+            }
+            result
+        }
+    }
+    let mut iter = MockIterator(3);
+    let first = (&mut iter).timed().collect::<Vec<_>>();
+    let second = (&mut iter).timed().collect::<Vec<_>>();
+    let third = (&mut iter).timed().collect::<Vec<_>>();
+    assert_eq!(first.len(), 2);
+    assert_eq!(first[0].0, Some(3));
+    assert!(first[0].1 > Duration::from_micros(1));
+    assert_eq!(first[1].0, None);
+    assert!(first[1].1 > Duration::from_micros(2));
+    assert_eq!(second.len(), 2);
+    assert_eq!(second[0].0, Some(1));
+    assert!(second[0].1 > Duration::from_micros(1));
+    assert_eq!(second.len(), 2);
+    assert_eq!(second[1].0, None);
+    assert!(second[1].1 > Duration::from_micros(2));
+    assert_eq!(third.len(), 1);
+    assert_eq!(third[0].0, None);
+    assert!(third[0].1 > Duration::from_micros(2));
 }

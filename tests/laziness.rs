@@ -309,4 +309,7 @@ must_use_tests! {
     rciter {
         let _ = itertools::rciter(Panicking);
     }
+    timed {
+        let _ = Panicking.timed();
+    }
 }
