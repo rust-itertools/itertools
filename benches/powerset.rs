@@ -8,7 +8,7 @@ const fn calc_iters(n: usize) -> usize {
 }
 
 fn powerset_n(c: &mut Criterion, n: usize) {
-    let id = format!("powerset {}", n);
+    let id = format!("powerset {n}");
     c.bench_function(id.as_str(), move |b| {
         b.iter(|| {
             for _ in 0..calc_iters(n) {
@@ -21,7 +21,7 @@ fn powerset_n(c: &mut Criterion, n: usize) {
 }
 
 fn powerset_n_fold(c: &mut Criterion, n: usize) {
-    let id = format!("powerset {} fold", n);
+    let id = format!("powerset {n} fold");
     c.bench_function(id.as_str(), move |b| {
         b.iter(|| {
             for _ in 0..calc_iters(n) {

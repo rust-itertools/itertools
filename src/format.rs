@@ -9,7 +9,7 @@ use std::fmt;
 /// See [`.format_with()`](crate::Itertools::format_with) for more information.
 pub struct FormatWith<'a, I, F> {
     sep: &'a str,
-    /// FormatWith uses interior mutability because Display::fmt takes &self.
+    /// `FormatWith` uses interior mutability because `Display::fmt` takes `&self`.
     inner: Cell<Option<(I, F)>>,
 }
 
@@ -22,7 +22,7 @@ pub struct FormatWith<'a, I, F> {
 /// for more information.
 pub struct Format<'a, I> {
     sep: &'a str,
-    /// Format uses interior mutability because Display::fmt takes &self.
+    /// `Format` uses interior mutability because `Display::fmt` takes `&self`.
     inner: Cell<Option<I>>,
 }
 
@@ -47,7 +47,7 @@ where
     }
 }
 
-impl<'a, I, F> fmt::Display for FormatWith<'a, I, F>
+impl<I, F> fmt::Display for FormatWith<'_, I, F>
 where
     I: Iterator,
     F: FnMut(I::Item, &mut dyn FnMut(&dyn fmt::Display) -> fmt::Result) -> fmt::Result,
@@ -71,7 +71,17 @@ where
     }
 }
 
-impl<'a, I> Format<'a, I>
+impl<I, F> fmt::Debug for FormatWith<'_, I, F>
+where
+    I: Iterator,
+    F: FnMut(I::Item, &mut dyn FnMut(&dyn fmt::Display) -> fmt::Result) -> fmt::Result,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
+    }
+}
+
+impl<I> Format<'_, I>
 where
     I: Iterator,
 {
@@ -115,7 +125,7 @@ macro_rules! impl_format {
 
 impl_format! {Display Debug UpperExp LowerExp UpperHex LowerHex Octal Binary Pointer}
 
-impl<'a, I, F> Clone for FormatWith<'a, I, F>
+impl<I, F> Clone for FormatWith<'_, I, F>
 where
     (I, F): Clone,
 {
@@ -125,7 +135,7 @@ where
             inner: Option<(I, F)>,
         }
         // This ensures we preserve the state of the original `FormatWith` if `Clone` panics
-        impl<'r, 'a, I, F> Drop for PutBackOnDrop<'r, 'a, I, F> {
+        impl<I, F> Drop for PutBackOnDrop<'_, '_, I, F> {
             fn drop(&mut self) {
                 self.into.inner.set(self.inner.take())
             }
@@ -141,7 +151,7 @@ where
     }
 }
 
-impl<'a, I> Clone for Format<'a, I>
+impl<I> Clone for Format<'_, I>
 where
     I: Clone,
 {
@@ -151,7 +161,7 @@ where
             inner: Option<I>,
         }
         // This ensures we preserve the state of the original `FormatWith` if `Clone` panics
-        impl<'r, 'a, I> Drop for PutBackOnDrop<'r, 'a, I> {
+        impl<I> Drop for PutBackOnDrop<'_, '_, I> {
             fn drop(&mut self) {
                 self.into.inner.set(self.inner.take())
             }

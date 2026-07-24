@@ -99,7 +99,7 @@ where
                             return None;
                         }
                     }
-                    let item = indices[0..*k].iter().map(|&i| vals[i].clone()).collect();
+                    let item = vals.get_at(&indices[0..*k]);
                     *state = PermutationState::Loaded { indices, cycles };
                     Some(item)
                 }
@@ -110,7 +110,7 @@ where
                     return None;
                 }
                 let k = cycles.len();
-                Some(indices[0..k].iter().map(|&i| vals[i].clone()).collect())
+                Some(vals.get_at(&indices[0..k]))
             }
             PermutationState::End => None,
         }

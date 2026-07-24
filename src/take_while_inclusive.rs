@@ -21,7 +21,7 @@ where
     F: FnMut(&I::Item) -> bool,
 {
     /// Create a new [`TakeWhileInclusive`] from an iterator and a predicate.
-    pub fn new(iter: I, predicate: F) -> Self {
+    pub(crate) fn new(iter: I, predicate: F) -> Self {
         Self {
             iter,
             predicate,
@@ -90,7 +90,7 @@ where
 
 impl<I, F> FusedIterator for TakeWhileInclusive<I, F>
 where
-    I: Iterator,
+    I: FusedIterator,
     F: FnMut(&I::Item) -> bool,
 {
 }

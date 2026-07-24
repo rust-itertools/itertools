@@ -13,14 +13,10 @@ pub struct ProcessResults<'a, I, E: 'a> {
     iter: I,
 }
 
-impl<'a, I, T, E> Iterator for ProcessResults<'a, I, E>
-where
-    I: Iterator<Item = Result<T, E>>,
-{
-    type Item = T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.iter.next() {
+impl<I, E> ProcessResults<'_, I, E> {
+    #[inline(always)]
+    fn next_body<T>(&mut self, item: Option<Result<T, E>>) -> Option<T> {
+        match item {
             Some(Ok(x)) => Some(x),
             Some(Err(e)) => {
                 *self.error = Err(e);
@@ -28,6 +24,18 @@ where
             }
             None => None,
         }
+    }
+}
+
+impl<I, T, E> Iterator for ProcessResults<'_, I, E>
+where
+    I: Iterator<Item = Result<T, E>>,
+{
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let item = self.iter.next();
+        self.next_body(item)
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -42,6 +50,33 @@ where
         let error = self.error;
         self.iter
             .try_fold(init, |acc, opt| match opt {
+                Ok(x) => Ok(f(acc, x)),
+                Err(e) => {
+                    *error = Err(e);
+                    Err(acc)
+                }
+            })
+            .unwrap_or_else(|e| e)
+    }
+}
+
+impl<I, T, E> DoubleEndedIterator for ProcessResults<'_, I, E>
+where
+    I: Iterator<Item = Result<T, E>>,
+    I: DoubleEndedIterator,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        let item = self.iter.next_back();
+        self.next_body(item)
+    }
+
+    fn rfold<B, F>(mut self, init: B, mut f: F) -> B
+    where
+        F: FnMut(B, Self::Item) -> B,
+    {
+        let error = self.error;
+        self.iter
+            .try_rfold(init, |acc, opt| match opt {
                 Ok(x) => Ok(f(acc, x)),
                 Err(e) => {
                     *error = Err(e);

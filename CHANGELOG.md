@@ -1,5 +1,106 @@
 # Changelog
 
+## 0.15.0
+
+### Breaking
+- Restructure `Position` as struct instead of enum (#1042, #1043)
+- Canonicalize `all_equal_value`'s error type (#1032)
+
+### Added
+- Add `*_with_hasher` adaptors (#1007)
+- Add strip_prefix and strip_prefix_by methods (#1104)
+
+### Changed
+- Remove `Clone` bounds from `tuple_combinations` and `array_combinations`(#1011)
+- `must_use` for `collect_vec` (#1009)
+- Make `izip!` temporary friendly (#1021)
+- Add `array_combinations_with_replacement` (#1033)
+- Implement `Debug` for remaining public types (#1038)
+- Specialize `ExactlyOneError::count` (#1046)
+- Implement `PeekingNext` for more types, in particular `vec::IntoIter` (#1059, #1073)
+- Fix `PadUsing::next_back` (#1082)
+- Introduce `[circular_]array_windows`, deprecate `tuple_windows` (#1086)
+- Deprecate `tuple_combinations` (replaced by `array_combinations`) (#1085)
+
+### Notable Internal Changes
+- Make `into_group_map` code more idiomatic (#1027)
+- Fix clippy lints (#1017, #1029, #1076, #1099)
+
+## 0.14.0
+
+### Breaking
+- Increased MSRV to 1.63.0 (#960)
+- Removed generic parameter from `cons_tuples` (#988)
+
+### Added
+- Added `array_combinations` (#991)
+- Added `k_smallest_relaxed` and variants (#925)
+- Added `next_array` and `collect_array` (#560)
+- Implemented `DoubleEndedIterator` for `FilterOk` (#948)
+- Implemented `DoubleEndedIterator` for `FilterMapOk` (#950)
+
+### Changed
+- Allow `Q: ?Sized` in `Itertools::contains` (#971)
+- Improved hygiene of `chain!` (#943)
+- Improved `into_group_map_by` documentation (#1000)
+- Improved `tree_reduce` documentation (#955)
+- Improved discoverability of `merge_join_by` (#966)
+- Improved discoverability of `take_while_inclusive` (#972)
+- Improved documentation of `find_or_last` and `find_or_first` (#984)
+- Prevented exponentially large type sizes in `tuple_combinations` (#945)
+- Added `track_caller` attr for `asser_equal` (#976)
+
+### Notable Internal Changes
+- Fixed clippy lints (#956, #987, #1008)
+- Addressed warnings within doctests (#964)
+- CI: Run most tests with miri (#961)
+- CI: Speed up "cargo-semver-checks" action (#938)
+- Changed an instance of `default_features` in `Cargo.toml` to `default-features` (#985)
+
+## 0.13.0
+
+### Breaking
+- Removed implementation of `DoubleEndedIterator` for `ConsTuples` (#853)
+- Made `MultiProduct` fused and fixed on an empty iterator (#835, #834)
+- Changed `iproduct!` to return tuples for maxi one iterator too (#870)
+- Changed `PutBack::put_back` to return the old value (#880)
+- Removed deprecated `repeat_call, Itertools::{foreach, step, map_results, fold_results}` (#878)
+- Removed `TakeWhileInclusive::new` (#912)
+
+### Added
+- Added `Itertools::{smallest_by, smallest_by_key, largest, largest_by, largest_by_key}` (#654, #885)
+- Added `Itertools::tail` (#899)
+- Implemented `DoubleEndedIterator` for `ProcessResults` (#910)
+- Implemented `Debug` for `FormatWith` (#931)
+- Added `Itertools::get` (#891)
+
+### Changed
+- Deprecated `Itertools::group_by` (renamed `chunk_by`) (#866, #879)
+- Deprecated `unfold` (use `std::iter::from_fn` instead) (#871)
+- Optimized `GroupingMapBy` (#873, #876)
+- Relaxed `Fn` bounds to `FnMut` in `diff_with, Itertools::into_group_map_by` (#886)
+- Relaxed `Debug/Clone` bounds for `MapInto` (#889)
+- Documented the `use_alloc` feature (#887)
+- Optimized `Itertools::set_from` (#888)
+- Removed badges in `README.md` (#890)
+- Added "no-std" categories in `Cargo.toml` (#894)
+- Fixed `Itertools::k_smallest` on short unfused iterators (#900)
+- Deprecated `Itertools::tree_fold1` (renamed `tree_reduce`) (#895)
+- Deprecated `GroupingMap::fold_first` (renamed `reduce`) (#902)
+- Fixed `Itertools::k_smallest(0)` to consume the iterator, optimized `Itertools::k_smallest(1)` (#909)
+- Specialized `Combinations::nth` (#914)
+- Specialized `MergeBy::fold` (#920)
+- Specialized `CombinationsWithReplacement::nth` (#923)
+- Specialized `FlattenOk::{fold, rfold}` (#927)
+- Specialized `Powerset::nth` (#924)
+- Documentation fixes (#882, #936)
+- Fixed `assert_equal` for iterators longer than `i32::MAX` (#932)
+- Updated the `must_use` message of non-lazy `KMergeBy` and `TupleCombinations` (#939)
+
+### Notable Internal Changes
+- Tested iterator laziness (#792)
+- Created `CONTRIBUTING.md` (#767)
+
 ## 0.12.1
 
 ### Added

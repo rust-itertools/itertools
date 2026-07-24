@@ -87,7 +87,7 @@ where
 }
 
 /// Return an iterator from `&RcIter<I>` (by simply cloning it).
-impl<'a, I> IntoIterator for &'a RcIter<I>
+impl<I> IntoIterator for &RcIter<I>
 where
     I: Iterator,
 {

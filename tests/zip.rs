@@ -1,4 +1,3 @@
-use itertools::free::zip_eq;
 use itertools::multizip;
 use itertools::EitherOrBoth::{Both, Left, Right};
 use itertools::Itertools;
@@ -21,7 +20,7 @@ fn test_zip_longest_size_hint() {
     let v: &[_] = &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     let v2 = &[10, 11, 12];
 
-    assert_eq!(c.zip_longest(v.iter()).size_hint(), (std::usize::MAX, None));
+    assert_eq!(c.zip_longest(v.iter()).size_hint(), (usize::MAX, None));
 
     assert_eq!(v.iter().zip_longest(v2.iter()).size_hint(), (10, Some(10)));
 }
@@ -56,20 +55,48 @@ fn test_double_ended_zip() {
     assert_eq!(it.next_back(), None);
 }
 
-#[should_panic]
 #[test]
-fn zip_eq_panic1() {
-    let a = [1, 2];
-    let b = [1, 2, 3];
+/// The purpose of this test is not really to test the iterator mechanics itself, rather that it
+/// compiles and accepts temporary values as inputs, as those would be valid when not used with the
+/// izip! macro and zipped manually via .zip calls
+fn test_izip_with_temporaries() {
+    struct Owned {
+        data: Vec<i32>,
+    }
 
-    zip_eq(&a, &b).count();
-}
+    impl Owned {
+        fn new(val: i32) -> Self {
+            Self {
+                data: vec![val; 10],
+            }
+        }
 
-#[should_panic]
-#[test]
-fn zip_eq_panic2() {
-    let a: [i32; 0] = [];
-    let b = [1, 2, 3];
+        fn as_view(&self) -> View<'_> {
+            View {
+                data: self.data.as_slice(),
+            }
+        }
+    }
 
-    zip_eq(&a, &b).count();
+    struct View<'a> {
+        data: &'a [i32],
+    }
+
+    impl View<'_> {
+        fn iter(&self) -> impl Iterator<Item = &i32> {
+            self.data.iter()
+        }
+    }
+
+    let a = Owned::new(0);
+    let b = Owned::new(1);
+    let c = Owned::new(2);
+
+    let mut sum = 0;
+
+    for (x, y, z) in itertools::izip!(a.as_view().iter(), b.as_view().iter(), c.as_view().iter()) {
+        sum += x + y + z;
+    }
+
+    assert_eq!(sum, 30);
 }

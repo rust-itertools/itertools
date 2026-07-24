@@ -1,4 +1,3 @@
-#![cfg(feature = "use_alloc")]
 use alloc::{vec, vec::Vec};
 use std::cmp::Ordering;
 

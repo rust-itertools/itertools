@@ -7,10 +7,6 @@ use std::cmp;
 use std::iter::repeat;
 use std::ops::{Add, Range};
 
-mod extra;
-
-use crate::extra::ZipSlices;
-
 fn slice_iter(c: &mut Criterion) {
     let xs: Vec<_> = repeat(1i32).take(20).collect();
 
@@ -116,72 +112,6 @@ fn zip_slices_ziptuple(c: &mut Criterion) {
                 black_box(x);
                 black_box(y);
             }
-        })
-    });
-}
-
-fn zipslices(c: &mut Criterion) {
-    let xs = vec![0; 1024];
-    let ys = vec![0; 768];
-    let xs = black_box(xs);
-    let ys = black_box(ys);
-
-    c.bench_function("zipslices", move |b| {
-        b.iter(|| {
-            for (&x, &y) in ZipSlices::new(&xs, &ys) {
-                black_box(x);
-                black_box(y);
-            }
-        })
-    });
-}
-
-fn zipslices_mut(c: &mut Criterion) {
-    let xs = vec![0; 1024];
-    let ys = vec![0; 768];
-    let xs = black_box(xs);
-    let mut ys = black_box(ys);
-
-    c.bench_function("zipslices mut", move |b| {
-        b.iter(|| {
-            for (&x, &mut y) in ZipSlices::from_slices(&xs[..], &mut ys[..]) {
-                black_box(x);
-                black_box(y);
-            }
-        })
-    });
-}
-
-fn zipdot_i32_zipslices(c: &mut Criterion) {
-    let xs = vec![2; 1024];
-    let ys = vec![2; 768];
-    let xs = black_box(xs);
-    let ys = black_box(ys);
-
-    c.bench_function("zipdot i32 zipslices", move |b| {
-        b.iter(|| {
-            let mut s = 0i32;
-            for (&x, &y) in ZipSlices::new(&xs, &ys) {
-                s += x * y;
-            }
-            s
-        })
-    });
-}
-
-fn zipdot_f32_zipslices(c: &mut Criterion) {
-    let xs = vec![2f32; 1024];
-    let ys = vec![2f32; 768];
-    let xs = black_box(xs);
-    let ys = black_box(ys);
-
-    c.bench_function("zipdot f32 zipslices", move |b| {
-        b.iter(|| {
-            let mut s = 0.;
-            for (&x, &y) in ZipSlices::new(&xs, &ys) {
-                s += x * y;
-            }
-            s
         })
     });
 }
@@ -801,10 +731,6 @@ criterion_group!(
     zipdot_f32_default_zip,
     zip_default_zip3,
     zip_slices_ziptuple,
-    zipslices,
-    zipslices_mut,
-    zipdot_i32_zipslices,
-    zipdot_f32_zipslices,
     zip_checked_counted_loop,
     zipdot_i32_checked_counted_loop,
     zipdot_f32_checked_counted_loop,

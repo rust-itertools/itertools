@@ -1,7 +1,7 @@
 //! "Diff"ing iterators for caching elements to sequential collections without requiring the new
 //! elements' iterator to be `Clone`.
 //!
-//! - [`Diff`] (produced by the [`diff_with`] function)
+//! [`Diff`] (produced by the [`diff_with`] function)
 //! describes the difference between two non-`Clone` iterators `I` and `J` after breaking ASAP from
 //! a lock-step comparison.
 
@@ -77,11 +77,11 @@ where
 ///
 /// If `i` becomes exhausted before `j` becomes exhausted, the number of elements in `i` along with
 /// the remaining `j` elements will be returned as `Diff::Longer`.
-pub fn diff_with<I, J, F>(i: I, j: J, is_equal: F) -> Option<Diff<I::IntoIter, J::IntoIter>>
+pub fn diff_with<I, J, F>(i: I, j: J, mut is_equal: F) -> Option<Diff<I::IntoIter, J::IntoIter>>
 where
     I: IntoIterator,
     J: IntoIterator,
-    F: Fn(&I::Item, &J::Item) -> bool,
+    F: FnMut(&I::Item, &J::Item) -> bool,
 {
     let mut i = i.into_iter();
     let mut j = j.into_iter();

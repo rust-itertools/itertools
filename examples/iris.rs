@@ -17,6 +17,7 @@ struct Iris {
     data: [f32; 4],
 }
 
+#[allow(dead_code)] // fields are currently ignored
 #[derive(Clone, Debug)]
 enum ParseError {
     Numeric(ParseFloatError),
@@ -64,7 +65,7 @@ fn main() {
         });
     let mut irises = match irises {
         Err(e) => {
-            println!("Error parsing: {:?}", e);
+            println!("Error parsing: {e:?}");
             std::process::exit(1);
         }
         Ok(data) => data,
@@ -98,9 +99,9 @@ fn main() {
     let n = 30; // plot size
     let mut plot = vec![' '; n * n];
 
-    // using Itertools::tuple_combinations
-    for (a, b) in (0..4).tuple_combinations() {
-        println!("Column {} vs {}:", a, b);
+    // using Itertools::array_combinations
+    for [a, b] in (0..4).array_combinations() {
+        println!("Column {a} vs {b}:");
 
         // Clear plot
         //

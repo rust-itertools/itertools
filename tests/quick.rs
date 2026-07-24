@@ -2,7 +2,11 @@
 //! and adaptors.
 //!
 //! In particular we test the tedious size_hint and exact size correctness.
+//!
+//! **NOTE:** Due to performance limitations, these tests are not run with miri!
+//! They cannot be relied upon to discover soundness issues.
 
+#![cfg(not(miri))]
 #![allow(deprecated, unstable_name_collisions)]
 
 use itertools::free::{
@@ -67,8 +71,8 @@ impl qc::Arbitrary for Inexact {
         let ue_value = usize::arbitrary(g);
         let oe_value = usize::arbitrary(g);
         // Compensate for quickcheck using extreme values too rarely
-        let ue_choices = &[0, ue_value, usize::max_value()];
-        let oe_choices = &[0, oe_value, usize::max_value()];
+        let ue_choices = &[0, ue_value, usize::MAX];
+        let oe_choices = &[0, oe_value, usize::MAX];
         Self {
             underestimate: *ue_choices.choose(g).unwrap(),
             overestimate: *oe_choices.choose(g).unwrap(),
@@ -253,7 +257,6 @@ where
         let mut it = get_it();
 
         for _ in 0..(counts.len() - 1) {
-            #[allow(clippy::manual_assert)]
             if it.next().is_none() {
                 panic!("Iterator shouldn't be finished, may not be deterministic");
             }
@@ -272,8 +275,7 @@ where
         let actual_count = total_actual_count - i;
         if actual_count != returned_count {
             println!(
-                "Total iterations: {} True count: {} returned count: {}",
-                i, actual_count, returned_count
+                "Total iterations: {i} True count: {actual_count} returned count: {returned_count}"
             );
 
             return false;
@@ -447,52 +449,19 @@ quickcheck! {
         }
         assert_eq!(answer, actual);
 
-        assert_eq!(answer.into_iter().last(), a.multi_cartesian_product().last());
+        assert_eq!(
+            {
+                #[allow(clippy::double_ended_iterator_last)]
+                answer.into_iter().last()
+            },
+            a.multi_cartesian_product().last()
+        );
     }
 
     fn correct_empty_multi_product() -> () {
         let empty = Vec::<std::vec::IntoIter<i32>>::new().into_iter().multi_cartesian_product();
         assert!(correct_size_hint(empty.clone()));
         itertools::assert_equal(empty, std::iter::once(Vec::new()))
-    }
-
-    #[allow(deprecated)]
-    fn size_step(a: Iter<i16, Exact>, s: usize) -> bool {
-        let mut s = s;
-        if s == 0 {
-            s += 1; // never zero
-        }
-        let filt = a.clone().dedup();
-        correct_size_hint(filt.step(s)) &&
-            exact_size(a.step(s))
-    }
-
-    #[allow(deprecated)]
-    fn equal_step(a: Iter<i16>, s: usize) -> bool {
-        let mut s = s;
-        if s == 0 {
-            s += 1; // never zero
-        }
-        let mut i = 0;
-        itertools::equal(a.clone().step(s), a.filter(|_| {
-            let keep = i % s == 0;
-            i += 1;
-            keep
-        }))
-    }
-
-    #[allow(deprecated)]
-    fn equal_step_vec(a: Vec<i16>, s: usize) -> bool {
-        let mut s = s;
-        if s == 0 {
-            s += 1; // never zero
-        }
-        let mut i = 0;
-        itertools::equal(a.iter().step(s), a.iter().filter(|_| {
-            let keep = i % s == 0;
-            i += 1;
-            keep
-        }))
     }
 
     fn size_multipeek(a: Iter<u16, Exact>, s: u8) -> bool {
@@ -610,6 +579,14 @@ quickcheck! {
         let b = &b[..len];
         itertools::equal(zip_eq(a, b), zip(a, b))
     }
+
+    #[should_panic]
+    fn zip_eq_panics(a: Vec<u8>, b: Vec<u8>) -> TestResult {
+        if a.len() == b.len() { return TestResult::discard(); }
+        zip_eq(a.iter(), b.iter()).for_each(|_| {});
+        TestResult::passed() // won't come here
+    }
+
     fn equal_positions(a: Vec<i32>) -> bool {
         let with_pos = a.iter().positions(|v| v % 2 == 0);
         let without = a.iter().enumerate().filter(|(_, v)| *v % 2 == 0).map(|(i, _)| i);
@@ -882,7 +859,7 @@ quickcheck! {
     fn size_put_back(a: Vec<u8>, x: Option<u8>) -> bool {
         let mut it = put_back(a.into_iter());
         if let Some(t) = x {
-            it.put_back(t)
+            it.put_back(t);
         }
         correct_size_hint(it)
     }
@@ -1022,6 +999,45 @@ quickcheck! {
 }
 
 quickcheck! {
+    fn pad_using_next_next_back(v: Vec<i8>) -> () {
+        let only_oks = v.into_iter().map(Ok).collect::<Vec<_>>();
+        for elements_required in 0..128 {
+            let mut oks_then_errs_vector = only_oks.clone();
+            while oks_then_errs_vector.len() < elements_required {
+                oks_then_errs_vector.push(Err(oks_then_errs_vector.len()));
+            }
+            let oks_then_errs_pad_using = only_oks.iter().copied().pad_using(elements_required, Err);
+            assert_eq!(
+                oks_then_errs_pad_using.clone().collect::<Vec<_>>(),
+                oks_then_errs_vector
+            );
+            // Check next, next_back (https://github.com/rust-itertools/itertools/issues/1065)
+            let mut iter_check = oks_then_errs_vector.into_iter();
+            let mut iter_real = oks_then_errs_pad_using;
+            let mut rng = rand::thread_rng();
+            loop {
+                let next_or_next_back = if rng.gen_bool(0.5) {
+                    let element_next_check = iter_check.next();
+                    let element_next_real = iter_real.next();
+                    assert_eq!(element_next_check, element_next_real);
+                    element_next_real
+                } else {
+                    let element_next_back_check = iter_check.next_back();
+                    let element_next_back_real = iter_real.next_back();
+                    assert_eq!(element_next_back_check, element_next_back_real);
+                    element_next_back_real
+                };
+                if next_or_next_back.is_none() {
+                    assert!(iter_real.next().is_none());
+                    assert!(iter_real.next_back().is_none());
+                    break;
+                }
+            }
+        }
+    }
+}
+
+quickcheck! {
     fn size_powerset(it: Iter<u8, Exact>) -> bool {
         // Powerset cardinality gets large very quickly, limit input to keep test fast.
         correct_size_hint(it.take(12).powerset())
@@ -1087,7 +1103,7 @@ quickcheck! {
 
         let tup1 = |(_, b)| b;
         for &(ord, consume_now) in &order {
-            let iter = &mut [&mut chunks1, &mut chunks2][ord as usize];
+            let iter = &mut [&mut chunks1, &mut chunks2][usize::from(ord)];
             match iter.next() {
                 Some((_, gr)) => if consume_now {
                     for og in old_chunks.drain(..) {
@@ -1284,6 +1300,79 @@ quickcheck! {
     }
 }
 
+// array iterators
+quickcheck! {
+    fn equal_array_windows_0(a: Vec<u8>) -> bool {
+        let x = (0..=a.len()).map(|_| [&0u8; 0] );
+        let y = a.iter().array_windows::<0>();
+        itertools::assert_equal(x,y);
+        true
+    }
+
+    fn equal_array_windows_1(a: Vec<u8>) -> bool {
+        let x = a.iter().map(|e| [e] );
+        let y = a.iter().array_windows::<1>();
+        itertools::assert_equal(x,y);
+        true
+    }
+
+    fn equal_array_windows_2(a: Vec<u8>) -> bool {
+        let x = (0..a.len().saturating_sub(1)).map(|start_idx| [
+            &a[start_idx],
+            &a[start_idx + 1],
+        ]);
+        let y = a.iter().array_windows::<2>();
+        itertools::assert_equal(x,y);
+        true
+    }
+
+    fn equal_array_windows_3(a: Vec<u8>) -> bool {
+        let x = (0..a.len().saturating_sub(2)).map(|start_idx| [
+            &a[start_idx],
+            &a[start_idx + 1],
+            &a[start_idx + 2],
+        ]);
+        let y = a.iter().array_windows::<3>();
+        itertools::assert_equal(x,y);
+        true
+    }
+
+    fn equal_circular_array_windows_0(a: Vec<u8>) -> bool {
+        let x = a.iter().map(|_| [&0u8; 0] );
+        let y = a.iter().circular_array_windows::<0>();
+        itertools::assert_equal(x,y);
+        true
+    }
+
+    fn equal_circular_array_windows_1(a: Vec<u8>) -> bool {
+        let x = a.iter().map(|e| [e] );
+        let y = a.iter().circular_array_windows::<1>();
+        itertools::assert_equal(x,y);
+        true
+    }
+
+    fn equal_circular_array_windows_2(a: Vec<u8>) -> bool {
+        let x = (0..a.len()).map(|start_idx| [
+            &a[start_idx],
+            &a[(start_idx + 1) % a.len()],
+        ]);
+        let y = a.iter().circular_array_windows::<2>();
+        itertools::assert_equal(x,y);
+        true
+    }
+
+    fn equal_circular_array_windows_3(a: Vec<u8>) -> bool {
+        let x = (0..a.len()).map(|start_idx| [
+            &a[start_idx],
+            &a[(start_idx + 1) % a.len()],
+            &a[(start_idx + 2) % a.len()],
+        ]);
+        let y = a.iter().circular_array_windows::<3>();
+        itertools::assert_equal(x,y);
+        true
+    }
+}
+
 // with_position
 quickcheck! {
     fn with_position_exact_size_1(a: Vec<u8>) -> bool {
@@ -1373,13 +1462,12 @@ quickcheck! {
 }
 
 quickcheck! {
-    #[allow(deprecated)]
-    fn tree_fold1_f64(mut a: Vec<f64>) -> TestResult {
+    fn tree_reduce_f64(mut a: Vec<f64>) -> TestResult {
         fn collapse_adjacent<F>(x: Vec<f64>, mut f: F) -> Vec<f64>
             where F: FnMut(f64, f64) -> f64
         {
             let mut out = Vec::new();
-            for i in (0..x.len()).step(2) {
+            for i in (0..x.len()).step_by(2) {
                 if i == x.len()-1 {
                     out.push(x[i])
                 } else {
@@ -1393,7 +1481,7 @@ quickcheck! {
             return TestResult::discard();
         }
 
-        let actual = a.iter().cloned().tree_fold1(f64::atan2);
+        let actual = a.iter().cloned().tree_reduce(f64::atan2);
 
         while a.len() > 1 {
             a = collapse_adjacent(a, f64::atan2);
@@ -1410,6 +1498,16 @@ quickcheck! {
         match a.len() {
             1 => TestResult::from_bool(ret.unwrap() == a[0]),
             _ => TestResult::from_bool(ret.unwrap_err().eq(a.iter().cloned())),
+        }
+    }
+}
+
+quickcheck! {
+    fn exactly_one_count(a: Vec<i32>) -> TestResult {
+        let ret = a.iter().cloned().exactly_one();
+        match a.len() {
+            1 => TestResult::passed(),
+            len => TestResult::from_bool(len == ret.unwrap_err().count()),
         }
     }
 }
@@ -1436,9 +1534,9 @@ quickcheck! {
     }
 
     fn correct_grouping_map_by_aggregate_modulo_key(a: Vec<u8>, modulo: u8) -> () {
-        let modulo = if modulo < 2 { 2 } else { modulo } as u64; // Avoid `% 0`
+        let modulo = u64::from(if modulo < 2 { 2 } else { modulo }); // Avoid `% 0`
         let lookup = a.iter()
-            .map(|&b| b as u64) // Avoid overflows
+            .map(|&b| u64::from(b)) // Avoid overflows
             .into_grouping_map_by(|i| i % modulo)
             .aggregate(|acc, &key, val| {
                 assert!(val % modulo == key);
@@ -1450,7 +1548,7 @@ quickcheck! {
             });
 
         let group_map_lookup = a.iter()
-            .map(|&b| b as u64)
+            .map(|&b| u64::from(b))
             .map(|i| (i % modulo, i))
             .into_group_map()
             .into_iter()
@@ -1470,7 +1568,7 @@ quickcheck! {
             assert_eq!(
                 lookup.get(&m).copied(),
                 a.iter()
-                    .map(|&b| b as u64)
+                    .map(|&b| u64::from(b))
                     .filter(|&val| val % modulo == m)
                     .fold(None, |acc, val| {
                         if val % (modulo - 1) == 0 {
@@ -1489,8 +1587,8 @@ quickcheck! {
             acc: u64,
         }
 
-        let modulo = if modulo == 0 { 1 } else { modulo } as u64; // Avoid `% 0`
-        let lookup = a.iter().map(|&b| b as u64) // Avoid overflows
+        let modulo = u64::from(if modulo == 0 { 1 } else { modulo }); // Avoid `% 0`
+        let lookup = a.iter().map(|&b| u64::from(b)) // Avoid overflows
             .into_grouping_map_by(|i| i % modulo)
             .fold_with(|_key, _val| Default::default(), |Accumulator { acc }, &key, val| {
                 assert!(val % modulo == key);
@@ -1499,7 +1597,7 @@ quickcheck! {
             });
 
         let group_map_lookup = a.iter()
-            .map(|&b| b as u64)
+            .map(|&b| u64::from(b))
             .map(|i| (i % modulo, i))
             .into_group_map()
             .into_iter()
@@ -1508,13 +1606,13 @@ quickcheck! {
         assert_eq!(lookup, group_map_lookup);
 
         for (&key, &Accumulator { acc: sum }) in lookup.iter() {
-            assert_eq!(sum, a.iter().map(|&b| b as u64).filter(|&val| val % modulo == key).sum::<u64>());
+            assert_eq!(sum, a.iter().map(|&b| u64::from(b)).filter(|&val| val % modulo == key).sum::<u64>());
         }
     }
 
     fn correct_grouping_map_by_fold_modulo_key(a: Vec<u8>, modulo: u8) -> () {
-        let modulo = if modulo == 0 { 1 } else { modulo } as u64; // Avoid `% 0`
-        let lookup = a.iter().map(|&b| b as u64) // Avoid overflows
+        let modulo = u64::from(if modulo == 0 { 1 } else { modulo }); // Avoid `% 0`
+        let lookup = a.iter().map(|&b| u64::from(b)) // Avoid overflows
             .into_grouping_map_by(|i| i % modulo)
             .fold(0u64, |acc, &key, val| {
                 assert!(val % modulo == key);
@@ -1522,7 +1620,7 @@ quickcheck! {
             });
 
         let group_map_lookup = a.iter()
-            .map(|&b| b as u64)
+            .map(|&b| u64::from(b))
             .map(|i| (i % modulo, i))
             .into_group_map()
             .into_iter()
@@ -1531,31 +1629,30 @@ quickcheck! {
         assert_eq!(lookup, group_map_lookup);
 
         for (&key, &sum) in lookup.iter() {
-            assert_eq!(sum, a.iter().map(|&b| b as u64).filter(|&val| val % modulo == key).sum::<u64>());
+            assert_eq!(sum, a.iter().map(|&b| u64::from(b)).filter(|&val| val % modulo == key).sum::<u64>());
         }
     }
 
-    fn correct_grouping_map_by_fold_first_modulo_key(a: Vec<u8>, modulo: u8) -> () {
-        let modulo = if modulo == 0 { 1 } else { modulo } as u64; // Avoid `% 0`
-        let lookup = a.iter().map(|&b| b as u64) // Avoid overflows
+    fn correct_grouping_map_by_reduce_modulo_key(a: Vec<u8>, modulo: u8) -> () {
+        let modulo = u64::from(if modulo == 0 { 1 } else { modulo }); // Avoid `% 0`
+        let lookup = a.iter().map(|&b| u64::from(b)) // Avoid overflows
             .into_grouping_map_by(|i| i % modulo)
-            .fold_first(|acc, &key, val| {
+            .reduce(|acc, &key, val| {
                 assert!(val % modulo == key);
                 acc + val
             });
 
-        // TODO: Swap `fold1` with stdlib's `fold_first` when it's stabilized
         let group_map_lookup = a.iter()
-            .map(|&b| b as u64)
+            .map(|&b| u64::from(b))
             .map(|i| (i % modulo, i))
             .into_group_map()
             .into_iter()
-            .map(|(key, vals)| (key, vals.into_iter().fold1(|acc, val| acc + val).unwrap()))
+            .map(|(key, vals)| (key, vals.into_iter().reduce(|acc, val| acc + val).unwrap()))
             .collect::<HashMap<_,_>>();
         assert_eq!(lookup, group_map_lookup);
 
         for (&key, &sum) in lookup.iter() {
-            assert_eq!(sum, a.iter().map(|&b| b as u64).filter(|&val| val % modulo == key).sum::<u64>());
+            assert_eq!(sum, a.iter().map(|&b| u64::from(b)).filter(|&val| val % modulo == key).sum::<u64>());
         }
     }
 
@@ -1721,12 +1818,12 @@ quickcheck! {
     }
 
     fn correct_grouping_map_by_sum_modulo_key(a: Vec<u8>, modulo: u8) -> () {
-        let modulo = if modulo == 0 { 1 } else { modulo } as u64; // Avoid `% 0`
-        let lookup = a.iter().map(|&b| b as u64) // Avoid overflows
+        let modulo = u64::from(if modulo == 0 { 1 } else { modulo }); // Avoid `% 0`
+        let lookup = a.iter().map(|&b| u64::from(b)) // Avoid overflows
             .into_grouping_map_by(|i| i % modulo)
             .sum();
 
-        let group_map_lookup = a.iter().map(|&b| b as u64)
+        let group_map_lookup = a.iter().map(|&b| u64::from(b))
             .map(|i| (i % modulo, i))
             .into_group_map()
             .into_iter()
@@ -1735,17 +1832,17 @@ quickcheck! {
         assert_eq!(lookup, group_map_lookup);
 
         for (&key, &sum) in lookup.iter() {
-            assert_eq!(sum, a.iter().map(|&b| b as u64).filter(|&val| val % modulo == key).sum::<u64>());
+            assert_eq!(sum, a.iter().map(|&b| u64::from(b)).filter(|&val| val % modulo == key).sum::<u64>());
         }
     }
 
     fn correct_grouping_map_by_product_modulo_key(a: Vec<u8>, modulo: u8) -> () {
-        let modulo = Wrapping(if modulo == 0 { 1 } else { modulo } as u64); // Avoid `% 0`
-        let lookup = a.iter().map(|&b| Wrapping(b as u64)) // Avoid overflows
+        let modulo = Wrapping(u64::from(if modulo == 0 { 1 } else { modulo })); // Avoid `% 0`
+        let lookup = a.iter().map(|&b| Wrapping(u64::from(b))) // Avoid overflows
             .into_grouping_map_by(|i| i % modulo)
             .product();
 
-        let group_map_lookup = a.iter().map(|&b| Wrapping(b as u64))
+        let group_map_lookup = a.iter().map(|&b| Wrapping(u64::from(b)))
             .map(|i| (i % modulo, i))
             .into_group_map()
             .into_iter()
@@ -1757,7 +1854,7 @@ quickcheck! {
             assert_eq!(
                 prod,
                 a.iter()
-                    .map(|&b| Wrapping(b as u64))
+                    .map(|&b| Wrapping(u64::from(b)))
                     .filter(|&val| val % modulo == key)
                     .product::<Wrapping<u64>>()
             );
@@ -1862,6 +1959,11 @@ quickcheck! {
         is_fused(a.combinations_with_replacement(3))
     }
 
+    fn fused_array_combination_with_replacement(a: Iter<i16>) -> bool
+    {
+        is_fused(a.clone().array_combinations_with_replacement::<1>()) &&
+        is_fused(a.array_combinations_with_replacement::<3>())
+    }
     fn fused_tuple_combination(a: Iter<i16>) -> bool
     {
         is_fused(a.clone().fuse().tuple_combinations::<(_,)>()) &&
@@ -1882,6 +1984,12 @@ quickcheck! {
     {
         is_fused(a.clone().interleave_shortest(b.clone())) &&
         is_fused(a.fuse().interleave_shortest(b.fuse()))
+    }
+
+    fn fused_take_while_inclusive(a: Iter<i16>) -> bool
+    {
+        !is_fused(a.clone().take_while_inclusive(|_| true)) &&
+        is_fused(a.fuse().take_while_inclusive(|_| true))
     }
 
     fn fused_product(a: Iter<i16>, b: Iter<i16>) -> bool
@@ -1989,4 +2097,49 @@ quickcheck! {
             result_set.is_empty()
         }
     }
+
+    fn tail(v: Vec<i32>, n: u8) -> bool {
+        let n = n as usize;
+        let result = &v[v.len().saturating_sub(n)..];
+        itertools::equal(v.iter().tail(n), result)
+            && itertools::equal(v.iter().filter(|_| true).tail(n), result)
+    }
+
+    fn strip_prefix_matches_str(haystack: String, needle: String) -> bool {
+        let expected = haystack.strip_prefix(&needle);
+        let got: Option<String> = haystack
+            .chars()
+            .strip_prefix(needle.chars())
+            .ok()
+            .map(Iterator::collect);
+        got.as_deref() == expected
+    }
+
+    fn strip_prefix_by_matches_strip_prefix(v: Vec<i32>, n: u8) -> bool {
+        let prefix: Vec<i32> = v.iter().take(n as usize).copied().collect();
+        let by_eq = v.iter().strip_prefix_by(&prefix, |a, b| **a == **b).ok();
+        let plain = v.iter().strip_prefix(prefix.iter()).ok();
+        match (by_eq, plain) {
+            (Some(a), Some(b)) => itertools::equal(a, b),
+            (None, None) => true,
+            _ => false,
+        }
+    }
+}
+
+#[test]
+fn strip_prefix_error_exposes_mismatch_and_remainders() {
+    let err = (1..6)
+        .strip_prefix([1, 2, 9, 4])
+        .expect_err("third item mismatches");
+    assert_eq!(err.mismatch, (Some(3), 9));
+    assert_eq!(err.prefix.collect_vec(), vec![4]);
+    assert_eq!(err.iterator.collect_vec(), vec![4, 5]);
+}
+
+#[test]
+fn strip_prefix_error_signals_self_exhausted() {
+    let err = (1..3).strip_prefix([1, 2, 3]).expect_err("self exhausted");
+    assert_eq!(err.mismatch, (None, 3));
+    assert!(err.iterator.collect_vec().is_empty());
 }

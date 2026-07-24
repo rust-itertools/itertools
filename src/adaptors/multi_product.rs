@@ -128,7 +128,7 @@ where
                     // This cartesian product had at most one item to generate and now ends.
                     self.0 = ProductEnded;
                 } else {
-                    inner.cur = next.clone();
+                    inner.cur.clone_from(&next);
                 }
                 next
             }

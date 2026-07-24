@@ -5,11 +5,9 @@
 //! except according to those terms.
 
 mod coalesce;
-mod map;
+pub(crate) mod map;
 mod multi_product;
 pub use self::coalesce::*;
-#[allow(deprecated)]
-pub use self::map::MapResults;
 pub use self::map::{map_into, map_ok, MapInto, MapOk};
 #[cfg(feature = "use_alloc")]
 pub use self::multi_product::*;
@@ -35,7 +33,7 @@ pub struct Interleave<I, J> {
 
 /// Create an iterator that interleaves elements in `i` and `j`.
 ///
-/// [`IntoIterator`] enabled version of `[Itertools::interleave]`.
+/// [`IntoIterator`] enabled version of [`Itertools::interleave`](crate::Itertools::interleave).
 pub fn interleave<I, J>(
     i: I,
     j: J,
@@ -280,10 +278,10 @@ where
 
     /// Put back a single value to the front of the iterator.
     ///
-    /// If a value is already in the put back slot, it is overwritten.
+    /// If a value is already in the put back slot, it is returned.
     #[inline]
-    pub fn put_back(&mut self, x: I::Item) {
-        self.top = Some(x);
+    pub fn put_back(&mut self, x: I::Item) -> Option<I::Item> {
+        self.top.replace(x)
     }
 }
 
@@ -302,11 +300,11 @@ where
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         // Not ExactSizeIterator because size may be larger than usize
-        size_hint::add_scalar(self.iter.size_hint(), self.top.is_some() as usize)
+        size_hint::add_scalar(self.iter.size_hint(), usize::from(self.top.is_some()))
     }
 
     fn count(self) -> usize {
-        self.iter.count() + (self.top.is_some() as usize)
+        self.iter.count() + usize::from(self.top.is_some())
     }
 
     fn last(self) -> Option<Self::Item> {
@@ -473,7 +471,7 @@ where
 /// A “meta iterator adaptor”. Its closure receives a reference to the iterator
 /// and may pick off as many elements as it likes, to produce the next iterator element.
 ///
-/// Iterator element type is *X*, if the return type of `F` is *Option\<X\>*.
+/// Iterator element type is `X` if the return type of `F` is `Option<X>`.
 ///
 /// See [`.batching()`](crate::Itertools::batching) for more information.
 #[derive(Clone)]
@@ -507,69 +505,6 @@ where
     }
 }
 
-/// An iterator adaptor that steps a number elements in the base iterator
-/// for each iteration.
-///
-/// The iterator steps by yielding the next element from the base iterator,
-/// then skipping forward *n-1* elements.
-///
-/// See [`.step()`](crate::Itertools::step) for more information.
-#[deprecated(note = "Use std .step_by() instead", since = "0.8.0")]
-#[allow(deprecated)]
-#[derive(Clone, Debug)]
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-pub struct Step<I> {
-    iter: Fuse<I>,
-    skip: usize,
-}
-
-/// Create a `Step` iterator.
-///
-/// **Panics** if the step is 0.
-#[allow(deprecated)]
-pub fn step<I>(iter: I, step: usize) -> Step<I>
-where
-    I: Iterator,
-{
-    assert!(step != 0);
-    Step {
-        iter: iter.fuse(),
-        skip: step - 1,
-    }
-}
-
-#[allow(deprecated)]
-impl<I> Iterator for Step<I>
-where
-    I: Iterator,
-{
-    type Item = I::Item;
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        let elt = self.iter.next();
-        if self.skip > 0 {
-            self.iter.nth(self.skip - 1);
-        }
-        elt
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let (low, high) = self.iter.size_hint();
-        let div = |x: usize| {
-            if x == 0 {
-                0
-            } else {
-                1 + (x - 1) / (self.skip + 1)
-            }
-        };
-        (div(low), high.map(div))
-    }
-}
-
-// known size
-#[allow(deprecated)]
-impl<I> ExactSizeIterator for Step<I> where I: ExactSizeIterator {}
-
 /// An iterator adaptor that borrows from a `Clone`-able iterator
 /// to only pick off elements while the predicate returns `true`.
 ///
@@ -580,22 +515,22 @@ pub struct TakeWhileRef<'a, I: 'a, F> {
     f: F,
 }
 
-impl<'a, I, F> fmt::Debug for TakeWhileRef<'a, I, F>
+impl<I, F> fmt::Debug for TakeWhileRef<'_, I, F>
 where
     I: Iterator + fmt::Debug,
 {
     debug_fmt_fields!(TakeWhileRef, iter);
 }
 
-/// Create a new `TakeWhileRef` from a reference to clonable iterator.
-pub fn take_while_ref<I, F>(iter: &mut I, f: F) -> TakeWhileRef<I, F>
+/// Create a new `TakeWhileRef` from a reference to cloneable iterator.
+pub fn take_while_ref<I, F>(iter: &mut I, f: F) -> TakeWhileRef<'_, I, F>
 where
     I: Iterator + Clone,
 {
     TakeWhileRef { iter, f }
 }
 
-impl<'a, I, F> Iterator for TakeWhileRef<'a, I, F>
+impl<I, F> Iterator for TakeWhileRef<'_, I, F>
 where
     I: Iterator + Clone,
     F: FnMut(&I::Item) -> bool,
@@ -677,7 +612,7 @@ where
 /// See [`.tuple_combinations()`](crate::Itertools::tuple_combinations) for more
 /// information.
 #[derive(Clone, Debug)]
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+#[must_use = "this iterator adaptor is not lazy but does nearly nothing unless consumed"]
 pub struct TupleCombinations<I, T>
 where
     I: Iterator,
@@ -691,10 +626,10 @@ pub trait HasCombination<I>: Sized {
     type Combination: From<I> + Iterator<Item = Self>;
 }
 
-/// Create a new `TupleCombinations` from a clonable iterator.
+/// Create a new `TupleCombinations` from a cloneable iterator.
 pub fn tuple_combinations<T, I>(iter: I) -> TupleCombinations<I, T>
 where
-    I: Iterator + Clone,
+    I: Iterator,
     I::Item: Clone,
     T: HasCombination<I>,
 {
@@ -838,16 +773,28 @@ macro_rules! impl_tuple_combination {
             where
                 F: FnMut(B, Self::Item) -> B,
             {
+                // We outline this closure to prevent it from unnecessarily
+                // capturing the type parameters `I`, `B`, and `F`. Not doing
+                // so ended up causing exponentially big types during MIR
+                // inlining when building itertools with optimizations enabled.
+                //
+                // This change causes a small improvement to compile times in
+                // release mode.
+                type CurrTuple<A> = (A, $(ignore_ident!($X, A)),*);
+                type PrevTuple<A> = ($(ignore_ident!($X, A),)*);
+                fn map_fn<A: Clone>(z: &A) -> impl FnMut(PrevTuple<A>) -> CurrTuple<A> + '_ {
+                    move |($($X,)*)| (z.clone(), $($X),*)
+                }
                 let Self { c, item, mut iter } = self;
                 if let Some(z) = item.as_ref() {
                     init = c
-                        .map(|($($X,)*)| (z.clone(), $($X),*))
+                        .map(map_fn::<A>(z))
                         .fold(init, &mut f);
                 }
                 while let Some(z) = iter.next() {
                     let c: $P<I> = iter.clone().into();
                     init = c
-                        .map(|($($X,)*)| (z.clone(), $($X),*))
+                        .map(map_fn::<A>(&z))
                         .fold(init, &mut f);
                 }
                 init
@@ -989,6 +936,30 @@ where
     }
 }
 
+impl<I, F, T, E> DoubleEndedIterator for FilterOk<I, F>
+where
+    I: DoubleEndedIterator<Item = Result<T, E>>,
+    F: FnMut(&T) -> bool,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        let f = &mut self.f;
+        self.iter.rfind(|res| match res {
+            Ok(t) => f(t),
+            _ => true,
+        })
+    }
+
+    fn rfold<Acc, Fold>(self, init: Acc, fold_f: Fold) -> Acc
+    where
+        Fold: FnMut(Acc, Self::Item) -> Acc,
+    {
+        let mut f = self.f;
+        self.iter
+            .filter(|v| v.as_ref().map(&mut f).unwrap_or(true))
+            .rfold(init, fold_f)
+    }
+}
+
 impl<I, F, T, E> FusedIterator for FilterOk<I, F>
 where
     I: FusedIterator<Item = Result<T, E>>,
@@ -1021,7 +992,7 @@ fn transpose_result<T, E>(result: Result<Option<T>, E>) -> Option<Result<T, E>> 
     }
 }
 
-/// Create a new `FilterOk` iterator.
+/// Create a new `FilterMapOk` iterator.
 pub fn filter_map_ok<I, F, T, U, E>(iter: I, f: F) -> FilterMapOk<I, F>
 where
     I: Iterator<Item = Result<T, E>>,
@@ -1070,6 +1041,30 @@ where
     }
 }
 
+impl<I, F, T, U, E> DoubleEndedIterator for FilterMapOk<I, F>
+where
+    I: DoubleEndedIterator<Item = Result<T, E>>,
+    F: FnMut(T) -> Option<U>,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        let f = &mut self.f;
+        self.iter.by_ref().rev().find_map(|res| match res {
+            Ok(t) => f(t).map(Ok),
+            Err(e) => Some(Err(e)),
+        })
+    }
+
+    fn rfold<Acc, Fold>(self, init: Acc, fold_f: Fold) -> Acc
+    where
+        Fold: FnMut(Acc, Self::Item) -> Acc,
+    {
+        let mut f = self.f;
+        self.iter
+            .filter_map(|v| transpose_result(v.map(&mut f)))
+            .rfold(init, fold_f)
+    }
+}
+
 impl<I, F, T, U, E> FusedIterator for FilterMapOk<I, F>
 where
     I: FusedIterator<Item = Result<T, E>>,
@@ -1113,9 +1108,7 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         let f = &mut self.f;
-        // TODO: once MSRV >= 1.62, use `then_some`.
-        self.iter
-            .find_map(|(count, val)| if f(val) { Some(count) } else { None })
+        self.iter.find_map(|(count, val)| f(val).then_some(count))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -1143,11 +1136,10 @@ where
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         let f = &mut self.f;
-        // TODO: once MSRV >= 1.62, use `then_some`.
         self.iter
             .by_ref()
             .rev()
-            .find_map(|(count, val)| if f(val) { Some(count) } else { None })
+            .find_map(|(count, val)| f(val).then_some(count))
     }
 
     fn rfold<B, G>(self, init: B, mut func: G) -> B

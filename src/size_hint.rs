@@ -1,8 +1,6 @@
 //! Arithmetic on `Iterator.size_hint()` values.
-//!
 
 use std::cmp;
-use std::usize;
 
 /// `SizeHint` is the return type of `Iterator::size_hint()`.
 pub type SizeHint = (usize, Option<usize>);
@@ -87,6 +85,7 @@ pub fn min(a: SizeHint, b: SizeHint) -> SizeHint {
     (lower, upper)
 }
 
+/// Test multiplication of size hints.
 #[test]
 fn mul_size_hints() {
     assert_eq!(mul((3, Some(4)), (3, Some(4))), (9, Some(16)));

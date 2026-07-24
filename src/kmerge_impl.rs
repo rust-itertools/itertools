@@ -1,5 +1,4 @@
 use crate::size_hint;
-use crate::Itertools;
 
 use alloc::vec::Vec;
 use std::fmt;
@@ -81,7 +80,7 @@ where
     while child + 1 < heap.len() {
         // pick the smaller of the two children
         // use arithmetic to avoid an unpredictable branch
-        child += less_than(&heap[child + 1], &heap[child]) as usize;
+        child += usize::from(less_than(&heap[child + 1], &heap[child]));
 
         // sift down is done if we are already in order
         if !less_than(&heap[child], &heap[pos]) {
@@ -98,7 +97,7 @@ where
     }
 }
 
-/// An iterator adaptor that merges an abitrary number of base iterators in ascending order.
+/// An iterator adaptor that merges an arbitrary number of base iterators in ascending order.
 /// If all base iterators are sorted (ascending), the result is sorted.
 ///
 /// Iterator element type is `I::Item`.
@@ -128,13 +127,14 @@ impl<T, F: FnMut(&T, &T) -> bool> KMergePredicate<T> for F {
 /// Create an iterator that merges elements of the contained iterators using
 /// the ordering function.
 ///
-/// [`IntoIterator`] enabled version of [`Itertools::kmerge`].
+/// [`IntoIterator`] enabled version of [`Itertools::kmerge`](crate::Itertools::kmerge).
 ///
 /// ```
 /// use itertools::kmerge;
 ///
 /// for elt in kmerge(vec![vec![0, 2, 4], vec![1, 3, 5], vec![6, 7]]) {
 ///     /* loop body */
+///     # let _ = elt;
 /// }
 /// ```
 pub fn kmerge<I>(iterable: I) -> KMerge<<I::Item as IntoIterator>::IntoIter>
@@ -146,14 +146,14 @@ where
     kmerge_by(iterable, KMergeByLt)
 }
 
-/// An iterator adaptor that merges an abitrary number of base iterators
+/// An iterator adaptor that merges an arbitrary number of base iterators
 /// according to an ordering function.
 ///
 /// Iterator element type is `I::Item`.
 ///
 /// See [`.kmerge_by()`](crate::Itertools::kmerge_by) for more
 /// information.
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+#[must_use = "this iterator adaptor is not lazy but does nearly nothing unless consumed"]
 pub struct KMergeBy<I, F>
 where
     I: Iterator,
@@ -172,7 +172,7 @@ where
 
 /// Create an iterator that merges elements of the contained iterators.
 ///
-/// [`IntoIterator`] enabled version of [`Itertools::kmerge_by`].
+/// [`IntoIterator`] enabled version of [`Itertools::kmerge_by`](crate::Itertools::kmerge_by).
 pub fn kmerge_by<I, F>(
     iterable: I,
     mut less_than: F,
@@ -223,11 +223,10 @@ where
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        #[allow(deprecated)] //TODO: once msrv hits 1.51. replace `fold1` with `reduce`
         self.heap
             .iter()
             .map(|i| i.size_hint())
-            .fold1(size_hint::add)
+            .reduce(size_hint::add)
             .unwrap_or((0, Some(0)))
     }
 }
