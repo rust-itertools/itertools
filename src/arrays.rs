@@ -29,7 +29,7 @@ impl<I: Iterator, const N: usize> Arrays<I, N> {
     pub(crate) fn new(iter: I) -> Self {
         const_assert_positive!(N);
 
-        // TODO should we use iter.fuse() instead? Otherwise remainder may behave strangely
+        // TODO should we use iter.fuse() instead?
         Self { iter }
     }
 }
