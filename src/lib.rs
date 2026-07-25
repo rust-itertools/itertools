@@ -796,9 +796,6 @@ pub trait Itertools: Iterator {
 
     /// Return an iterator that groups the items in arrays of const generic size `N`.
     ///
-    /// Use the method `.remainder()` to access leftover items in case
-    /// the number of items yielded by the original iterator is not a multiple of `N`.
-    ///
     /// `N == 0` is a compile-time (but post-monomorphization) error.
     ///
     /// See also the method [`.next_array()`](Itertools::next_array).
@@ -810,12 +807,6 @@ pub trait Itertools: Iterator {
     ///     v.push([a, b]);
     /// }
     /// assert_eq!(v, vec![[1, 2], [3, 4]]);
-    ///
-    /// let mut it = (1..9).arrays();
-    /// assert_eq!(Some([1, 2, 3]), it.next());
-    /// assert_eq!(Some([4, 5, 6]), it.next());
-    /// assert_eq!(None, it.next());
-    /// itertools::assert_equal(it.remainder(), [7,8]);
     ///
     /// // this requires a type hint
     /// let it = (1..7).arrays::<3>();
