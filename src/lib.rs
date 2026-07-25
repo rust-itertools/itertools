@@ -101,7 +101,6 @@ pub mod structs {
     };
     pub use crate::all_equal_value_err::AllEqualValueError;
     pub use crate::array_impl::{ArrayWindows, CircularArrayWindows};
-    #[cfg(feature = "use_alloc")]
     pub use crate::arrays::Arrays;
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations::{ArrayCombinations, Combinations};
@@ -181,7 +180,6 @@ pub use crate::with_position::Position;
 pub use crate::ziptuple::multizip;
 mod adaptors;
 mod array_impl;
-#[cfg(feature = "use_alloc")]
 mod arrays;
 mod either_or_both;
 pub use crate::either_or_both::EitherOrBoth;
@@ -826,7 +824,6 @@ pub trait Itertools: Iterator {
     /// let mut it = (1..5).arrays::<0>();
     /// assert_eq!(Some([]), it.next());
     /// ```
-    #[cfg(feature = "use_alloc")]
     fn arrays<const N: usize>(self) -> Arrays<Self, N>
     where
         Self: Sized,
