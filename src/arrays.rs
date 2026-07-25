@@ -42,12 +42,9 @@ impl<I: Iterator, const N: usize> Iterator for Arrays<I, N> {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        if N == 0 {
-            (usize::MAX, None)
-        } else {
-            let (lo, hi) = self.iter.size_hint();
-            (lo / N, hi.map(|hi| hi / N))
-        }
+        let (lo, hi) = self.iter.size_hint();
+        // `N` guaranteed to be positive in `new()`
+        (lo / N, hi.map(|hi| hi / N))
     }
 }
 
