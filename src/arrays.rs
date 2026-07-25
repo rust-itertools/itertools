@@ -1,4 +1,4 @@
-use crate::next_array::ArrayBuilder;
+use crate::Itertools;
 
 macro_rules! const_assert_positive {
     ($N: ty) => {
@@ -38,15 +38,7 @@ impl<I: Iterator, const N: usize> Iterator for Arrays<I, N> {
     type Item = [I::Item; N];
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut builder = ArrayBuilder::new();
-        for _ in 0..N {
-            if let Some(item) = self.iter.next() {
-                builder.push(item);
-            } else {
-                break;
-            }
-        }
-        builder.take()
+        self.iter.next_array()
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
