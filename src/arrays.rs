@@ -42,8 +42,9 @@ impl<I: Iterator, const N: usize> Iterator for Arrays<I, N> {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
+        // also verified in `new()`
+        const_assert_positive!(N);
         let (lo, hi) = self.iter.size_hint();
-        // `N` guaranteed to be positive in `new()`
         (lo / N, hi.map(|hi| hi / N))
     }
 }
