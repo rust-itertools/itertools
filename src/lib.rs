@@ -915,7 +915,7 @@ pub trait Itertools: Iterator {
     ///
     /// If the input iterator contains fewer than `N` items, no
     /// windows are returned. Otherwise, if the input iterator
-    /// contains `k` items, exactly `k+N-1` windows are returned.
+    /// contains `k` items, exactly `k-N+1` windows are returned.
     ///
     /// (This formula still applies when `N==0`, and means that `k+1`
     /// zero-length windows are returned for `k` input items.)
