@@ -76,6 +76,19 @@ where
             },
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let inner_sh = self.iter.size_hint();
+        if self.inner.is_none() {
+            if N == 0 {
+                size_hint::add_scalar(inner_sh, 1)
+            } else {
+                size_hint::sub_scalar(inner_sh, N - 1)
+            }
+        } else {
+            inner_sh
+        }
+    }
 }
 
 pub fn array_windows<I, const N: usize>(iter: I) -> ArrayWindows<I, N>
