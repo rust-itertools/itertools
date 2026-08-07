@@ -1,4 +1,4 @@
-use crate::Itertools;
+use crate::{size_hint, Itertools};
 use std::iter::Fuse;
 
 /// An iterator over all contiguous windows of the input iterator,
@@ -101,6 +101,17 @@ where
         inner: None,
     }
 }
+
+macro_rules! array_windows_exact_size {
+    ($($n: literal),*) => {
+        $(
+            impl<I: ExactSizeIterator<Item: Clone>> ExactSizeIterator for ArrayWindows<I, $n> {}
+        )*
+    };
+}
+
+// cannot be implemented for `N == 0` since it increases the length
+array_windows_exact_size!(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
 
 /// An iterator over all windows, wrapping back to the first elements when the
 /// window would otherwise exceed the length of the iterator, producing arrays
