@@ -1,4 +1,4 @@
-use crate::Itertools;
+use crate::{size_hint, Itertools};
 use std::iter::Fuse;
 
 /// An iterator over all contiguous windows of the input iterator,
@@ -76,6 +76,19 @@ where
             },
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let inner_sh = self.iter.size_hint();
+        if self.inner.is_none() {
+            if N == 0 {
+                size_hint::add_scalar(inner_sh, 1)
+            } else {
+                size_hint::sub_scalar(inner_sh, N - 1)
+            }
+        } else {
+            inner_sh
+        }
+    }
 }
 
 pub fn array_windows<I, const N: usize>(iter: I) -> ArrayWindows<I, N>
@@ -88,6 +101,17 @@ where
         inner: None,
     }
 }
+
+macro_rules! array_windows_exact_size {
+    ($($n: literal),*) => {
+        $(
+            impl<I: ExactSizeIterator<Item: Clone>> ExactSizeIterator for ArrayWindows<I, $n> {}
+        )*
+    };
+}
+
+// cannot be implemented for `N == 0` since it increases the length
+array_windows_exact_size!(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
 
 /// An iterator over all windows, wrapping back to the first elements when the
 /// window would otherwise exceed the length of the iterator, producing arrays
