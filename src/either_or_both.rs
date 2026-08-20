@@ -5,7 +5,7 @@ use crate::EitherOrBoth::*;
 use either::Either;
 
 /// Value that either holds a single A or B, or both.
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub enum EitherOrBoth<A, B = A> {
     /// Both values are present.
     Both(A, B),
