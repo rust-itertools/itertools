@@ -4909,6 +4909,7 @@ pub trait Itertools: Iterator {
     /// assert!((0..10).filter(|&x| x > 1 && x < 5).exactly_one().unwrap_err().eq(2..5));
     /// assert!((0..10).filter(|&_| false).exactly_one().unwrap_err().eq(0..0));
     /// ```
+    #[doc(alias("single"))]
     fn exactly_one(mut self) -> Result<Self::Item, ExactlyOneError<Self>>
     where
         Self: Sized,
