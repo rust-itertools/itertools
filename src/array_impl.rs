@@ -105,7 +105,8 @@ where
 macro_rules! array_windows_exact_size {
     ($($n: literal),*) => {
         $(
-            impl<I: ExactSizeIterator<Item: Clone>> ExactSizeIterator for ArrayWindows<I, $n> {}
+            impl<I: ExactSizeIterator> ExactSizeIterator for ArrayWindows<I, $n>
+            where I::Item: Clone {}
         )*
     };
 }
