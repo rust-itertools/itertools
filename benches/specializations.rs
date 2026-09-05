@@ -495,13 +495,6 @@ bench_specializations! {
         }
         v.iter().powerset()
     }
-    while_some {
-        {}
-        (0..)
-            .map(black_box)
-            .map(|i| char::from_digit(i, 16))
-            .while_some()
-    }
     with_position {
         ExactSizeIterator
         {
