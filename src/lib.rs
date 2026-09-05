@@ -3165,6 +3165,7 @@ pub trait Itertools: Iterator {
     /// The big difference between the computations of `result2` and `result3` is that while
     /// `fold()` called the provided closure for every item of the callee iterator,
     /// `fold_while()` actually stopped iterating as soon as it encountered `Fold::Done(_)`.
+    #[deprecated(note = "use .try_fold() instead", since = "0.16.0")]
     fn fold_while<B, F>(&mut self, init: B, mut f: F) -> FoldWhile<B>
     where
         Self: Sized,
