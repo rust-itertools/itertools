@@ -1902,7 +1902,7 @@ pub trait Itertools: Iterator {
     ///     "0123456789abcdef".chars(),
     /// );
     /// ```
-    #[deprecated(note="Use .map_while() instead", since="0.16.0")]
+    #[deprecated(note = "Use .map_while() instead", since = "0.16.0")]
     fn while_some<A>(self) -> WhileSome<Self>
     where
         Self: Sized + Iterator<Item = Option<A>>,
