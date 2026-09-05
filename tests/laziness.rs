@@ -205,6 +205,7 @@ must_use_tests! {
     take_while_inclusive {
         let _ = Panicking.take_while_inclusive(|x| x % 2 == 0);
     }
+    #[allow(deprecated)]
     while_some {
         let _ = Panicking.map(Some).while_some();
     }

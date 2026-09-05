@@ -1522,6 +1522,7 @@ fn format() {
     assert_eq!(t3, "1.10e0, 5.72e0, -2.20e1");
 }
 
+#[allow(deprecated)]
 #[test]
 fn while_some() {
     let ns = (1..10)

@@ -228,6 +228,7 @@ quickcheck! {
         test_specializations(&v.iter().copied().take_while_inclusive(|&x| x < 100));
     }
 
+    #[allow(deprecated)]
     fn while_some(v: Vec<u8>) -> () {
         test_specializations(&v.iter().map(|&x| if x < 100 { Some(2 * x) } else { None }).while_some());
     }
