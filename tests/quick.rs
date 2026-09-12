@@ -1373,6 +1373,16 @@ quickcheck! {
     }
 }
 
+quickcheck! {
+    fn arrays_exact_size_1(a: Vec<u8>) -> bool {
+        exact_size(a.iter().arrays::<1>())
+    }
+
+    fn arrays_exact_size_4(a: Vec<u8>) -> bool {
+        exact_size(a.iter().arrays::<4>())
+    }
+}
+
 // with_position
 quickcheck! {
     fn with_position_exact_size_1(a: Vec<u8>) -> bool {
