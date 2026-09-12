@@ -833,6 +833,12 @@ fn test_peek_nth() {
 
     assert_eq!(iter.peek_nth(0), None);
     assert_eq!(iter.peek_nth(1), None);
+
+    // Issue #1067: peek_nth(usize::MAX) used to panic in debug builds
+    // because of the n + 1 overflow. Should just return None now.
+    let mut iter = peek_nth(nums.iter().copied());
+    assert_eq!(iter.peek_nth(usize::MAX), None);
+    assert_eq!(iter.peek_nth_mut(usize::MAX), None);
 }
 
 #[test]
