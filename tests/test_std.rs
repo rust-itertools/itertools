@@ -1137,12 +1137,36 @@ fn combinations_zero() {
     it::assert_equal((0..0).combinations(0), vec![vec![]]);
 }
 
-fn binomial(n: usize, k: usize) -> usize {
-    if k > n {
-        0
-    } else {
-        (n - k + 1..=n).product::<usize>() / (1..=k).product::<usize>()
+fn binomial(mut n: usize, mut k: usize) -> usize {
+    if n < k {
+        return 0;
     }
+    // Same algorithm as `checked_binomial` in `src/adaptors/mod.rs`. The naive
+    // "product then divide" formula overflows `usize` even when the result
+    // fits, which panics `combinations_inexact_size_hints` on 32-bit (#995).
+    k = (n - k).min(k);
+    let mut c = 1usize;
+    for i in 1..=k {
+        c = (c / i)
+            .checked_mul(n)
+            .unwrap()
+            .checked_add((c % i).checked_mul(n).unwrap() / i)
+            .unwrap();
+        n -= 1;
+    }
+    c
+}
+
+#[test]
+fn binomial_avoids_intermediate_overflow() {
+    // The naive "product then divide" formula overflows `usize` even when the
+    // binomial coefficient itself fits. C(21, 19) == C(21, 2) == 210, but
+    // (3..=21).product::<usize>() overflows on 64-bit. The same class of bug
+    // panics `combinations_inexact_size_hints` on 32-bit (#995): that test
+    // evaluates C(27, 7) because `Filter`'s size-hint upper bound is 18 and
+    // the lazy buffer has already loaded 9 items.
+    assert_eq!(binomial(21, 19), 210);
+    assert_eq!(binomial(27, 7), 888030);
 }
 
 #[test]

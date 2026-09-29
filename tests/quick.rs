@@ -961,12 +961,22 @@ quickcheck! {
     }
 }
 
-fn binomial(n: usize, k: usize) -> usize {
-    if k > n {
-        0
-    } else {
-        (n - k + 1..=n).product::<usize>() / (1..=k).product::<usize>()
+fn binomial(mut n: usize, mut k: usize) -> usize {
+    if n < k {
+        return 0;
     }
+    // Same algorithm as `checked_binomial` in `src/adaptors/mod.rs`.
+    k = (n - k).min(k);
+    let mut c = 1usize;
+    for i in 1..=k {
+        c = (c / i)
+            .checked_mul(n)
+            .unwrap()
+            .checked_add((c % i).checked_mul(n).unwrap() / i)
+            .unwrap();
+        n -= 1;
+    }
+    c
 }
 
 quickcheck! {
