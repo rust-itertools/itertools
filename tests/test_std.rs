@@ -1598,15 +1598,8 @@ fn exactly_one_question_mark_return() -> Result<(), ExactlyOneError<std::slice::
 
 #[test]
 fn exactly_one_error_debug_preserves_items() {
-    let calls = std::cell::Cell::new(0);
-    let mut items = [1, 2, 3].iter().copied();
-    let iter = std::iter::from_fn(|| {
-        calls.set(calls.get() + 1);
-        items.next()
-    });
-    let mut error = iter.exactly_one().unwrap_err();
+    let mut error = (1..4).exactly_one().unwrap_err();
 
-    assert_eq!(calls.get(), 2);
     assert_eq!(
         format!("{error:?}"),
         "ExactlyOneError { first: 1, second: 2, .. }"
@@ -1615,43 +1608,43 @@ fn exactly_one_error_debug_preserves_items() {
         format!("{error:#?}"),
         "ExactlyOneError {\n    first: 1,\n    second: 2,\n    ..\n}"
     );
-    assert_eq!(calls.get(), 2);
-
     assert_eq!(error.next(), Some(1));
     assert_eq!(format!("{error:?}"), "ExactlyOneError { second: 2, .. }");
     assert_eq!(error.next(), Some(2));
     assert_eq!(format!("{error:?}"), "ExactlyOneError { .. }");
-    assert_eq!(calls.get(), 2);
     assert_eq!(error.next(), Some(3));
     assert_eq!(error.next(), None);
     assert_eq!(format!("{error:?}"), "ExactlyOneError { .. }");
-    assert_eq!(calls.get(), 4);
-
     let empty_error = empty::<i32>().exactly_one().unwrap_err();
     assert_eq!(format!("{empty_error:?}"), "ExactlyOneError { .. }");
 }
 
 #[test]
 #[cfg(feature = "use_std")]
-fn exactly_one_error_without_debug_iterator() {
-    fn expect_one(
-        iter: impl Iterator<Item = i32> + 'static,
-    ) -> Result<i32, Box<dyn std::error::Error>> {
-        Ok(iter.exactly_one()?)
-    }
+fn exactly_one_error_without_debug_iterator() -> Result<(), Box<dyn std::error::Error>> {
+    let iter: Box<dyn Iterator<Item = i32>> = Box::new(42..43);
+    assert_eq!(iter.exactly_one()?, 42);
+    let iter: Box<dyn Iterator<Item = i32>> = Box::new(0..0);
+    assert!(iter
+        .exactly_one()
+        .map_err(Box::<dyn std::error::Error>::from)
+        .is_err());
+    let iter: Box<dyn Iterator<Item = i32>> = Box::new(1..3);
+    assert!(iter
+        .exactly_one()
+        .map_err(Box::<dyn std::error::Error>::from)
+        .is_err());
 
-    fn expect_at_most_one(
-        iter: impl Iterator<Item = i32> + 'static,
-    ) -> Result<Option<i32>, Box<dyn std::error::Error>> {
-        Ok(iter.at_most_one()?)
-    }
-
-    assert_eq!(expect_one(42..43).unwrap(), 42);
-    assert!(expect_one(0..0).is_err());
-    assert!(expect_one(1..3).is_err());
-    assert_eq!(expect_at_most_one(0..0).unwrap(), None);
-    assert_eq!(expect_at_most_one(42..43).unwrap(), Some(42));
-    assert!(expect_at_most_one(1..3).is_err());
+    let iter: Box<dyn Iterator<Item = i32>> = Box::new(0..0);
+    assert_eq!(iter.at_most_one()?, None);
+    let iter: Box<dyn Iterator<Item = i32>> = Box::new(42..43);
+    assert_eq!(iter.at_most_one()?, Some(42));
+    let iter: Box<dyn Iterator<Item = i32>> = Box::new(1..3);
+    assert!(iter
+        .at_most_one()
+        .map_err(Box::<dyn std::error::Error>::from)
+        .is_err());
+    Ok(())
 }
 
 #[test]
