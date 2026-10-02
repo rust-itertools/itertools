@@ -357,6 +357,25 @@ fn at_most_one() {
 }
 
 #[test]
+fn exactly_one_without_debug_iterator() {
+    fn expect_one(iter: impl Iterator<Item = i32>) -> i32 {
+        iter.exactly_one().expect("one item")
+    }
+
+    assert_eq!(expect_one(iter::once(42)), 42);
+}
+
+#[test]
+fn at_most_one_without_debug_iterator() {
+    fn expect_at_most_one(iter: impl Iterator<Item = i32>) -> Option<i32> {
+        iter.at_most_one().expect("at most one item")
+    }
+
+    assert_eq!(expect_at_most_one(iter::empty()), None);
+    assert_eq!(expect_at_most_one(iter::once(42)), Some(42));
+}
+
+#[test]
 fn sum1() {
     let v: &[i32] = &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     assert_eq!(v[..0].iter().cloned().sum1::<i32>(), None);
