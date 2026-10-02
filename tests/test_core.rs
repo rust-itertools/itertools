@@ -358,21 +358,19 @@ fn at_most_one() {
 
 #[test]
 fn exactly_one_without_debug_iterator() {
-    fn expect_one(iter: impl Iterator<Item = i32>) -> i32 {
-        iter.exactly_one().expect("one item")
-    }
-
-    assert_eq!(expect_one(iter::once(42)), 42);
+    let mut iter = iter::once(42);
+    let iter: &mut dyn Iterator<Item = i32> = &mut iter;
+    assert_eq!(iter.exactly_one().expect("one item"), 42);
 }
 
 #[test]
 fn at_most_one_without_debug_iterator() {
-    fn expect_at_most_one(iter: impl Iterator<Item = i32>) -> Option<i32> {
-        iter.at_most_one().expect("at most one item")
+    fn expect_at_most_one(iter: impl Iterator<Item = i32>, expected: Option<i32>) {
+        assert_eq!(iter.at_most_one().expect("at most one item"), expected);
     }
 
-    assert_eq!(expect_at_most_one(iter::empty()), None);
-    assert_eq!(expect_at_most_one(iter::once(42)), Some(42));
+    expect_at_most_one(iter::empty(), None);
+    expect_at_most_one(iter::once(42), Some(42));
 }
 
 #[test]
