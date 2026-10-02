@@ -107,7 +107,7 @@ where
 
 impl<I> Debug for ExactlyOneError<I>
 where
-    I: Iterator + Debug,
+    I: Iterator,
     I::Item: Debug,
 {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
@@ -121,14 +121,14 @@ where
             }
             None => {}
         }
-        dbg.field("inner", &self.inner).finish()
+        dbg.finish_non_exhaustive()
     }
 }
 
 #[cfg(feature = "use_std")]
 impl<I> Error for ExactlyOneError<I>
 where
-    I: Iterator + Debug,
+    I: Iterator,
     I::Item: Debug,
 {
 }

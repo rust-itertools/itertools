@@ -1597,6 +1597,64 @@ fn exactly_one_question_mark_return() -> Result<(), ExactlyOneError<std::slice::
 }
 
 #[test]
+fn exactly_one_error_debug_preserves_items() {
+    let calls = std::cell::Cell::new(0);
+    let mut items = [1, 2, 3].iter().copied();
+    let iter = std::iter::from_fn(|| {
+        calls.set(calls.get() + 1);
+        items.next()
+    });
+    let mut error = iter.exactly_one().unwrap_err();
+
+    assert_eq!(calls.get(), 2);
+    assert_eq!(
+        format!("{error:?}"),
+        "ExactlyOneError { first: 1, second: 2, .. }"
+    );
+    assert_eq!(
+        format!("{error:#?}"),
+        "ExactlyOneError {\n    first: 1,\n    second: 2,\n    ..\n}"
+    );
+    assert_eq!(calls.get(), 2);
+
+    assert_eq!(error.next(), Some(1));
+    assert_eq!(format!("{error:?}"), "ExactlyOneError { second: 2, .. }");
+    assert_eq!(error.next(), Some(2));
+    assert_eq!(format!("{error:?}"), "ExactlyOneError { .. }");
+    assert_eq!(calls.get(), 2);
+    assert_eq!(error.next(), Some(3));
+    assert_eq!(error.next(), None);
+    assert_eq!(format!("{error:?}"), "ExactlyOneError { .. }");
+    assert_eq!(calls.get(), 4);
+
+    let empty_error = empty::<i32>().exactly_one().unwrap_err();
+    assert_eq!(format!("{empty_error:?}"), "ExactlyOneError { .. }");
+}
+
+#[test]
+#[cfg(feature = "use_std")]
+fn exactly_one_error_without_debug_iterator() {
+    fn expect_one(
+        iter: impl Iterator<Item = i32> + 'static,
+    ) -> Result<i32, Box<dyn std::error::Error>> {
+        Ok(iter.exactly_one()?)
+    }
+
+    fn expect_at_most_one(
+        iter: impl Iterator<Item = i32> + 'static,
+    ) -> Result<Option<i32>, Box<dyn std::error::Error>> {
+        Ok(iter.at_most_one()?)
+    }
+
+    assert_eq!(expect_one(42..43).unwrap(), 42);
+    assert!(expect_one(0..0).is_err());
+    assert!(expect_one(1..3).is_err());
+    assert_eq!(expect_at_most_one(0..0).unwrap(), None);
+    assert_eq!(expect_at_most_one(42..43).unwrap(), Some(42));
+    assert!(expect_at_most_one(1..3).is_err());
+}
+
+#[test]
 fn multiunzip() {
     let (a, b, c): (Vec<_>, Vec<_>, Vec<_>) = [(0, 1, 2), (3, 4, 5), (6, 7, 8)]
         .iter()
