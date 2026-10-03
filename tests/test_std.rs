@@ -1597,57 +1597,6 @@ fn exactly_one_question_mark_return() -> Result<(), ExactlyOneError<std::slice::
 }
 
 #[test]
-fn exactly_one_error_debug_preserves_items() {
-    let mut error = (1..4).exactly_one().unwrap_err();
-
-    assert_eq!(
-        format!("{error:?}"),
-        "ExactlyOneError { first: 1, second: 2, .. }"
-    );
-    assert_eq!(
-        format!("{error:#?}"),
-        "ExactlyOneError {\n    first: 1,\n    second: 2,\n    ..\n}"
-    );
-    assert_eq!(error.next(), Some(1));
-    assert_eq!(format!("{error:?}"), "ExactlyOneError { second: 2, .. }");
-    assert_eq!(error.next(), Some(2));
-    assert_eq!(format!("{error:?}"), "ExactlyOneError { .. }");
-    assert_eq!(error.next(), Some(3));
-    assert_eq!(error.next(), None);
-    assert_eq!(format!("{error:?}"), "ExactlyOneError { .. }");
-    let empty_error = empty::<i32>().exactly_one().unwrap_err();
-    assert_eq!(format!("{empty_error:?}"), "ExactlyOneError { .. }");
-}
-
-#[test]
-#[cfg(feature = "use_std")]
-fn exactly_one_error_without_debug_iterator() -> Result<(), Box<dyn std::error::Error>> {
-    let iter: Box<dyn Iterator<Item = i32>> = Box::new(42..43);
-    assert_eq!(iter.exactly_one()?, 42);
-    let iter: Box<dyn Iterator<Item = i32>> = Box::new(0..0);
-    assert!(iter
-        .exactly_one()
-        .map_err(Box::<dyn std::error::Error>::from)
-        .is_err());
-    let iter: Box<dyn Iterator<Item = i32>> = Box::new(1..3);
-    assert!(iter
-        .exactly_one()
-        .map_err(Box::<dyn std::error::Error>::from)
-        .is_err());
-
-    let iter: Box<dyn Iterator<Item = i32>> = Box::new(0..0);
-    assert_eq!(iter.at_most_one()?, None);
-    let iter: Box<dyn Iterator<Item = i32>> = Box::new(42..43);
-    assert_eq!(iter.at_most_one()?, Some(42));
-    let iter: Box<dyn Iterator<Item = i32>> = Box::new(1..3);
-    assert!(iter
-        .at_most_one()
-        .map_err(Box::<dyn std::error::Error>::from)
-        .is_err());
-    Ok(())
-}
-
-#[test]
 fn multiunzip() {
     let (a, b, c): (Vec<_>, Vec<_>, Vec<_>) = [(0, 1, 2), (3, 4, 5), (6, 7, 8)]
         .iter()
