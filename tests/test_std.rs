@@ -1076,6 +1076,102 @@ fn chunks() {
 }
 
 #[test]
+fn chunks_preserve_source_position_and_live_groups() {
+    let mut source = 1..=10;
+    {
+        let chunks = source.by_ref().chunks(2);
+        let mut groups = chunks.into_iter();
+        assert_eq!(groups.next().unwrap().collect_vec(), vec![1, 2]);
+    }
+    assert_eq!(source.next(), Some(3));
+
+    for size in [1, 2, 3] {
+        let mut source = 1..=20;
+        {
+            let chunks = source.by_ref().chunks(size);
+            let mut groups = chunks.into_iter();
+            assert_eq!(groups.next().unwrap().count(), size);
+            assert_eq!(groups.next().unwrap().count(), size);
+        }
+        assert_eq!(source.next(), Some((2 * size + 1) as i32));
+    }
+
+    let chunks = (1..=8).chunks(2);
+    let mut groups = chunks.into_iter();
+    let first = groups.next().unwrap();
+    let second = groups.next().unwrap();
+    assert_eq!(second.collect_vec(), vec![3, 4]);
+    assert_eq!(first.collect_vec(), vec![1, 2]);
+
+    let chunks = (1..=8).chunks(2);
+    let mut groups = chunks.into_iter();
+    let mut first = groups.next().unwrap();
+    assert_eq!(first.next(), Some(1));
+    drop(first);
+    assert_eq!(groups.next().unwrap().collect_vec(), vec![3, 4]);
+}
+
+#[test]
+fn chunks_release_buffered_slots() {
+    for pairs in [10, 100] {
+        let chunks = (0..(pairs * 4 + 2)).chunks(2);
+        let mut groups = chunks.into_iter();
+        for _ in 0..pairs {
+            let oldest = groups.next().unwrap();
+            let newest = groups.next().unwrap();
+            oldest.for_each(drop);
+            newest.for_each(drop);
+        }
+        let debug = format!("{chunks:?}");
+        assert!(debug.contains("buffer: ["));
+        assert!(debug.matches("IntoIter").count() <= 2);
+    }
+}
+
+#[test]
+fn chunks_stop_after_capacity_and_source_exhaustion() {
+    let chunks = (1..=5).chunks(2);
+    let mut groups = chunks.into_iter();
+    let mut first = groups.next().unwrap();
+    assert_eq!(first.next(), Some(1));
+    assert_eq!(first.next(), Some(2));
+    assert_eq!(first.next(), None);
+    assert_eq!(first.next(), None);
+    assert_eq!(groups.next().unwrap().collect_vec(), vec![3, 4]);
+    assert_eq!(groups.next().unwrap().collect_vec(), vec![5]);
+    assert!(groups.next().is_none());
+}
+
+#[test]
+fn chunks_do_not_repoll_a_non_fused_source_after_none() {
+    struct PostNone {
+        state: usize,
+    }
+
+    impl Iterator for PostNone {
+        type Item = usize;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            let result = match self.state {
+                0 => Some(1),
+                1 => None,
+                _ => Some(2),
+            };
+            self.state += 1;
+            result
+        }
+    }
+
+    let chunks = PostNone { state: 0 }.chunks(3);
+    let mut groups = chunks.into_iter();
+    let mut first = groups.next().unwrap();
+    assert_eq!(first.next(), Some(1));
+    assert_eq!(first.next(), None);
+    assert_eq!(first.next(), None);
+    assert!(groups.next().is_none());
+}
+
+#[test]
 fn concat_empty() {
     let data: Vec<Vec<()>> = Vec::new();
     assert_eq!(data.into_iter().concat(), Vec::new())
