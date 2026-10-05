@@ -67,48 +67,45 @@ where
         },
     };
 
-    loop {
-        // `first` and `second` are the two next elements we want to look
-        // at.  We first compare `first` and `second` (#1). The smaller one
-        // is then compared to current minimum (#2). The larger one is
-        // compared to current maximum (#3). This way we do 3 comparisons
-        // for 2 elements.
-        let first = match it.next() {
-            None => break,
-            Some(x) => x,
-        };
-        let second = match it.next() {
-            None => {
-                let first_key = key_for(&first);
+    let remaining = it.fold(None, |acc, second| match acc {
+        None => Some(second),
+        Some(first) => {
+            // `first` and `second` are the two next elements we want to look
+            // at.  We first compare `first` and `second` (#1). The smaller one
+            // is then compared to current minimum (#2). The larger one is
+            // compared to current maximum (#3). This way we do 3 comparisons
+            // for 2 elements.
+            let first_key = key_for(&first);
+            let second_key = key_for(&second);
+            if !lt(&second, &first, &second_key, &first_key) {
                 if lt(&first, &min, &first_key, &min_key) {
                     min = first;
-                } else if !lt(&first, &max, &first_key, &max_key) {
-                    max = first;
+                    min_key = first_key;
                 }
-                break;
+                if !lt(&second, &max, &second_key, &max_key) {
+                    max = second;
+                    max_key = second_key;
+                }
+            } else {
+                if lt(&second, &min, &second_key, &min_key) {
+                    min = second;
+                    min_key = second_key;
+                }
+                if !lt(&first, &max, &first_key, &max_key) {
+                    max = first;
+                    max_key = first_key;
+                }
             }
-            Some(x) => x,
-        };
+            None
+        }
+    });
+
+    if let Some(first) = remaining {
         let first_key = key_for(&first);
-        let second_key = key_for(&second);
-        if !lt(&second, &first, &second_key, &first_key) {
-            if lt(&first, &min, &first_key, &min_key) {
-                min = first;
-                min_key = first_key;
-            }
-            if !lt(&second, &max, &second_key, &max_key) {
-                max = second;
-                max_key = second_key;
-            }
-        } else {
-            if lt(&second, &min, &second_key, &min_key) {
-                min = second;
-                min_key = second_key;
-            }
-            if !lt(&first, &max, &first_key, &max_key) {
-                max = first;
-                max_key = first_key;
-            }
+        if lt(&first, &min, &first_key, &min_key) {
+            min = first;
+        } else if !lt(&first, &max, &first_key, &max_key) {
+            max = first;
         }
     }
 
