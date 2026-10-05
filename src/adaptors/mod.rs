@@ -405,13 +405,9 @@ where
         let elt_b = match b.next() {
             None => {
                 *b = b_orig.clone();
-                match b.next() {
-                    None => return None,
-                    Some(x) => {
-                        *a_cur = Some(a.next());
-                        x
-                    }
-                }
+                let x = b.next()?;
+                *a_cur = Some(a.next());
+                x
             }
             Some(x) => x,
         };
