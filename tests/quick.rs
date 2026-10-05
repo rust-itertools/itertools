@@ -1337,6 +1337,15 @@ quickcheck! {
         true
     }
 
+    fn array_windows_exact_size_1(a: Vec<u8>) -> bool {
+        exact_size(a.iter().array_windows::<1>())
+    }
+
+    fn array_windows_exact_size_4(a: Vec<u8>) -> bool {
+        exact_size(a.iter().array_windows::<4>())
+    }
+
+
     fn equal_circular_array_windows_0(a: Vec<u8>) -> bool {
         let x = a.iter().map(|_| [&0u8; 0] );
         let y = a.iter().circular_array_windows::<0>();
