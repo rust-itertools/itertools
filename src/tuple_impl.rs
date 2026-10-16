@@ -209,6 +209,36 @@ where
         }
     }
 
+    fn fold<B, F>(mut self, init: B, mut f: F) -> B
+    where
+        Self: Sized,
+        F: FnMut(B, Self::Item) -> B,
+    {
+        if T::num_items() == 1 {
+            return self.iter.fold(init, move |acc, item| {
+                f(
+                    acc,
+                    T::collect_from_iter_no_buf(std::iter::once(item)).unwrap(),
+                )
+            });
+        }
+
+        let mut acc = init;
+        if self.last.is_none() {
+            match self.next() {
+                Some(window) => acc = f(acc, window),
+                None => return acc,
+            }
+        }
+
+        let mut last = self.last.unwrap();
+        let last = &mut last;
+        self.iter.fold(acc, move |acc, item| {
+            last.left_shift_push(item);
+            f(acc, last.clone())
+        })
+    }
+
     fn size_hint(&self) -> (usize, Option<usize>) {
         let mut sh = self.iter.size_hint();
         // Adjust the size hint at the beginning

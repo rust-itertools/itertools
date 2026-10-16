@@ -95,6 +95,171 @@ where
     }
 }
 
+#[test]
+fn tuple_windows_fold_preserves_iterator_events() {
+    use itertools::traits::HomogeneousTuple;
+    use std::cell::RefCell;
+    use std::panic::{catch_unwind, AssertUnwindSafe};
+    use std::rc::Rc;
+
+    #[derive(Clone, Debug, PartialEq)]
+    enum Event {
+        Next(Option<u8>),
+        Clone(u8),
+        Consume(Vec<u8>),
+        DropItem(u8),
+        DropIter,
+        DropConsumer,
+    }
+
+    #[derive(Clone, Copy, Debug, PartialEq)]
+    enum Failure {
+        None,
+        Clone,
+        Consume,
+    }
+
+    struct Item {
+        value: u8,
+        events: Rc<RefCell<Vec<Event>>>,
+        panic_on_clone: bool,
+    }
+
+    impl Clone for Item {
+        fn clone(&self) -> Self {
+            self.events.borrow_mut().push(Event::Clone(self.value));
+            assert!(!(self.panic_on_clone && self.value == 6), "clone");
+            Self {
+                value: self.value,
+                events: self.events.clone(),
+                panic_on_clone: self.panic_on_clone,
+            }
+        }
+    }
+
+    impl Drop for Item {
+        fn drop(&mut self) {
+            self.events.borrow_mut().push(Event::DropItem(self.value));
+        }
+    }
+
+    struct Tracked<'a> {
+        items: std::iter::Copied<std::slice::Iter<'a, Option<u8>>>,
+        events: Rc<RefCell<Vec<Event>>>,
+        panic_on_clone: bool,
+    }
+
+    impl Iterator for Tracked<'_> {
+        type Item = Item;
+
+        fn next(&mut self) -> Option<Item> {
+            let item = self.items.next().flatten();
+            self.events.borrow_mut().push(Event::Next(item));
+            item.map(|value| Item {
+                value,
+                events: self.events.clone(),
+                panic_on_clone: self.panic_on_clone,
+            })
+        }
+    }
+
+    impl Drop for Tracked<'_> {
+        fn drop(&mut self) {
+            self.events.borrow_mut().push(Event::DropIter);
+        }
+    }
+
+    struct Consumer(Rc<RefCell<Vec<Event>>>);
+
+    impl Consumer {
+        fn record(&self, value: &[u8]) {
+            self.0.borrow_mut().push(Event::Consume(value.to_vec()));
+        }
+    }
+
+    impl Drop for Consumer {
+        fn drop(&mut self) {
+            self.0.borrow_mut().push(Event::DropConsumer);
+        }
+    }
+
+    fn run<T>(
+        source: &[Option<u8>],
+        advanced: usize,
+        specialized: bool,
+        values: fn(&T) -> Vec<u8>,
+        failure: Failure,
+    ) -> (Option<Vec<Vec<u8>>>, Vec<Event>)
+    where
+        T: HomogeneousTuple<Item = Item> + Clone,
+    {
+        let events = Rc::new(RefCell::new(Vec::new()));
+        let items = catch_unwind(AssertUnwindSafe(|| {
+            let mut it = Tracked {
+                items: source.iter().copied(),
+                events: events.clone(),
+                panic_on_clone: failure == Failure::Clone,
+            }
+            .tuple_windows::<T>();
+            for _ in 0..advanced {
+                it.next();
+            }
+            let consumer = Consumer(events.clone());
+            let consume = move |mut acc: Vec<Vec<u8>>, item: T| {
+                let value = values(&item);
+                consumer.record(&value);
+                assert!(
+                    !(failure == Failure::Consume && value.last() == Some(&6)),
+                    "consume"
+                );
+                acc.push(value);
+                acc
+            };
+            if specialized {
+                it.fold(Vec::new(), consume)
+            } else {
+                Unspecialized(it).fold(Vec::new(), consume)
+            }
+        }))
+        .ok();
+        let trace = events.borrow().clone();
+        (items, trace)
+    }
+
+    let cases = [
+        vec![],
+        vec![Some(1)],
+        vec![Some(1), Some(2)],
+        (0..8).map(Some).collect(),
+        vec![Some(1), None, Some(2), Some(3), Some(4), Some(5)],
+        vec![Some(1), Some(2), Some(3), None, Some(4), Some(5)],
+        vec![None, Some(1), Some(2), Some(3), Some(4), Some(5)],
+    ];
+    for source in &cases {
+        for advanced in 0..=4 {
+            macro_rules! check_width {
+                ($($index:tt),+) => {
+                    let values = |tuple: &($(check_width!(@item $index),)+)| {
+                        vec![$(tuple.$index.value,)+]
+                    };
+                    for failure in [Failure::None, Failure::Clone, Failure::Consume] {
+                        assert_eq!(
+                            run(source, advanced, true, values, failure),
+                            run(source, advanced, false, values, failure),
+                            "source: {source:?}, advanced: {advanced}, failure: {failure:?}",
+                        );
+                    }
+                };
+                (@item $index:tt) => { Item };
+            }
+            check_width!(0);
+            check_width!(0, 1);
+            check_width!(0, 1, 2);
+            check_width!(0, 1, 2, 3);
+        }
+    }
+}
+
 fn test_double_ended_specializations<I>(it: &I)
 where
     I::Item: Eq + Debug + Clone,
