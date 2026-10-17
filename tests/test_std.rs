@@ -1137,24 +1137,8 @@ fn combinations_zero() {
     it::assert_equal((0..0).combinations(0), vec![vec![]]);
 }
 
-fn binomial(mut n: usize, mut k: usize) -> usize {
-    if n < k {
-        return 0;
-    }
-    // Same algorithm as `checked_binomial` in `src/adaptors/mod.rs`. The naive
-    // "product then divide" formula overflows `usize` even when the result
-    // fits, which panics `combinations_inexact_size_hints` on 32-bit (#995).
-    k = (n - k).min(k);
-    let mut c = 1usize;
-    for i in 1..=k {
-        c = (c / i)
-            .checked_mul(n)
-            .unwrap()
-            .checked_add((c % i).checked_mul(n).unwrap() / i)
-            .unwrap();
-        n -= 1;
-    }
-    c
+fn binomial(n: usize, k: usize) -> usize {
+    it::checked_binomial(n, k).unwrap()
 }
 
 #[test]

@@ -158,6 +158,9 @@ pub mod traits {
     pub use crate::tuple_impl::HomogeneousTuple;
 }
 
+// Shared with integration tests.
+#[doc(hidden)]
+pub use crate::adaptors::checked_binomial;
 #[cfg(feature = "use_alloc")]
 use crate::combinations_with_replacement::ArrayCombinationsWithReplacement;
 pub use crate::concat_impl::concat;
