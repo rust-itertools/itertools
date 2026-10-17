@@ -834,8 +834,9 @@ impl_tuple_combination!(Tuple10Combination Tuple9Combination; a b c d e f g h i)
 impl_tuple_combination!(Tuple11Combination Tuple10Combination; a b c d e f g h i j);
 impl_tuple_combination!(Tuple12Combination Tuple11Combination; a b c d e f g h i j k);
 
+/// Computes the binomial coefficient, returning `None` if it overflows `usize`.
 // https://en.wikipedia.org/wiki/Binomial_coefficient#In_programming_languages
-pub(crate) fn checked_binomial(mut n: usize, mut k: usize) -> Option<usize> {
+pub fn checked_binomial(mut n: usize, mut k: usize) -> Option<usize> {
     if n < k {
         return Some(0);
     }
