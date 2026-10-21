@@ -4616,13 +4616,13 @@ pub trait Itertools: Iterator {
     /// let a = [1_i32, 1, -1, -1];
     /// assert_eq!(a.iter().position_max_by_key(|x| x.abs()), Some(3));
     /// ```
-    fn position_max_by_key<K, F>(self, mut key: F) -> Option<usize>
+    fn position_max_by_key<K, F>(self, key: F) -> Option<usize>
     where
         Self: Sized,
         K: Ord,
-        F: FnMut(&Self::Item) -> K,
+        F: FnMut(Self::Item) -> K,
     {
-        self.map(|item| key(&item)).position_max()
+        self.map(key).position_max()
     }
 
     /// Return the position of the maximum element in the iterator, as
@@ -4704,13 +4704,13 @@ pub trait Itertools: Iterator {
     /// let a = [1_i32, 1, -1, -1];
     /// assert_eq!(a.iter().position_min_by_key(|x| x.abs()), Some(0));
     /// ```
-    fn position_min_by_key<K, F>(self, mut key: F) -> Option<usize>
+    fn position_min_by_key<K, F>(self, key: F) -> Option<usize>
     where
         Self: Sized,
         K: Ord,
-        F: FnMut(&Self::Item) -> K,
+        F: FnMut(Self::Item) -> K,
     {
-        self.map(|item| key(&item)).position_min()
+        self.map(key).position_min()
     }
 
     /// Return the position of the minimum element in the iterator, as
@@ -4832,13 +4832,13 @@ pub trait Itertools: Iterator {
     /// ```
     ///
     /// [`position_minmax`]: Self::position_minmax
-    fn position_minmax_by_key<K, F>(self, mut key: F) -> MinMaxResult<usize>
+    fn position_minmax_by_key<K, F>(self, key: F) -> MinMaxResult<usize>
     where
         Self: Sized,
         K: PartialOrd,
-        F: FnMut(&Self::Item) -> K,
+        F: FnMut(Self::Item) -> K,
     {
-        self.map(|item| key(&item)).position_minmax()
+        self.map(key).position_minmax()
     }
 
     /// Return the positions of the minimum and maximum elements of an
