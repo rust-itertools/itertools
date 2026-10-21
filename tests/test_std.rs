@@ -1138,11 +1138,19 @@ fn combinations_zero() {
 }
 
 fn binomial(n: usize, k: usize) -> usize {
-    if k > n {
-        0
-    } else {
-        (n - k + 1..=n).product::<usize>() / (1..=k).product::<usize>()
-    }
+    it::checked_binomial(n, k).unwrap()
+}
+
+#[test]
+fn binomial_avoids_intermediate_overflow() {
+    // The naive "product then divide" formula overflows `usize` even when the
+    // binomial coefficient itself fits. C(21, 19) == C(21, 2) == 210, but
+    // (3..=21).product::<usize>() overflows on 64-bit. The same class of bug
+    // panics `combinations_inexact_size_hints` on 32-bit (#995): that test
+    // evaluates C(27, 7) because `Filter`'s size-hint upper bound is 18 and
+    // the lazy buffer has already loaded 9 items.
+    assert_eq!(binomial(21, 19), 210);
+    assert_eq!(binomial(27, 7), 888030);
 }
 
 #[test]

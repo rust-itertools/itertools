@@ -962,11 +962,7 @@ quickcheck! {
 }
 
 fn binomial(n: usize, k: usize) -> usize {
-    if k > n {
-        0
-    } else {
-        (n - k + 1..=n).product::<usize>() / (1..=k).product::<usize>()
-    }
+    itertools::checked_binomial(n, k).unwrap()
 }
 
 quickcheck! {
