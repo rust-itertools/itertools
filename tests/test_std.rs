@@ -87,6 +87,16 @@ fn interleave_shortest() {
 }
 
 #[test]
+fn interleave_shortest_size_hint_does_not_overflow() {
+    // The combined lower bound can exceed `usize::MAX`, which used to overflow
+    // when computing `size_hint`. It should saturate instead of panicking.
+    let i = ::std::iter::repeat(0u8).take(usize::MAX);
+    let j = ::std::iter::repeat(0u8).take(usize::MAX - 1);
+    let it = i.interleave_shortest(j);
+    assert_eq!(it.size_hint(), (usize::MAX, None));
+}
+
+#[test]
 fn duplicates_by() {
     let xs = ["aaa", "bbbbb", "aa", "ccc", "bbbb", "aaaaa", "cccc"];
     let ys = ["aa", "bbbb", "cccc"];
@@ -532,6 +542,21 @@ fn sorted_by() {
     it::assert_equal(v, vec![4, 3, 2, 1, 0]);
 }
 
+#[test]
+fn k_smallest_relaxed_does_not_overflow() {
+    // `k_smallest_relaxed` allocates room for `2 * k` items. A large `k` used to
+    // overflow that multiplication and panic; it should saturate instead.
+    it::assert_equal(
+        vec![1].into_iter().k_smallest_relaxed(usize::MAX / 2),
+        vec![1],
+    );
+    it::assert_equal(
+        vec![1].into_iter().k_smallest_relaxed(usize::MAX / 2 + 1),
+        vec![1],
+    );
+    it::assert_equal(vec![1].into_iter().k_smallest_relaxed(usize::MAX), vec![1]);
+}
+
 #[cfg(not(miri))]
 qc::quickcheck! {
     fn k_smallest_range(n: i64, m: u16, k: u16) -> () {
@@ -833,6 +858,20 @@ fn test_peek_nth() {
 
     assert_eq!(iter.peek_nth(0), None);
     assert_eq!(iter.peek_nth(1), None);
+}
+
+#[test]
+fn test_peek_nth_max_does_not_overflow() {
+    // Peeking past the end returns `None`. Asking for `usize::MAX` used to
+    // overflow when computing `n + 1`; it should return `None` instead.
+    let nums = vec![1u8, 2, 3];
+
+    let mut iter = peek_nth(nums.iter().copied());
+    assert_eq!(iter.peek_nth(usize::MAX), None);
+    assert_eq!(iter.peek_nth_mut(usize::MAX), None);
+
+    // The iterator is still intact and yields all of its items.
+    assert_eq!(iter.collect::<Vec<_>>(), nums);
 }
 
 #[test]

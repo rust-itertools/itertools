@@ -99,7 +99,10 @@ where
     }
 
     let mut iter = iter.fuse();
-    let mut buf = iter.by_ref().take(2 * k).collect::<Vec<_>>();
+    let mut buf = iter
+        .by_ref()
+        .take(2usize.saturating_mul(k))
+        .collect::<Vec<_>>();
 
     if buf.len() < k {
         buf.sort_unstable_by(&mut comparator);
