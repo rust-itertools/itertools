@@ -823,6 +823,7 @@ pub trait Itertools: Iterator {
     /// let it: TupleWindows<Range<u32>, (u32, u32, u32)> = (1..5).tuple_windows();
     /// itertools::assert_equal(it, vec![(1, 2, 3), (2, 3, 4)]);
     /// ```
+    #[doc(alias = "pairwise")]
     fn tuple_windows<T>(self) -> TupleWindows<Self, T>
     where
         Self: Sized + Iterator<Item = T::Item>,
