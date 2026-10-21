@@ -4622,9 +4622,7 @@ pub trait Itertools: Iterator {
         K: Ord,
         F: FnMut(&Self::Item) -> K,
     {
-        self.enumerate()
-            .max_by(|x, y| Ord::cmp(&key(&x.1), &key(&y.1)))
-            .map(|x| x.0)
+        self.map(|item| key(&item)).position_max()
     }
 
     /// Return the position of the maximum element in the iterator, as
@@ -4712,9 +4710,7 @@ pub trait Itertools: Iterator {
         K: Ord,
         F: FnMut(&Self::Item) -> K,
     {
-        self.enumerate()
-            .min_by(|x, y| Ord::cmp(&key(&x.1), &key(&y.1)))
-            .map(|x| x.0)
+        self.map(|item| key(&item)).position_min()
     }
 
     /// Return the position of the minimum element in the iterator, as
@@ -4842,12 +4838,7 @@ pub trait Itertools: Iterator {
         K: PartialOrd,
         F: FnMut(&Self::Item) -> K,
     {
-        use crate::MinMaxResult::{MinMax, NoElements, OneElement};
-        match self.enumerate().minmax_by_key(|e| key(&e.1)) {
-            NoElements => NoElements,
-            OneElement(x) => OneElement(x.0),
-            MinMax(x, y) => MinMax(x.0, y.0),
-        }
+        self.map(|item| key(&item)).position_minmax()
     }
 
     /// Return the positions of the minimum and maximum elements of an
