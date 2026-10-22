@@ -51,13 +51,9 @@ impl<I: Iterator> MultiPeek<I> {
         let ret = if self.index < self.buf.len() {
             Some(&self.buf[self.index])
         } else {
-            match self.iter.next() {
-                Some(x) => {
-                    self.buf.push_back(x);
-                    Some(&self.buf[self.index])
-                }
-                None => return None,
-            }
+            let x = self.iter.next()?;
+            self.buf.push_back(x);
+            Some(&self.buf[self.index])
         };
 
         self.index += 1;
