@@ -222,6 +222,25 @@ where
         Some(result)
     }
 
+    fn fold<B, G>(mut self, init: B, mut f: G) -> B
+    where
+        Self: Sized,
+        G: FnMut(B, Self::Item) -> B,
+    {
+        let mut acc = init;
+        while self.heap.len() > 1 {
+            acc = f(acc, self.next().unwrap());
+        }
+        match self.heap.pop() {
+            None => acc,
+            Some(HeadTail { head, tail }) => {
+                // As in `next`, advance the tail before consuming its previous head.
+                let (acc, last) = tail.fold((acc, head), |(acc, head), next| (f(acc, head), next));
+                f(acc, last)
+            }
+        }
+    }
+
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.heap
             .iter()
