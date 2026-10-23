@@ -176,24 +176,22 @@ where
         };
         let (curr_lower, curr_upper) = curr_hint;
         let (next_lower, next_upper) = next_hint;
-        let (combined_lower, combined_upper) =
-            size_hint::mul_scalar(size_hint::min(curr_hint, next_hint), 2);
         let lower = if curr_lower > next_lower {
-            combined_lower + 1
+            next_lower.saturating_mul(2).saturating_add(1)
         } else {
-            combined_lower
+            curr_lower.saturating_mul(2)
         };
-        let upper = {
-            let extra_elem = match (curr_upper, next_upper) {
-                (_, None) => false,
-                (None, Some(_)) => true,
-                (Some(curr_max), Some(next_max)) => curr_max > next_max,
-            };
-            if extra_elem {
-                combined_upper.and_then(|x| x.checked_add(1))
-            } else {
-                combined_upper
+        let upper = match (curr_upper, next_upper) {
+            (Some(curr_max), Some(next_max)) => {
+                if curr_max > next_max {
+                    next_max.checked_mul(2).and_then(|x| x.checked_add(1))
+                } else {
+                    curr_max.checked_mul(2)
+                }
             }
+            (Some(curr_max), None) => curr_max.checked_mul(2),
+            (None, Some(next_max)) => next_max.checked_mul(2).and_then(|x| x.checked_add(1)),
+            (None, None) => None,
         };
         (lower, upper)
     }
