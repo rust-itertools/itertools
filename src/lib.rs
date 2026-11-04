@@ -2899,10 +2899,7 @@ pub trait Itertools: Iterator {
         F: FnMut(B, A) -> B,
     {
         for elt in self {
-            match elt {
-                Ok(v) => start = f(start, v),
-                Err(u) => return Err(u),
-            }
+            start = f(start, elt?)
         }
         Ok(start)
     }
@@ -2932,10 +2929,7 @@ pub trait Itertools: Iterator {
         F: FnMut(B, A) -> B,
     {
         for elt in self {
-            match elt {
-                Some(v) => start = f(start, v),
-                None => return None,
-            }
+            start = f(start, elt?)
         }
         Some(start)
     }
