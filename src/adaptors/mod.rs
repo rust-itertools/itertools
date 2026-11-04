@@ -179,7 +179,7 @@ where
         let (combined_lower, combined_upper) =
             size_hint::mul_scalar(size_hint::min(curr_hint, next_hint), 2);
         let lower = if curr_lower > next_lower {
-            combined_lower + 1
+            combined_lower.saturating_add(1)
         } else {
             combined_lower
         };
