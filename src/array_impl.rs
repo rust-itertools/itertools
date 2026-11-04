@@ -1,5 +1,5 @@
 use crate::Itertools;
-use std::iter::Fuse;
+use std::iter::{Fuse, FusedIterator};
 
 /// An iterator over all contiguous windows of the input iterator,
 /// producing arrays of a specific size.
@@ -7,6 +7,7 @@ use std::iter::Fuse;
 /// See [`.array_windows()`](crate::Itertools::array_windows) for more
 /// information.
 #[derive(Debug, Clone)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct ArrayWindows<I, const N: usize>
 where
     I: Iterator + Sized,
@@ -78,6 +79,13 @@ where
     }
 }
 
+impl<I, const N: usize> FusedIterator for ArrayWindows<I, N>
+where
+    I: Iterator + Sized,
+    I::Item: Clone,
+{
+}
+
 pub fn array_windows<I, const N: usize>(iter: I) -> ArrayWindows<I, N>
 where
     I: Iterator + Sized,
@@ -96,6 +104,7 @@ where
 /// See [`.circular_array_windows()`](crate::Itertools::circular_array_windows)
 /// for more information.
 #[derive(Debug, Clone)]
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct CircularArrayWindows<I, const N: usize>
 where
     I: Iterator + Sized,
@@ -212,6 +221,13 @@ where
             }
         }
     }
+}
+
+impl<I, const N: usize> FusedIterator for CircularArrayWindows<I, N>
+where
+    I: Iterator + Sized,
+    I::Item: Clone,
+{
 }
 
 pub fn circular_array_windows<I, const N: usize>(iter: I) -> CircularArrayWindows<I, N>

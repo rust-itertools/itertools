@@ -1970,6 +1970,14 @@ quickcheck! {
         is_fused(a.fuse().tuple_combinations::<(_,_,_)>())
     }
 
+    fn fused_array_windows(a: Iter<i16>) -> bool
+    {
+        is_fused(a.clone().array_windows::<1>()) &&
+        is_fused(a.clone().array_windows::<3>()) &&
+        is_fused(a.clone().circular_array_windows::<1>()) &&
+        is_fused(a.circular_array_windows::<3>())
+    }
+
     fn fused_unique(a: Iter<i16>) -> bool
     {
         is_fused(a.fuse().unique())
