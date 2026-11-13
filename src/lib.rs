@@ -216,6 +216,8 @@ mod k_smallest;
 #[cfg(feature = "use_alloc")]
 mod kmerge_impl;
 #[cfg(feature = "use_alloc")]
+mod heap;
+#[cfg(feature = "use_alloc")]
 mod lazy_buffer;
 mod merge_join;
 mod minmax;
