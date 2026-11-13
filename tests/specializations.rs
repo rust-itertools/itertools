@@ -495,6 +495,95 @@ quickcheck! {
     }
 }
 
+#[test]
+fn kmerge_fold_preserves_iterator_events() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    #[derive(Clone, Debug, PartialEq)]
+    enum Event {
+        Next(usize, Option<i32>),
+        Compare(i32, i32),
+        Consume(i32),
+        Drop(usize),
+    }
+
+    struct Tracked {
+        id: usize,
+        items: std::vec::IntoIter<Option<i32>>,
+        events: Rc<RefCell<Vec<Event>>>,
+    }
+
+    impl Iterator for Tracked {
+        type Item = i32;
+
+        fn next(&mut self) -> Option<i32> {
+            let item = self.items.next().flatten();
+            self.events.borrow_mut().push(Event::Next(self.id, item));
+            item
+        }
+    }
+
+    impl Drop for Tracked {
+        fn drop(&mut self) {
+            self.events.borrow_mut().push(Event::Drop(self.id));
+        }
+    }
+
+    fn run(
+        sources: &[Vec<Option<i32>>],
+        advanced: usize,
+        specialized: bool,
+    ) -> (Vec<i32>, Vec<Event>) {
+        let events = Rc::new(RefCell::new(Vec::new()));
+        let mut it = sources
+            .iter()
+            .enumerate()
+            .map(|(id, items)| Tracked {
+                id,
+                items: items.clone().into_iter(),
+                events: events.clone(),
+            })
+            .kmerge_by(|&a, &b| {
+                events.borrow_mut().push(Event::Compare(a, b));
+                a < b
+            });
+        for _ in 0..advanced {
+            it.next();
+        }
+        let consume = |mut acc: Vec<i32>, item| {
+            events.borrow_mut().push(Event::Consume(item));
+            acc.push(item);
+            acc
+        };
+        let items = if specialized {
+            it.fold(Vec::new(), consume)
+        } else {
+            Unspecialized(it).fold(Vec::new(), consume)
+        };
+        let trace = events.borrow().clone();
+        (items, trace)
+    }
+
+    let cases = [
+        vec![],
+        vec![vec![]],
+        vec![vec![Some(1)]],
+        vec![vec![Some(1), Some(2), None, Some(99)]],
+        vec![
+            vec![Some(0), Some(3), None, Some(98)],
+            vec![Some(1)],
+            vec![Some(2), Some(4), Some(5)],
+        ],
+        vec![vec![None, Some(99)], vec![Some(1), Some(2)]],
+    ];
+    for sources in &cases {
+        for advanced in 0..=3 {
+            assert_eq!(run(sources, advanced, true), run(sources, advanced, false));
+        }
+    }
+}
+
 quickcheck! {
     // TODO Replace this function by a normal call to test_specializations
     fn process_results(v: Vec<Result<u8, u8>>) -> () {
