@@ -209,14 +209,14 @@ mod group_map;
 mod groupbylazy;
 #[cfg(feature = "use_std")]
 mod grouping_map;
+#[cfg(feature = "use_alloc")]
+mod heap;
 mod intersperse;
 mod iter_index;
 #[cfg(feature = "use_alloc")]
 mod k_smallest;
 #[cfg(feature = "use_alloc")]
 mod kmerge_impl;
-#[cfg(feature = "use_alloc")]
-mod heap;
 #[cfg(feature = "use_alloc")]
 mod lazy_buffer;
 mod merge_join;
