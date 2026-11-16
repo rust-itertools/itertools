@@ -144,17 +144,18 @@ where
             ProductInProgress(MultiProductInner {
                 iters,
                 cur: NotYetPopulated,
-            }) => iters
-                .into_iter()
-                .map(|iter| iter.iter_orig.count())
-                .try_fold(1, |product, count| {
+            }) => {
+                let mut product = Some(1usize);
+                for iter in iters {
+                    let count = iter.iter_orig.count();
                     if count == 0 {
-                        None
-                    } else {
-                        Some(product * count)
+                        return 0;
                     }
-                })
-                .unwrap_or_default(),
+                    // A later empty factor can still make the total fit.
+                    product = product.and_then(|product| product.checked_mul(count));
+                }
+                product.expect("multi_cartesian_product count does not fit in usize")
+            }
             // The general case.
             ProductInProgress(MultiProductInner {
                 iters,
