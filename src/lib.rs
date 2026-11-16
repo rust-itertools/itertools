@@ -713,6 +713,11 @@ pub trait Itertools: Iterator {
     /// Iterator element type is `(K, Group)`: the group's key and the
     /// group iterator.
     ///
+    /// The same key can occur in multiple groups if its elements are not
+    /// consecutive. Collecting those groups directly into a `HashMap` keeps
+    /// only the last run for each key. With the `use_std` feature,
+    /// `into_group_map_by` instead collects all elements for each key.
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -727,6 +732,13 @@ pub trait Itertools: Iterator {
     ///     data_grouped.push((key, chunk.collect()));
     /// }
     /// assert_eq!(data_grouped, vec![(true, vec![1, 3]), (false, vec![-2, -2]), (true, vec![1, 0, 1, 2])]);
+    ///
+    /// # #[cfg(feature = "use_std")]
+    /// # {
+    /// let by_parity = (1..=4).into_group_map_by(|n| n % 2);
+    /// assert_eq!(by_parity[&0], vec![2, 4]);
+    /// assert_eq!(by_parity[&1], vec![1, 3]);
+    /// # }
     /// ```
     #[cfg(feature = "use_alloc")]
     fn chunk_by<K, F>(self, key: F) -> ChunkBy<K, Self, F>
