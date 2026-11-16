@@ -575,6 +575,17 @@ where
     fn drop_group(&self, client: usize) {
         self.inner.borrow_mut().drop_group(client);
     }
+
+    fn complete(&self, client: usize) {
+        let mut inner = self.inner.borrow_mut();
+        if client >= inner.oldest_buffered_group
+            && (client < inner.top_group
+                || (client == inner.top_group
+                    && inner.buffer.len() > inner.top_group - inner.bottom_group))
+        {
+            inner.lookup_buffer(client);
+        }
+    }
 }
 
 impl<'a, I> IntoIterator for &'a IntoChunks<I>
@@ -625,9 +636,11 @@ where
         let index = self.parent.index.get();
         self.parent.index.set(index + 1);
         let inner = &mut *self.parent.inner.borrow_mut();
+        let size = inner.key.size;
         inner.step(index).map(|elt| Chunk {
             parent: self.parent,
             index,
+            remaining: size - 1,
             first: Some(elt),
         })
     }
@@ -644,6 +657,7 @@ where
 {
     parent: &'a IntoChunks<I>,
     index: usize,
+    remaining: usize,
     first: Option<I::Item>,
 }
 
@@ -668,6 +682,11 @@ where
         if let elt @ Some(..) = self.first.take() {
             return elt;
         }
+        if self.remaining == 0 {
+            self.parent.complete(self.index);
+            return None;
+        }
+        self.remaining -= 1;
         self.parent.step(self.index)
     }
 }
