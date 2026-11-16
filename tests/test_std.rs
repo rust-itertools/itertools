@@ -62,6 +62,32 @@ fn product3() {
 }
 
 #[test]
+fn multi_cartesian_product_count_with_empty_factor() {
+    // The first two factors overflow usize when multiplied, but the
+    // later empty factor makes the product empty.
+    let factors = [0..usize::MAX, 0..2, 0..0];
+    let product = IntoIterator::into_iter(factors).multi_cartesian_product();
+    assert_eq!(product.size_hint(), (0, Some(0)));
+    assert_eq!(product.count(), 0);
+
+    let factors = [0..0, 0..usize::MAX, 0..2];
+    assert_eq!(
+        IntoIterator::into_iter(factors)
+            .multi_cartesian_product()
+            .count(),
+        0
+    );
+
+    let factors = [0..2, 0..3, 0..4];
+    assert_eq!(
+        IntoIterator::into_iter(factors)
+            .multi_cartesian_product()
+            .count(),
+        24
+    );
+}
+
+#[test]
 fn interleave_shortest() {
     let v0: Vec<i32> = vec![0, 2, 4];
     let v1: Vec<i32> = vec![1, 3, 5, 7];
