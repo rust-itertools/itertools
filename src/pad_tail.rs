@@ -82,6 +82,20 @@ where
 
         (lower_bound, upper_bound)
     }
+
+    fn fold<B, G>(self, init: B, mut f: G) -> B
+    where
+        G: FnMut(B, Self::Item) -> B,
+    {
+        let mut pos = self.elements_from_next;
+        let init = self.iter.fold(init, |acc, item| {
+            pos = pos.saturating_add(1);
+            f(acc, item)
+        });
+        let mut filler = self.filler;
+        let end = self.elements_required - self.elements_from_next_back;
+        (pos..end).fold(init, |acc, i| f(acc, filler(i)))
+    }
 }
 
 impl<I, F> DoubleEndedIterator for PadUsing<I, F>
