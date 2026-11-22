@@ -1,6 +1,6 @@
 #![allow(unstable_name_collisions)]
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use itertools::Itertools;
 
 struct Unspecialized<I>(I);
@@ -66,10 +66,63 @@ mod specialization {
     }
 }
 
+fn kmerge_fold(c: &mut Criterion) {
+    let cases = [
+        ("single", vec![(0_u64..4096).collect_vec()]),
+        (
+            "skewed",
+            vec![
+                (0_u64..32).collect_vec(),
+                (32_u64..64).collect_vec(),
+                (64_u64..4096).collect_vec(),
+            ],
+        ),
+        (
+            "balanced",
+            (0_u64..4)
+                .map(|offset| (offset..4096).step_by(4).collect_vec())
+                .collect_vec(),
+        ),
+    ];
+    let mut group = c.benchmark_group("kmerge_fold");
+    for (name, sources) in cases {
+        group.bench_with_input(
+            BenchmarkId::new("specialized", name),
+            &sources,
+            |b, sources| {
+                b.iter(|| {
+                    black_box(sources)
+                        .iter()
+                        .map(|items| items.iter().copied())
+                        .kmerge()
+                        .fold(0_u64, u64::wrapping_add)
+                });
+            },
+        );
+        group.bench_with_input(
+            BenchmarkId::new("unspecialized", name),
+            &sources,
+            |b, sources| {
+                b.iter(|| {
+                    Unspecialized(
+                        black_box(sources)
+                            .iter()
+                            .map(|items| items.iter().copied())
+                            .kmerge(),
+                    )
+                    .fold(0_u64, u64::wrapping_add)
+                });
+            },
+        );
+    }
+    group.finish();
+}
+
 criterion_group!(
     benches,
     specialization::intersperse::external,
     specialization::intersperse::internal_specialized,
     specialization::intersperse::internal_unspecialized,
+    kmerge_fold,
 );
 criterion_main!(benches);
