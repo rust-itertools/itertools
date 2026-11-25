@@ -19,8 +19,17 @@ where
     // Use a Hashmap for the Entry API in order to prevent hashing twice.
     // This can maybe be replaced with a HashSet once `get_or_insert_with`
     // or a proper Entry API for Hashset is stable and meets this msrv
-    used: HashMap<V, (), S>,
+    seen: HashMap<V, (), S>,
     f: F,
+}
+
+/// Formats the keys of a `HashMap` used as a set, hiding the `()` values.
+struct KeySet<'a, V, S>(&'a HashMap<V, (), S>);
+
+impl<V: fmt::Debug, S> fmt::Debug for KeySet<'_, V, S> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_set().entries(self.0.keys()).finish()
+    }
 }
 
 impl<I, V, F, S> fmt::Debug for UniqueBy<I, V, F, S>
@@ -29,7 +38,12 @@ where
     V: fmt::Debug + Hash + Eq,
     S: BuildHasher,
 {
-    debug_fmt_fields!(UniqueBy, iter, used);
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("UniqueBy")
+            .field("iter", &self.iter)
+            .field("seen", &KeySet(&self.seen))
+            .finish_non_exhaustive()
+    }
 }
 
 /// Create a new `UniqueBy` iterator.
@@ -42,22 +56,22 @@ where
 {
     UniqueBy {
         iter,
-        used: HashMap::with_hasher(hash_builder),
+        seen: HashMap::with_hasher(hash_builder),
         f,
     }
 }
 
-// count the number of new unique keys in iterable (`used` is the set already seen)
-fn count_new_keys<I, K, S>(mut used: HashMap<K, (), S>, iterable: I) -> usize
+// count the number of new unique keys in iterable (`seen` is the set already seen)
+fn count_new_keys<I, K, S>(mut seen: HashMap<K, (), S>, iterable: I) -> usize
 where
     I: IntoIterator<Item = K>,
     K: Hash + Eq,
     S: BuildHasher,
 {
     let iter = iterable.into_iter();
-    let current_used = used.len();
-    used.extend(iter.map(|key| (key, ())));
-    used.len() - current_used
+    let current_seen = seen.len();
+    seen.extend(iter.map(|key| (key, ())));
+    seen.len() - current_seen
 }
 
 impl<I, V, F, S> Iterator for UniqueBy<I, V, F, S>
@@ -70,19 +84,19 @@ where
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let Self { iter, used, f } = self;
-        iter.find(|v| used.insert(f(v), ()).is_none())
+        let Self { iter, seen, f } = self;
+        iter.find(|v| seen.insert(f(v), ()).is_none())
     }
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (low, hi) = self.iter.size_hint();
-        (usize::from(low > 0 && self.used.is_empty()), hi)
+        (usize::from(low > 0 && self.seen.is_empty()), hi)
     }
 
     fn count(self) -> usize {
         let mut key_f = self.f;
-        count_new_keys(self.used, self.iter.map(move |elt| key_f(&elt)))
+        count_new_keys(self.seen, self.iter.map(move |elt| key_f(&elt)))
     }
 }
 
@@ -94,8 +108,8 @@ where
     S: BuildHasher,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
-        let Self { iter, used, f } = self;
-        iter.rfind(|v| used.insert(f(v), ()).is_none())
+        let Self { iter, seen, f } = self;
+        iter.rfind(|v| seen.insert(f(v), ()).is_none())
     }
 }
 
@@ -117,9 +131,9 @@ where
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let UniqueBy { iter, used, .. } = &mut self.iter;
+        let UniqueBy { iter, seen, .. } = &mut self.iter;
         iter.find_map(|v| {
-            if let Entry::Vacant(entry) = used.entry(v) {
+            if let Entry::Vacant(entry) = seen.entry(v) {
                 let elt = entry.key().clone();
                 entry.insert(());
                 return Some(elt);
@@ -131,11 +145,11 @@ where
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (low, hi) = self.iter.iter.size_hint();
-        (usize::from(low > 0 && self.iter.used.is_empty()), hi)
+        (usize::from(low > 0 && self.iter.seen.is_empty()), hi)
     }
 
     fn count(self) -> usize {
-        count_new_keys(self.iter.used, self.iter.iter)
+        count_new_keys(self.iter.seen, self.iter.iter)
     }
 }
 
@@ -146,9 +160,9 @@ where
     S: BuildHasher,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
-        let UniqueBy { iter, used, .. } = &mut self.iter;
+        let UniqueBy { iter, seen, .. } = &mut self.iter;
         iter.rev().find_map(|v| {
-            if let Entry::Vacant(entry) = used.entry(v) {
+            if let Entry::Vacant(entry) = seen.entry(v) {
                 let elt = entry.key().clone();
                 entry.insert(());
                 return Some(elt);
@@ -186,7 +200,12 @@ where
     I::Item: Hash + Eq + fmt::Debug + Clone,
     S: BuildHasher,
 {
-    debug_fmt_fields!(Unique, iter);
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("Unique")
+            .field("iter", &self.iter.iter)
+            .field("seen", &KeySet(&self.iter.seen))
+            .finish()
+    }
 }
 
 pub fn unique_with_hasher<I, S>(iter: I, hash_builder: S) -> Unique<I, S>
@@ -198,7 +217,7 @@ where
     Unique {
         iter: UniqueBy {
             iter,
-            used: HashMap::with_hasher(hash_builder),
+            seen: HashMap::with_hasher(hash_builder),
             f: (),
         },
     }

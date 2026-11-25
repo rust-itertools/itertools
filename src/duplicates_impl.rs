@@ -19,13 +19,34 @@ mod private {
         pub(crate) meta: Meta<Key, F, S>,
     }
 
-    impl<I, V, F, S> fmt::Debug for DuplicatesBy<I, V, F, S>
+    impl<I, V, S> fmt::Debug for DuplicatesBy<I, V, ById, S>
     where
         I: Iterator + fmt::Debug,
         V: fmt::Debug + Hash + Eq,
         S: BuildHasher,
     {
-        debug_fmt_fields!(DuplicatesBy, iter, meta.used);
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            f.debug_struct("Duplicates")
+                .field("iter", &self.iter)
+                .field("seen", &self.meta.seen)
+                .field("pending", &self.meta.pending)
+                .finish()
+        }
+    }
+
+    impl<I, V, G, S> fmt::Debug for DuplicatesBy<I, V, ByFn<G>, S>
+    where
+        I: Iterator + fmt::Debug,
+        V: fmt::Debug + Hash + Eq,
+        S: BuildHasher,
+    {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            f.debug_struct("DuplicatesBy")
+                .field("iter", &self.iter)
+                .field("seen", &self.meta.seen)
+                .field("pending", &self.meta.pending)
+                .finish_non_exhaustive()
+        }
     }
 
     impl<I: Iterator, Key: Eq + Hash, F, S: BuildHasher> DuplicatesBy<I, Key, F, S> {
@@ -33,7 +54,7 @@ mod private {
             Self {
                 iter,
                 meta: Meta {
-                    used: HashMap::with_hasher(hash_builder),
+                    seen: HashMap::with_hasher(hash_builder),
                     pending: 0,
                     key_method,
                 },
@@ -43,7 +64,7 @@ mod private {
 
     #[derive(Clone)]
     pub struct Meta<Key, F, S> {
-        used: HashMap<Key, bool, S>,
+        seen: HashMap<Key, bool, S>,
         pending: usize,
         key_method: F,
     }
@@ -61,9 +82,9 @@ mod private {
             F: KeyMethod<Key, I>,
         {
             let kv = self.key_method.make(item);
-            match self.used.get_mut(kv.key_ref()) {
+            match self.seen.get_mut(kv.key_ref()) {
                 None => {
-                    self.used.insert(kv.key(), false);
+                    self.seen.insert(kv.key(), false);
                     self.pending += 1;
                     None
                 }
