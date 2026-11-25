@@ -69,7 +69,7 @@ where
     /// assert_eq!(iter.peek_nth(1), None);
     /// ```
     pub fn peek_nth(&mut self, n: usize) -> Option<&I::Item> {
-        let unbuffered_items = (n + 1).saturating_sub(self.buf.len());
+        let unbuffered_items = n.checked_add(1)?.saturating_sub(self.buf.len());
 
         self.buf.extend(self.iter.by_ref().take(unbuffered_items));
 
@@ -110,7 +110,7 @@ where
     /// assert_eq!(iter.peek_nth_mut(1), None);
     /// ```
     pub fn peek_nth_mut(&mut self, n: usize) -> Option<&mut I::Item> {
-        let unbuffered_items = (n + 1).saturating_sub(self.buf.len());
+        let unbuffered_items = n.checked_add(1)?.saturating_sub(self.buf.len());
 
         self.buf.extend(self.iter.by_ref().take(unbuffered_items));
 
