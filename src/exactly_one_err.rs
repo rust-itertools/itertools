@@ -2,7 +2,7 @@
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
-use std::iter::ExactSizeIterator;
+use std::iter::{ExactSizeIterator, Fuse};
 
 use either::Either;
 
@@ -24,7 +24,7 @@ where
     I: Iterator,
 {
     first_two: Option<Either<[I::Item; 2], I::Item>>,
-    inner: I,
+    inner: Fuse<I>,
 }
 
 impl<I> ExactlyOneError<I>
@@ -33,7 +33,10 @@ where
 {
     /// Creates a new `ExactlyOneErr` iterator.
     pub(crate) fn new(first_two: Option<Either<[I::Item; 2], I::Item>>, inner: I) -> Self {
-        Self { first_two, inner }
+        Self {
+            first_two,
+            inner: inner.fuse(),
+        }
     }
 
     fn additional_len(&self) -> usize {
@@ -90,6 +93,22 @@ where
 }
 
 impl<I> ExactSizeIterator for ExactlyOneError<I> where I: ExactSizeIterator {}
+
+impl<I: DoubleEndedIterator> DoubleEndedIterator for ExactlyOneError<I> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if let Some(next) = self.inner.next_back() {
+            return Some(next);
+        };
+        match self.first_two.take() {
+            Some(Either::Left([first, second])) => {
+                self.first_two = Some(Either::Right(first));
+                Some(second)
+            }
+            Some(Either::Right(second)) => Some(second),
+            None => None,
+        }
+    }
+}
 
 impl<I> Display for ExactlyOneError<I>
 where
