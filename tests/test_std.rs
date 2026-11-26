@@ -672,7 +672,7 @@ where
 
 macro_rules! generic_test {
     ($f:ident, $($t:ty),+) => {
-        $(paste::item! {
+        $(pastey::paste! {
             qc::quickcheck! {
                 fn [< $f _ $t >](i: RandIter<$t>, k: u16) -> () {
                     $f(i, k)
