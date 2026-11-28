@@ -97,7 +97,10 @@ where
     fn count(self) -> usize {
         let k = self.combs.k();
         let (n, combs_count) = self.combs.n_and_count();
-        combs_count + remaining_for(n, k).unwrap()
+        // Saturate instead of panicking when the count overflows `usize`:
+        // the iterator itself is still usable, and `size_hint` already
+        // reports `usize::MAX` as its lower bound in that case.
+        combs_count.saturating_add(remaining_for(n, k).unwrap_or(usize::MAX))
     }
 
     fn fold<B, F>(self, mut init: B, mut f: F) -> B

@@ -119,7 +119,10 @@ where
     fn count(self) -> usize {
         let Self { vals, state } = self;
         let n = vals.count();
-        state.size_hint_for(n).1.unwrap()
+        // Saturate instead of panicking when the count overflows `usize`:
+        // the iterator itself is still usable, and `size_hint` already
+        // reports `usize::MAX` as its lower bound in that case.
+        state.size_hint_for(n).1.unwrap_or(usize::MAX)
     }
 
     fn size_hint(&self) -> SizeHint {

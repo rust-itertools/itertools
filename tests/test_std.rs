@@ -1154,6 +1154,31 @@ fn binomial_avoids_intermediate_overflow() {
 }
 
 #[test]
+fn count_saturates_on_overflow() {
+    // The specialized `count()` of these adaptors used to `unwrap()` a
+    // `None` upper bound and panic as soon as the count no longer fits in
+    // `usize`, even though the iterator itself is still usable. It now
+    // saturates at `usize::MAX`, matching the lower bound `size_hint`
+    // already reported in that case.
+    // 21! = 51090942171709440000 > u64::MAX.
+    assert_eq!((0..21).permutations(21).count(), usize::MAX);
+    // C(100, 50) ~ 1e29 > u64::MAX.
+    assert_eq!((0..100).combinations(50).count(), usize::MAX);
+    // C(149, 50) > u64::MAX.
+    assert_eq!(
+        (0..100).combinations_with_replacement(50).count(),
+        usize::MAX
+    );
+    // 2^65 > u64::MAX.
+    assert_eq!((0..65).powerset().count(), usize::MAX);
+    // Counts that fit are still exact.
+    assert_eq!((0..5).permutations(3).count(), 60);
+    assert_eq!((0..5).combinations(3).count(), 10);
+    assert_eq!((0..4).combinations_with_replacement(2).count(), 10);
+    assert_eq!((0..4).powerset().count(), 16);
+}
+
+#[test]
 fn combinations_range_count() {
     for n in 0..=7 {
         for k in 0..=7 {

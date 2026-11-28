@@ -154,7 +154,10 @@ where
             first,
         } = self;
         let n = pool.count();
-        remaining_for(n, first, indices.borrow()).unwrap()
+        // Saturate instead of panicking when the count overflows `usize`:
+        // the iterator itself is still usable, and `size_hint` already
+        // reports `usize::MAX` as its lower bound in that case.
+        remaining_for(n, first, indices.borrow()).unwrap_or(usize::MAX)
     }
 }
 
